@@ -46,8 +46,10 @@ Ext.define('Ext.rtl.draw.Sprite', {
     rtlRe: /[\u0591-\u07FF\uFB1D-\uFDFD\uFE70-\uFEFC]/,
     
     transformText: function(text) {
-        var me = this;
-        if (text && me.surface.isRtl && !Ext.isNumber(text) && me.rtlRe.test(text)) {
+        var me = this,
+            surface = me.surface;
+
+        if (text && surface && surface.isRtl && !Ext.isNumber(text) && me.rtlRe.test(text)) {
             // IE9m will display a strange visual artefact when showing
             // text with the RLM and there are no RTL characters in the string.
             // IE6 & 7 will still show the artefact, it seems to be unavoidable.

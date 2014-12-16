@@ -25,7 +25,11 @@ Ext.define('Ext.data.schema.OneToOne', {
         extend: 'Ext.data.schema.Role',
 
         onDrop: function(rightRecord, session) {
-            rightRecord[this.role] = null;
+            var leftRecord = this.getAssociatedItem(rightRecord);
+            rightRecord[this.getInstanceName()] = null;
+            if (leftRecord) {
+                leftRecord[this.inverse.getInstanceName()] = null;
+            }
         },
 
         createGetter: function() {
@@ -52,8 +56,8 @@ Ext.define('Ext.data.schema.OneToOne', {
             // Department instance, we start that from the User (rightRecord). Sadly that
             // record has no FK back to us.
 
-            var propertyName = this.role, // ex "managerDepartment"
-                ret = rightRecord[propertyName],
+            var instanceName = this.getInstanceName(), // ex "managerDepartment"
+                ret = rightRecord[instanceName],
                 session = rightRecord.session;
 
             if (!ret && session) {
@@ -69,12 +73,12 @@ Ext.define('Ext.data.schema.OneToOne', {
             // entity. Our goal here is to establish the relationship between the new
             // Department (leftRecord) and the User (rightRecord).
 
-            var propertyName = this.role, // ex "managerDepartment"
-                ret = rightRecord[propertyName],
+            var instanceName = this.getInstanceName(), // ex "managerDepartment"
+                ret = rightRecord[instanceName],
                 inverseSetter = this.inverse.setterName;  // setManager for Department
 
             if (ret !== leftRecord) {
-                rightRecord[propertyName] = leftRecord;
+                rightRecord[instanceName] = leftRecord;
 
                 if (inverseSetter) {
                     // Because the FK is owned by the inverse record, we delegate the
@@ -90,15 +94,14 @@ Ext.define('Ext.data.schema.OneToOne', {
         read: function(rightRecord, node, fromReader, readOptions) {
             var me = this,
                 result = me.callParent([ rightRecord, node, fromReader, readOptions ]),
-                leftRecord = result.getRecords()[0],
-                name = me.role;
+                leftRecord = result.getRecords()[0];
 
             if (leftRecord) {
-                leftRecord[me.inverse.role] = rightRecord;
+                leftRecord[me.inverse.getInstanceName()] = rightRecord;
 
-                rightRecord[name] = leftRecord;
+                rightRecord[me.getInstanceName()] = leftRecord;
                 // Inline associations should *not* arrive on the "data" object:
-                delete rightRecord.data[name];
+                delete rightRecord.data[me.role];
             }
         }
     }),
@@ -132,7 +135,8 @@ Ext.define('Ext.data.schema.OneToOne', {
         onDrop: function(leftRecord, session) {
             var me = this,
                 field = me.association.field,
-                rightRecord, id;
+                rightRecord = me.getAssociatedItem(leftRecord),
+                id;
 
             if (me.inverse.owner) {
                 if (session) {
@@ -144,7 +148,6 @@ Ext.define('Ext.data.schema.OneToOne', {
                         }
                     }
                 } else {
-                    rightRecord = me.getAssociatedItem(leftRecord);
                     if (rightRecord) {
                         rightRecord.drop();
                     }
@@ -154,16 +157,28 @@ Ext.define('Ext.data.schema.OneToOne', {
             if (field) {
                 leftRecord.set(field.name, null);
             }
-            leftRecord[me.role] = null;
+            leftRecord[me.getInstanceName()] = null;
+            if (rightRecord) {
+                rightRecord[me.inverse.getInstanceName()] = null;
+            }
         },
 
         onValueChange: function(leftRecord, session, newValue) {
             // Important to get the record before changing the key.
             var me = this,
-                rightRecord = me.getAssociatedItem(leftRecord);
+                rightRecord = me.getAssociatedItem(leftRecord),
+                hasNewValue = newValue || newValue === 0,
+                instanceName = me.getInstanceName(),
+                cls = me.cls;
 
             leftRecord.changingKey = true;
             me.doSetFK(leftRecord, newValue);
+            if (!hasNewValue) {
+                leftRecord[instanceName] = null;
+            } else if (session && cls) {
+                // Setting to undefined is important so that we can load the record later.
+                leftRecord[instanceName] = session.peekRecord(cls, newValue) || undefined;
+            }
             if (me.inverse.owner && rightRecord) {
                 me.association.schema.queueKeyCheck(rightRecord, me);
             }
@@ -182,17 +197,16 @@ Ext.define('Ext.data.schema.OneToOne', {
             var me = this,
                 result = me.callParent([ leftRecord, node, fromReader, readOptions ]),
                 rightRecord = result.getRecords()[0],
-                name = me.role,
                 field = this.association.field,
                 session = leftRecord.session,
                 oldId;
 
             if (rightRecord) {
-                rightRecord[me.inverse.role] = leftRecord;
+                rightRecord[me.inverse.getInstanceName()] = leftRecord;
 
-                leftRecord[name] = rightRecord;
+                leftRecord[me.getInstanceName()] = rightRecord;
                 // Inline associations should *not* arrive on the "data" object:
-                delete leftRecord.data[name];
+                delete leftRecord.data[me.role];
 
                 // We want to poke the inferred key onto record if it exists, but we don't
                 // want to mess with the dirty or modified state of the record.

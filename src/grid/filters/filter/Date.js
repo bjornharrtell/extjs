@@ -12,13 +12,13 @@
  *
  *             filter: {
  *                 type: 'date',
- *      
+ *
  *                 // optional configs
  *                 dateFormat: 'm/d/Y',  // default
  *                 pickerDefaults: {
  *                     // any DatePicker configs
  *                 },
- *      
+ *
  *                 active: true // default is false
  *             }
  *         }],
@@ -58,7 +58,16 @@ Ext.define('Ext.grid.filters.filter.Date', {
         pickerDefaults: {
             xtype: 'datepicker',
             border: 0
-        }
+        },
+
+        updateBuffer: 0,
+
+        /**
+        * @cfg {String} dateFormat
+        * The date format to return when using getValue.
+        * Defaults to {@link Ext.Date.defaultFormat}.
+        */
+        dateFormat: undefined
     },
 
     itemDefaults: {
@@ -72,13 +81,6 @@ Ext.define('Ext.grid.filters.filter.Date', {
     },
 
     /**
-     * @cfg {String} dateFormat
-     * The date format to return when using getValue.
-     * Defaults to {@link Ext.Date.defaultFormat}.
-     */
-    dateFormat: null,
-
-    /**
      * @cfg {Date} maxDate
      * Allowable date as passed to the Ext.DatePicker
      * Defaults to undefined.
@@ -89,22 +91,9 @@ Ext.define('Ext.grid.filters.filter.Date', {
      * Allowable date as passed to the Ext.DatePicker
      * Defaults to undefined.
      */
-    
-    /**
-     * @private
-     * Will convert a timestamp to a Date object or vice-versa.
-     * @param {Date/Number} value
-     * @param {Boolean} [convertToDate]
-     * @return {Date/Number}
-     */
-    convertValue: function (value, convertToDate) {
-        if (convertToDate && !Ext.isDate(value)) {
-            value = Ext.isDate(value);
-        } else if (!convertToDate && Ext.isDate(value)) {
-            value = (+value);
-        }
 
-        return value;
+    applyDateFormat: function(dateFormat) {
+        return dateFormat || Ext.Date.defaultFormat;
     },
 
     /**
@@ -117,6 +106,7 @@ Ext.define('Ext.grid.filters.filter.Date', {
                 scope: me,
                 checkchange: me.onCheckChange
             },
+            menuItems = me.menuItems,
             fields, itemDefaults, pickerCfg, i, len,
             key, item, cfg, field;
 
@@ -124,10 +114,6 @@ Ext.define('Ext.grid.filters.filter.Date', {
 
         itemDefaults = me.getItemDefaults();
         fields = me.getFields();
-
-        if (!me.dateFormat) {
-            me.dateFormat = Ext.Date.defaultFormat;
-        }
 
         pickerCfg = Ext.apply({
             minDate: me.minDate,
@@ -141,8 +127,8 @@ Ext.define('Ext.grid.filters.filter.Date', {
 
         me.fields = {};
 
-        for (i = 0, len = me.menuItems.length; i < len; i++) {
-            key = me.menuItems[i];
+        for (i = 0, len = menuItems.length; i < len; i++) {
+            key = menuItems[i];
             if (key !== '-') {
                 cfg = {
                     menu: {
@@ -169,6 +155,8 @@ Ext.define('Ext.grid.filters.filter.Date', {
                 field.filterKey = key;
 
                 item.on(listeners);
+            } else {
+                me.menu.add(key);
             }
         }
     },
@@ -208,6 +196,36 @@ Ext.define('Ext.grid.filters.filter.Date', {
         v[operator] = null;
         this.setValue(v);
         this.fields[operator].up('menuitem').setChecked(false, /*suppressEvents*/ true);
+    },
+
+    onStateRestore: function(filter) {
+        filter.setSerializer(this.getSerializer());
+        filter.setConvert(this.convertDateOnly);
+    },
+
+    getFilterConfig: function(config, key) {
+        config = this.callParent([config, key]);
+        config.serializer = this.getSerializer();
+        config.convert = this.convertDateOnly;
+        return config;
+    },
+
+    convertDateOnly: function(v) {
+        var result = null;
+        if (v) {
+            result = Ext.Date.clearTime(v, true).getTime();
+        }
+        return result;
+    },
+
+    getSerializer: function() {
+        var me = this;
+        return function(data) {
+            var value = data.value;
+            if (value) {
+                data.value = Ext.Date.format(value, me.getDateFormat());
+            }
+        };
     },
 
     /**

@@ -52,5 +52,9 @@ Ext.define('Ext.event.gesture.MultiTouch', {
                 this[isCancel ? 'fireCancel' : 'fireEnd'](e);
             }
         }
+    },
+
+    reset: function() {
+        this.isTracking = this.isStarted = false;
     }
 });

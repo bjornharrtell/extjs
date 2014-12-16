@@ -29,9 +29,9 @@
  *              return [{
  *                  xtype: 'dataview',
  *                  itemSelector: '.search-item',
- *                  selType: 'rowselection',
+ *                  selModel: 'rowselection',
  *                  store: this.store,
- *                  autoScroll: true,
+ *                  scrollable: true,
  *                  tpl:
  *                      '<tpl for=".">' +
  *                          '<div class="search-item">' +
@@ -96,9 +96,8 @@ Ext.define('Ext.view.MultiSelectorSearch', {
                 item.store = store;
                 item.isSearchGrid = true;
                 item.selModel = item.selModel || {
-                    selType: 'checkboxmodel',
+                    type: 'checkboxmodel',
                     pruneRemoved: false,
-                    mode: 'SIMPLE',
                     listeners: {
                         selectionchange: 'onSelectionChange'
                     }
@@ -173,7 +172,7 @@ Ext.define('Ext.view.MultiSelectorSearch', {
             emptyText: this.searchText,
             triggers: {
                 clear: {
-                    cls: 'x-form-clear-trigger',
+                    cls: Ext.baseCSSPrefix + 'form-clear-trigger',
                     handler: 'onClearSearch',
                     hidden: true
                 }

@@ -139,6 +139,15 @@ Ext.define('Ext.form.Basic', {
          */
         me.owner = owner;
         
+        me.fieldMonitors = {
+            validitychange: me.checkValidityDelay,
+            enable: me.checkValidityDelay,
+            disable: me.checkValidityDelay,
+            dirtychange: me.checkDirtyDelay,
+            errorchange: me.checkErrorDelay,
+            scope: me
+        };
+
         me.checkValidityTask = new Ext.util.DelayedTask(me.checkValidity, me);
         me.checkDirtyTask = new Ext.util.DelayedTask(me.checkDirty, me);
         me.checkErrorTask = new Ext.util.DelayedTask(me.checkError, me);
@@ -287,6 +296,12 @@ Ext.define('Ext.form.Basic', {
      * configuration.
      */
     paramsAsHash: false,
+    
+    /**
+     * @cfg {Object/Array} [metadata]
+     * Optional metadata to pass with the actions when Ext.Direct {@link #api} is used.
+     * See {@link Ext.direct.Manager} for more information.
+     */
 
     //<locale>
     /**
@@ -344,26 +359,18 @@ Ext.define('Ext.form.Basic', {
         me.checkDirtyTask.cancel();
         me.checkErrorTask.cancel();
 
-        me.checkValidityTask = me.checkDirtyTask = checkErrorTask = null;
+        me.checkValidityTask = me.checkDirtyTask = me.checkErrorTask = null;
         me.isDestroyed = true;
     },
     
     onFieldAdd: function(field){
-        var me = this;
-        
-        me.mon(field, 'validitychange', me.checkValidityDelay, me);
-        me.mon(field, 'dirtychange', me.checkDirtyDelay, me);
-        me.mon(field, 'errorchange', me.checkErrorDelay, me);
-        me.onMonitorInvalidate();
+        field.on(this.fieldMonitors);
+        this.onMonitorInvalidate();
     },
     
     onFieldRemove: function(field){
-        var me = this;
-        
-        me.mun(field, 'validitychange', me.checkValidityDelay, me);
-        me.mun(field, 'dirtychange', me.checkDirtyDelay, me);
-        me.mun(field, 'errorchange', me.checkErrorDelay, me);
-        me.onMonitorInvalidate();
+        field.un(this.fieldMonitors);
+        this.onMonitorInvalidate();
     },
     
     onMonitorInvalidate: function() {

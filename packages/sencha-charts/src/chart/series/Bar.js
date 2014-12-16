@@ -2,7 +2,8 @@
  * @class Ext.chart.series.Bar
  * @extends Ext.chart.series.StackedCartesian
  * 
- * Creates a Bar Chart.
+ * Creates a Bar or Column Chart (depending on the value of the
+ * {@link Ext.chart.CartesianChart#flipXY flipXY} config).
  * 
  *     @example
  *     Ext.create('Ext.Container', {
@@ -42,10 +43,7 @@
  *             series: {
  *                 type: 'bar',
  *                 xField: 'name',
- *                 yField: 'value',
- *                 style: {
- *                     fill: 'blue'
- *                 }
+ *                 yField: 'value'
  *             }
  *         }
  *     });

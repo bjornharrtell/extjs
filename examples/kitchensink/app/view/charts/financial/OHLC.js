@@ -73,7 +73,6 @@ Ext.define('KitchenSink.view.charts.financial.OHLC', {
         height: 500,
         store: {type: 'stock-price'},
         id: 'ohlc-chart',
-        background: 'white',
         insetPadding: 20,
         interactions: [
             {

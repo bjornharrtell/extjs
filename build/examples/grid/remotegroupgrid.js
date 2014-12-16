@@ -247,7 +247,6 @@ Ext.onReady(function() {
     });
 
     var restaurants = Ext.create('Ext.data.Store', {
-        storeId: 'restaraunts',
         model: 'Restaurant',
         groupField: 'cuisine',
         remoteGroup: true,

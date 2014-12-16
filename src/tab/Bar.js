@@ -50,18 +50,20 @@ Ext.define('Ext.tab.Bar', {
          * is docked horizontally, or the width of the widest tab when the tabBar is
          * docked vertically.
          */
-        tabStretchMax: true
+        tabStretchMax: true,
+        
+        /**
+         * @cfg {Boolean} [activateOnFocus=true]
+         * `true` to follow WAI-ARIA requirement and activate tab when it is navigated to
+         * with arrow keys, or `false` to disable that behavior. When activation on focus
+         * is disabled, users will have to use arrow keys to focus a tab, and then press
+         * Space key to activate it.
+         */
+        // NB: This option is named this way for the intent, but in fact activation
+        // happens in arrow key handler, not in focus handler. In IE focus events are
+        // asynchronous, so activation happens before the tab's focus handler is fired.
+        activateOnFocus: true
     },
-
-    /**
-     * @cfg {String} title @hide
-     */
-    
-    /**
-     * @cfg {String} iconCls @hide
-     *
-     * There are no default icon classes that come with Ext JS.
-     */
 
     // @private
     defaultType: 'tab',
@@ -229,35 +231,6 @@ Ext.define('Ext.tab.Bar', {
     afterLayout: function() {
         this.adjustTabPositions();
         this.callParent(arguments);
-    },
-
-    adjustTabPositions: function() {
-        var items = this.items.items,
-            i = items.length,
-            tab, lastBox, el, rotation;
-
-        // When tabs are rotated vertically we don't have a reliable way to position
-        // them using CSS in modern browsers.  This is because of the way transform-orign
-        // works - it requires the width to be known, and the width is not known in css.
-        // Consequently we have to make an adjustment to the tab's position in these browsers.
-        // This is similar to what we do in Ext.panel.Header#adjustTitlePosition
-        if (!Ext.isIE8) {
-            while (i--) {
-                tab = items[i];
-                el = tab.el;
-                lastBox = tab.lastBox;
-                rotation = tab.isTab ? tab.getActualRotation() : 0;
-                if (rotation === 1 && tab.isVisible()) {
-                    // rotated 90 degrees using the top left corner as the axis.
-                    // tabs need to be shifted to the right by their width
-                    el.setStyle('left', (lastBox.x + lastBox.width) + 'px');
-                } else if (rotation === 2 && tab.isVisible()) {
-                    // rotated 270 degrees using the bottom right corner as the axis.
-                    // tabs need to be shifted down by their height
-                    el.setStyle('left', (lastBox.x - lastBox.height) + 'px');
-                }
-            }
-        }
     },
 
     onAdded: function(container, pos, instanced) {
@@ -513,15 +486,20 @@ Ext.define('Ext.tab.Bar', {
         var me = this;
 
         if (!tab.disabled && tab !== me.activeTab) {
+            // Deactivate the previous tab, and ensure this FocusableContainer knows about it
             if (me.activeTab) {
                 if (me.activeTab.isDestroyed) {
                     me.previousTab = null;
                 } else {
                     me.previousTab = me.activeTab;
                     me.activeTab.deactivate();
+                    me.deactivateFocusable(me.activeTab);
                 }
             }
+
+            // Activate the new tab, and ensure this FocusableContainer knows about it
             tab.activate();
+            me.activateFocusable(tab);
 
             me.activeTab = tab;
             me.needsScroll = true;
@@ -537,8 +515,46 @@ Ext.define('Ext.tab.Bar', {
     },
 
     privates: {
+        adjustTabPositions: function() {
+            var me = this,
+                items = me.items.items,
+                i = items.length,
+                tab, lastBox, el, rotation, prop;
+
+            // When tabs are rotated vertically we don't have a reliable way to position
+            // them using CSS in modern browsers.  This is because of the way transform-orign
+            // works - it requires the width to be known, and the width is not known in css.
+            // Consequently we have to make an adjustment to the tab's position in these browsers.
+            // This is similar to what we do in Ext.panel.Header#adjustTitlePosition
+            if (!Ext.isIE8) {
+                // 'left' in normal mode, 'right' in rtl
+                prop = me._getTabAdjustProp();
+
+                while (i--) {
+                    tab = items[i];
+                    el = tab.el;
+                    lastBox = tab.lastBox;
+                    rotation = tab.isTab ? tab.getActualRotation() : 0;
+                    if (rotation === 1 && tab.isVisible()) {
+                        // rotated 90 degrees using the top left corner as the axis.
+                        // tabs need to be shifted to the right by their width
+                        el.setStyle(prop, (lastBox.x + lastBox.width) + 'px');
+                    } else if (rotation === 2 && tab.isVisible()) {
+                        // rotated 270 degrees using the bottom right corner as the axis.
+                        // tabs need to be shifted to the left by their height
+                        el.setStyle(prop, (lastBox.x - lastBox.height) + 'px');
+                    }
+                }
+            }
+        },
+
         applyTargetCls: function(targetCls) {
             this.bodyTargetCls = targetCls;
+        },
+
+        // rtl hook
+        _getTabAdjustProp: function() {
+            return 'left';
         },
 
         getTargetEl: function() {
@@ -568,15 +584,20 @@ Ext.define('Ext.tab.Bar', {
             if (isCloseClick) {
                 e.preventDefault();
             }
+            
             if (tab && tab.isDisabled && !tab.isDisabled()) {
+                // This will focus the tab; we do it before activating the card
+                // because the card may attempt to focus itself or a child item.
+                // We need to focus the tab explicitly because click target is
+                // the Bar, not the Tab.
+                tab.beforeClick(isCloseClick);
+                
                 if (tab.closable && isCloseClick) {
                     tab.onCloseClick();
                 }
                 else {
                     me.doActivateTab(tab);
                 }
-
-                tab.afterClick(isCloseClick);
             }
         },
         
@@ -584,25 +605,49 @@ Ext.define('Ext.tab.Bar', {
             var tabPanel = this.tabPanel;
             
             if (tabPanel) {
-                // TabPanel will card setActiveTab of the TabBar
-                tabPanel.setActiveTab(tab.card);
-            }
-            else {
+                // TabPanel will call setActiveTab of the TabBar
+                if (!tab.disabled) {
+                    tabPanel.setActiveTab(tab.card);
+                }
+            } else {
                 this.setActiveTab(tab);
             }
         },
         
-        beforeFocusableChildFocus: function(child, e) {
+        onFocusableContainerFocus: function(e) {
             var me = this,
-                mixin = me.mixins.focusablecontainer;
+                mixin = me.mixins.focusablecontainer,
+                child;
             
-            mixin.beforeFocusableChildFocus.call(me, child, e);
+            child = mixin.onFocusableContainerFocus.call(me, e);
             
-            if (!child.active) {
-                child.activate();
+            if (child && child.isTab) {
+                me.doActivateTab(child);
             }
+        },
+        
+        onFocusableContainerFocusEnter: function(e) {
+            var me = this,
+                mixin = me.mixins.focusablecontainer,
+                child;
             
-            me.doActivateTab(child);
+            child = mixin.onFocusableContainerFocusEnter.call(me, e);
+            
+            if (child && child.isTab) {
+                me.doActivateTab(child);
+            }
+        },
+        
+        focusChild: function(child, forward) {
+            var me = this,
+                mixin = me.mixins.focusablecontainer,
+                nextChild;
+            
+            nextChild = mixin.focusChild.call(me, child, forward);
+            
+            if (me.activateOnFocus && nextChild && nextChild.isTab) {
+                me.doActivateTab(nextChild);
+            }
         }
     }
 });

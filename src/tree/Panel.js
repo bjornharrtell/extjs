@@ -210,7 +210,6 @@ Ext.define('Ext.tree.Panel', {
         'Ext.tree.NavigationModel'
     ],
     viewType: 'treeview',
-    selType: 'treemodel',
 
     treeCls: Ext.baseCSSPrefix + 'tree-panel',
 
@@ -424,12 +423,6 @@ Ext.define('Ext.tree.Panel', {
         ]);
     },
 
-    getSelectionModel: function() {
-        var result = this.callParent();
-        result.treeStore = this.getStore();
-        return result;
-    },
-
     // @private
     // Hook into the TreeStore.
     bindStore: function(store, initial) {
@@ -446,14 +439,6 @@ Ext.define('Ext.tree.Panel', {
             if (bufferedRenderer.store) {
                 bufferedRenderer.bindStore(store);
             }
-        }
-        // Create a BufferedRenderer as a plugin if we have not already configured with one.
-        else {
-            bufferedRenderer = {
-                xclass: 'Ext.grid.plugin.BufferedRenderer'
-            };
-            Ext.copyTo(bufferedRenderer, me, 'variableRowHeight,numFromEdge,trailingBufferZone,leadingBufferZone,scrollToLoadBuffer');
-            me.bufferedRenderer = bufferedRenderer = me.addPlugin(bufferedRenderer);
         }
 
         // The TreeStore needs to know about this TreePanel's singleExpand constraint so that
@@ -564,14 +549,18 @@ Ext.define('Ext.tree.Panel', {
         // If its already expanded, or in the process of loading, the TreeStore
         // has started that at the end of updateRoot 
         if (!me.rootVisible && !store.autoLoad && !(root.isExpanded() || root.isLoading())) {
-            // A hidden root must be expanded.
+            // A hidden root must be expanded, unless it's overridden with autoLoad: false.
             // If it's loaded, set its expanded field (silently), and skip ahead to the onNodeExpand callback.
             if (root.isLoaded()) {
                 root.data.expanded = true;
                 store.onNodeExpand(root, root.childNodes);
             }
             // Root is not loaded; go through the expand mechanism to force a load
-            else {
+            // unless we were told explicitly not to load the store by setting
+            // autoLoad: false. This is useful with Direct proxy in cases when
+            // Direct API is loaded dynamically and may not be available at the time
+            // when TreePanel is created.
+            else if (store.autoLoad !== false) {
                 root.data.expanded = false;
                 root.expand();
             }
@@ -581,7 +570,7 @@ Ext.define('Ext.tree.Panel', {
         store.ownerTree = me;
 
         if (!initial) {
-            me.view.setRootNode(root, true);
+            me.view.setRootNode(root);
         }
     },
 
@@ -660,18 +649,14 @@ Ext.define('Ext.tree.Panel', {
      * @param {Function} [callback] A function to execute when the expand finishes.
      * @param {Object} [scope] The scope of the callback function
      */
-    expandAll : function(callback, scope) {
+    expandAll: function(callback, scope) {
         var me = this,
-            root = me.getRootNode(),
-            animate = me.enableAnimations;
+            root = me.getRootNode();
+
         if (root) {
-            if (!animate) {
-                Ext.suspendLayouts();
-            }
+            Ext.suspendLayouts();
             root.expand(true, callback, scope || me);
-            if (!animate) {
-                Ext.resumeLayouts(true);
-            }
+            Ext.resumeLayouts(true);
         }
     },
 
@@ -680,118 +665,240 @@ Ext.define('Ext.tree.Panel', {
      * @param {Function} [callback] A function to execute when the collapse finishes.
      * @param {Object} [scope] The scope of the callback function
      */
-    collapseAll : function(callback, scope) {
+    collapseAll: function(callback, scope) {
         var me = this,
             root = me.getRootNode(),
-            animate = me.enableAnimations,
             view = me.getView();
 
         if (root) {
-            if (!animate) {
-                Ext.suspendLayouts();
-            }
+            Ext.suspendLayouts();
             scope = scope || me;
             if (view.rootVisible) {
                 root.collapse(true, callback, scope);
             } else {
                 root.collapseChildren(true, callback, scope);
             }
-            if (!animate) {
-                Ext.resumeLayouts(true);
-            }
+            Ext.resumeLayouts(true);
         }
     },
 
     /**
-     * Expand the tree to the path of a particular node.
-     * @param {String} path The path to expand. The path should include a leading separator.
-     * @param {String} [field] The field to get the data from. Defaults to the model idProperty.
-     * @param {String} [separator='/'] A separator to use.
-     * @param {Function} [callback] A function to execute when the expand finishes. The callback will be called with
-     * (success, lastNode) where success is if the expand was successful and lastNode is the last node that was expanded.
-     * @param {Object} [scope] The scope of the callback function
+     * Expand the tree to the path of a particular node. This is the way to expand a known path
+     * when the intervening nodes are not yet loaded.
+     *
+     * The path may be an absolute path (beginning with a `'/'` character) from the root, eg:
+     *
+     *     '/rootId/nodeA/nodeB/nodeC'
+     *
+     * Or, the path may be relative, starting from an **existing** node in the tree:
+     *
+     *     'nodeC/nodeD'
+     *
+     * @param {String}          path The path to expand. The path may be absolute, including a leading separator and starting
+     *                          from the root node id, or relative with no leading separator, starting from an *existing*
+     *                          node in the tree.
+     * @param {Object}          [options] An object containing options to modify the operation.
+     * @param {String}          [options.field] The field to get the data from. Defaults to the model idProperty.
+     * @param {String}          [options.separator='/'] A separator to use.
+     * @param {Boolean}         [options.select] Pass as `true` to select the specified row.
+     * @param {Boolean}         [options.focus] Pass as `true` to focus the specified row.
+     * @param {Function}        [options.callback] A function to execute when the expand finishes.
+     * @param {Boolean}         options.callback.success `true` if the node expansion was successful.
+     * @param {Ext.data.Model}  options.callback.record If successful, the target record.
+     * @param {HtmlElement}     options.callback.node If successful, the record's view node. If unsuccessful, the
+     *                          last view node encountered while expanding the path.
+     * @param {Object}          [options.scope] The scope (`this` reference) in which the callback function is executed.
      */
-    expandPath: function(path, field, separator, callback, scope) {
-        var me = this,
-            current = me.getRootNode(),
-            index = 1,
+    expandPath: function(path, options) {
+        var args = arguments,
+            me = this,
+            view = me.view,
+            field = (options && options.field) || me.store.model.idProperty,
+            select,
+            doFocus,
+            separator = (options && options.separator) || '/',
+            callback,
+            scope,
+            current,
+            index,
             keys,
+            rooted,
             expander;
 
-        field = field || me.getRootNode().idProperty;
-        separator = separator || '/';
+        // New option object API
+        if (options && typeof options === 'object') {
+            field = options.field || me.store.model.idProperty;
+            separator = options.separator || '/';
+            callback = options.callback;
+            scope = options.scope;
+            select = options.select;
+            doFocus = options.focus;
+        }
+        // Old multi argument API
+        else {
+            field = args[1] || me.store.model.idProperty;
+            separator = args[2] || '/';
+            callback = args[3];
+            scope = args[4];
+        }
 
         if (Ext.isEmpty(path)) {
-            Ext.callback(callback, scope || me, [false, null]);
-            return;
+            return Ext.callback(callback, scope || me, [false, null]);
         }
 
         keys = path.split(separator);
-        if (current.get(field) != keys[1]) {
-            // invalid root
-            Ext.callback(callback, scope || me, [false, current]);
-            return;
+
+        // If they began the path with '/', this indicates starting from the root ID.
+        // otherwise, then can start at any *existing* node id.
+        rooted = !keys[0];
+        if (rooted) {
+            current = me.getRootNode();
+            index = 1;
+        }
+        // Not rooted, gather the first node in the path which MUST already exist.
+        else {
+            current = me.store.findNode(field, keys[0]);
+            index = 0;
         }
 
-        expander = function(){
+        // Invalid root. Relative start could not be found, absolute start was not the rootNode.
+        if (!current || (rooted && current.get(field) !== keys[1])) {
+            return Ext.callback(callback, scope || me, [false, current]);
+        }
+
+        // The expand success callback passed to every expand call down the path.
+        // Called in the scope of the node being expanded.
+        expander = function(newChildren) {
+            var node = this,
+                len, i, value;
+
+            // We've arrived at the end of the path.
             if (++index === keys.length) {
-                Ext.callback(callback, scope || me, [true, current]);
-                return;
+                if (select) {
+                    view.getSelectionModel().select(node);
+                }
+                if (doFocus) {
+                    view.getNavigationModel().setPosition(node, 0);
+                }
+                return Ext.callback(callback, scope || me, [true, node, view.getNode(node)]);
             }
-            var node = current.findChild(field, keys[index]);
-            if (!node) {
-                Ext.callback(callback, scope || me, [false, current]);
-                return;
+
+            // Find the next child in the path if it's there and expand it.
+            for (i = 0, len = newChildren ? newChildren.length : 0; i < len; i++) {
+                // The ids paths may be numeric, so cast the value to a string for comparison
+                node = newChildren[i];
+                value = node.get(field);
+                if (value || value === 0) {
+                    value = value.toString();
+                }
+                if (value === keys[index]) {
+                    return node.expand(false, expander);
+                }
             }
-            current = node;
-            current.expand(false, expander);
+
+            // If we get here, there's been a miss along the path, and the operation is a fail.
+            node = this;
+            Ext.callback(callback, scope || me, [false, node, view.getNode(node)]);
         };
         current.expand(false, expander);
     },
 
     /**
-     * Expand the tree to the path of a particular node, then select it.
-     * @param {String} path The path to select; A string of separated node IDs.
-     * 
-     * The path should include a leading separator. eg `'/root/usermanagement/users'`
-     * @param {String} [field] The field to get the data from. Defaults to the model idProperty.
-     * @param {String} [separator='/'] A separator to use.
-     * @param {Function} [callback] A function to execute when the select finishes. The callback will be called with
-     * (bSuccess, oLastNode) where bSuccess is if the select was successful and oLastNode is the last node that was expanded.
-     * @param {Object} [scope] The scope of the callback function
+     * Expand the tree to the path of a particular node, then scroll it into view.
+     * @param {String}          path The path to bring into view. The path may be absolute, including a leading separator and starting
+     *                          from the root node id, or relative with no leading separator, starting from an *existing* node in the tree.
+     * @param {Object}          [options] An object containing options to modify the operation.
+     * @param {String}          [options.field] The field to get the data from. Defaults to the model idProperty.
+     * @param {String}          [options.separator='/'] A separator to use.
+     * @param {Boolean}         [options.animate] Pass `true` to animate the row into view.
+     * @param {Boolean}         [options.highlight] Pass `true` to highlight the row with a glow animation when it is in view.
+     * @param {Boolean}         [options.select] Pass as `true` to select the specified row.
+     * @param {Boolean}         [options.focus] Pass as `true` to focus the specified row.
+     * @param {Function}        [options.callback] A function to execute when the expand finishes.
+     * @param {Boolean}         options.callback.success `true` if the node expansion was successful.
+     * @param {Ext.data.Model}  options.callback.record If successful, the target record.
+     * @param {HtmlElement}     options.callback.node If successful, the record's view node. If unsuccessful, the
+     *                          last view node encountered while expanding the path.
+     * @param {Object}          [options.scope] The scope (`this` reference) in which the callback function is executed.
      */
-    selectPath: function(path, field, separator, callback, scope) {
-        var me = this,
-            root,
-            keys,
-            last;
+    ensureVisible: function(path, options) {
+        // They passed a record instance. Use the TablePanel's method.
+        if (path.isEntity) {
+            return this.callParent([path, options]);
+        }
 
-        field = field || me.getRootNode().idProperty;
-        separator = separator || '/';
+        var me = this,
+            field = (options && options.field) || me.store.model.idProperty,
+            separator = (options && options.separator) || '/',
+            callback,
+            scope,
+            keys,
+            rooted,
+            last,
+            node,
+            parentNode,
+            onLastExpanded = function(success, lastExpanded, lastExpandedHtmlNode, targetNode) {
+                if (!targetNode && success && lastExpanded) {
+                    targetNode = lastExpanded.findChild(field, last);
+                }
+                // Once we have the node, we can use the TablePanel's ensureVisible method
+                if (targetNode) {
+                    me.doEnsureVisible(targetNode, options);
+                } else {
+                    Ext.callback(callback, scope || me, [false, lastExpanded]);
+                }
+            };
+
+        if (options) {
+            callback = options.callback;
+            scope = options.scope;
+        }
 
         keys = path.split(separator);
+        rooted = !keys[0];
         last = keys.pop();
-        if (keys.length > 1) {
-            me.expandPath(keys.join(separator), field, separator, function(success, node){
-                var lastNode = node;
-                if (success && node) {
-                    node = node.findChild(field, last);
-                    if (node) {
-                        me.getSelectionModel().select(node);
-                        Ext.callback(callback, scope || me, [true, node]);
-                        return;
-                    }
+
+        // If the path was "foo/bar" or "/foo/Bar"
+        if (keys.length && !(rooted && keys.length === 1)) {
+            me.expandPath(keys.join(separator), field, separator, onLastExpanded);
+        }
+        // If the path was "foo" or "/foo"
+        else {
+            node = me.store.findNode(field, last);
+            if (node) {
+                parentNode = node.parentNode;
+                if (parentNode && !parentNode.isExpanded()) {
+                    parentNode.expand();
                 }
-                Ext.callback(callback, scope || me, [false, lastNode]);
-            }, me);
-        } else {
-            root = me.getRootNode();
-            if (root.getId() === last) {
-                me.getSelectionModel().select(root);
-                Ext.callback(callback, scope || me, [true, root]);
+                // Pass the target node as the 4th parameter so the calback doesn't have to look it up
+                onLastExpanded(true, null, null, node);
             } else {
                 Ext.callback(callback, scope || me, [false, null]);
             }
         }
+    },
+
+    /**
+     * Expand the tree to the path of a particular node, then select it.
+     * @param {String}                  path The path to expand. The path may be absolute, including a leading separator and
+     *                                  starting from the root node id, or relative with no leading separator, starting from
+     *                                  an *existing* node in the tree.
+     * @param {String}                  [field] The field to get the data from. Defaults to the model idProperty.
+     * @param {String}                  [separator='/'] A separator to use.
+     * @param {Function}                [callback] A function to execute when the select finishes.
+     * @param {Boolean}                 callback.success `true` if the node expansion was successful.
+     * @param {Ext.data.NodeInterface}  callback.lastNode If successful, the target node. If unsuccessful, the
+     *                                  last tree node encountered while expanding the path.
+     * @param {HtmlElement}             options.callback.node If successful, the record's view node.
+     * @param {Object}                  [scope] The scope of the callback function
+     */
+    selectPath: function(path, field, separator, callback, scope) {
+        this.ensureVisible(path, {
+            field: field,
+            separator: separator,
+            select: true,
+            callback: callback,
+            scope: scope
+        });
     }
 });

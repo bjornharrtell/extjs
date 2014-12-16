@@ -19,6 +19,7 @@
         cursor: pointer;
         white-space: nowrap;
         text-decoration: none;
+        vertical-align: top;
         overflow: hidden;
         // buttons are position:relative because they may contain an absolutely positioned
         // pseudo element for imitating box-shadow in IE8 when used in a segmented button

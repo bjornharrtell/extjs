@@ -246,6 +246,7 @@ if (!document.createElement('canvas').getContext) {
     o2.fillStyle     = o1.fillStyle;
     o2.lineCap       = o1.lineCap;
     o2.lineJoin      = o1.lineJoin;
+    o2.lineDash      = o1.lineDash;
     o2.lineWidth     = o1.lineWidth;
     o2.miterLimit    = o1.miterLimit;
     o2.shadowBlur    = o1.shadowBlur;
@@ -586,6 +587,7 @@ if (!document.createElement('canvas').getContext) {
 
     this.lineWidth = 1;
     this.lineJoin = 'miter';
+    this.lineDash = [];
     this.lineCap = 'butt';
     this.miterLimit = Z * 1;
     this.globalAlpha = 1;
@@ -847,6 +849,18 @@ if (!document.createElement('canvas').getContext) {
     this.element_.insertAdjacentHTML('BeforeEnd', vmlStr.join(''));
   };
 
+  contextPrototype.setLineDash = function (lineDash) {
+      if (lineDash.length === 1) {
+          lineDash = lineDash.slice();
+          lineDash[1] = lineDash[0];
+      }
+      this.lineDash = lineDash;
+  };
+
+  contextPrototype.getLineDash = function () {
+      return this.lineDash;
+  };
+
   contextPrototype.stroke = function(aFill) {
     var lineStr = [];
     var W = 10;
@@ -947,6 +961,7 @@ if (!document.createElement('canvas').getContext) {
       '<g_vml_:stroke',
       ' opacity="', opacity, '"',
       ' joinstyle="', ctx.lineJoin, '"',
+      ' dashstyle="', ctx.lineDash.join(' '), '"',
       ' miterlimit="', ctx.miterLimit, '"',
       ' endcap="', processLineCap(ctx.lineCap), '"',
       ' weight="', lineWidth, 'px"',

@@ -40,8 +40,8 @@ Ext.define('Ext.data.DirectStore', {
                     type: 'json'
                 }
             };
-            Ext.copyTo(proxy, config, 'paramOrder,paramsAsHash,directFn,api,simpleSortMode');
-            Ext.copyTo(proxy.reader, config, 'totalProperty,root,idProperty');
+            Ext.copyTo(proxy, config, 'paramOrder,paramsAsHash,directFn,api,simpleSortMode,extraParams');
+            Ext.copyTo(proxy.reader, config, 'totalProperty,root,rootProperty,idProperty');
             config.proxy = proxy;
         }
         this.callParent([config]);

@@ -62,9 +62,15 @@
  */
 Ext.define('Ext.chart.axis.Numeric', {
     extend: 'Ext.chart.axis.Axis',
-    alias: ['axis.numeric', 'axis.radial'],		// For compatibility with ExtJS: add radial
     type: 'numeric',
-    requires: ['Ext.chart.axis.layout.Continuous', 'Ext.chart.axis.segmenter.Numeric'],
+    alias: [
+        'axis.numeric',
+        'axis.radial' // legacy charts compatibility
+    ],
+    requires: [
+        'Ext.chart.axis.layout.Continuous',
+        'Ext.chart.axis.segmenter.Numeric'
+    ],
     config: {
         layout: 'continuous',
 

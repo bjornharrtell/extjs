@@ -46,7 +46,7 @@ Ext.define('Ext.chooser.Window', {
                 layout: 'fit',
                 items: {
                     xtype: 'iconbrowser',
-                    autoScroll: true,
+                    scrollable: true,
                     id: 'img-chooser-view',
                     listeners: {
                         scope: this,

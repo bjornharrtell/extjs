@@ -22,7 +22,7 @@ Ext.onReady(function() {
         bodyStyle: 'padding:10px',
         renderTo : Ext.getBody(),
         html     : fakeHTML,
-        autoScroll: true
+        scrollable: true
     });
     
     new SamplePanel({

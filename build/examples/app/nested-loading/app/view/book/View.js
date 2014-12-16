@@ -7,18 +7,18 @@ Ext.define('Books.view.book.View', {
     extend: 'Ext.panel.Panel',
     
     requires: ['Ext.Img'],
+
+    cls: 'item-ct',
+    flex: 2,
+    border: false,
+    scrollable: true,
     
     initComponent: function() {
         Ext.apply(this, {
-            cls: 'item-ct',
-            flex: 2,
-            border: false,
-            autoScroll: true,
             layout: {
                 type : 'hbox',
                 align: 'middle',
-                pack : 'center',
-                availableSpaceOffset: Ext.getScrollbarSize().width
+                pack : 'center'
             },
             
             items: [{

@@ -121,21 +121,8 @@ Ext.define('Ext.grid.feature.RowBody', {
         '%}', {
             priority: 100,
 
-            syncRowHeights: function(firstRow, secondRow) {
-                var owner = this.owner,
-                    firstRowBody = Ext.fly(firstRow).down(owner.eventSelector, true),
-                    secondRowBody,
-                    firstHeight, secondHeight;
-
-                // Sync the heights of row body elements in each row if they need it.
-                if (firstRowBody && (secondRowBody = Ext.fly(secondRow).down(owner.eventSelector, true))) {
-                    if ((firstHeight = firstRowBody.offsetHeight) > (secondHeight = secondRowBody.offsetHeight)) {
-                        Ext.fly(secondRowBody).setHeight(firstHeight);
-                    }
-                    else if (secondHeight > firstHeight) {
-                        Ext.fly(firstRowBody).setHeight(secondHeight);
-                    }
-                }
+            beginRowSync: function (rowSync) {
+                rowSync.add('rowBody', this.owner.eventSelector);
             },
 
             syncContent: function(destRow, sourceRow, columnsToUpdate) {
@@ -203,7 +190,7 @@ Ext.define('Ext.grid.feature.RowBody', {
             i;
 
         for (i = 0; i < len; ++i) {
-            items[i].colSpan = colspan;
+            items[i].setAttribute('colSpan', colspan);
         }
     },
 

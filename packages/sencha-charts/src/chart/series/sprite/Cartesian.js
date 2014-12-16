@@ -103,7 +103,7 @@ Ext.define('Ext.chart.series.sprite.Cartesian', {
                 innerWidth: 1,
                 innerHeight: 1
             },
-            dirtyTriggers: {
+            triggers: {
                 dataX: 'dataX,bbox',
                 dataY: 'dataY,bbox',
                 dataMinX: 'bbox',
@@ -118,38 +118,33 @@ Ext.define('Ext.chart.series.sprite.Cartesian', {
                 innerHeight: 'panzoom'
             },
             updaters: {
-                dataX: function (attrs) {
+                dataX: function (attr) {
                     this.processDataX();
-                    // TODO: the lines below basically schedule the 'dataY'
-                    // TODO: updater, must be a better way to do it.
-                    if (!attrs.dirtyFlags.dataY) {
-                        attrs.dirtyFlags.dataY = [];
-                    }
-                    attrs.dirtyFlags.dataY.push('dataY');
+                    this.scheduleUpdaters(attr, {dataY: ['dataY']});
                 },
 
                 dataY: function () {
                     this.processDataY();
                 },
 
-                panzoom: function (attrs) {
-                    var dx = attrs.visibleMaxX - attrs.visibleMinX,
-                        dy = attrs.visibleMaxY - attrs.visibleMinY,
-                        innerWidth = attrs.flipXY ? attrs.innerHeight : attrs.innerWidth,
-                        innerHeight = !attrs.flipXY ? attrs.innerHeight : attrs.innerWidth,
+                panzoom: function (attr) {
+                    var dx = attr.visibleMaxX - attr.visibleMinX,
+                        dy = attr.visibleMaxY - attr.visibleMinY,
+                        innerWidth = attr.flipXY ? attr.innerHeight : attr.innerWidth,
+                        innerHeight = !attr.flipXY ? attr.innerHeight : attr.innerWidth,
                         surface = this.getSurface(),
                         isRtl = surface ? surface.getInherited().rtl : false;
 
-                    if (isRtl && !attrs.flipXY) {
-                        attrs.translationX = innerWidth + attrs.visibleMinX * innerWidth / dx;
+                    if (isRtl && !attr.flipXY) {
+                        attr.translationX = innerWidth + attr.visibleMinX * innerWidth / dx;
                     } else {
-                        attrs.translationX = -attrs.visibleMinX * innerWidth / dx;
+                        attr.translationX = -attr.visibleMinX * innerWidth / dx;
                     }
-                    attrs.translationY = -attrs.visibleMinY * innerHeight / dy;
-                    attrs.scalingX = (isRtl && !attrs.flipXY ? -1 : 1) * innerWidth / dx;
-                    attrs.scalingY = innerHeight / dy;
-                    attrs.scalingCenterX = 0;
-                    attrs.scalingCenterY = 0;
+                    attr.translationY = -attr.visibleMinY * innerHeight / dy;
+                    attr.scalingX = (isRtl && !attr.flipXY ? -1 : 1) * innerWidth / dx;
+                    attr.scalingY = innerHeight / dy;
+                    attr.scalingCenterX = 0;
+                    attr.scalingCenterY = 0;
                     this.applyTransformations(true);
                 }
             }

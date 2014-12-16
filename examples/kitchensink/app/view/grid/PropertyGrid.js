@@ -106,9 +106,12 @@ Ext.define('KitchenSink.view.grid.PropertyGrid', {
             editor: {
                 xtype: 'combobox',
                 store: ['Red', 'Green', 'Blue'],
-                forceSelection: true
+                forceSelection: true,
+                allowBlank: false
             },
             renderer: function(v){
+                v = v || '';
+                
                 var lower = v.toLowerCase();
                 return Ext.String.format('<span style="color: {0};">{1}</span>', lower, v);
             }

@@ -1,19 +1,19 @@
-<project name="page-impl.xml">
+<project name="x-page-impl.xml">
 
     <macrodef name="x-build-microload-markup">
         <sequential>
+            <x-sencha-command dir="${app.dir}" inheritall="true">
+                <![CDATA[
+                fs
+                    minify
+                        ${build.embedded.microloader.compressor}
+                        -from=${build.microloader.path}
+                        -to=${build.microloader.path}
+                ]]>
+            </x-sencha-command>
             <if>
                 <x-is-true value="${build.enable.embedded.microloader}"/>
                 <then>
-                    <x-sencha-command dir="${app.dir}" inheritall="true">
-                        <![CDATA[
-                        fs
-                            minify
-                                ${build.embedded.microloader.compressor}
-                                -from=${build.microloader.path}
-                                -to=${build.microloader.path}
-                        ]]>
-                    </x-sencha-command>
                     <x-run-if-true value="${app.output.page.enable}">
                         <x-compile refid="${compiler.ref.id}">
                             <![CDATA[
@@ -175,12 +175,46 @@
         </condition>
         <property name="internal.app.css.rel" value=""/>
 
-        <x-compile refid="${compiler.ref.id}">
-            <![CDATA[
-            markup
-                -out=${build.out.page.path}
-            ]]>
-        </x-compile>
+        <if>
+            <isset property="framework.isV5"/>
+            <then>
+                <x-compile refid="${compiler.ref.id}">
+                    <![CDATA[
+                    markup
+                        -out=${build.out.page.path}
+                        -basePath=${build.out.metadata.dir}
+                        -resourcePath=${build.out.base.path}
+                    and
+                    # generate microloader file
+                    # generate json file
+                    microload
+                        -operation=manifest
+                        -tpl=${build.microloader.json.tpl.embedded}
+                        -out=${build.microloader.path}
+                        -resourcePath=${build.out.base.path}
+                        -basePath=${build.out.metadata.dir}
+                    ]]>
+                </x-compile>
+                <x-compress-js srcFile="${build.microloader.path}" outFile="${build.microloader.path}"/>
+                <concat destfile="${build.out.js.path}.tmp">
+                    <fileset file="${build.microloader.path}"/>
+                    <fileset file="${build.out.js.path}"/>
+                </concat>
+                <delete file="${build.microloader.path}"/>
+                <delete file="${build.out.js.path}"/>
+                <move file="${build.out.js.path}.tmp" tofile="${build.out.js.path}"/>
+            </then>
+            <else>
+                <x-compile refid="${compiler.ref.id}">
+                    <![CDATA[
+                    markup
+                        -out=${build.out.page.path}
+                        -resourcePath=${build.out.base.path}
+                        -basePath=${build.out.metadata.dir}
+                    ]]>
+                </x-compile>
+            </else>
+        </if>
     </target>
 
     <!-- '-detect-app-build-properties' is defined in js-impl.xml -->

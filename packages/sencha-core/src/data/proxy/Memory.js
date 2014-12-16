@@ -67,7 +67,17 @@ Ext.define('Ext.data.proxy.Memory', {
         * @cfg {Object} data
         * Optional data to pass to configured Reader.
         */
-        data: null
+        data: {
+            $value: null,
+            // Don't deeply clone the data object, just shallow copy the array
+            merge: function(newValue, currentValue, target, mixinClass) {
+                if (Ext.isArray(newValue)) {
+                    return Ext.Array.clone(newValue);
+                } else {
+                    return Ext.clone(newValue);
+                }
+            }
+        }
     },
     
     /**

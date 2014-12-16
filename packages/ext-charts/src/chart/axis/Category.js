@@ -77,7 +77,9 @@ Ext.define('Ext.chart.axis.Category', {
 
     alias: 'axis.category',
 
-    // @private
+    /**
+     * Indicates whether or not the axis is Categorical
+     */
     isCategoryAxis: true,
 
     /* End Definitions */

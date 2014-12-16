@@ -73,7 +73,7 @@ Ext.define('Ext.state.Stateful', {
 
     /**
      * @cfg {String[]} stateEvents
-     * <An array of events that, when fired, should trigger this object to
+     * An array of events that, when fired, should trigger this object to
      * save its state. Defaults to none. `stateEvents` may be any type
      * of event supported by this object, including browser or custom events
      * (e.g., `['click', 'customerchange']`).

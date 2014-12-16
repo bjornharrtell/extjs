@@ -1,25 +1,71 @@
-<project name="refresh-impl">
+<project name="x-refresh-impl">
     <import file="bootstrap-impl.xml"/>
 
-    <target name="-init-refresh" depends="-init-app-js-files">
+    <target name="-init-refresh" depends="-detect-app-build-properties">
         <property name="app.bootstrap.base.path"
                   value="${build.bootstrap.metadata.dir}"/>
     </target>
 
     <target name="-refresh-app-manifest" if="build.enable.appmanifest" depends="-init-refresh">
+
+        <local name="manifest.root.excludes"/>
+        <condition property="manifest.root.excludes" value="${app.bootstrap.manifest.exclude}">
+            <isset property="app.bootstrap.manifest.exclude"/>
+        </condition>
+        <condition property="manifest.root.excludes" value="loadOrder">
+            <and>
+                <x-is-true value="${app.has.js.sdk}"/>
+                <not>
+                    <isset property="app.watch.enabled"/>
+                </not>
+            </and>
+        </condition>
+        <property name="manifest.root.excludes" value=""/>
+
+        <property name="metadata.bootstrap.base.path" value="${build.bootstrap.metadata.dir}"/>
+
+        <if>
+            <x-is-true value="${app.has.js.sdk}"/>
+            <then>
+                <property name="manifest.bootstrap.js.exclude">
+                    exclude
+                        -tag=framework,package-sencha-core
+                </property>
+                <x-compile refid="${compiler.ref.id}">
+                    <![CDATA[
+                        restore
+                            page
+                        and
+                        ${manifest.bootstrap.js.exclude}
+                    ]]>
+                </x-compile>
+            </then>
+        </if>
+
+        <x-get-relative-path from="${build.bootstrap.page.dir}"
+                             to="${build.json.bootstrap.path}"
+                             property="build.json.bootstrap.rel.path"/>
+
+<echo file="${app.bootstrap.js}">var Ext = Ext || {};
+Ext.manifest = Ext.manifest || "${build.json.bootstrap.rel.path}";
+</echo>
+
         <x-compile refid="${compiler.ref.id}">
             <![CDATA[
                 microload
                     -operation=microloader
                     -microloaderPath=${app.microloader.bootstrap}
                     -bootPath=${build.boot.file}
+                    +append
                     -out=${app.bootstrap.js}
                 and
                 microload
                     -operation=manifest
                     -bootstrap
+                    -ignoreDisabled=false
+                    -exclude=${manifest.root.excludes}
                     -tpl={0}
-                    -basePath=${app.bootstrap.base.path}
+                    -basePath=${metadata.bootstrap.base.path}
                     -out=${build.json.bootstrap.path}
             ]]>
         </x-compile>

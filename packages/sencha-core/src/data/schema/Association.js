@@ -8,7 +8,7 @@
  *
  * Associations are first-class objects in a `{@link Ext.data.schema.Schema schema}` but
  * are not created directly. They are created based on {@link Ext.data.field.Field#reference}
- * properties but also on {@link Ext.data.Model#manyToMany} declarations.
+ * properties but also on {@link Ext.data.schema.ManyToMany} declarations.
  * 
  * Associations have unique names within the `schema` as do {@link Ext.data.Model entities}.
  * In many cases, the association names can be generated. These names have uses beyond the

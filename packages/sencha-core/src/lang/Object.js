@@ -272,7 +272,7 @@ var TemplateClass = function(){},
                     matchedKeys = name.match(/(\[):?([^\]]*)\]/g);
                     matchedName = name.match(/^([^\[]+)/);
 
-                    //<debug error>
+                    //<debug>
                     if (!matchedName) {
                         throw new Error('[Ext.Object.fromQueryString] Malformed query string given, failed parsing name from "' + part + '"');
                     }
@@ -520,6 +520,24 @@ var TemplateClass = function(){},
     },
 
     /**
+     * Returns all keys of the given object as an array.
+     *
+     * @param {Object} object
+     * @return {String[]} An array of keys from the object or any of its prototypes.
+     * @method
+     */
+    getAllKeys: function (object) {
+        var keys = [],
+            property;
+
+        for (property in object) {
+            keys.push(property);
+        }
+
+        return keys;
+    },
+
+    /**
      * Returns the first matching key corresponding to the given value.
      * If no matching value is found, null is returned.
      *
@@ -568,7 +586,7 @@ var TemplateClass = function(){},
     },
 
     /**
-     * Gets all keys of the given object as an array.
+     * Returns the `hasOwnProperty` keys of the given object as an array.
      *
      *     var values = Ext.Object.getKeys({
      *         name: 'Jacky',

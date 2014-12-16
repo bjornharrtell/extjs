@@ -185,7 +185,7 @@ Ext.onReady(function() {
     var logPanel = new Ext.Panel({
         title: 'Log',
         region: 'center',
-        autoScroll: true,
+        scrollable: true,
         log: function(m) {
             if (this.rendered && !this.disabled) {
                 logPanel.body.createChild({

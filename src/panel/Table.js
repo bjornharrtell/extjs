@@ -38,6 +38,10 @@ Ext.define('Ext.panel.Table', {
     ariaRole: 'grid',
 
     config: {
+        /**
+         * @cfg {Ext.data.Model} selection
+         * The selected model. Typically used with {@link #bind binding}.
+         */
         selection: null
     },
 
@@ -92,10 +96,9 @@ Ext.define('Ext.panel.Table', {
      */
     hasView: false,
 
-    // each panel should dictate what viewType and selType to use
     /**
      * @cfg {String} viewType
-     * An xtype of view to use. This is automatically set to 'gridview' by {@link Ext.grid.Panel Grid}
+     * An xtype of view to use. This is automatically set to 'tableview' by {@link Ext.grid.Panel Grid}
      * and to 'treeview' by {@link Ext.tree.Panel Tree}.
      * @protected
      */
@@ -117,13 +120,16 @@ Ext.define('Ext.panel.Table', {
      * @cfg {String} [selType]
      * An xtype of selection model to use. This is used to create selection model if just
      * a config object or nothing at all given in {@link #selModel} config.
+     *
+     * @deprecated 5.1.0 Use the {@link #selModel}'s `type` property. Or, if no other
+     * configs are required, use the string form of selModel.
      */
-    selType: 'rowmodel',
 
     /**
-     * @cfg {Ext.selection.Model/Object} selModel
-     * A {@link Ext.selection.Model selection model} instance or config object.  In latter case the {@link #selType}
-     * config option determines to which type of selection model this config is applied.
+     * @cfg {Ext.selection.Model/Object/String} [selModel=rowmodel]
+     * A {@link Ext.selection.Model selection model} instance or config object, or the selection model class's alias string.
+     *
+     * In latter case its `type` property determines to which type of selection model this config is applied.
      */
 
     /**
@@ -147,8 +153,8 @@ Ext.define('Ext.panel.Table', {
      * @cfg {String/Boolean} scroll
      * Scrollers configuration. Valid values are 'both', 'horizontal' or 'vertical'.
      * True implies 'both'. False implies 'none'.
+     * @deprecated 5.1.0 Use {@link #scrollable} instead
      */
-    scroll: true,
 
     /**
      * @cfg {Boolean} [reserveScrollbar=false]
@@ -347,7 +353,7 @@ Ext.define('Ext.panel.Table', {
      */
 
     /**
-     * @property {Ext.view.Table} ownerGrid
+     * @property {Ext.panel.Table} ownerGrid
      * A reference to the top-level owning grid component.
      * 
      * This is a reference to this GridPanel if this GridPanel is not part of a locked grid arrangement.
@@ -364,9 +370,11 @@ Ext.define('Ext.panel.Table', {
     hiddenHeaderCls: Ext.baseCSSPrefix + 'grid-header-hidden',
     resizeMarkerCls: Ext.baseCSSPrefix + 'grid-resize-marker',
     emptyCls: Ext.baseCSSPrefix + 'grid-empty',
-    
+
+    // The TablePanel claims to be focusable, but it does not place a tabIndex
+    // on any of its elements.
+    // Its focus implementation delegates to its view. TableViews are focusable.
     focusable: true,
-    tabIndex: 0,
 
     /**
      * @event viewready
@@ -413,7 +421,7 @@ Ext.define('Ext.panel.Table', {
             bufferedRenderer,
             // Look up the configured Store. If none configured, use the fieldless, empty Store defined in Ext.data.Store.
             store       = me.store = Ext.data.StoreManager.lookup(me.store || 'ext-empty-store'),
-            columns;
+            columns, viewScroller;
 
         me.enableLocking = me.enableLocking || me.hasLockedColumns(headerCtCfg);
 
@@ -453,8 +461,15 @@ Ext.define('Ext.panel.Table', {
         else {
             // It's a fully instantiated HeaderContainer
             if (headerCtCfg.isRootHeader) {
+                if (me.hideHeaders) {
+                    headerCtCfg.setHeight(0);
+                    // don't set the hidden property, we still need these to layout
+                    headerCtCfg.hiddenHeaders = true;
+                }
+
                 me.headerCt = headerCtCfg;
 
+                me.headerCt.grid = me;
                 me.headerCt.forceFit = !!me.forceFit;
 
                 // If it's an instance then the column managers were already created and bound to the headerCt.
@@ -488,6 +503,13 @@ Ext.define('Ext.panel.Table', {
                 }
                 me.headerCt = new Ext.grid.header.Container(headerCtCfg);
             }
+
+            // the header container is not user scrollable, but it has a scroller instance
+            // so that we can sync its scroll position with that of the grid view
+            me.headerCt.setScrollable({
+                x: false,
+                y: false
+            });
         }
 
         // Maintain backward compatibiliy by providing the initial leaf column set as a property.
@@ -544,11 +566,11 @@ Ext.define('Ext.panel.Table', {
             // Add a listener to synchronize the horizontal scroll position of the headers
             // with the table view's element... Unless we are not showing headers!
             if (!me.hideHeaders) {
-                view.on({
-                    scroll: me.onHorizontalScroll,
-                    scope: me,
-                    onFrame: !!Ext.global.requestAnimationFrame
-                });
+                // sync the horizontal scroll position of the headerCt as the view is scrolled.
+                viewScroller = view.getScrollable();
+                if (viewScroller) {
+                    me.headerCt.getScrollable().addPartner(viewScroller, 'x');
+                }
             }
 
             // Attach this Panel to the Store
@@ -559,6 +581,12 @@ Ext.define('Ext.panel.Table', {
                 refresh: me.onRestoreHorzScroll,
                 scope: me
             });
+        }
+
+        // Whatever kind of View we have, be it a TableView, or a LockingView, we are interested in the selection model
+        me.selModel = me.view.getSelectionModel();
+        if (me.selModel.isRowModel) {
+            me.selModel.on('selectionchange', me.updateBindSelection, me);
         }
 
         // Relay events from the View whether it be a LockingView, or a regular GridView
@@ -734,6 +762,26 @@ Ext.define('Ext.panel.Table', {
              */
             'itemkeydown',
             /**
+             * @event beforeitemkeyup
+             * @inheritdoc Ext.view.Table#beforeitemkeyup
+             */
+            'beforeitemkeyup',
+            /**
+             * @event itemkeyup
+             * @inheritdoc Ext.view.Table#itemkeyup
+             */
+            'itemkeyup',
+            /**
+             * @event beforeitemkeypress
+             * @inheritdoc Ext.view.Table#beforeitemkeypress
+             */
+            'beforeitemkeypress',
+            /**
+             * @event itemkeypress
+             * @inheritdoc Ext.view.Table#itemkeypress
+             */
+            'itemkeypress',
+            /**
              * @event beforecontainermousedown
              * @inheritdoc Ext.view.View#beforecontainermousedown
              */
@@ -774,6 +822,16 @@ Ext.define('Ext.panel.Table', {
              */
             'beforecontainerkeydown',
             /**
+             * @event beforecontainerkeyup
+             * @inheritdoc Ext.view.View#beforecontainerkeyup
+             */
+            'beforecontainerkeyup',
+            /**
+             * @event beforecontainerkeypress
+             * @inheritdoc Ext.view.View#beforecontainerkeypress
+             */
+            'beforecontainerkeypress',
+            /**
              * @event containermouseup
              * @inheritdoc Ext.view.View#containermouseup
              */
@@ -813,6 +871,16 @@ Ext.define('Ext.panel.Table', {
              * @inheritdoc Ext.view.View#containerkeydown
              */
             'containerkeydown',
+            /**
+             * @event containerkeyup
+             * @inheritdoc Ext.view.View#containerkeyup
+             */
+            'containerkeyup',
+            /**
+             * @event containerkeypress
+             * @inheritdoc Ext.view.View#containerkeypress
+             */
+            'containerkeypress',
             /**
              * @event selectionchange
              * @inheritdoc Ext.selection.Model#selectionchange
@@ -871,95 +939,30 @@ Ext.define('Ext.panel.Table', {
         }
         me.callParent(arguments);
     },
-    
-    initFocusableEvents: function() {
-        var me = this,
-            view = me.getView();
 
-        me.callParent();
-        me.focusEnterLeaveListeners = view.getFocusEl().on({
-            focusenter: me.onFocusEnter,
-            focusleave: me.onFocusLeave,
-            scope: me,
-            destroyable: true
-        });
-    },
-
-    onFocus: function(e) {
-        this.callParent([e]);
-
-        // Focusing the main el delegates focus to a descendant cell.
-        this.handleFocusEnter(e);
+    focus: function() {
+        // TablePanel is not focusable, but allow a call to delegate into the view
+        this.getView().focus();
     },
     
-    onFocusEnter: function(e) {
-        this.handleFocusEnter(e);
+    /**
+     * Disables interaction with, and masks this grid's column headers.
+     */
+    disableColumnHeaders: function() {
+        this.headerCt.disable();
     },
 
-    handleFocusEnter: function(e) {
-        var me = this,
-            view = me.getView(),
-            targetView,
-            navigationModel = view.getNavigationModel(),
-            lastFocused,
-            focusPosition,
-            br = view.bufferedRenderer,
-            firstRecord;
-
-        if (!me.containsFocus) {
-            lastFocused = focusPosition = view.getLastFocused();
-
-            // Default to the first cell if the NavigationModel has never focused anything
-            if (!focusPosition) {
-                targetView = view.isLockingView ? (view.lockedGrid.isVisible() ? view.lockedView : view.normalView) : view;
-                firstRecord = view.dataSource.getAt(br ? br.getFirstVisibleRowIndex() : 0);
-
-                // A non-row producing record like a collapsed placeholder.
-                // We cannot focus these yet.
-                if (!firstRecord.isNonData) {
-                    focusPosition = new Ext.grid.CellContext(targetView).setPosition({
-                        row: firstRecord,
-                        column: 0
-                    });
-                }
-            }
-
-            // Not a descendant which we allow to carry focus. Blur it.
-            if (!focusPosition) {
-                e.stopEvent();
-                e.getTarget().blur();
-                return;
-            }
-            navigationModel.setPosition(focusPosition, null, e, null, !!lastFocused);
-
-            // We now contain focus is that was successful
-            me.containsFocus = !!navigationModel.getPosition();
-        }
-        
-        if (me.containsFocus) {
-            this.getView().el.dom.setAttribute('tabindex', '-1');
-        }
+    /**
+     * Enables interaction with, and unmasks this grid's column headers after a call to {#disableColumnHeaders}.
+     */
+    enableColumnHeaders: function() {
+        this.headerCt.enable();
     },
 
-    onFocusLeave: function(e) {
-        var view = this.getView();
-
-        // Ignore this event if we do not actually contain focus.
-        // CellEditors are rendered into the view's encapculating element,
-        // So focusleave will fire when they are programatically blurred.
-        // We will not have focus at that point.
-        if (this.containsFocus) {
-
-            // Blur the focused cell
-            view.getNavigationModel().setPosition(null, null, e, null, true);
-
-            this.containsFocus = false;
-            view.focusEl = view.el;
-            view.focusEl.dom.setAttribute('tabindex', 0);
-        }
-    },
-
-    // Private. Determine if there are any columns with a locked configuration option
+    /*
+     * @private
+     * Determine if there are any columns with a locked configuration option.
+     */
     hasLockedColumns: function(columns) {
         var i,
             len,
@@ -1094,11 +1097,31 @@ Ext.define('Ext.panel.Table', {
      */
     getView: function() {
         var me = this,
-            sm,
-            viewConfig;
+            scroll, scrollable, viewConfig;
 
         if (!me.view) {
-            sm = me.getSelectionModel();
+            viewConfig = me.viewConfig;
+            scroll = viewConfig.scroll || me.scroll;
+            scrollable = me.scrollable;
+
+            if (scrollable == null && viewConfig.scrollable == null && scroll !== null) {
+                // transform deprecated scroll config into scrollable config
+                if (scroll === true || scroll === 'both') {
+                    scrollable = true;
+                } else if (scroll === false || scroll === 'none') {
+                    scrollable = false;
+                } else if (scroll === 'vertical') {
+                    scrollable = {
+                        x: false,
+                        y: true
+                    };
+                } else if (scroll === 'horizontal') {
+                    scrollable = {
+                        x: true,
+                        y: false
+                    };
+                }
+            }
 
             viewConfig = Ext.apply({
                 // TableView injects the view reference into this grid so that we have a reference as early as possible
@@ -1111,26 +1134,23 @@ Ext.define('Ext.panel.Table', {
                 preserveScrollOnRefresh: true,
                 trackOver: me.trackMouseOver !== false,
                 throttledUpdate: me.throttledUpdate === true,
-                scroll: me.scroll,
                 xtype: me.viewType,
                 store: me.store,
                 headerCt: me.headerCt,
                 columnLines: me.columnLines,
                 rowLines: me.rowLines,
-                selModel: sm,
                 navigationModel: 'grid',
                 features: me.features,
                 panel: me,
                 emptyText: me.emptyText || ''
             }, me.viewConfig);
 
-            // Reconcile conflicting scroll requests in the grid's scroll configuration and viewConfig's scroll configuration.
-            // If the grid has scroll:'vertical', and the viewConfig has scroll"horizontal', the outcome must be scroll: 'both'
-            if (me.scroll && me.viewConfig.scroll && me.scroll !== me.viewConfig.scroll) {
-                viewConfig.scroll = 'both';
+            if (scrollable != null) {
+                viewConfig.scrollable = scrollable;
+                me.scrollable = null;
             }
 
-            Ext.widget(viewConfig);
+            Ext.create(viewConfig);
 
             // Normalize the application of the markup wrapping the emptyText config.
             // `emptyText` can now be defined on the grid as well as on its viewConfig, and this led to the emptyText not
@@ -1147,7 +1167,6 @@ Ext.define('Ext.panel.Table', {
                 uievent: me.processEvent,
                 scope: me
             });
-            sm.view = me.view;
             me.headerCt.view = me.view;
 
             // Plugins and features may need to access the view as soon as it is created.
@@ -1180,6 +1199,18 @@ Ext.define('Ext.panel.Table', {
      */
     setAutoScroll: Ext.emptyFn,
 
+    applyScrollable: function(scrollable) {
+        if (this.view) {
+            this.view.setScrollable(scrollable);
+        }
+
+        return scrollable;
+    },
+
+    getScrollable: function() {
+        return null;
+    },
+
     /**
      * @private
      * Processes UI events from the view. Propagates them to whatever internal Components need to process them.
@@ -1196,6 +1227,26 @@ Ext.define('Ext.panel.Table', {
         if (header) {
             return header.processEvent.apply(header, arguments);
         }
+    },
+
+    /**
+     * Scrolls the specified record into view.
+     * @param {Number/String/Ext.data.Model} record The record, record id,  or the zero-based position in the dataset to scroll to.
+     * @param {Object}          [options] An object containing options to modify the operation.
+     * @param {Boolean}         [options.animate] Pass `true` to animate the row into view.
+     * @param {Boolean}         [options.highlight] Pass `true` to highlight the row with a glow animation when it is in view.
+     * @param {Boolean}         [options.select] Pass as `true` to select the specified row.
+     * @param {Boolean}         [options.focus] Pass as `true` to focus the specified row.
+     * @param {Function}        [options.callback] A function to execute when the record is in view. This may be necessary if the
+     *                          first parameter is a record index and the view is backed by a {@link Ext.data.BufferedStore buffered store}
+     *                          which does not contain that record.
+     * @param {Boolean}         options.callback.success `true` if acquiring the record's view node was successful.
+     * @param {Ext.data.Model}  options.callback.record If successful, the target record.
+     * @param {HtmlElement}     options.callback.node If successful, the record's view node.
+     * @param {Object}          [options.scope] The scope (`this` reference) in which the callback function is executed.
+     */
+    ensureVisible: function(record, options) {
+        this.doEnsureVisible(record, options);
     },
 
     scrollByDeltaY: function(yDelta, animate) {
@@ -1221,9 +1272,17 @@ Ext.define('Ext.panel.Table', {
     restoreScrollPos: Ext.emptyFn,
 
     onHeaderResize: function() {
-        // Touch scroll manager needs to know about the new width
-        if (this.view.scrollManager) {
-            this.view.scrollManager.refresh();
+        var scroller = this.view.getScrollable(),
+            size;
+
+        if (scroller) {
+            size = scroller.getSize();
+            if (size) {
+                scroller.setSize({
+                    x: this.headerCt.getTableWidth(),
+                    y: size.y
+                });
+            }
         }
     },
 
@@ -1376,68 +1435,18 @@ Ext.define('Ext.panel.Table', {
     },
 
     /**
-     * Returns the selection model being used and creates it via the configuration if it has not been created already.
-     * @return {Ext.selection.Model} selModel
+     * Returns the selection model being used by this grid's {@link Ext.view.Table view}.
+     * @return {Ext.selection.Model} The selection model being used by this grid's {@link Ext.view.Table view}.
      */
-    getSelectionModel: function(){
-        var me = this,
-            selModel = me.selModel,
-            applyMode, mode, type;
-        
-        if (!selModel) {
-            selModel = {};
-            // no config, set our own mode
-            applyMode = true;
-        }
-
-        if (!selModel.events) {
-            // only config provided, set our mode if one doesn't exist on the config
-            type = selModel.selType || me.selType;
-            applyMode = !selModel.mode;
-            selModel = me.selModel = Ext.create('selection.' + type, selModel);
-        }
-
-        if (me.simpleSelect) {
-            mode = 'SIMPLE';
-        } else if (me.multiSelect) {
-            mode = 'MULTI';
-        }
-
-        Ext.applyIf(selModel, {
-            allowDeselect: me.allowDeselect
-        });
-        
-        if (mode && applyMode) {
-            selModel.setSelectionMode(mode);
-        }
-
-        if (!selModel.hasRelaySetup) {
-            me.relayEvents(selModel, [
-                'selectionchange', 'beforeselect', 'beforedeselect', 'select', 'deselect'
-            ]);
-            selModel.hasRelaySetup = true;
-            if (selModel.isRowModel) {
-                selModel.on('selectionchange', me.updateBindSelection, me);
-            }
-        }
-
-        // lock the selection model if user
-        // has disabled selection
-        if (me.disableSelection) {
-            selModel.locked = true;
-        }
-        return selModel;
+    getSelectionModel: function() {
+        return this.getView().getSelectionModel();
     },
 
     getScrollTarget: function(){
-        var owner = this.getScrollerOwner(),
-            items = owner.query('tableview');
+        var items = this.getScrollerOwner().query('tableview');
 
-        return items[1] || items[0];
-    },
-
-    onHorizontalScroll: function(view) {
-        this.syncHorizontalScroll(view);
+        // Last view has the scroller
+        return items[items.length - 1];
     },
 
     syncHorizontalScroll: function(target, setBody) {
@@ -1469,8 +1478,7 @@ Ext.define('Ext.panel.Table', {
 
     bindStore: function(store, initial) {
         var me = this,
-            view = me.getView(),
-            bufferedRenderer = me.bufferedRenderer;
+            view = me.getView();
 
         // Normally, this method will always be called with a valid store (because there is a symmetric
         // .unbindStore method), but there are cases where this method will be called and passed a null
@@ -1479,12 +1487,6 @@ Ext.define('Ext.panel.Table', {
             // Bind to store immediately because subsequent processing looks for grid's store property
             me.store = store;
 
-            // If we're in a reconfigure (we already have a BufferedRenderer which is bound to our old store),
-            // rebind the BufferedRenderer
-            if (bufferedRenderer && bufferedRenderer.isBufferedRenderer && bufferedRenderer.store) {
-                bufferedRenderer.bindStore(store);
-            }
-
             if (view.store !== store) {
                 // If coming from a reconfigure, we need to set the actual store property on the view. Setting the
                 // store will then also set the dataSource.
@@ -1492,6 +1494,7 @@ Ext.define('Ext.panel.Table', {
                 // Note that if it's a grid feature then this is sorted out in view.bindStore(), and it's own
                 // implementation of .bindStore() will be called.
                 view.bindStore(store, false);
+
             }
 
             me.mon(store, {
@@ -1546,12 +1549,17 @@ Ext.define('Ext.panel.Table', {
         }
     },
 
+    /**
+     * A convenience method that fires {@link #reconfigure} with the store param.  To set the store AND change columns,
+     * use the {@link #reconfigure reconfigure method}.
+     *
+     * @param {Ext.data.Store} [store] The new store.
+     */
     setStore: function (store) {
         this.reconfigure(store);
     },
 
     /**
-     * @method reconfigure
      * Reconfigures the grid / tree with a new store/columns. Either the store or the 
      * columns can be omitted if you don't wish to change them.
      *
@@ -1580,10 +1588,12 @@ Ext.define('Ext.panel.Table', {
 
         me.reconfiguring = true;
         me.fireEvent('beforereconfigure', me, store, columns, oldStore, oldColumns);
+
+        Ext.suspendLayouts();
+
         if (me.lockable) {
             me.reconfigureLockable(store, columns);
         } else {
-            Ext.suspendLayouts();
             if (columns) {
                 // new columns, delete scroll pos
                 delete me.scrollXPos;
@@ -1598,20 +1608,24 @@ Ext.define('Ext.panel.Table', {
             } else {
                 me.getView().refreshView();
             }
-            Ext.resumeLayouts(true);
         }
+
+        Ext.resumeLayouts(true);
+
         me.fireEvent('reconfigure', me, store, columns, oldStore, oldColumns);
         delete me.reconfiguring;
     },
 
     beforeDestroy: function(){
-        var task = this.scrollTask;
+        var me = this,
+            task = me.scrollTask;
+            
         if (task) {
             task.cancel();
-            this.scrollTask = null;
+            me.scrollTask = null;
         }
-        Ext.destroy(this.focusEnterLeaveListeners);
-        this.callParent();
+        Ext.destroy(me.focusEnterLeaveListeners);
+        me.callParent();
     },
 
     onDestroy: function(){
@@ -1634,6 +1648,69 @@ Ext.define('Ext.panel.Table', {
     },
 
     privates: {
+        // The focusable flag is set, but there is no focusable element.
+        // Focus is delegated to the view by the focus implementation.
+        initFocusableElement: function() {},
+
+        doEnsureVisible: function(record, options) {
+            // Handle the case where this is a lockable assembly
+            if (this.lockable) {
+                return this.ensureLockedVisible(record, options);
+            }
+
+            // Allow them to pass the record id.
+            if (typeof record !== 'number' && !record.isEntity) {
+                record = this.store.getById(record);
+            }
+            var me = this,
+                callback,
+                scope,
+                animate,
+                highlight,
+                select,
+                doFocus,
+                view = me.getView(),
+                domNode = view.getNode(record);
+
+            if (options) {
+                callback = options.callback;
+                scope = options.scope;
+                animate = options.animate;
+                highlight = options.highlight;
+                select = options.select;
+                doFocus = options.focus;
+            }
+
+            // We found the DOM node associated with the record
+            if (domNode) {
+                view.getScrollable().scrollIntoView(domNode, null, animate, highlight);
+                if (!record.isEntity) {
+                    record = view.getRecord(domNode);
+                }
+                if (select) {
+                    view.getSelectionModel().select(record);
+                }
+                if (doFocus) {
+                    view.getNavigationModel().setPosition(record, 0);
+                }
+                Ext.callback(callback, scope || me, [true, record, domNode]);
+            }
+            // If we didn't find it, it's probably because of buffered rendering
+            else if (view.bufferedRenderer) {
+                view.bufferedRenderer.scrollTo(record, {
+                    animate: animate,
+                    highlight: highlight,
+                    select: select,
+                    focus: doFocus,
+                    callback: function(recordIdx, record, domNode) {
+                        Ext.callback(callback, scope || me, [true, record, domNode]);
+                    }
+                });
+            } else {
+                Ext.callback(callback, scope || me, [false, null]);
+            }
+        },
+        
         getFocusEl: function() {
             return this.getView().getFocusEl();
         }

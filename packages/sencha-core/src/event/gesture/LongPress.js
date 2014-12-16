@@ -4,6 +4,8 @@
 Ext.define('Ext.event.gesture.LongPress', {
     extend: 'Ext.event.gesture.SingleTouch',
 
+    priority: 400,
+
     inheritableStatics: {
         DURATION_NOT_ENOUGH: 'Duration Not Enough'
     },
@@ -13,7 +15,7 @@ Ext.define('Ext.event.gesture.LongPress', {
         minDuration: 1000
     },
 
-    handledEvents: ['longpress'],
+    handledEvents: ['longpress', 'taphold'],
 
     /**
      * @member Ext.dom.Element
@@ -75,21 +77,23 @@ Ext.define('Ext.event.gesture.LongPress', {
         clearTimeout(this.timer);
 
         return this.callParent(arguments);
-    }
+    },
 
-}, function() {
-    this.override({
-        handledEvents: ['longpress', 'taphold'],
+    reset: function() {
+        this.isLongPress = this.startPoint = null;
+    },
 
-        fire: function(eventName) {
-            if (eventName === 'longpress') {
-                var args = Array.prototype.slice.call(arguments);
-                args[0] = 'taphold';
+    fire: function(eventName) {
+        if (eventName === 'longpress') {
+            var args = Array.prototype.slice.call(arguments);
+            args[0] = 'taphold';
 
-                this.fire.apply(this, args);
-            }
-
-            return this.callOverridden(arguments);
+            this.fire.apply(this, args);
         }
-    });
+
+        return this.callParent(arguments);
+    }
+}, function(LongPress) {
+    var gestures = Ext.manifest.gestures;
+    LongPress.instance = new LongPress(gestures && gestures.longPress);
 });

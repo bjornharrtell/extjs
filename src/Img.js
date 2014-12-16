@@ -96,11 +96,12 @@ Ext.define('Ext.Img', {
             if (typeof glyph === 'string') {
                 glyphParts = glyph.split('@');
                 glyph = glyphParts[0];
-                glyphFontFamily = glyphParts[1];
+                glyphFontFamily = glyphParts[1] || glyphFontFamily;
             }
             config.html = '&#' + glyph + ';';
             if (glyphFontFamily) {
-                config.style = 'font-family:' + glyphFontFamily;
+                config.style = config.style || {};
+                config.style.fontFamily = glyphFontFamily;
             }
         } else {
             config.cn = [img = {
@@ -166,23 +167,28 @@ Ext.define('Ext.Img', {
         }
     },
 
+    /**
+     * Updates the {@link #glyph} of the image.
+     * @param {Number/String} glyph
+     */
     setGlyph: function(glyph) {
         var me = this,
             glyphFontFamily = Ext._glyphFontFamily,
-            glyphParts, dom;
+            old = me.glyph,
+            el = me.el,
+            glyphParts;
 
-        if (glyph != me.glyph) {
+        me.glyph = glyph;
+        if (me.rendered && glyph != old) {
             if (typeof glyph === 'string') {
                 glyphParts = glyph.split('@');
                 glyph = glyphParts[0];
-                glyphFontFamily = glyphParts[1];
+                glyphFontFamily = glyphParts[1] || glyphFontFamily;
             }
 
-            dom = me.el.dom;
-
-            dom.innerHTML = '&#' + glyph + ';';
+            el.dom.innerHTML = '&#' + glyph + ';';
             if (glyphFontFamily) {
-                dom.style = 'font-family:' + glyphFontFamily;
+                el.setStyle('font-family', glyphFontFamily);
             }
         }
     }

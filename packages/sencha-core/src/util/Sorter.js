@@ -4,57 +4,79 @@
  *
  * A common place for Sorters to be used are {@link Ext.data.Store Stores}. For example:
  *
- *     @example miniphone
- *     var store = Ext.create('Ext.data.Store', {
- *        fields: ['firstName', 'lastName'],
- *        sorters: 'lastName',
- *
- *        data: [
- *            { firstName: 'Tommy',   lastName: 'Maintz' },
- *            { firstName: 'Rob',     lastName: 'Dougan' },
- *            { firstName: 'Ed',      lastName: 'Spencer'},
- *            { firstName: 'Jamie',   lastName: 'Avins'  },
- *            { firstName: 'Nick',    lastName: 'Poulden'}
- *        ]
- *     });
- *
- *     Ext.create('Ext.List', {
- *        fullscreen: true,
- *        itemTpl: '<div class="contact">{firstName} <strong>{lastName}</strong></div>',
- *        store: store
- *     });
+ *      @example
+ *      var store = Ext.create('Ext.data.Store', {
+ *           fields: ['firstName', 'lastName'],
+ *           sorters: 'level',
+ *        
+ *           data: [
+ *               { firstName: 'Mitch',  level: 9000},
+ *               { firstName: 'Seth',   level: 42},
+ *               { firstName: 'Fred',   level: 510},
+ *               { firstName: 'Israel', level: 690},
+ *               { firstName: 'Greg',   level: 101},
+ *               { firstName: 'Pat',    level: 0},              
+ *               { firstName: 'Kevin',  level: 17},
+ *               { firstName: 'Brandon',level: 690},
+ *               { firstName: 'Gary',   level: 409},
+ *               { firstName: 'Scott',  level: 789}
+ *           ]
+ *        });
+ *        
+ *        Ext.create('Ext.grid.Panel', {
+ *            title: 'Support',
+ *            store: store,
+ *            columns: [
+ *                { text: 'Name',  dataIndex: 'firstName' },
+ *                { text: 'Level', dataIndex: 'level' }
+ *            ],
+ *            height: 300,
+ *            width: 200,
+ *            renderTo: Ext.getBody()
+ *        });  
  *
  * In the next example, we specify a custom sorter function:
  *
- *     @example miniphone
- *     var store = Ext.create('Ext.data.Store', {
- *         fields: ['person'],
- *         sorters: [
- *             {
- *                 // Sort by first letter of last name, in descending order
- *                 sorterFn: function(record1, record2) {
- *                     var name1 = record1.data.person.name.split('-')[1].substr(0, 1),
- *                         name2 = record2.data.person.name.split('-')[1].substr(0, 1);
- *
- *                     return name1 > name2 ? 1 : (name1 === name2 ? 0 : -1);
- *                 },
- *                 direction: 'DESC'
- *             }
- *         ],
- *         data: [
- *             { person: { name: 'Tommy-Maintz' } },
- *             { person: { name: 'Rob-Dougan'   } },
- *             { person: { name: 'Ed-Spencer'   } },
- *             { person: { name: 'Nick-Poulden' } },
- *             { person: { name: 'Jamie-Avins'  } }
- *         ]
- *     });
- *
- *     Ext.create('Ext.List', {
- *         fullscreen: true,
- *         itemTpl: '{person.name}',
- *         store: store
- *     });
+ *        @example
+ *        var store = Ext.create('Ext.data.Store', {
+ *           fields: ['firstName', 'lastName'],
+ *            sorters: [
+ *                {
+ *                    // Sort by first letter of second word of spirit animal, in descending order
+ *                    sorterFn: function(record1, record2) {
+ *                        var name1 = record1.data.spiritAnimal.split(' ')[1].substr(0,1),
+ *                            name2 = record2.data.spiritAnimal.split(' ')[1].substr(0,1);
+ * 
+ *                        return name1 > name2 ? 1 : (name1 === name2) ? 0 : -1;
+ *                    },
+ *                    direction: 'DESC'
+ *                }
+ *            ],
+ *         
+ *           data: [
+ *               { firstName: 'Mitch',  spiritAnimal: "Panda Bear"},
+ *               { firstName: 'Seth',   spiritAnimal: "Tina Belcher"},
+ *               { firstName: 'Fred',   spiritAnimal: "Honey Badger"},
+ *               { firstName: 'Israel', spiritAnimal: "Mysterious Capybara"},
+ *               { firstName: 'Greg',   spiritAnimal: "Majestic Platypus"},
+ *               { firstName: 'Kevin',  spiritAnimal: "Sparkling Unicorn"},
+ *               { firstName: 'Brandon',spiritAnimal: "Pygmy Goat"},
+ *               { firstName: 'Gary',   spiritAnimal: "Suri Alpaca"},
+ *               { firstName: 'Scott',  spiritAnimal: "Ripe Armadillo"},
+ *               { firstName: 'Pat',    spiritAnimal: "The Cougar"}
+ *           ]
+ *        });
+ *        
+ *        Ext.create('Ext.grid.Panel', {
+ *            title: 'Support',
+ *            store: store,
+ *            columns: [
+ *                { text: 'Name',          dataIndex: 'firstName' },
+ *                { text: 'Spirit Animal', dataIndex: 'spiritAnimal', flex: 1 }
+ *            ],
+ *            height: 310,
+ *            renderTo: Ext.getBody()
+ *        });
  */
 Ext.define('Ext.util.Sorter', {
     isSorter: true,

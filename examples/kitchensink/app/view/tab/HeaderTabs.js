@@ -129,7 +129,7 @@ Ext.define('KitchenSink.view.tab.HeaderTabs', {
                 plain: true,
                 defaults: {
                     bodyPadding: 10,
-                    autoScroll: true,
+                    scrollable: true,
                     border: false
                 },
                 bind: {

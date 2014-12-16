@@ -17,8 +17,10 @@
 }
 
 // When hideHeaders: true, we need !important to override above rule
+// Left/right headers needs to be measurable by layout
 .#{$prefix}grid-header-ct-hidden {
-    border: 0 !important;
+    border-top: 0 !important;
+    border-bottom: 0 !important;
 }
 
 

@@ -19,7 +19,7 @@ Ext.define('KitchenSink.view.tab.AjaxTabs', {
 
     defaults: {
         bodyPadding: 10,
-        autoScroll: true
+        scrollable: true
     },
 
     listeners: {

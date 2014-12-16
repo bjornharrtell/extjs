@@ -57,7 +57,7 @@ Ext.define('Ext.plugin.Viewport', {
         this.cmp = cmp;
 
         if (cmp && !cmp.isViewport) {
-            this.apply(cmp);
+            this.decorate(cmp);
             if (cmp.renderConfigs) {
                 cmp.flushRenderConfigs();
             }
@@ -66,7 +66,7 @@ Ext.define('Ext.plugin.Viewport', {
     },
 
     statics: {
-        apply: function (target) {
+        decorate: function (target) {
             Ext.applyIf(target.prototype || target, {
                 ariaRole: 'application',
 
@@ -96,7 +96,6 @@ Ext.define('Ext.plugin.Viewport', {
 
                 setupViewport : function() {
                     var me = this,
-                        html = document.body.parentNode,
                         el = me.el = Ext.getBody();
 
                     // Get the DOM disruption over with before the Viewport renders and begins a layout
@@ -105,11 +104,7 @@ Ext.define('Ext.plugin.Viewport', {
                     // Clear any dimensions, we will size later on
                     me.width = me.height = undefined;
 
-                    Ext.fly(html).addCls(me.viewportCls);
-                    if (me.autoScroll) {
-                        Ext.fly(html).setStyle(me.getOverflowStyle());
-                        delete me.autoScroll;
-                    }
+                    Ext.fly(document.documentElement).addCls(me.viewportCls);
                     el.setHeight = el.setWidth = Ext.emptyFn;
                     el.dom.scroll = 'no';
                     me.allowDomMove = false;
@@ -159,12 +154,23 @@ Ext.define('Ext.plugin.Viewport', {
                         me.initInheritedState(me.inheritedState = root,
                             me.inheritedStateInner = Ext.Object.chain(root));
                     } else {
-                        me.callParent([ inheritedState, inheritedStateInner ]);
+                        me.callParent([inheritedState, inheritedStateInner]);
                     }
                 },
 
                 beforeDestroy: function(){
-                    var me = this;
+                    var me = this,
+                        root = Ext.rootInheritedState,
+                        key;
+
+                    // Clear any properties from the inheritedState so we don't pollute the
+                    // global namespace. If we have a rtl flag set, leave it alone because it's
+                    // likely we didn't write it
+                    for (key in root) {
+                        if (key !== 'rtl') {
+                            delete root[key];
+                        }
+                    }
 
                     me.removeUIFromElement();
                     me.el.removeCls(me.baseCls);
@@ -210,6 +216,10 @@ Ext.define('Ext.plugin.Viewport', {
                         if (el) {
                             el.restoreChildrenTabbableState();
                         }
+                    },
+
+                    getOverflowEl: function() {
+                        return Ext.get(document.documentElement);
                     }
                 }
             });
@@ -231,5 +241,5 @@ Ext.define('Ext.plugin.Viewport', {
     }
 },
 function (Viewport) {
-    Viewport.prototype.apply = Viewport.apply;
+    Viewport.prototype.decorate = Viewport.decorate;
 });

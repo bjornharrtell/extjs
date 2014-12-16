@@ -208,6 +208,7 @@ Ext.define('Ext.form.field.Date', {
     //</locale>
 
     /**
+     * @cfg
      * @inheritdoc
      */
     valuePublishEvent: ['select', 'blur'],

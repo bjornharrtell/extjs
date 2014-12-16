@@ -84,6 +84,19 @@ Ext.define('KitchenSink.view.form.Checkout', {
             },
             data: KitchenSink.data.DataSets.states
         });
+        
+        if (!this.monthStore) {
+            this.self.prototype.monthStore = new Ext.data.Store({
+                fields: ['name', 'num'],
+                data: (function() {
+                    var data = new Array(12);
+                        Ext.Array.forEach(Ext.Date.monthNames, function(name, i) {
+                            data[i] = {name: name, num: i + 1};
+                        });
+                    return data;
+                })()
+            });
+        }
 
         Ext.apply(this, {
             width: this.themeInfo.formWidth,
@@ -360,16 +373,7 @@ Ext.define('KitchenSink.view.form.Checkout', {
                             emptyText: 'Month',
                             hideLabel: true,
                             margin: '0 6 0 0',
-                            store: new Ext.data.Store({
-                                fields: ['name', 'num'],
-                                data: (function() {
-                                    var data = [];
-                                        Ext.Array.forEach(Ext.Date.monthNames, function(name, i) {
-                                        data[i] = {name: name, num: i + 1};
-                                    });
-                                    return data;
-                                })()
-                            }),
+                            store: this.monthStore,
                             width: this.themeInfo.expirationMonthWidth,
                             allowBlank: false,
                             forceSelection: true

@@ -27,15 +27,16 @@ Ext.define('KitchenSink.view.form.CustomErrorHandlingController', {
         }
     },
     
-    updateErrorState: function() {
+    updateErrorState: function(cmp, state) {
         var me = this,
             view, form, errorCmp, fields, errors;
         
         view = me.getView();
         form = view.getForm();
-        
-        // This is to prevent showing global error when form first loads
-        if (me.hasBeenDirty || form.isDirty()) {
+
+        // If we are called from the form's validitychange event, the state will be false if invalid.
+        // If we are called from a field's errorchange event, the state will be the error message.
+        if (state === false || (typeof state === 'string' && state.length)) {
             errorCmp = me.lookupReference('formErrorState');
             
             fields = form.getFields();

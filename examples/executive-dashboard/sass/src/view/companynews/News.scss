@@ -205,8 +205,25 @@
         }
     }
 
-    .x-grid-item-focused .x-grid-cell-inner:before {
-        display: none;
+    .x-grid-item-focused {
+        .news-content {
+            z-index: 1;
+            position: relative;
+        }
+        .news-content:before {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            top: -1px;
+            right: -1px;
+            bottom: -5px;
+            left: -5px;
+
+            border: $grid-row-cell-focus-border-width dotted $grid-row-cell-focus-border-color;
+        }
+        .x-grid-cell-inner:before {
+            display: none;
+        }
     }
 }
 

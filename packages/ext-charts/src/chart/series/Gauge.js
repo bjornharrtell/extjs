@@ -148,7 +148,11 @@ Ext.define('Ext.chart.series.Gauge', {
             }
         }
         surface.customAttributes.segment = function(opt) {
-            return me.getSegment(opt);
+            var series = opt.series || me;
+            
+            delete opt.series;
+            
+            return me.getSegment.call(series, opt);
         };
     },
     
@@ -353,6 +357,9 @@ Ext.define('Ext.chart.series.Gauge', {
             //set pie slice properties
             rendererAttributes = Ext.apply({
                 segment: {
+                    // This is to pass the series scope to the custom attribute
+                    // processing closure created in the constructor
+                    series: me,
                     startAngle: slice.startAngle,
                     endAngle: slice.endAngle,
                     margin: 0,

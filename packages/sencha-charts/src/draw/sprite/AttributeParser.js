@@ -2,7 +2,10 @@
  * @private
  * @class Ext.draw.sprite.AttributeParser
  *
- * Parsers used for sprite attributes.
+ * Parsers used for sprite attributes if they are {@link Ext.draw.sprite.AttributeDefinition#normalize normalized}
+ * (default) when being {@link Ext.draw.sprite.Sprite#setAttributes set}.
+ *
+ * Methods of the singleton correpond either to the processor functions themselves or processor factories.
  */
 Ext.define('Ext.draw.sprite.AttributeParser', {
     singleton: true,
@@ -57,7 +60,7 @@ Ext.define('Ext.draw.sprite.AttributeParser', {
         } else if (n instanceof Ext.draw.gradient.Gradient) {
             return n;
         } else if (!n) {
-            return 'none';
+            return Ext.draw.Color.NONE;
         } else if (Ext.isString(n)) {
             if (n.substr(0, 3) === 'url') {
                 n = Ext.draw.gradient.GradientDefinition.get(n);
@@ -74,6 +77,8 @@ Ext.define('Ext.draw.sprite.AttributeParser', {
             return Ext.create('Ext.draw.gradient.Radial', n);
         } else if (n.type === 'pattern') {
             return Ext.create('Ext.draw.gradient.Pattern', n);
+        } else {
+            return Ext.draw.Color.NONE;
         }
     },
 
@@ -86,7 +91,12 @@ Ext.define('Ext.draw.sprite.AttributeParser', {
     limited01: function (n) {
         return isNaN(n) ? undefined : Math.min(Math.max(+n, 0), 1);
     },
-    
+
+    /**
+     * Generates a function that checks if a value matches
+     * one of the given attributes.
+     * @returns {Function}
+     */
     enums: function () {
         var enums = {},
             args = Array.prototype.slice.call(arguments, 0),

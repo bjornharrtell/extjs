@@ -12,13 +12,21 @@ Ext.define('Ext.view.BoundListKeyNav', {
      * @cfg {Ext.view.BoundList} boundList (required)
      * The {@link Ext.view.BoundList} instance for which key navigation will be managed.
      */
+    
+    navigateOnSpace: true,
 
     initKeyNav: function(view) {
         var me = this,
-            field = me.view.pickerField;
+            field = view.pickerField;
+
+        // Add the regular KeyNav to the view.
+        // Unless it's already been done (we may have to defer a call until the field is rendered.
+        if (!me.keyNav) {
+            me.callParent([view]);
+        }
 
         // BoundLists must be able to function standalone with no bound field
-        if (!view.pickerField) {
+        if (!field) {
             return;
         }
 
@@ -27,7 +35,9 @@ Ext.define('Ext.view.BoundListKeyNav', {
             return;
         }
 
-        me.keyNav = new Ext.util.KeyNav({
+        // BoundListKeyNav also listens for key events from the field to which it is bound.
+        me.fieldKeyNav = new Ext.util.KeyNav({
+            disabled: true,
             target: field.inputEl,
             forceKeyDown: true,
             up: me.onKeyUp,
@@ -41,8 +51,24 @@ Ext.define('Ext.view.BoundListKeyNav', {
             tab: me.onKeyTab,
             space: me.onKeySpace,
             enter: me.onKeyEnter,
+            A: {
+                ctrl: true,
+                // Need a separate function because we don't want the key
+                // events passed on to selectAll (causes event suppression).
+                handler: me.onSelectAllKeyPress
+            },
             scope: me
         });
+    },
+
+    enable: function() {
+        this.fieldKeyNav.enable();
+        this.callParent();
+    },
+
+    disable: function() {
+        this.fieldKeyNav.disable();
+        this.callParent();
     },
 
     onItemMouseDown: function(view, record, item, index, event) {
@@ -51,7 +77,6 @@ Ext.define('Ext.view.BoundListKeyNav', {
         // Stop the mousedown from blurring the input field
         event.preventDefault();
     },
-
 
     onKeyUp: function() {
         var me = this,
@@ -75,9 +100,9 @@ Ext.define('Ext.view.BoundListKeyNav', {
         me.setPosition(newItemIdx);
     },
 
-    onKeyLeft: Ext.emptyFn,
+    onKeyLeft: Ext.returnTrue,
 
-    onKeyRight: Ext.emptyFn,
+    onKeyRight: Ext.returnTrue,
 
     onKeyTab: function(e) {
         var view = this.view,
@@ -87,7 +112,10 @@ Ext.define('Ext.view.BoundListKeyNav', {
             if (field.selectOnTab) {
                 this.selectHighlighted(e);
             }
-            field.collapse();
+            
+            if (field.collapse) {
+                field.collapse();
+            }
         }
 
         // Tab key event is allowed to propagate to field
@@ -95,21 +123,27 @@ Ext.define('Ext.view.BoundListKeyNav', {
     },
 
     onKeyEnter: function(e) {
-        var selModel = this.view.getSelectionModel(),
-            field = this.view.pickerField,
+        var view = this.view,
+            selModel = view.getSelectionModel(),
+            field = view.pickerField,
             count = selModel.getCount();
 
+        // Stop the keydown event so that an ENTER keyup does not get delivered to
+        // any element which focus is transferred to in a select handler.
+        e.stopEvent();
         this.selectHighlighted(e);
 
         // Handle the case where the highlighted item is already selected
         // In this case, the change event won't fire, so just collapse
-        if (!field.multiSelect && count === selModel.getCount()) {
+        if (!field.multiSelect && count === selModel.getCount() && field.collapse) {
             field.collapse();
         }
     },
 
     onKeySpace: function() {
-        this.callParent(arguments);
+        if (this.navigateOnSpace) {
+            this.callParent(arguments);
+        }
         // Allow to propagate to field
         return true;
     },
@@ -137,19 +171,34 @@ Ext.define('Ext.view.BoundListKeyNav', {
      * the configured SelectionModel.
      */
     selectHighlighted: function(e) {
-        var boundList = this.view,
+        var me = this,
+            boundList = me.view,
             selModel = boundList.getSelectionModel(),
-            highlightedRec;
+            highlightedRec,
+            highlightedPosition = me.recordIndex;
 
-        highlightedRec = boundList.getNavigationModel().getRecord();
-        if (highlightedRec) {
+        // If all options have been filtered out, then do NOT add most recently highlighted.
+        if (boundList.all.getCount()) {
+            highlightedRec = me.getRecord();
+            if (highlightedRec) {
 
-            // Select if not already selected.
-            // If already selected, selecting with no CTRL flag will deselect the record.
-            if (e.getKey() === e.ENTER || !selModel.isSelected(highlightedRec)) {
-                selModel.selectWithEvent(highlightedRec, e);
+                // Select if not already selected.
+                // If already selected, selecting with no CTRL flag will deselect the record.
+                if (e.getKey() === e.ENTER || !selModel.isSelected(highlightedRec)) {
+                    selModel.selectWithEvent(highlightedRec, e);
+
+                    // If the result of that selection is that the record is removed or filtered out,
+                    // jump to the next one.
+                    if (!boundList.store.data.contains(highlightedRec)) {
+                        me.setPosition(Math.min(highlightedPosition, boundList.store.getCount() - 1));
+                    }
+                }
             }
         }
-    }
+    },
 
+    destroy: function() {
+        Ext.destroy(this.fieldKeyNav);
+        this.callParent();
+    }
 });

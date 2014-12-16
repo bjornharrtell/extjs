@@ -1,5 +1,5 @@
 /* To avoid CSS expressions while still supporting IE 7 and IE 6, use this script */
-/* The script tag referring to this file must be placed before the ending body tag. */
+/* The script tag referencing this file must be placed before the ending body tag. */
 
 /* Use conditional comments in order to target IE 7 and older:
 	<!--[if lt IE 8]><!-->
@@ -13,11 +13,41 @@
 		el.innerHTML = '<span style="font-family: \'Sencha-Examples\'">' + entity + '</span>' + html;
 	}
 	var icons = {
-		'icon-combination-bindingtabs': '&#xe608;',
-		'icon-unemployment': '&#xe609;',
-		'icon-exec-dashboard': '&#xe607;',
-		'icon-binding-child-session': '&#xe606;',
-		'icon-border-square': '&#xe710;',
+		'icon-spreadsheet-checked': '&#xe614;',
+		'icon-spreadsheet': '&#xe631;',
+		'icon-area-negative': '&#xe62e;',
+		'icon-column-negative-3d': '&#xe62f;',
+		'icon-bar-negative-3d': '&#xe630;',
+		'icon-custom-template-combo': '&#xe629;',
+		'icon-remote-loaded-combo': '&#xe62a;',
+		'icon-remote-combo': '&#xe62b;',
+		'icon-combo-boxes': '&#xe62d;',
+		'icon-simple-combo': '&#xe62c;',
+		'icon-framing-buttons': '&#xe624;',
+		'icon-row-numberer': '&#xe625;',
+		'icon-expander-lockable': '&#xe626;',
+		'icon-checkbox-selection': '&#xe627;',
+		'icon-spreadsheet-selmodel-grid': '&#xe628;',
+		'icon-column-renderer-3d': '&#xe60f;',
+		'icon-column-stacked-100-3d': '&#xe610;',
+		'icon-column-stacked-3d': '&#xe611;',
+		'icon-column-grouped-3d': '&#xe612;',
+		'icon-column-basic-3d': '&#xe613;',
+		'icon-binding-selection': '&#xe615;',
+		'icon-lineardata-tree': '&#xe616;',
+		'icon-form-rating': '&#xe617;',
+		'icon-form-color-picker': '&#xe618;',
+		'icon-direct-named': '&#xe619;',
+		'icon-direct-tree': '&#xe61a;',
+		'icon-direct-generic': '&#xe61b;',
+		'icon-bar-stacked-100-3d': '&#xe61c;',
+		'icon-bar-stacked-3d': '&#xe61d;',
+		'icon-bar-basic-3d': '&#xe61e;',
+		'icon-draw-composite': '&#xe61f;',
+		'icon-intersections': '&#xe620;',
+		'icon-hit-test': '&#xe621;',
+		'icon-bar-charts-3d': '&#xe622;',
+		'icon-column-charts-3d': '&#xe623;',
 		'icon-reorderable-tabs': '&#xe604;',
 		'icon-ajax-tabs': '&#xe605;',
 		'icon-toolbar': '&#xe601;',
@@ -268,6 +298,16 @@
 		'icon-toolbar-button-groups': '&#xe7b1;',
 		'icon-toolbar-vertical': '&#xe7b2;',
 		'icon-ticket2': '&#xe7b3;',
+		'icon-keyboard-navigation': '&#xe60b;',
+		'icon-screen-reader': '&#xe60c;',
+		'icon-color-picker': '&#xe60d;',
+		'icon-aria': '&#xe60e;',
+		'icon-drawing': '&#xe60a;',
+		'icon-combination-bindingtabs': '&#xe608;',
+		'icon-unemployment': '&#xe609;',
+		'icon-exec-dashboard': '&#xe607;',
+		'icon-binding-child-session': '&#xe606;',
+		'icon-border-square': '&#xe710;',
 		'0': 0
 		},
 		els = document.getElementsByTagName('*'),
@@ -278,7 +318,7 @@
 			break;
 		}
 		c = el.className;
-		c = c.match(/[^\s'"]+/);
+		c = c.match(/icon-[^\s'"]+/);
 		if (c && icons[c[0]]) {
 			addIcon(el, icons[c[0]]);
 		}

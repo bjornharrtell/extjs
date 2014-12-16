@@ -6,6 +6,7 @@ Ext.define('KitchenSink.view.form.ContactFormWindow', {
     
     title: 'Contact Us',
     width: 400,
+    height: 500,
     minWidth: 300,
     minHeight: 380,
     layout: 'fit',

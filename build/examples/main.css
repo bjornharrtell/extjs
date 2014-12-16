@@ -13,8 +13,8 @@ body {
 }
 
 a {
-    outline: none;
     text-decoration: none;
+    color: inherit;
 }
 
 #title {
@@ -30,7 +30,7 @@ a {
 
 .wrap {
     width: 1000px;
-    padding: 0 20px;
+    padding: 0 20px 10px 20px;
     margin: auto;
     position: relative;
     overflow: hidden;
@@ -173,7 +173,8 @@ a {
     font-family: Sencha-Examples;
 }
 
-.example-icon {
+/* tag name added to this selector to override line-height in font icon stylesheet */
+div.example-icon {
     color: #fff;
     position: absolute;
     top: 0;

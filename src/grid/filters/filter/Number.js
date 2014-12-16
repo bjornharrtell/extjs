@@ -64,20 +64,11 @@ Ext.define('Ext.grid.filters.filter.Number', {
         showSeparator: false
     },
 
-    /**
-     * @private
-     * See the Date type for a full implementation.
-     */
-    convertValue: Ext.identityFn,
-
     createMenu: function () {
         var me = this,
             listeners = {
                 scope: me,
-                keyup: {
-                    fn: me.onInputKeyUp,
-                    buffer: 200
-                },
+                keyup: me.onValueChange,
                 spin: {
                     fn: me.onInputSpin,
                     buffer: 200
@@ -87,6 +78,7 @@ Ext.define('Ext.grid.filters.filter.Number', {
                 }
             },
             itemDefaults = me.getItemDefaults(),
+            menuItems = me.menuItems,
             fields = me.getFields(),
             field, i, len, key, item, cfg;
 
@@ -94,8 +86,8 @@ Ext.define('Ext.grid.filters.filter.Number', {
 
         me.fields = {};
 
-        for (i = 0, len = me.menuItems.length; i < len; i++) {
-            key = me.menuItems[i];
+        for (i = 0, len = menuItems.length; i < len; i++) {
+            key = menuItems[i];
             if (key !== '-') {
                 field = fields[key];
 
@@ -116,28 +108,17 @@ Ext.define('Ext.grid.filters.filter.Number', {
                 item.filter = me.filter[key];
                 item.filterKey = key;
                 item.on(listeners);
+            } else {
+                me.menu.add(key);
             }
         }
     },
 
-    /**
-     * @private
-     * Handler method called when there is a keyup event on an input
-     * item of this menu.
-     */
-    onInputKeyUp: function (field, e) {
-        var value;
-
-        if (e.getKey() === e.RETURN && field.isValid()) {
-            this.menu.hide();
-        }
-
-        value = {};
+    getValue: function (field) {
+        var value = {};
         value[field.filterKey] = field.getValue();
-
-        this.setValue(value);
+        return value;
     },
-
 
     /**
      * @private

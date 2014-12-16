@@ -1,7 +1,5 @@
 /**
- * Barebones iframe implementation. For serious iframe work, see the
- * ManagedIFrame extension
- * (http://www.sencha.com/forum/showthread.php?71961).
+ * Barebones iframe implementation. 
  */
 Ext.define('Ext.ux.IFrame', {
     extend: 'Ext.Component',
@@ -166,3 +164,24 @@ Ext.define('Ext.ux.IFrame', {
         }
     }
 });
+
+/*
+ * TODO items:
+ *
+ * Iframe should clean up any Ext.dom.Element wrappers around its window, document
+ * documentElement and body when it is destroyed.  This helps prevent "Permission Denied"
+ * errors in IE when Ext.dom.GarbageCollector tries to access those objects on an orphaned
+ * iframe.  Permission Denied errors can occur in one of the following 2 scenarios:
+ *
+ *     a. When an iframe is removed from the document, and all references to it have been
+ *     removed, IE will "clear" the window object.  At this point the window object becomes
+ *     completely inaccessible - accessing any of its properties results in a "Permission
+ *     Denied" error. http://msdn.microsoft.com/en-us/library/ie/hh180174(v=vs.85).aspx
+ *
+ *     b. When an iframe is unloaded (either by navigating to a new url, or via document.open/
+ *     document.write, new html and body elements are created and the old the html and body
+ *     elements are orphaned.  Accessing the html and body elements or any of their properties
+ *     results in a "Permission Denied" error.
+ */
+
+

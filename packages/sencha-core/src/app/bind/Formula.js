@@ -167,8 +167,8 @@ Ext.define('Ext.app.bind.Formula', {
 
             parser = cache.get(name);
             if (!parser) {
-                // Unescaped: [^\.a-z0-9_]NAMEHERE\((['"])(.*?)\1\)
-                s = '[^\\.a-z0-9_]' + name + '\\(([\'"])(.*?)\\1\\)';
+                // Unescaped: [^\.a-z0-9_]NAMEHERE\(\s*(['"])(.*?)\1\s*\)
+                s = '[^\\.a-z0-9_]' + name + '\\(\\s*([\'"])(.*?)\\1\\s*\\)';
                 parser = new RegExp(s, 'gi');
                 cache.add(name, parser);
             }
@@ -344,6 +344,10 @@ Ext.define('Ext.app.bind.Formula', {
         if (me.single) {
             me.destroy();
         }
+    },
+
+    setValue: function(value) {
+        this.set.call(this.stub.owner, value);
     },
 
     privates: {

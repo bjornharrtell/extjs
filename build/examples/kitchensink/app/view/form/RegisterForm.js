@@ -24,7 +24,7 @@ Ext.define('KitchenSink.view.form.RegisterForm', {
     frame: true,
     title: 'Register',
     bodyPadding: 10,
-    autoScroll:true,
+    scrollable:true,
     width: 355,
 
     fieldDefaults: {

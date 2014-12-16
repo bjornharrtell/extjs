@@ -11,6 +11,12 @@ Ext.define('KitchenSink.view.binding.ComboChaining', {
     },{
         type: 'Store',
         path: 'app/store/CountryStates.js'
+    },{
+        type: 'Model',
+        path: 'app/model/tree/Country.js'
+    },{
+        type: 'Model',
+        path: 'app/model/State.js'
     }],
     bodyPadding: 10,
     //</example>

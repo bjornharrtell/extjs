@@ -6,7 +6,6 @@ Ext.define('Neptune.view.grid.widget.Grouped', function() {
     });
 
     var restaurants = Ext.create('Ext.data.Store', {
-        storeId: 'restaraunts',
         model: 'Restaurant',
         groupField: 'cuisine',
         sorters: ['cuisine','name'],

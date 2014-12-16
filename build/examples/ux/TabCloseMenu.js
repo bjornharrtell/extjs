@@ -4,6 +4,8 @@
  * and remove all will not remove items that are not closable.
  */
 Ext.define('Ext.ux.TabCloseMenu', {
+    extend: 'Ext.plugin.Abstract',
+
     alias: 'plugin.tabclosemenu',
 
     mixins: {
@@ -56,6 +58,7 @@ Ext.define('Ext.ux.TabCloseMenu', {
 
     //public
     constructor: function (config) {
+        this.callParent([config]);
         this.mixins.observable.constructor.call(this, config);
     },
 
@@ -78,9 +81,9 @@ Ext.define('Ext.ux.TabCloseMenu', {
         });
     },
 
-    onBeforeDestroy : function(){
+    destroy : function(){
+        this.callParent();
         Ext.destroy(this.menu);
-        this.callParent(arguments);
     },
 
     // private
@@ -99,7 +102,7 @@ Ext.define('Ext.ux.TabCloseMenu', {
             me.tabPanel.items.each(function(item) {
                 if (item.closable) {
                     disableAll = false;
-                    if (item != me.item) {
+                    if (item !== me.item) {
                         disableOthers = false;
                         return false;
                     }
@@ -197,7 +200,7 @@ Ext.define('Ext.ux.TabCloseMenu', {
 
         this.tabPanel.items.each(function(item){
             if(item.closable){
-                if(!excludeActive || item != this.item){
+                if(!excludeActive || item !== this.item){
                     items.push(item);
                 }
             }

@@ -15,17 +15,11 @@ Ext.Microloader = Ext.Microloader || (function () {
     var Boot = Ext.Boot,
         _listeners = [],
         _loaded = false,
-        _tags = Boot.platformTags,
+
         Microloader = {
-
-            /**
-             * the global map of tags used
-             */
-            platformTags: _tags,
-
             detectPlatformTags: function () {
                 if (Ext.beforeLoad) {
-                    Ext.beforeLoad(_tags);
+                    Ext.beforeLoad(Ext.platformTags);
                 }
             },
 
@@ -33,42 +27,45 @@ Ext.Microloader = Ext.Microloader || (function () {
                 Microloader.detectPlatformTags();
             },
 
-            getPlatformTags: function () {
-                return Boot.platformTags;
-            },
-
-            filterPlatform: function (platform) {
-                return Boot.filterPlatform(platform);
-            },
-
             init: function () {
                 Microloader.initPlatformTags();
+                var readyHandler = Ext._beforereadyhandler;
+                Ext._beforereadyhandler = function () {
+                    if (Ext.Boot !== Boot) {
+                        Ext.apply(Ext.Boot, Boot);
+                        Ext.Boot = Boot;
+                    }
+                    if(readyHandler) {
+                        readyHandler();
+                    }
+                };
             },
 
-            initManifest: function (manifest) {
+            run: function() {
                 Microloader.init();
-                var tmpManifest = manifest || Ext.manifest;
+                var manifest = Ext.manifest;
 
-                if (typeof tmpManifest === "string") {
+                if (typeof manifest === "string") {
                     var extension = ".json",
-                        url = tmpManifest.indexOf(extension) === tmpManifest.length - extension.length
-                            ? Boot.baseUrl + tmpManifest
-                            : Boot.baseUrl + tmpManifest + ".json",
-                        content = Boot.fetchSync(url);
-                    tmpManifest = JSON.parse(content.content);
-                }
+                        url = manifest.indexOf(extension) === manifest.length - extension.length
+                            ? manifest
+                            : manifest + ".json";
 
-                Ext.manifest = tmpManifest;
-                return tmpManifest;
+                    Boot.fetch(url, function(result){
+                        manifest = Ext.manifest = JSON.parse(result.content);
+                        Microloader.load(manifest);
+                    });
+                } else {
+                    Microloader.load(manifest);
+                }
             },
 
             /**
              *
              * @param manifestDef
              */
-            load: function (manifestDef) {
-                var manifest = Microloader.initManifest(manifestDef),
-                    loadOrder = manifest.loadOrder,
+            load: function (manifest) {
+                var loadOrder = manifest.loadOrder,
                     loadOrderMap = (loadOrder) ? Boot.createLoadOrderMap(loadOrder) : null,
                     urls = [],
                     js = manifest.js || [],
@@ -230,4 +227,4 @@ Ext.Microloader = Ext.Microloader || (function () {
  */
 Ext.manifest = Ext.manifest || "bootstrap";
 
-Ext.Microloader.load();
+Ext.Microloader.run();

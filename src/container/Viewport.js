@@ -22,7 +22,7 @@
  * method of any of its child Panels may themselves have a layout.
  *
  * The Viewport does not provide scrolling, so child Panels within the Viewport should provide
- * for scrolling if needed using the {@link #autoScroll} config.
+ * for scrolling if needed using the {@link #scrollable} config.
  *
  * An example showing a classic application border layout:
  *
@@ -136,5 +136,5 @@ Ext.define('Ext.container.Viewport', {
     }
 },
 function () {
-    Ext.plugin.Viewport.apply(this);
+    Ext.plugin.Viewport.decorate(this);
 });

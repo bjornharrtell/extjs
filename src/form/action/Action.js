@@ -201,9 +201,15 @@ Ext.define('Ext.form.action.Action', {
      * @param {Object} response
      */
     onFailure : function(response){
+        var form = this.form,
+            formActive = form && !form.destroying && !form.isDestroyed;
+        
         this.response = response;
         this.failureType = Ext.form.action.Action.CONNECT_FAILURE;
-        this.form.afterAction(this, false);
+        
+        if (formActive) {
+            form.afterAction(this, false);
+        }
     },
 
     /**

@@ -25,7 +25,10 @@
  */
 Ext.define('Ext.draw.sprite.Text', {
     extend: 'Ext.draw.sprite.Sprite',
-    requires: ['Ext.draw.TextMeasurer'],
+    requires: [
+        'Ext.draw.TextMeasurer',
+        'Ext.draw.Color'
+    ],
     alias: 'sprite.text',
     type: 'text',
     lineBreakRe: /\n/g,
@@ -48,24 +51,31 @@ Ext.define('Ext.draw.sprite.Text', {
         shortHand3Re: /\s*,\s*/g,
         shortHand4Re: /\$\$\$\$/g,
         def: {
+            animationProcessors: {
+                text: 'text'
+            },
             processors: {
                 /**
-                 * @cfg {Number} [x=0] The position of the sprite on the x-axis.
+                 * @cfg {Number} [x=0]
+                 * The position of the sprite on the x-axis.
                  */
                 x: 'number',
 
                 /**
-                 * @cfg {Number} [y=0] The position of the sprite on the y-axis.
+                 * @cfg {Number} [y=0]
+                 * The position of the sprite on the y-axis.
                  */
                 y: 'number',
 
                 /**
-                 * @cfg {String} [text=''] The text represented in the sprite.
+                 * @cfg {String} [text='']
+                 * The text represented in the sprite.
                  */
                 text: 'string',
 
                 /**
-                 * @cfg {String/Number} [fontSize='10px'] The size of the font displayed.
+                 * @cfg {String/Number} [fontSize='10px']
+                 * The size of the font displayed.
                  */
                 fontSize: function (n) {
                     if (!isNaN(n)) {
@@ -76,17 +86,20 @@ Ext.define('Ext.draw.sprite.Text', {
                 },
 
                 /**
-                 * @cfg {String} [fontStyle=''] The style of the font displayed. {normal, italic, oblique}
+                 * @cfg {String} [fontStyle='']
+                 * The style of the font displayed. {normal, italic, oblique}
                  */
                 fontStyle: 'enums(,italic,oblique)',
 
                 /**
-                 * @cfg {String} [fontVariant=''] The variant of the font displayed. {normal, small-caps}
+                 * @cfg {String} [fontVariant='']
+                 * The variant of the font displayed. {normal, small-caps}
                  */
                 fontVariant: 'enums(,small-caps)',
 
                 /**
-                 * @cfg {String} [fontWeight=''] The weight of the font displayed. {normal, bold, bolder, lighter}
+                 * @cfg {String} [fontWeight='']
+                 * The weight of the font displayed. {normal, bold, bolder, lighter}
                  */
                 fontWeight: (function (fontWeights) {
                     return function (n) {
@@ -111,12 +124,14 @@ Ext.define('Ext.draw.sprite.Text', {
                 }),
 
                 /**
-                 * @cfg {String} [fontFamily='sans-serif'] The family of the font displayed.
+                 * @cfg {String} [fontFamily='sans-serif']
+                 * The family of the font displayed.
                  */
                 fontFamily: 'string',
 
                 /**
-                 * @cfg {String} [textAlign='start'] The alignment of the text displayed. {left, right, center, start, end}
+                 * @cfg {String} [textAlign='start']
+                 * The alignment of the text displayed. {left, right, center, start, end}
                  */
                 textAlign: (function (textAligns) {
                     return function (n) {
@@ -132,7 +147,8 @@ Ext.define('Ext.draw.sprite.Text', {
                 }),
 
                 /**
-                 * @cfg {String} [textBaseline="alphabetic"] The baseline of the text displayed. {top, hanging, middle, alphabetic, ideographic, bottom}
+                 * @cfg {String} [textBaseline="alphabetic"]
+                 * The baseline of the text displayed. {top, hanging, middle, alphabetic, ideographic, bottom}
                  */
                 textBaseline: (function (textBaselines) {
                     return function (n) {
@@ -149,7 +165,8 @@ Ext.define('Ext.draw.sprite.Text', {
                 }),
 
                 /**
-                 * @cfg {String} [font='10px sans-serif'] The font displayed.
+                 * @cfg {String} [font='10px sans-serif']
+                 * The font displayed.
                  */
                 font: "string"
                 //<debug>
@@ -172,13 +189,13 @@ Ext.define('Ext.draw.sprite.Text', {
                 font: '10px sans-serif',
                 textBaseline: 'alphabetic',
                 textAlign: 'start',
-                strokeStyle: Ext.draw.Color.RGBA_NONE,
+                strokeStyle: 'rgba(0, 0, 0, 0)',
                 fillStyle: '#000',
                 x: 0,
                 y: 0,
                 text: ''
             },
-            dirtyTriggers: {
+            triggers: {
                 fontStyle: 'font,bbox',
                 fontVariant: 'font,bbox',
                 fontWeight: 'font,bbox',

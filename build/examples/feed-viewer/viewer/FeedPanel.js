@@ -48,7 +48,7 @@ Ext.define('FeedViewer.FeedPanel', {
      */
     createView: function(){
         this.view = Ext.create('widget.dataview', {
-            autoScroll: true,
+            scrollable: true,
             store: Ext.create('Ext.data.Store', {
                 model: 'Feed',
                 data: this.feeds

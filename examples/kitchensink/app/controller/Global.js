@@ -11,6 +11,7 @@ Ext.define('KitchenSink.controller.Global', {
         'Restaurants',
         'Files',
         'States',
+        'RemoteStates',
         'BigData',
         "USD2EUR",
         'Widgets',
@@ -106,8 +107,9 @@ Ext.define('KitchenSink.controller.Global', {
             }
 
             if (hasTree) {
-                navigationTree.getSelectionModel().select(node);
+                // Focusing explicitly brings it into rendered range, so do that first.
                 navigationTree.getView().focusNode(node);
+                navigationTree.getSelectionModel().select(node);
             } else {
                 navigationBreadcrumb.setSelection(node);
             }
@@ -151,7 +153,19 @@ Ext.define('KitchenSink.controller.Global', {
                 cmp.show();
             }
         } else {
-            if (!hasTree) {
+            // Only attempt to select the node if the tree is visible
+            if (hasTree) {
+                if (id !== 'all') {
+                    // If the node is the root (rootVisible is false), then
+                    // Focus the first node in the tree.
+                    navigationTree.ensureVisible(node.isRoot() ? store.getAt(0) : node, {
+                        select: true,
+                        focus: true
+                    });
+                }
+            }
+            // Ensure that non-leaf nodes are still highlighted and focused.
+            else {
                 navigationBreadcrumb.setSelection(node);
             }
             thumbnailsStore = me.getThumbnailsStore();
@@ -184,7 +198,6 @@ Ext.define('KitchenSink.controller.Global', {
         var me = this,
             preview = me.getCodePreview(),
             otherContent = clsProto.otherContent,
-            prefix = Ext.repoDevMode ? '' : '../../../kitchensink/',
             resources = [],
             codePreviewProcessed = clsProto.codePreviewProcessed;
 
@@ -210,7 +223,7 @@ Ext.define('KitchenSink.controller.Global', {
                 var clone = Ext.apply({}, resource);
                 codePreviewProcessed.push(clone);
                 resource.loader = {
-                    url: prefix + resource.path,
+                    url: resource.path,
                     autoLoad: true,
                     rendererScope: me,
                     renderer: me.renderCodeMarkup,
@@ -331,8 +344,19 @@ Ext.define('KitchenSink.controller.Global', {
         }
     },
 
-    onThumbnailClick: function(view, node) {
-        this.redirectTo(node.getId());
+    onThumbnailClick: function(view, node, item, index, e) {
+        var navigationTree = this.getNavigationTree();
+
+        // If not using breadcrumb nav, drive the app through the tree's normal selection listener
+        // This ensures that the tree is scrolled correctly with the correct node highlighted.
+        if (navigationTree && navigationTree.isVisible()) {
+            navigationTree.ensureVisible(node, {
+                select: true,
+                focus: true
+            });
+        } else {
+            this.redirectTo(node.getId());
+        }
     },
 
     onMaximizeClick: function(){

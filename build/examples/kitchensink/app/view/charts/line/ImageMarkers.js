@@ -3,7 +3,7 @@
  * to visualize the evolution of a value over time, or the ratio between any two values.
  */
 Ext.define('KitchenSink.view.charts.line.ImageMarkers', {
-    extend: 'Ext.Panel',
+    extend: 'Ext.panel.Panel',
     xtype: 'line-markers',
 
     requires: [
@@ -72,7 +72,6 @@ Ext.define('KitchenSink.view.charts.line.ImageMarkers', {
             type: 'pie'
         },
         id: 'line-chart-markers',
-        background: 'white',
         interactions: [
             'panzoom',
             'itemhighlight'
@@ -169,7 +168,7 @@ Ext.define('KitchenSink.view.charts.line.ImageMarkers', {
                 fields: ['g1', 'g2', 'g3'],
                 minimum: 0,
                 listeners: {
-                    'rangechange': function (range) {
+                    rangechange: function (axis, range) {
                         if (!range) {
                             return;
                         }

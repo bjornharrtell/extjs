@@ -238,7 +238,7 @@ Ext.onReady(function() {
         layout: 'fit',
         items: [{
             xtype: 'component',
-            autoScroll: true,
+            scrollable: true,
             itemId: 'src',
             padding: 10
         }],

@@ -26,6 +26,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
             },
             insetPadding: '400 0 125 0',
             animation: false,
+            background: 'white',
             // Custom sprites that are used to decorate the chart to give it the infographic look.
             sprites: [
                 {
@@ -47,7 +48,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                 {
                     type: 'text',
                     text: '2007-2012',
-                    font: '24px Verdana',
+                    font: 'normal 24px Verdana',
                     fillStyle: 'white',
                     x: 730,
                     y: 76
@@ -69,7 +70,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                 {
                     type: 'text',
                     text: 'SENCHA',
-                    font: '12px Verdana',
+                    font: 'normal 12px Verdana',
                     fillStyle: 'rgba(148, 51, 57, 1.0)',
                     x: 60,
                     y: 42
@@ -86,7 +87,9 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     type: 'image', // Sencha leaf logo.
                     src: 'resources/images/sencha.png',
                     x: 24,
-                    y: 10
+                    y: 10,
+                    width: 24,
+                    height: 36.5
                 },
                 {
                     type: 'text',
@@ -96,8 +99,9 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                         'led the pack with a 7.2 percent increase, but the\n' +
                         'national growth rate was only 1.1 percent. Seven\n' +
                         'states lost jobs.',
-                    font: '20px Charter',
+                    font: 'normal 20px Charter',
                     textBaseline: 'top',
+                    fillStyle: 'black',
                     x: 75,
                     y: 165
                 },
@@ -152,7 +156,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     type: 'text',
                     text: 'rose by more than 1.5%',
                     textAlign: 'right',
-                    font: '13px Charter',
+                    font: 'normal 13px Charter',
                     fillStyle: 'rgba(56, 54, 54, 1.0)',
                     x: 742,
                     y: 233
@@ -161,7 +165,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     type: 'text',
                     text: 'rose by 0.5% to 1.5%',
                     textAlign: 'right',
-                    font: '13px Charter',
+                    font: 'normal 13px Charter',
                     fillStyle: 'rgba(56, 54, 54, 1.0)',
                     x: 742,
                     y: 255
@@ -170,7 +174,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     type: 'text',
                     text: 'rose by less than 0.5%',
                     textAlign: 'right',
-                    font: '13px Charter',
+                    font: 'normal 13px Charter',
                     fillStyle: 'rgba(56, 54, 54, 1.0)',
                     x: 742,
                     y: 277
@@ -179,7 +183,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     type: 'text',
                     text: 'fell by less than 0.5%',
                     textAlign: 'left',
-                    font: '13px Charter',
+                    font: 'normal 13px Charter',
                     fillStyle: 'rgba(56, 54, 54, 1.0)',
                     x: 778,
                     y: 277
@@ -188,7 +192,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     type: 'text',
                     text: 'fell by 0.5% to 1.5%',
                     textAlign: 'left',
-                    font: '13px Charter',
+                    font: 'normal 13px Charter',
                     fillStyle: 'rgba(56, 54, 54, 1.0)',
                     x: 778,
                     y: 298
@@ -197,7 +201,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     type: 'text',
                     text: 'fell by more than 1.5%',
                     textAlign: 'left',
-                    font: '13px Charter',
+                    font: 'normal 13px Charter',
                     fillStyle: 'rgba(56, 54, 54, 1.0)',
                     x: 778,
                     y: 318
@@ -232,7 +236,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     type: 'text',
                     text: 'Source: Bureau of Labor Statistics',
                     textBaseline: 'top',
-                    font: '12px Tahoma',
+                    font: 'normal 12px Tahoma',
                     fillStyle: 'white',
                     x: 60,
                     y: 1310
@@ -242,7 +246,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     text: 'Sencha infographic by Vitaly Kravchenko\nupdated June 4, 2014',
                     textBaseline: 'top',
                     textAlign: 'right',
-                    font: '12px Tahoma',
+                    font: 'normal 12px Tahoma',
                     fillStyle: 'white',
                     x: 930,
                     y: 1310
@@ -257,6 +261,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     spacing: 3,
                     template: {
                         type: 'text',
+                        fontWeight: 'normal',
                         fontSize: 13,
                         fillStyle: 'rgba(146, 50, 51, 1.0)'
                     }
@@ -550,10 +555,12 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
             insetPadding: '400 0 125 0',
             interactions: ['itemhighlight'],
             animation: false,
+            background: 'white',
             sprites: [
                 {
                     id: 'stateName',
                     type: 'text',
+                    fillStyle: 'black',
                     text: '',
                     textBaseline: 'top',
                     textAlign: 'center',
@@ -705,7 +712,9 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                                             translationY: attr.translationY,
                                             template: {
                                                 type: 'text',
+                                                fillStyle: 'black',
                                                 fontSize: 13,
+                                                fontWeight: 'normal',
                                                 fillStyle: 'rgba(76, 76, 77, 1.0)'
 
                                             }
@@ -831,6 +840,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
             width: 350,
             height: 250,
             animation: false,
+            background: 'white',
             axes: [
                 {
                     type: 'numeric',
@@ -838,7 +848,14 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                     title: {
                         text: 'percent',
                         fontSize: 16,
+                        fillStyle: 'black',
                         fontFamily: 'Charter'
+                    },
+                    label: {
+                        fillStyle: 'black'
+                    },
+                    style: {
+                        strokeStyle: 'black'
                     },
                     titleMargin: 16,
                     minimum: -3,
@@ -847,6 +864,12 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
                 {
                     type: 'category',
                     position: 'bottom',
+                    label: {
+                        fillStyle: 'black'
+                    },
+                    style: {
+                        strokeStyle: 'black'
+                    },
                     floating: {
                         value: 0,
                         alongAxis: 0

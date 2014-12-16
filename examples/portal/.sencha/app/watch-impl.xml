@@ -1,7 +1,10 @@
-<project name="watch-impl">
+<project name="x-watch-impl">
 
     <target name="-watch-impl">
-        <x-ant-call target="${build.trigger.targets}"/>
+        <x-ant-call target="${build.trigger.targets}">
+            <param name="build.id" value="${build.id}"/>
+            <param name="build.name" value="${build.name}"/>
+        </x-ant-call>
     </target>
 
     <target name="-watch-compiler">
@@ -57,7 +60,10 @@
         <x-ant-call target="web-start" unless="skip.web.start">
             <param name="enable.background.server" value="true"/>
         </x-ant-call>
-        <x-ant-call target="${build.watcher.targets}"/>
+        <x-ant-call target="${build.watcher.targets}">
+            <param name="build.id" value="${build.id}"/>
+            <param name="build.name" value="${build.name}"/>
+        </x-ant-call>
         <x-ant-call target="web-stop" unless="skip.web.start">
             <param name="enable.background.server" value="true"/>
         </x-ant-call>

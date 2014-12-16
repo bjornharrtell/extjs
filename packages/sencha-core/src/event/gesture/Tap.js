@@ -4,6 +4,8 @@
 Ext.define('Ext.event.gesture.Tap', {
     extend: 'Ext.event.gesture.SingleTouch',
 
+    priority: 200,
+
     handledEvents: ['tap', 'tapcancel'],
 
     config: {
@@ -46,5 +48,12 @@ Ext.define('Ext.event.gesture.Tap', {
             touch: e.changedTouches[0]
         });
         return false;
+    },
+
+    reset: function() {
+        this.startPoint = null;
     }
+}, function(Tap) {
+    var gestures = Ext.manifest.gestures;
+    Tap.instance = new Tap(gestures && gestures.tap);
 });

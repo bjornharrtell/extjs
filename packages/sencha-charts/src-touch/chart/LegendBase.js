@@ -16,7 +16,7 @@ Ext.define('Ext.chart.LegendBase', {
     constructor: function () {
         this.callParent(arguments);
 
-        var scroller = this.getScrollable().getScroller(),
+        var scroller = this.getScrollable(),
             onDrag = scroller.onDrag;
         scroller.onDrag = function (e) {
             e.stopPropagation();
@@ -48,7 +48,6 @@ Ext.define('Ext.chart.LegendBase', {
     },
 
     setDocked: function (docked) {
-        this.callParent(arguments);
         if (docked === 'top' || docked === 'bottom') {
             this.setLayout({type: 'hbox', pack: 'center'});
             this.setInline(true);

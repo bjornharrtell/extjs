@@ -4,10 +4,13 @@
  * A chart configuration object has some overall styling options as well as an array of axes
  * and series. A chart instance example could look like this:
  *
- *     new Ext.chart.CartesianChart({
+ *     Ext.create('Ext.chart.CartesianChart', {
  *         width: 800,
  *         height: 600,
- *         animation: true,
+ *         animation: {
+ *             easing: 'backOut',
+ *             duration: 500
+ *         },
  *         store: store1,
  *         legend: {
  *             position: 'right'
@@ -27,8 +30,51 @@
  * You can register certain interactions such as {@link Ext.chart.interactions.PanZoom} on the chart by specify an
  * array of names or more specific config objects. All the events will be wired automatically.
  *
- * You can also listen to `itemXXX` events directly on charts. That case all the contained series will relay this event to the
- * chart.
+ * You can also listen to series `itemXXX` events on both chart and series level.
+ *
+ * For example:
+ *
+ *     Ext.create('Ext.chart.CartesianChart', {
+ *         plugins: {
+ *             ptype: 'chartitemevents',
+ *             moveEvents: true
+ *         },
+ *         store: {
+ *             fields: ['pet', 'households', 'total'],
+ *             data: [
+ *                 {pet: 'Cats', households: 38, total: 93},
+ *                 {pet: 'Dogs', households: 45, total: 79},
+ *                 {pet: 'Fish', households: 13, total: 171}
+ *             ]
+ *         },
+ *         axes: [{
+ *             type: 'numeric',
+ *             position: 'left'
+ *         }, {
+ *             type: 'category',
+ *             position: 'bottom'
+ *         }],
+ *         series: [{
+ *             type: 'bar',
+ *             xField: 'pet',
+ *             yField: 'households',
+ *             listeners: {
+ *                 itemmousemove: function (series, item, event) {
+ *                     console.log('itemmousemove', item.category, item.field);
+ *                 }
+ *             }
+ *         }, {
+ *             type: 'line',
+ *             xField: 'pet',
+ *             yField: 'total',
+ *             marker: true
+ *         }],
+ *         listeners: { // Listen to itemclick events on all series.
+ *             itemclick: function (chart, item, event) {
+ *                 console.log('itemclick', item.category, item.field);
+ *             }
+ *         }
+ *     });
  *
  * For more information about the axes and series configurations please check the documentation of
  * each series (Line, Bar, Pie, etc).
@@ -48,7 +94,7 @@ Ext.define('Ext.chart.AbstractChart', {
         'Ext.chart.Legend',
         'Ext.data.Store'
     ],
-    
+
     defaultBindProperty: 'store',
 
     /**
@@ -73,168 +119,79 @@ Ext.define('Ext.chart.AbstractChart', {
     /**
      * @event itemmousemove
      * Fires when the mouse is moved on a series item.
-     * @param {Ext.chart.series.Series} series
+     * *Note*: This event requires the {@link Ext.chart.plugin.ItemEvents chartitemevents}
+     * plugin be added to the chart.
+     * @param {Ext.chart.AbstractChart} chart
      * @param {Object} item
      * @param {Event} event
      */
+
     /**
      * @event itemmouseup
      * Fires when a mouseup event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
+     * *Note*: This event requires the {@link Ext.chart.plugin.ItemEvents chartitemevents}
+     * plugin be added to the chart.
+     * @param {Ext.chart.AbstractChart} chart
      * @param {Object} item
      * @param {Event} event
      */
+
     /**
      * @event itemmousedown
      * Fires when a mousedown event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
+     * *Note*: This event requires the {@link Ext.chart.plugin.ItemEvents chartitemevents}
+     * plugin be added to the chart.
+     * @param {Ext.chart.AbstractChart} chart
      * @param {Object} item
      * @param {Event} event
      */
+
     /**
      * @event itemmouseover
      * Fires when the mouse enters a series item.
-     * @param {Ext.chart.series.Series} series
+     * *Note*: This event requires the {@link Ext.chart.plugin.ItemEvents chartitemevents}
+     * plugin be added to the chart.
+     * @param {Ext.chart.AbstractChart} chart
      * @param {Object} item
      * @param {Event} event
      */
+
     /**
      * @event itemmouseout
      * Fires when the mouse exits a series item.
-     * @param {Ext.chart.series.Series} series
+     * *Note*: This event requires the {@link Ext.chart.plugin.ItemEvents chartitemevents}
+     * plugin be added to the chart.
+     * @param {Ext.chart.AbstractChart} chart
      * @param {Object} item
      * @param {Event} event
      */
+
     /**
      * @event itemclick
      * Fires when a click event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
+     * *Note*: This event requires the {@link Ext.chart.plugin.ItemEvents chartitemevents}
+     * plugin be added to the chart.
+     * @param {Ext.chart.AbstractChart} chart
      * @param {Object} item
      * @param {Event} event
      */
+
     /**
-     * @event itemdoubleclick
-     * Fires when a doubleclick event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
+     * @event itemdblclick
+     * Fires when a double click event occurs on a series item.
+     * *Note*: This event requires the {@link Ext.chart.plugin.ItemEvents chartitemevents}
+     * plugin be added to the chart.
+     * @param {Ext.chart.AbstractChart} chart
      * @param {Object} item
      * @param {Event} event
      */
+
     /**
      * @event itemtap
      * Fires when a tap event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemtapstart
-     * Fires when a tapstart event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemtapend
-     * Fires when a tapend event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemtapcancel
-     * Fires when a tapcancel event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemtaphold
-     * Fires when a taphold event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemdoubletap
-     * Fires when a doubletap event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemsingletap
-     * Fires when a singletap event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemtouchstart
-     * Fires when a touchstart event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemtouchmove
-     * Fires when a touchmove event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemtouchend
-     * Fires when a touchend event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemdragstart
-     * Fires when a dragstart event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemdrag
-     * Fires when a drag event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemdragend
-     * Fires when a dragend event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itempinchstart
-     * Fires when a pinchstart event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itempinch
-     * Fires when a pinch event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itempinchend
-     * Fires when a pinchend event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
-     * @param {Object} item
-     * @param {Event} event
-     */
-    /**
-     * @event itemswipe
-     * Fires when a swipe event occurs on a series item.
-     * @param {Ext.chart.series.Series} series
+     * *Note*: This event requires the {@link Ext.chart.plugin.ItemEvents chartitemevents}
+     * plugin be added to the chart.
+     * @param {Ext.chart.AbstractChart} chart
      * @param {Object} item
      * @param {Event} event
      */
@@ -244,11 +201,6 @@ Ext.define('Ext.chart.AbstractChart', {
      * @type {String}
      */
     version: '2.5.0',
-
-    delegationRegex: /^item([a-z]+)$/i,
-
-    domEvents: new RegExp("click|focus|blur|paste|input|mousemove|mousedown|mouseup|mouseover|mouseout|keyup|keydown|keypress|submit|"+
-                          "pinch|pinchstart|pinchend|touchmove|touchstart|touchend|rotate|rotatestart|rotateend|drag|dragstart|dragend|tap|doubletap|singletap"),
 
     config: {
 
@@ -569,6 +521,8 @@ Ext.define('Ext.chart.AbstractChart', {
     },
 
     getAnimation: function () {
+        // This prevents series from animating into view on chart's first render.
+        // Unless series have their own animation config.
         if (this.resizing || this.animationSuspended) {
             return {
                 duration: 0
@@ -618,22 +572,61 @@ Ext.define('Ext.chart.AbstractChart', {
                 }
             }
         }
+        // @noOptimize.callParent
         this.callParent();
+        // noOptimize is needed because in the ext build we have a parent method to call,
+        // but in touch we do not so we need to suppress the cmd warning during optimized build
     },
 
     applyBackground: function (newBackground, oldBackground) {
-        var surface = this.getSurface('background');
+        var surface = this.getSurface('background'),
+            width, height, isUpdateOld;
         if (newBackground) {
-            surface.remove(oldBackground, true);
-            if (newBackground.type === 'image' && Ext.isString(newBackground.src)) {
-                oldBackground = surface.add(newBackground);
+            if (oldBackground) {
+                width = oldBackground.attr.width;
+                height = oldBackground.attr.height;
+                isUpdateOld = oldBackground.type === (newBackground.type || 'rect');
+            }
+            if (newBackground.isSprite) {
+                oldBackground = newBackground;
+            } else if (newBackground.type === 'image' && Ext.isString(newBackground.src)) {
+                if (isUpdateOld) {
+                    oldBackground.setAttributes({
+                        src: newBackground.src
+                    });
+                } else {
+                    surface.remove(oldBackground, true);
+                    oldBackground = surface.add(newBackground);
+                }
             } else {
-                oldBackground = surface.add({
-                    type: 'rect',
-                    fillStyle: newBackground
-                });
+                if (isUpdateOld) {
+                    oldBackground.setAttributes({
+                        fillStyle: newBackground
+                    });
+                } else {
+                    surface.remove(oldBackground, true);
+                    oldBackground = surface.add({
+                        type: 'rect',
+                        fillStyle: newBackground,
+                        fx: {
+                            customDurations: {
+                                x: 0,
+                                y: 0,
+                                width: 0,
+                                height: 0
+                            }
+                        }
+                    });
+                }
             }
         }
+        if (width && height) {
+            oldBackground.setAttributes({
+                width: width,
+                height: height
+            });
+        }
+        oldBackground.fx.setConfig(this.getAnimation());
         return oldBackground;
     },
 
@@ -689,8 +682,7 @@ Ext.define('Ext.chart.AbstractChart', {
     },
 
     resizeHandler: function (size) {
-        var me = this;
-        me.scheduleLayout();
+        this.scheduleLayout();
         return false;
     },
 
@@ -777,7 +769,8 @@ Ext.define('Ext.chart.AbstractChart', {
             if (this.getInherited().rtl) {
                 axis.position = positions[axis.position] || axis.position;
             }
-            axis = Ext.factory(axis, null, oldAxis = oldMap[axis.getId && axis.getId() || axis.id], 'axis');
+            id = axis.getId && axis.getId() || axis.id;
+            axis = Ext.factory(axis, null, oldAxis = oldMap[id], 'axis');
             if (axis) {
                 axis.setChart(this);
                 result.push(axis);
@@ -929,6 +922,9 @@ Ext.define('Ext.chart.AbstractChart', {
         me.updateColors(colors);
     },
 
+    themeOnlyIfConfigured: {
+    },
+
     updateChartTheme: function (theme) {
         var me = this,
             chartTheme = theme.getChart(),
@@ -937,7 +933,8 @@ Ext.define('Ext.chart.AbstractChart', {
             configs = me.getConfigurator().configs,
             genericChartTheme = chartTheme.defaults,
             specificChartTheme = chartTheme[me.xtype],
-            key, value, isObjValue, initialValue, cfg;
+            themeOnlyIfConfigured = me.themeOnlyIfConfigured,
+            key, value, isObjValue, isUnusedConfig, initialValue, cfg;
 
         chartTheme = Ext.merge({}, genericChartTheme, specificChartTheme);
         for (key in chartTheme) {
@@ -946,10 +943,14 @@ Ext.define('Ext.chart.AbstractChart', {
             if (value !== null && value !== undefined && cfg) {
                 initialValue = initialConfig[key];
                 isObjValue = Ext.isObject(value);
-                if (initialValue === defaultConfig[key] || isObjValue) {
-                    if (isObjValue) {
-                        value = Ext.merge({}, value, initialValue);
+                isUnusedConfig = initialValue === defaultConfig[key];
+                if (isObjValue) {
+                    if (isUnusedConfig && themeOnlyIfConfigured[key]) {
+                        continue;
                     }
+                    value = Ext.merge({}, value, initialValue);
+                }
+                if (isUnusedConfig || isObjValue) {
                     me[cfg.names.set](value);
                 }
             }
@@ -1013,7 +1014,6 @@ Ext.define('Ext.chart.AbstractChart', {
                     if (oldSeriesItem) {
                         oldSeriesItem.destroy();
                     }
-                    me.addItemListenersToSeries(series);
                 }
                 series.setChart(me);
             } else if (Ext.isObject(series)) {
@@ -1031,7 +1031,6 @@ Ext.define('Ext.chart.AbstractChart', {
                     }
                     series.on('animationstart', 'onAnimationStart', me);
                     series.on('animationend', 'onAnimationEnd', me);
-                    me.addItemListenersToSeries(series);
                 }
             }
 
@@ -1069,13 +1068,6 @@ Ext.define('Ext.chart.AbstractChart', {
             legend.setStore(this.legendStore);
             this.refreshLegendStore();
             this.legendStore.on('update', 'onUpdateLegendStore', this);
-        }
-    },
-
-    setParent: function (parent) {
-        this.callParent(arguments);
-        if (parent && this.getLegend()) {
-            parent.add(this.getLegend());
         }
     },
 
@@ -1127,20 +1119,22 @@ Ext.define('Ext.chart.AbstractChart', {
     updateStore: function (newStore, oldStore) {
         var me = this;
         if (oldStore) {
-            oldStore.unAfter({
+            oldStore.un({
                 datachanged: 'onDataChanged',
                 update: 'onDataChanged',
-                scope: me
+                scope: me,
+                order: 'after'
             });
             if (oldStore.autoDestroy) {
                 oldStore.destroy();
             }
         }
         if (newStore) {
-            newStore.onAfter({
+            newStore.on({
                 datachanged: 'onDataChanged',
                 update: 'onDataChanged',
-                scope: me
+                scope: me,
+                order: 'after'
             });
         }
 
@@ -1186,20 +1180,25 @@ Ext.define('Ext.chart.AbstractChart', {
      */
     getItemForPoint: function (x, y) {
         var me = this,
-            items = me.getSeries(),
-            l = items.length,
+            seriesList = me.getSeries(),
+            mainRect = me.getMainRect(),
+            ln = seriesList.length,
             // If we haven't drawn yet, don't attempt to find any items.
-            i = me.hasFirstLayout ? l - 1 : -1,
+            i = me.hasFirstLayout ? ln - 1 : -1,
             series, item;
 
+        // The x,y here are already converted to the 'main' surface coordinates.
+        // Series surface rect matches the main surface rect.
+        if (!(mainRect && x >= 0 && x <= mainRect[2] && y >= 0 && y <= mainRect[3])) {
+            return null;
+        }
         // Iterate from the end so that the series that are drawn later get hit tested first.
-        while (i >= 0) {
-            series = items[i];
+        for (; i >= 0; i--) {
+            series = seriesList[i];
             item = series.getItemForPoint(x, y);
             if (item) {
                 return item;
             }
-            i--;
         }
 
         return null;
@@ -1213,13 +1212,17 @@ Ext.define('Ext.chart.AbstractChart', {
      */
     getItemsForPoint: function (x, y) {
         var me = this,
-            series = me.getSeries(),
-            seriesItem,
-            items = [];
+            seriesList = me.getSeries(),
+            ln = seriesList.length,
+            // If we haven't drawn yet, don't attempt to find any items.
+            i = me.hasFirstLayout ? ln - 1 : -1,
+            items = [],
+            series, item;
 
-        for (var i = 0; i < series.length; i++) {
-            seriesItem = series[i];
-            var item = seriesItem.getItemForPoint(x, y);
+        // Iterate from the end so that the series that are drawn later get hit tested first.
+        for (; i >= 0; i--) {
+            series = seriesList[i];
+            item = series.getItemForPoint(x, y);
             if (item) {
                 items.push(item);
             }
@@ -1336,78 +1339,6 @@ Ext.define('Ext.chart.AbstractChart', {
         if (newHighlightItem) {
             newHighlightItem.series.setAttributesForItem(newHighlightItem, {highlighted: true});
             this.fireEvent('itemhighlight', newHighlightItem);
-        }
-    },
-
-    addItemListenersToSeries: function (series) {
-        for (var name in this.itemListeners) {
-            var listenerMap = this.itemListeners[name], i, ln;
-            for (i = 0, ln = listenerMap.length; i < ln; i++) {
-                series.addListener.apply(series, listenerMap[i]);
-            }
-        }
-    },
-
-    addItemListener: function (name, fn, scope, options, order) {
-        var listenerMap = this.itemListeners[name] || (this.itemListeners[name] = []),
-            series = this.getSeries(), seriesItem,
-            i, ln;
-        listenerMap.push([name, fn, scope, options, order]);
-        if (series) {
-            for (i = 0, ln = series.length; i < ln; i++) {
-                seriesItem = series[i];
-                seriesItem.addListener(name, fn, scope, options, order);
-            }
-        }
-    },
-
-    remoteItemListener: function (name, fn, scope, options, order) {
-        var listenerMap = this.itemListeners[name],
-            series = this.getSeries(), seriesItem,
-            i, ln;
-        if (listenerMap) {
-            for (i = 0, ln = listenerMap.length; i < ln; i++) {
-                if (listenerMap[i].fn === fn) {
-                    listenerMap.splice(i, 1);
-                    if (series) {
-                        for (i = 0, ln = series.length; i < ln; i++) {
-                            seriesItem = series[i];
-                            seriesItem.removeListener(name, fn, scope, options, order);
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-    },
-
-    doAddListener: function (name, fn, scope, options, order) {
-        if (name.match(this.delegationRegex)) {
-            return this.addItemListener(name, fn, scope || this, options, order);
-        } else if (name.match(this.domEvents)) {
-            return this.element.doAddListener.apply(this.element, arguments);
-        } else {
-            return this.callParent(arguments);
-        }
-    },
-
-    doRemoveListener: function (name, fn, scope, options, order) {
-        if (name.match(this.delegationRegex)) {
-            return this.remoteItemListener(name, fn, scope || this, options, order);
-        } else if (name.match(this.domEvents)) {
-            return this.element.doRemoveListener.apply(this.element, arguments);
-        } else {
-            return this.callParent(arguments);
-        }
-    },
-
-    onItemRemove: function (item) {
-        this.callParent(arguments);
-        if (this.surfaceMap) {
-            Ext.Array.remove(this.surfaceMap[item.type], item);
-            if (this.surfaceMap[item.type].length === 0) {
-                delete this.surfaceMap[item.type];
-            }
         }
     },
 

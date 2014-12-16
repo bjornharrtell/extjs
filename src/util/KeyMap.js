@@ -84,8 +84,6 @@
  */
 Ext.define('Ext.util.KeyMap', {
     alternateClassName: 'Ext.KeyMap',
-    
-    inputTagRe: /input|textarea/i,
 
     /**
      * @property {Ext.event.Event} lastKeyEvent
@@ -101,7 +99,8 @@ Ext.define('Ext.util.KeyMap', {
      * @cfg {Object/Object[][]} binding
      * Either a single object describing a handling function for s specified key (or set of keys), or
      * an array of such objects.
-     * @cfg {String/String[]} binding.key A single keycode or an array of keycodes to handle
+     * @cfg {String/String[]} binding.key A single keycode or an array of keycodes to handle, or a RegExp
+     * which specifies characters to handle, eg `/[a-z]/`.
      * @cfg {Boolean}  binding.shift True to handle key only when shift is pressed, False to handle the
      *  key only when shift is not pressed (defaults to undefined)
      * @cfg {Boolean}  binding.ctrl True to handle key only when ctrl is pressed, False to handle the
@@ -200,7 +199,8 @@ Ext.define('Ext.util.KeyMap', {
      *
      * @param {Object/Object[]} binding A single KeyMap config or an array of configs.
      * The following config object properties are supported:
-     * @param {String/Array} binding.key A single keycode or an array of keycodes to handle.
+     * @param {String/Array} binding.key A single keycode or an array of keycodes to handle, or a RegExp
+     * which specifies characters to handle, eg `/[a-z]/`.
      * @param {Boolean} binding.shift True to handle key only when shift is pressed,
      * False to handle the keyonly when shift is not pressed (defaults to undefined).
      * @param {Boolean} binding.ctrl True to handle key only when ctrl is pressed,
@@ -268,7 +268,13 @@ Ext.define('Ext.util.KeyMap', {
     processKeys: function(keyCode){
         var processed = false,
             key, keys, keyString, len, i;
-            
+
+        // A RegExp to match typed characters
+        if (keyCode.test) {
+            return keyCode;
+        }
+
+        // A String of characters to match
         if (Ext.isString(keyCode)) {
             keys = [];
             keyString = keyCode.toUpperCase();
@@ -280,6 +286,7 @@ Ext.define('Ext.util.KeyMap', {
             processed = true;
         }
 
+        // Numeric key code
         if (!Ext.isArray(keyCode)) {
             keyCode = [keyCode];
         }
@@ -302,9 +309,7 @@ Ext.define('Ext.util.KeyMap', {
      */
     handleTargetEvent: function(event) {
         var me = this,
-            tagRe = me.inputTagRe,
-            bindings, i, len,
-            target, contentEditable;
+            bindings, i, len;
 
         if (me.enabled) {
             bindings = me.bindings;
@@ -312,21 +317,11 @@ Ext.define('Ext.util.KeyMap', {
             len = bindings.length;
 
             // Process the event
-            me.lastKeyEvent = event = me.processEvent.apply(me||me.processEventScope, arguments);
+            me.lastKeyEvent = event = me.processEvent.apply(me.processEventScope || me, arguments);
 
             // Ignore events from input fields if configured to do so
-            if (me.ignoreInputFields) {
-                target = event.target;
-                contentEditable = target.contentEditable;
-                // contentEditable will default to inherit if not specified, only check if the
-                // attribute has been set or explicitly set to true
-                // http://html5doctor.com/the-contenteditable-attribute/
-                // Also skip <input> tags of type="button", we use them for checkboxes
-                // and radio buttons
-                if ((tagRe.test(target.tagName) && target.type !== 'button') ||
-                    (contentEditable === '' || contentEditable === 'true')) {
-                    return;
-                }
+            if (me.ignoreInputFields && Ext.fly(event.target).isInputField()) {
+                return;
             }
 
             // If the processor does not return a keyEvent, we can't process it.
@@ -335,7 +330,7 @@ Ext.define('Ext.util.KeyMap', {
                 return event;
             }
             me.processing = true;
-            for(; i < len; ++i){
+            for (; i < len; ++i){
                 me.processBinding(bindings[i], event);
             }
             me.processing = false;
@@ -369,13 +364,23 @@ Ext.define('Ext.util.KeyMap', {
                 i,
                 len;
 
-
-            for (i = 0, len = keyCode.length; i < len; ++i) {
-                if (key === keyCode[i]) {
+            // keyCode is a regExp specifying acceptable characters. eg /[a-z]/
+            if (keyCode.test) {
+                if (keyCode.test(String.fromCharCode(event.getCharCode()))) {
                     if (handler.call(scope, key, event) !== true && defaultEventAction) {
                         event[defaultEventAction]();
                     }
-                    break;
+                }
+            }
+            // Array of key codes
+            else if (keyCode.length) {
+                for (i = 0, len = keyCode.length; i < len; ++i) {
+                    if (key === keyCode[i]) {
+                        if (handler.call(scope, key, event) !== true && defaultEventAction) {
+                            event[defaultEventAction]();
+                        }
+                        break;
+                    }
                 }
             }
         }

@@ -21,7 +21,18 @@ describe("Ext.data.Session", function() {
     var adminUsers, peonUsers;
     var userRufus, userBill, userTed;
 
+    function getAndComplete(type, id, theSession, data) {
+        theSession = theSession || session;
+        data = data || {};
+        var rec = theSession.getRecord(type, id);
+        data.id = data.id || id;
+        completeRequest(data);
+        return rec;
+    }
+
     beforeEach(function() {
+        MockAjaxManager.addMethods();
+
         adminGroup = {
             id: 42,
             name: 'Admins'
@@ -49,19 +60,6 @@ describe("Ext.data.Session", function() {
 
         adminUsers = [ userRufus ];
         peonUsers = [ userBill, userTed, userRufus ];
-    });
-
-    function getAndComplete(type, id, theSession, data) {
-        theSession = theSession || session;
-        data = data || {};
-        var rec = theSession.getRecord(type, id);
-        data.id = data.id || id;
-        completeRequest(data);
-        return rec;
-    }
-
-    beforeEach(function() {
-        MockAjaxManager.addMethods();
     });
 
     afterEach(function() {
@@ -174,7 +172,7 @@ describe("Ext.data.Session", function() {
                     });
 
                     function makeUser(id) {
-                        user = new spec.User({
+                        user = new User({
                             id: id
                         });
                     }
@@ -186,7 +184,7 @@ describe("Ext.data.Session", function() {
                                 userId: 1
                             });
 
-                            var spy = spyOn(spec.User.getProxy(), 'read');
+                            var spy = spyOn(User.getProxy(), 'read');
                             session.adopt(post);
                             expect(spy).not.toHaveBeenCalled();
                         });
@@ -208,7 +206,7 @@ describe("Ext.data.Session", function() {
                         it("should not load the store", function() {
                             makeUser(1);
                             user.posts();
-                            var spy = spyOn(spec.User.getProxy(), 'read');
+                            var spy = spyOn(User.getProxy(), 'read');
                             session.adopt(user);
                             expect(spy).not.toHaveBeenCalled();
                         });
@@ -257,7 +255,7 @@ describe("Ext.data.Session", function() {
 
                     describe("the key holder", function() {
                         it("should not attempt to load the non key holder", function() {
-                            var user = new spec.User({
+                            var user = new User({
                                 id: 1,
                                 addressId: 101
                             });
@@ -271,7 +269,7 @@ describe("Ext.data.Session", function() {
                                 id: 101
                             });
 
-                            var user = new spec.User({
+                            var user = new User({
                                 id: 1
                             });
 
@@ -286,7 +284,7 @@ describe("Ext.data.Session", function() {
                             var address = new spec.Address({
                                 id: 101
                             });
-                            var spy = spyOn(spec.User.getProxy(), 'read');
+                            var spy = spyOn(User.getProxy(), 'read');
                             session.adopt(address);
                             expect(spy).not.toHaveBeenCalled();
                         });
@@ -296,13 +294,111 @@ describe("Ext.data.Session", function() {
                                 id: 101
                             });
 
-                            var user = new spec.User({
+                            var user = new User({
                                 id: 1
                             });
                             address.setUser(user);
 
                             session.adopt(address);
                             expect(user.session).toBe(session);
+                        });
+                    });
+                });
+
+                describe("many to many", function() {
+                    var Group;
+
+                    beforeEach(function() {
+                        Group = Ext.define('spec.Group', {
+                            extend: 'Ext.data.Model',
+                            fields: ['name']
+                        });
+                    });
+
+                    afterEach(function() {
+                        Ext.undefine('spec.Group');
+                        Group = null;
+                    });
+
+                    describe("the left", function() {
+                        it("should not load the store", function() {
+                            var group = new Group({id: 1});
+                            group.users();
+                            var spy = spyOn(Group.getProxy(), 'read');
+                            session.adopt(group);
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+
+                        it("should set the session onto the store", function() {
+                            var group = new Group({id: 1}),
+                                users = group.users();
+
+                            session.adopt(group);
+                            expect(users.getSession()).toBe(session);
+                        });
+
+                        it("should adopt existing children", function() {
+                            var group = new Group({id: 1}),
+                                users = group.users();
+
+                            users.add({id: 101}, {id: 102}, {id: 103});
+                            session.adopt(group);
+                            expect(users.getAt(0).session).toBe(session);
+                            expect(users.getAt(1).session).toBe(session);
+                            expect(users.getAt(2).session).toBe(session);
+                        });
+
+                        it("should adopt any newly loaded items after adopting", function() {
+                            var group = new Group({id: 1}),
+                                users = group.users();
+
+                            session.adopt(group);
+                            users.load();
+                            completeRequest([{id: 101}, {id: 102}, {id: 103}]);
+                            expect(users.getAt(0).session).toBe(session);
+                            expect(users.getAt(1).session).toBe(session);
+                            expect(users.getAt(2).session).toBe(session);
+                        });
+                    });
+
+                    describe("the right", function() {
+                        it("should not load the store", function() {
+                            var user = new User({id: 1});
+                            user.groups();
+                            var spy = spyOn(Group.getProxy(), 'read');
+                            session.adopt(user);
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+
+                        it("should set the session onto the store", function() {
+                            var user = new User({id: 1}),
+                                groups = user.groups();
+
+                            session.adopt(user);
+                            expect(groups.getSession()).toBe(session);
+                        });
+
+                        it("should adopt existing children", function() {
+                            var user = new User({id: 1}),
+                                groups = user.groups();
+
+                            groups.add({id: 101}, {id: 102}, {id: 103});
+                            session.adopt(user);
+                            expect(groups.getAt(0).session).toBe(session);
+                            expect(groups.getAt(1).session).toBe(session);
+                            expect(groups.getAt(2).session).toBe(session);
+                        });
+
+                        it("should adopt any newly loaded items after adopting", function() {
+                            var user = new User({id: 1}),
+                                groups = user.groups();
+
+                            session.adopt(user);
+                            groups.load();
+                            completeRequest([{id: 101}, {id: 102}, {id: 103}]);
+                            expect(groups.getAt(0).session).toBe(session);
+                            expect(groups.getAt(1).session).toBe(session);
+                            expect(groups.getAt(2).session).toBe(session);
                         });
                     });
                 });
@@ -1290,7 +1386,7 @@ describe("Ext.data.Session", function() {
 
                 it("should drop multiple records", function() {
                     var user1 = getAndComplete('User', 1),
-                        user2 = getAndComplete('User', 2);
+                        user2 = getAndComplete('User', 2),
                         user3 = getAndComplete('User', 3);
 
                     user1.drop();
@@ -1662,7 +1758,6 @@ describe("Ext.data.Session", function() {
         });
 
         afterEach(function() {
-            rec = null;
             Ext.data.Model.schema.clear(true);
         }); 
 
@@ -2419,7 +2514,7 @@ describe("Ext.data.Session", function() {
                             });
 
                             it("should exclude removed items", function() {
-                                var user = getAndComplete('User', 1);
+                                var user = getAndComplete('User', 1),
                                     posts = user.posts();
 
                                 posts.load();
@@ -2989,6 +3084,100 @@ describe("Ext.data.Session", function() {
         });
     });
 
+    describe("drop/erase records", function() {
+        beforeEach(function() {
+            Ext.data.Model.schema.setNamespace('spec');
+            Ext.define('spec.User', {
+                extend: 'Ext.data.Model',
+                fields: ['name']
+            });
+            session = new Ext.data.Session();
+        });
+
+        afterEach(function() {
+            Ext.undefine('spec.User');
+            Ext.data.Model.schema.clear(true);
+        });
+
+        it("should evict a phantom when it is dropped", function() {
+            var user = new spec.User({}, session),
+                id = user.id;
+
+            user.drop();
+            expect(session.peekRecord('User', id)).toBeNull();
+        });
+
+        it("should not evict a non-phantom when it is dropped", function() {
+            var user = new spec.User({id: 1}, session);
+            user.drop();
+            expect(session.peekRecord('User', 1)).toBe(user);
+        });
+
+        it("should evict a non-phantom when it is erased", function() {
+            var user = new spec.User({id: 1}, session);
+            user.erase();
+            expect(session.peekRecord('User', 1)).toBe(user);
+            completeRequest({});
+            expect(session.peekRecord('User', 1)).toBeNull();
+        });
+    });
+
+    describe("commit", function() {
+        beforeEach(function() {
+            Ext.data.Model.schema.setNamespace('spec');
+            Ext.define('spec.User', {
+                extend: 'Ext.data.Model',
+                fields: ['name']
+            });
+            session = new Ext.data.Session();
+        });
+
+        afterEach(function() {
+            Ext.undefine('spec.User');
+            Ext.data.Model.schema.clear(true);
+        });
+
+        it("should call commit on created records", function() {
+            var user = new spec.User({}, session);
+            expect(session.getChanges()).toEqual({
+                User: {
+                    C: [{
+                        id: user.getId()
+                    }]
+                }
+            });
+            session.commit();
+            expect(session.getChanges()).toBeNull();
+        });
+
+        it("should call commit on updated records", function() {
+            var user = new spec.User({id: 1, name: 'Foo'}, session);
+            user.set('name', 'Bar');
+            expect(session.getChanges()).toEqual({
+                User: {
+                    U: [{
+                        id: 1,
+                        name: 'Bar'
+                    }]
+                }
+            });
+            session.commit();
+            expect(session.getChanges()).toBeNull();
+        });
+
+        it("should call commit on dropped records", function() {
+            var user = new spec.User({id: 1}, session);
+            user.drop();
+            expect(session.getChanges()).toEqual({
+                User: {
+                    D: [1]
+                }
+            });
+            session.commit();
+            expect(session.getChanges()).toBeNull();
+        });
+    });
+
     describe("spawn", function() {
         var parent;
 
@@ -3136,7 +3325,7 @@ describe("Ext.data.Session", function() {
     });
 
     describe("updating from child to parent sessions", function() {
-        var child;
+        var child, rec;
         beforeEach(function() {
             Ext.data.Model.schema.setNamespace('spec');
             Ext.define('spec.User', {
@@ -3441,7 +3630,7 @@ describe("Ext.data.Session", function() {
                     });
 
                     afterEach(function() {
-                        users = posts = childUser = null;
+                        user = posts = childUser = null;
                     });
 
                     it("should read & update for a foreign key change", function() {
@@ -3740,6 +3929,8 @@ describe("Ext.data.Session", function() {
                 });
 
                 describe("store not loaded, created in the child", function() {
+                    var user1, user2;
+
                     beforeEach(function() {
                         group = getAndComplete('Group', 1);
                         child = session.spawn();

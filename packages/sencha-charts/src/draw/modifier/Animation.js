@@ -8,7 +8,7 @@
  * {@link #customDurations} and {@link #customEasings}.
  *
  * By default, an animation modifier will be created during the initialization of a sprite.
- * You can get the modifier of `sprite` by `sprite.fx`.
+ * You can get the animation modifier of a sprite via `sprite.fx`.
  *
  */
 Ext.define('Ext.draw.modifier.Animation', {
@@ -83,6 +83,11 @@ Ext.define('Ext.draw.modifier.Animation', {
         if (!attr.hasOwnProperty('timers')) {
             attr.animating = false;
             attr.timers = {};
+            // The animationOriginal object is used to hold the target values for the
+            // attributes while they are being animated from source to target values.
+            // The animationOriginal is pushed down to the lower level modifiers,
+            // instead of the actual attr object, to hide the fact that the
+            // attributes are being animated.
             attr.animationOriginal = Ext.Object.chain(attr);
             attr.animationOriginal.prototype = attr;
         }
@@ -229,28 +234,28 @@ Ext.define('Ext.draw.modifier.Animation', {
     /**
      * @private
      * Initializes Animator for the animation.
-     * @param {Object} attributes The source attributes.
-     * @param {String} animating The animating flag.
+     * @param {Object} attr The source attributes.
+     * @param {Boolean} animating The animating flag.
      */
-    setAnimating: function (attributes, animating) {
+    setAnimating: function (attr, animating) {
         var me = this,
-            i, j;
+            pool = me.animatingPool;
 
-        if (attributes.animating !== animating) {
-            attributes.animating = animating;
+        if (attr.animating !== animating) {
+            attr.animating = animating;
             if (animating) {
-                me.animatingPool.push(attributes);
+                pool.push(attr);
                 if (me.animating === 0) {
                     Ext.draw.Animator.add(me);
                 }
                 me.animating++;
             } else {
-                for (i = 0, j = 0; i < me.animatingPool.length; i++) {
-                    if (me.animatingPool[i] !== attributes) {
-                        me.animatingPool[j++] = me.animatingPool[i];
+                for (var i = pool.length; i--;) {
+                    if (pool[i] === attr) {
+                        pool.splice(i, 1);
                     }
                 }
-                me.animating = me.animatingPool.length = j;
+                me.animating = pool.length;
             }
         }
     },
@@ -271,7 +276,7 @@ Ext.define('Ext.draw.modifier.Animation', {
             customEasings = this._customEasings,
             anySpecial = this.anySpecialAnimations,
             any = this.anyAnimation || anySpecial,
-            original = attr.animationOriginal,
+            animationOriginal = attr.animationOriginal,
             ignite = false,
             timer, name, newValue, startValue, parser, easing, duration;
 
@@ -285,7 +290,7 @@ Ext.define('Ext.draw.modifier.Animation', {
                 } else {
                     attr[name] = changes[name];
                 }
-                delete original[name];
+                delete animationOriginal[name];
                 delete timers[name];
             }
             return changes;
@@ -326,7 +331,8 @@ Ext.define('Ext.draw.modifier.Animation', {
                         timer.easing = easing;
                         timer.duration = duration;
                         timer.compute = parser.compute;
-                        timer.serve = parser.serve || Ext.draw.Draw.reflectFn;
+                        timer.serve = parser.serve || Ext.identityFn;
+                        timer.remove = changes.removeFromInstance && changes.removeFromInstance[name];
 
                         if (parser.parseInitial) {
                             var initial = parser.parseInitial(startValue, newValue);
@@ -340,16 +346,15 @@ Ext.define('Ext.draw.modifier.Animation', {
                             timer.target = newValue;
                         }
                         // The animation started. Change to originalVal.
-                        timers[name] = timer;
-                        original[name] = newValue;
+                        animationOriginal[name] = newValue;
                         delete changes[name];
                         ignite = true;
                         continue;
                     } else {
-                        delete original[name];
+                        delete animationOriginal[name];
                     }
                 } else {
-                    delete original[name];
+                    delete animationOriginal[name];
                 }
 
                 // If the property is not animating.
@@ -368,10 +373,10 @@ Ext.define('Ext.draw.modifier.Animation', {
      * @private
      *
      * Update attributes to current value according to current animation time.
-     * This method will not effect the values of lower layers, but may delete a
+     * This method will not affect the values of lower layers, but may delete a
      * value from it.
      * @param {Object} attr The source attributes.
-     * @return {Object} the changes to popup.
+     * @return {Object} The changes to pop up.
      */
     updateAttributes: function (attr) {
         if (!attr.animating) {
@@ -379,8 +384,8 @@ Ext.define('Ext.draw.modifier.Animation', {
         }
         var changes = {},
             any = false,
-            original = attr.animationOriginal,
             timers = attr.timers,
+            animationOriginal = attr.animationOriginal,
             now = Ext.draw.Animator.animationTime(),
             name, timer, delta;
 
@@ -398,8 +403,12 @@ Ext.define('Ext.draw.modifier.Animation', {
                 delta = (now - timer.start) / timer.duration;
             }
             if (delta >= 1) {
-                changes[name] = original[name];
-                delete original[name];
+                changes[name] = animationOriginal[name];
+                delete animationOriginal[name];
+                if (timers[name].remove) {
+                    changes.removeFromInstance = changes.removeFromInstance || {};
+                    changes.removeFromInstance[name] = true;
+                }
                 delete timers[name];
             } else {
                 changes[name] = timer.serve(timer.compute(timer.source, timer.target, timer.easing(delta), attr[name]));
@@ -415,8 +424,7 @@ Ext.define('Ext.draw.modifier.Animation', {
      * @inheritdoc
      */
     pushDown: function (attr, changes) {
-        // TODO: Understand why callParent is not possible here, add a comment.
-        changes = this.superclass.pushDown.call(this, attr.animationOriginal, changes);
+        changes = this.callParent([attr.animationOriginal, changes]);
         return this.setAttrs(attr, changes);
     },
 
@@ -434,7 +442,7 @@ Ext.define('Ext.draw.modifier.Animation', {
     },
 
     // This is called as an animated object in `Ext.draw.Animator`.
-    step: function () {
+    step: function (frameTime) {
         var me = this,
             pool = me.animatingPool.slice(),
             attributes,
@@ -457,7 +465,7 @@ Ext.define('Ext.draw.modifier.Animation', {
     },
 
     /**
-     * Stop all animations effected by this modifier
+     * Stop all animations affected by this modifier.
      */
     stop: function () {
         this.step();

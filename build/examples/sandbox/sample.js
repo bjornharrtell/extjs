@@ -226,7 +226,7 @@ MyDesktop.AccordionWindow = Ext.extend(Ext.app.Module, {
                         title: 'Online Users',
                         rootVisible:false,
                         lines:false,
-                        autoScroll:true,
+                        scrollable:true,
                         tools:[{
                             id:'refresh',
                             on:{
@@ -248,7 +248,7 @@ MyDesktop.AccordionWindow = Ext.extend(Ext.app.Module, {
                     }), {
                         title: 'Settings',
                         html:'<p>Something useful would be in here.</p>',
-                        autoScroll:true
+                        scrollable:true
                     },{
                         title: 'Even More Stuff',
                         html : '<p>Something useful would be in here.</p>'

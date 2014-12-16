@@ -181,7 +181,6 @@ Ext.define('Ext.chart.interactions.CrossZoom', {
             }
             return Ext.create('Ext.Button', Ext.apply({
                 cls: [],
-                // TODO: iconCls: 'refresh', // no such picto in Ext
                 text: 'Undo Zoom',
                 disabled: true,
                 handler: function () {
@@ -209,8 +208,11 @@ Ext.define('Ext.chart.interactions.CrossZoom', {
             chart = me.getChart(),
             surface = me.getSurface(),
             rect = chart.getInnerRect(),
-            chartWidth = rect[2],
-            chartHeight = rect[3],
+            innerPadding = chart.getInnerPadding(),
+            minX = innerPadding.left,
+            maxX = minX + rect[2],
+            minY = innerPadding.top,
+            maxY = minY + rect[3],
             xy = chart.getEventXY(e),
             x = xy[0],
             y = xy[1];
@@ -218,7 +220,7 @@ Ext.define('Ext.chart.interactions.CrossZoom', {
         if (me.zoomAnimationInProgress) {
             return;
         }
-        if (x > 0 && x < chartWidth && y > 0 && y < chartHeight) {
+        if (x > minX && x < maxX && y > minY && y < maxY) {
             me.gestureEvent = 'drag';
             me.lockEvents(me.gestureEvent);
             me.startX = x;
@@ -249,21 +251,24 @@ Ext.define('Ext.chart.interactions.CrossZoom', {
             var chart = me.getChart(),
                 surface = me.getSurface(),
                 rect = chart.getInnerRect(),
-                chartWidth = rect[2],
-                chartHeight = rect[3],
+                innerPadding = chart.getInnerPadding(),
+                minX = innerPadding.left,
+                maxX = minX + rect[2],
+                minY = innerPadding.top,
+                maxY = minY + rect[3],
                 xy = chart.getEventXY(e),
                 x = xy[0],
                 y = xy[1];
 
-            if (x < 0) {
-                x = 0;
-            } else if (x > chartWidth) {
-                x = chartWidth;
+            if (x < minX) {
+                x = minX;
+            } else if (x > maxX) {
+                x = maxX;
             }
-            if (y < 0) {
-                y = 0;
-            } else if (y > chartHeight) {
-                y = chartHeight;
+            if (y < minY) {
+                y = minY;
+            } else if (y > maxY) {
+                y = maxY;
             }
             me.selectionRect.setAttributes({
                 width: x - me.startX,
@@ -288,30 +293,35 @@ Ext.define('Ext.chart.interactions.CrossZoom', {
             var chart = me.getChart(),
                 surface = me.getSurface(),
                 rect = chart.getInnerRect(),
-                chartWidth = rect[2],
-                chartHeight = rect[3],
+                innerPadding = chart.getInnerPadding(),
+                minX = innerPadding.left,
+                maxX = minX + rect[2],
+                minY = innerPadding.top,
+                maxY = minY + rect[3],
+                rectWidth = rect[2],
+                rectHeight = rect[3],
                 xy = chart.getEventXY(e),
                 x = xy[0],
                 y = xy[1];
 
-            if (x < 0) {
-                x = 0;
-            } else if (x > chartWidth) {
-                x = chartWidth;
+            if (x < minX) {
+                x = minX;
+            } else if (x > maxX) {
+                x = maxX;
             }
-            if (y < 0) {
-                y = 0;
-            } else if (y > chartHeight) {
-                y = chartHeight;
+            if (y < minY) {
+                y = minY;
+            } else if (y > maxY) {
+                y = maxY;
             }
             if (Math.abs(me.startX - x) < 11 || Math.abs(me.startY - y) < 11) {
                 surface.remove(me.selectionRect);
             } else {
                 me.zoomBy([
-                    Math.min(me.startX, x) / chartWidth,
-                    1 - Math.max(me.startY, y) / chartHeight,
-                    Math.max(me.startX, x) / chartWidth,
-                    1 - Math.min(me.startY, y) / chartHeight
+                    Math.min(me.startX, x) / rectWidth,
+                    1 - Math.max(me.startY, y) / rectHeight,
+                    Math.max(me.startX, x) / rectWidth,
+                    1 - Math.min(me.startY, y) / rectHeight
                 ]);
 
                 me.selectionRect.setAttributes({
@@ -326,8 +336,8 @@ Ext.define('Ext.chart.interactions.CrossZoom', {
                     globalAlpha: 0,
                     x: 0,
                     y: 0,
-                    width: chartWidth,
-                    height: chartHeight
+                    width: rectWidth,
+                    height: rectHeight
                 });
 
                 me.zoomAnimationInProgress = true;

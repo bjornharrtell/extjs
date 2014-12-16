@@ -83,7 +83,8 @@ Ext.define('Ext.data.matrix.Slice', {
             id = me.id,
             members = me.members,
             otherSide = side.inverse,
-            assoc, call, i, item, otherId, otherSlices, otherSlice, record;
+            otherSlices = otherSide.slices,
+            assoc, call, i, item, otherId, otherSlice, record;
 
         for (i = 0; i < length; ++i) {
             call = record = null;
@@ -95,7 +96,7 @@ Ext.define('Ext.data.matrix.Slice', {
             // removed state, just blow it away completely.
             if (state < 0 && assoc && assoc[2] === 1) {
                 delete members[otherId];
-                otherSlice = otherSide[otherId];
+                otherSlice = otherSlices[otherId];
                 if (otherSlice) {
                     delete otherSlice.members[id];
                 }
@@ -109,7 +110,8 @@ Ext.define('Ext.data.matrix.Slice', {
                     assoc[assocIndex] = id;
 
                     members[otherId] = assoc;
-                    if (!(otherSlice = (otherSlices = otherSide.slices)[otherId])) {
+                    otherSlice = otherSlices[otherId];
+                    if (!otherSlice) {
                         otherSlices[otherId] = otherSlice = new MatrixSlice(otherSide, otherId);
                     }
                     otherSlice.members[id] =  assoc;
@@ -117,7 +119,7 @@ Ext.define('Ext.data.matrix.Slice', {
                 } else if (state !== assoc[2] && state !== 0) {
                     // If they aren't equal and we're setting it to 0, favour the current state
                     assoc[2] = state;
-                    otherSlice = otherSide.slices[otherId];
+                    otherSlice = otherSlices[otherId];
                     // because the assoc exists the other side will have a slice
                     call = 1;
                 }

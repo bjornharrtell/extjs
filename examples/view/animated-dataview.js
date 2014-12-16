@@ -8,6 +8,7 @@ Ext.require([
     'Ext.ux.DataView.Animated',
     'Ext.XTemplate',
     'Ext.panel.Panel',
+    'Ext.layout.container.Fit',
     'Ext.toolbar.*',
     'Ext.slider.Multi'
 ]);
@@ -99,7 +100,7 @@ Ext.onReady(function() {
         itemSelector: 'div.phone',
         overItemCls : 'phone-hover',
         multiSelect : true,
-        autoScroll  : true
+        scrollable  : true
     });
 
     var phoneSlider = Ext.create('Ext.slider.Multi', {
@@ -110,10 +111,7 @@ Ext.onReady(function() {
         values   : [80, 320],
 
         listeners: {
-            change: {
-                buffer: 70,
-                fn    : filterData
-            }
+            changecomplete: filterData
         }
     });
 

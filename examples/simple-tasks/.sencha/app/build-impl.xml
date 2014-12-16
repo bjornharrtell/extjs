@@ -14,7 +14,7 @@ the target provided here. Doing that can create problems for upgrading to newer
 versions of Cmd so it is not recommended but it will be easier to manage than editing
 this file in most cases.
 -->
-<project name="app-build-impl" default=".help">
+<project name="x-app-build-impl" default=".help">
     <!--
     ===============================================================
     helper targets for ant integrations with IDE's 
@@ -237,10 +237,15 @@ this file in most cases.
     ===============================================================
     -->
     <import file="${basedir}/.sencha/app/watch-impl.xml"/>
+    <target name="-watch-init">
+        <property name="app.watch.enabled" value="true"/>
+    </target>
     <target name="watch"
-            depends="development,init"
+            depends="-watch-init,development,init"
             description="Starts Watch to keep your app ready for dev mode">
         <x-ant-call>
+            <param name="build.id" value="${build.id}"/>
+            <param name="build.name" value="${build.name}"/>
             <target name="-before-watch"/>
             <target name="-watch"/>
             <target name="-after-watch"/>

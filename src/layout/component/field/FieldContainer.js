@@ -17,12 +17,14 @@ Ext.define('Ext.layout.component.field.FieldContainer', {
     waitForOuterWidthInDom: true,
 
     beginLayout: function(ownerContext) {
-        var owner = this.owner;
+        var containerEl = this.owner.containerEl;
+
         this.callParent(arguments);
 
         // Tell Component.measureAutoDimensions to measure the DOM when containerChildrenSizeDone is true
         ownerContext.hasRawContent = true;
-        owner.containerEl.setStyle('height', '');
+        containerEl.setStyle('width', '');
+        containerEl.setStyle('height', '');
         ownerContext.containerElContext = ownerContext.getEl('containerEl');
     },
 
@@ -51,7 +53,7 @@ Ext.define('Ext.layout.component.field.FieldContainer', {
 
         height -= owner.bodyEl.getPadding('tb');
 
-        ownerContext.containerElContext.setHeight(height, false);
+        ownerContext.containerElContext.setHeight(height);
     },
 
     publishInnerWidth: function (ownerContext, width) {
@@ -67,7 +69,7 @@ Ext.define('Ext.layout.component.field.FieldContainer', {
 
         width -= owner.bodyEl.getPadding('lr');
 
-        ownerContext.containerElContext.setWidth(width, false);
+        ownerContext.containerElContext.setWidth(width);
     }
 
 });

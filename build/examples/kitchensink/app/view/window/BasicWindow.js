@@ -12,7 +12,7 @@ Ext.define('KitchenSink.view.window.BasicWindow', {
     height: 300,
     width: 400,
     title: 'Window',
-    autoScroll: true,
+    scrollable: true,
     bodyPadding: 10,
     html: KitchenSink.DummyText.extraLongText,
     constrain: true,

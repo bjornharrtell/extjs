@@ -4,7 +4,7 @@
  * 
  * Horizontal Grid sprite. Used in Cartesian Charts.
  */
-Ext.define("Ext.chart.grid.HorizontalGrid", {
+Ext.define('Ext.chart.grid.HorizontalGrid', {
     extend: 'Ext.draw.sprite.Sprite',
     alias: 'grid.horizontal',
 
@@ -31,6 +31,7 @@ Ext.define("Ext.chart.grid.HorizontalGrid", {
         var attr = this.attr,
             y = surface.roundPixel(attr.y),
             halfLineWidth = ctx.lineWidth * 0.5;
+
         ctx.beginPath();
         ctx.rect(clipRect[0] - surface.matrix.getDX(), y + halfLineWidth, +clipRect[2], attr.height);
         ctx.fill();

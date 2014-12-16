@@ -49,6 +49,13 @@ Ext.define('Ext.data.SortTypes', {
     none: Ext.identityFn,
 
     /**
+     * The regular expression used to strip commas
+     * @type {RegExp}
+     * @property
+     */
+    stripCommasRe: /,/g,
+
+    /**
      * The regular expression used to strip tags
      * @type {RegExp}
      * @property
@@ -61,7 +68,8 @@ Ext.define('Ext.data.SortTypes', {
      * @return {String} The comparison value
      */
     asText: function (s) {
-        return String(s).replace(this.stripTagsRE, "");
+        // If allowNull, return the Unicode null character.
+        return (s != null) ? String(s).replace(this.stripTagsRe, '') : '\u0000';
     },
 
     /**
@@ -70,7 +78,8 @@ Ext.define('Ext.data.SortTypes', {
      * @return {String} The comparison value
      */
     asUCText: function (s) {
-        return String(s).toUpperCase().replace(this.stripTagsRE, "");
+        // If allowNull, return the Unicode null character.
+        return (s != null) ? String(s).toUpperCase().replace(this.stripTagsRe, '') : '\u0000';
     },
 
     /**
@@ -79,7 +88,8 @@ Ext.define('Ext.data.SortTypes', {
      * @return {String} The comparison value
      */
     asUCString: function (s) {
-        return String(s).toUpperCase();
+        // If allowNull, return the Unicode null character.
+        return (s != null) ? String(s).toUpperCase() : '\u0000';
     },
 
     /**
@@ -88,12 +98,14 @@ Ext.define('Ext.data.SortTypes', {
      * @return {Number} The comparison value
      */
     asDate: function (s) {
-        if(!s){
+        if (!s) {
             return 0;
         }
-        if(Ext.isDate(s)){
+
+        if (Ext.isDate(s)) {
             return s.getTime();
         }
+
         return Date.parse(String(s));
     },
 
@@ -103,7 +115,7 @@ Ext.define('Ext.data.SortTypes', {
      * @return {Number} The comparison value
      */
     asFloat: function (s) {
-        var val = parseFloat(String(s).replace(/,/g, ""));
+        var val = parseFloat(String(s).replace(this.stripCommasRe, ''));
         return isNaN(val) ? 0 : val;
     },
 
@@ -113,7 +125,7 @@ Ext.define('Ext.data.SortTypes', {
      * @return {Number} The comparison value
      */
     asInt: function (s) {
-        var val = parseInt(String(s).replace(/,/g, ""), 10);
+        var val = parseInt(String(s).replace(this.stripCommasRe, ''), 10);
         return isNaN(val) ? 0 : val;
     }
 });

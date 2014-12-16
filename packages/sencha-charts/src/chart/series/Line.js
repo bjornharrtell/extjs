@@ -146,7 +146,7 @@ Ext.define('Ext.chart.series.Line', {
          * if `config.fill` is undefined but a `style.fill' color is provided, `config.fill` is considered true.
          * So the default value below must be undefined, not false.
          */
-         fill: undefined,
+        fill: undefined,
 
         aggregator: { strategy: 'double' }
     },
@@ -214,6 +214,27 @@ Ext.define('Ext.chart.series.Line', {
             smooth: me.config.smooth,
             selectionTolerance: me.config.selectionTolerance
         });
+    },
+
+    updateStep: function (step) {
+        var sprite = this.getSprites()[0];
+        if (sprite && sprite.attr.step !== step) {
+            sprite.setAttributes({step: step});
+        }
+    },
+
+    updateFill: function (fill) {
+        var sprite = this.getSprites()[0];
+        if (sprite && sprite.attr.fillArea !== fill) {
+            sprite.setAttributes({fillArea: fill});
+        }
+    },
+
+    updateSmooth: function (smooth) {
+        var sprite = this.getSprites()[0];
+        if (sprite && sprite.attr.smooth !== smooth) {
+            sprite.setAttributes({smooth: smooth});
+        }
     }
 
 });

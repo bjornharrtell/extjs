@@ -1,20 +1,74 @@
 describe("Ext.direct.PollingProvider", function() {
-    var provider;
+    var provider, remotingProvider;
     
     function createProvider(config) {
-        provider = new Ext.direct.PollingProvider(config || {
+        config = Ext.apply({}, config , {
             url: '/foo',
             baseParams: { foo: 'bar' }
         });
-    };
+        
+        provider = new Ext.direct.PollingProvider(config);
+    }
+    
+    function makeSpy(name) {
+        var directCfg = spec.DirectSpecs[name].directCfg,
+            spy = spyOn(spec.DirectSpecs, name);
+
+        spy.directCfg = directCfg;
+        
+        return spy;
+    }
+    
+    function gutEvent(event) {
+        return {
+            type: event.type,
+            name: event.name,
+            data: event.data
+        }
+    }
     
     beforeEach(function() {
+        remotingProvider = Ext.direct.Manager.addProvider({
+            type: 'remoting',
+            url: '/bar',
+            'namespace': 'spec',
+            actions: {
+                DirectSpecs: [{
+                    name: 'pollFn',
+                    params: ['foo']
+                }]
+            }
+        });
+
         createProvider();
     });
     
     afterEach(function() {
-        provider.disconnect();
+        if (provider) {
+            provider.disconnect();
+            provider.destroy();
+            provider = null;
+        }
+        
+        if (remotingProvider) {
+            remotingProvider.disconnect();
+            remotingProvider.destroy();
+            remotingProvider = null;
+        }
+        
+        window.spec = null;
+        
         Ext.util.TaskManager.stopAll();
+    });
+    
+    describe("construction", function() {
+        it("should create pollTask", function() {
+            expect(provider.pollTask.isTask).toBe(true);
+        });
+        
+        it("should not start pollTask", function() {
+            expect(provider.pollTask.stopped).toBe(true);
+        });
     });
     
     describe("should handle connect:", function() {
@@ -22,10 +76,10 @@ describe("Ext.direct.PollingProvider", function() {
             spyOn(provider, 'runPoll').andReturn();
         });
         
-        it("creates poll task", function() {
+        it("starts poll task", function() {
             provider.connect();
             
-            expect(provider.pollTask).toBeDefined();
+            expect(provider.pollTask.pending).toBe(true);
         });
         
         it("fires 'connect' event", function() {
@@ -36,6 +90,28 @@ describe("Ext.direct.PollingProvider", function() {
             
             expect(handler).toHaveBeenCalled();
         });
+        
+        describe("polling with direct fn", function() {
+            it("should warn when url is a function", function() {
+                var spy = spyOn(Ext.log, 'warn');
+                
+                provider.url = Ext.emptyFn;
+                
+                provider.connect();
+                
+                expect(spy).toHaveBeenCalledWith(
+                    'Using a function for url is deprecated, use pollFn instead.'
+                );
+            });
+            
+            it("should resolve string pollFn", function() {
+                provider.pollFn = 'spec.DirectSpecs.pollFn';
+                
+                provider.connect();
+                
+                expect(provider.pollFn).toBe(spec.DirectSpecs.pollFn);
+            });
+        });
     });
     
     describe("should handle disconnect:", function() {
@@ -45,10 +121,10 @@ describe("Ext.direct.PollingProvider", function() {
             provider.connect();
         });
         
-        it("destroys polling task", function() {
+        it("stops polling task", function() {
             provider.disconnect();
             
-            expect(provider.pollTask).toBeUndefined();
+            expect(provider.pollTask.stopped).toBe(true);
         });
         
         it("fires 'disconnect' event", function() {
@@ -88,19 +164,6 @@ describe("Ext.direct.PollingProvider", function() {
             });
         });
         
-        it("runs url() with baseParams when it's defined", function() {
-            var handler = jasmine.createSpy('url handler');
-            
-            createProvider({
-                url: handler,
-                baseParams: { foo: 'bar' }
-            });
-            
-            provider.runPoll();
-            
-            expect(handler).toHaveBeenCalledWith({ foo: 'bar' });
-        });
-            
         it("should fire 'poll' event", function() {
             var handler = jasmine.createSpy('poll handler');
             
@@ -109,9 +172,130 @@ describe("Ext.direct.PollingProvider", function() {
             
             expect(handler).toHaveBeenCalled();
         });
+        
+        describe("direct functions", function() {
+            var pollFn;
+            
+            beforeEach(function() {
+                pollFn = makeSpy('pollFn');
+                
+                // Deprecation warning is expected
+                spyOn(Ext.log, 'warn');
+                
+                provider = null;
+            });
+            
+            afterEach(function() {
+                provider.disconnect();
+            });
+            
+            describe("url as function", function() {
+                beforeEach(function() {
+                    createProvider({
+                        url: pollFn,
+                        baseParams: undefined
+                    });
+            
+                    provider.connect();
+                });
+            
+                it("runs url() without baseParams by default", function() {
+                    provider.runPoll();
+                
+                    var args = pollFn.mostRecentCall.args;
+                
+                    expect(args[0]).toEqual({});
+                });
+            
+                it("runs url() with baseParams when it is defined", function() {
+                    provider.baseParams = { foo: 'bar' };
+                
+                    provider.runPoll();
+                
+                    var args = pollFn.mostRecentCall.args;
+                
+                    expect(args[0]).toEqual({ foo: 'bar' });
+                });
+            });
+        
+            describe("pollFn", function() {
+                beforeEach(function() {
+                    createProvider({
+                        pollFn: pollFn,
+                        url: undefined,
+                        baseParams: undefined
+                    });
+                    
+                    provider.connect();
+                });
+                
+                it("runs pollFn without baseParams by default", function() {
+                    provider.runPoll();
+                    
+                    var args = pollFn.mostRecentCall.args;
+                    
+                    expect(args[0]).toEqual({});
+                });
+                
+                it("runs pollFn with baseParams with it is defined", function() {
+                    provider.baseParams = { bar: 'baz' };
+                    
+                    provider.runPoll();
+                    
+                    var args = pollFn.mostRecentCall.args;
+                    
+                    expect(args[0]).toEqual({ bar: 'baz' });
+                });
+            });
+        });
     });
     
-    describe("should handle data:", function() {
+    describe("getInterval", function() {
+        it("should return default interval", function() {
+            expect(provider.getInterval()).toBe(3000);
+        });
+        
+        it("should return actual pollTask interval", function() {
+            provider.pollTask.interval = 5000;
+            
+            expect(provider.getInterval()).toBe(5000);
+        });
+    });
+    
+    describe("setInterval", function() {
+        it("should raise error when interval is too short", function() {
+            expect(function() {
+                provider.setInterval(10);
+            }).toThrow(
+                'Attempting to configure PollProvider ' + provider.id +
+                ' with interval that is less than 100ms.'
+            );
+        });
+        
+        it("should set new interval config", function() {
+            provider.setInterval(5000);
+            
+            expect(provider.interval).toBe(5000);
+        });
+        
+        it("should set pollTask interval", function() {
+            provider.setInterval(10000);
+            
+            expect(provider.pollTask.interval).toBe(10000);
+        });
+        
+        it("should restart pollTask if connected", function() {
+            provider.connect();
+            
+            spyOn(provider.pollTask, 'restart');
+            
+            provider.setInterval(15000);
+            
+            expect(provider.pollTask.restart).toHaveBeenCalled();
+        });
+    });
+    
+    describe("Ajax responses", function() {
         var handler;
         
         beforeEach(function() {
@@ -178,7 +362,7 @@ describe("Ext.direct.PollingProvider", function() {
         });
     });
     
-    describe("should handle errors:", function() {
+    describe("Ajax errors", function() {
         var handler;
         
         beforeEach(function() {
@@ -261,6 +445,92 @@ describe("Ext.direct.PollingProvider", function() {
             expect(handler.argsForCall.length).toBe(1);
             // AND
             expect(xcpt).toEqual(ex);
+        });
+    });
+    
+    describe("pollFn responses", function() {
+        var handler, pollFn;
+        
+        beforeEach(function() {
+            provider.url = undefined;
+            provider.pollFn = 'spec.DirectSpecs.pollFn';
+            
+            pollFn  = makeSpy('pollFn');
+            handler = jasmine.createSpy('handler');
+            provider.on('data', handler);
+            
+            provider.connect();
+        });
+        
+        afterEach(function() {
+            provider.disconnect();
+        });
+        
+        it("doesn't fire data event when dataset is empty", function() {
+            spyOn(provider, 'createEvents').andCallThrough();
+            
+            pollFn.andCallFake(function(params, cb, scope) {
+                cb.call(scope, null, null, true);
+            });
+            
+            provider.runPoll();
+            
+            expect(provider.createEvents).toHaveBeenCalled();
+            // AND
+            expect(handler).not.toHaveBeenCalled();
+        });
+        
+        it("should fire single event", function() {
+            pollFn.andCallFake(function(params, cb, scope) {
+                cb.call(scope, {
+                    type: 'event',
+                    name: 'blerg',
+                    data: params
+                }, {}, true);
+            });
+            
+            provider.runPoll();
+            
+            var args = handler.mostRecentCall.args;
+            
+            var event = gutEvent(args[1]);
+            
+            expect(event).toEqual({
+                type: 'event',
+                name: 'blerg',
+                data: { foo: 'bar' }
+            });
+        });
+        
+        it("should fire multiple events", function() {
+            pollFn.andCallFake(function(params, cb, scope) {
+                var result = [],
+                    event;
+                
+                for (var i = 1; i < 4; i++) {
+                    event = {
+                        type: 'event',
+                        name: 'blam' + i,
+                        data: params
+                    };
+                    
+                    result.push(event);
+                }
+                    
+                cb.call(scope, result, {}, true);
+            });
+            
+            provider.runPoll();
+            
+            var result = Ext.Array.map(handler.argsForCall, function(item) {
+                return gutEvent(item[1]);
+            });
+            
+            expect(result).toEqual([
+                { type: 'event', name: 'blam1', data: { foo: 'bar' } },
+                { type: 'event', name: 'blam2', data: { foo: 'bar' } },
+                { type: 'event', name: 'blam3', data: { foo: 'bar' } }
+            ]);
         });
     });
 });

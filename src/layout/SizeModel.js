@@ -186,17 +186,20 @@ function () {
     new SizeModel({
         name: 'calculatedFromConfigured',
         configured: true,
+        calculatedFrom: true,
         names: { width: 'width', height: 'height' }
     });
 
     new SizeModel({
         name: 'calculatedFromNatural',
-        natural: true
+        natural: true,
+        calculatedFrom: true
     });
 
     new SizeModel({
         name: 'calculatedFromShrinkWrap',
-        shrinkWrap: true
+        shrinkWrap: true,
+        calculatedFrom: true
     });
 
     new SizeModel({

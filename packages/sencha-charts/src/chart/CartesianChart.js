@@ -23,9 +23,46 @@ Ext.define('Ext.chart.CartesianChart', {
     config: {
         /**
          * @cfg {Boolean} flipXY Flip the direction of X and Y axis.
-         * If flipXY is true, the X axes will be vertical and Y axes will be horizontal.
+         * If flipXY is `true`, the X axes will be vertical and Y axes will be horizontal.
+         * Note that {@link Ext.chart.axis.Axis#position positions} of chart axes have
+         * to be updated accordingly: axes positioned to the `top` and `bottom` should
+         * be positioned to the `left` or `right` and vice versa.
          */
         flipXY: false,
+        /*
+
+         While it may seem tedious to change the position config of all axes every time
+         when the value of the flipXY config is changed, it's hard to predict the
+         expectaction of the user here, as illustrated below.
+
+         The 'num' and 'cat' here stand for the numeric and the category axis, respectively.
+         And the right column shows the expected (subjective) result of setting the flipXY
+         config of the chart to 'true'.
+
+         As one can see, there's no single rule (e.g. position swapping, clockwise 90° chart
+         rotation) that will produce a universally accepted result.
+         So we are letting the user decide, instead of doing it for them.
+
+         ---------------------------------------------
+         |   flipXY: false       |    flipXY: true   |
+         ---------------------------------------------
+         |        ^              |      ^            |
+         |        |     *        |      | * * *      |
+         |   num1 |   * *        |  cat | * *        |
+         |        | * * *        |      | *          |
+         |        -------->      |      -------->    |
+         |           cat         |         num1      |
+         ---------------------------------------------
+         |                       |         num1      |
+         |       ^       ^       |      ^------->    |
+         |       |     * |       |      | * * *      |
+         |  num1 |   * * | num2  |  cat | * *        |
+         |       | * * * |       |      | *          |
+         |       -------->       |      -------->    |
+         |          cat          |         num2      |
+         ---------------------------------------------
+
+         */
 
         innerRect: [0, 0, 1, 1],
 
@@ -208,6 +245,7 @@ Ext.define('Ext.chart.CartesianChart', {
             floating, value, alongAxis, matrix,
             size = me.innerElement.getSize(),
             inset = me.getInsetPadding(),
+            inner = me.getInnerPadding(),
             width = size.width - inset.left - inset.right,
             height = size.height - inset.top - inset.bottom,
             isHorizontal;
@@ -216,46 +254,55 @@ Ext.define('Ext.chart.CartesianChart', {
             axis = axes[i];
             floating = axis.getFloating();
             value = floating ? floating.value : null;
-            if (value !== null) {
-                axisSurface = axis.getSurface();
-                axisRect = axisSurface.getRect();
-                if (!axisRect) {
-                    continue;
-                }
-                axisRect = axisRect.slice();
-                alongAxis = me.getAxis(floating.alongAxis);
-                if (alongAxis) {
-                    isHorizontal = alongAxis.getAlignment() === 'horizontal';
-                    if (Ext.isString(value)) {
-                        value = alongAxis.getCoordFor(value);
-                    }
-                    alongAxis.floatingAxes[axis.getId()] = value;
-                    matrix = alongAxis.getSprites()[0].attr.matrix;
-                    if (isHorizontal) {
-                        value = value * matrix.getXX() + matrix.getDX();
-                    } else {
-                        value = value * matrix.getYY() + matrix.getDY();
-                    }
-                } else {
-                    isHorizontal = axis.getAlignment() === 'horizontal';
-                    value = axisSurface.roundPixel(0.01 * value * (isHorizontal ? height : width));
-                }
-                switch (axis.getPosition()) {
-                    case 'top':
-                        axisRect[1] = inset.top + value - axisRect[3] + 1;
-                        break;
-                    case 'bottom':
-                        axisRect[1] = inset.top + (alongAxis ? value : height - value);
-                        break;
-                    case 'left':
-                        axisRect[0] = inset.left + value - axisRect[2] + 1;
-                        break;
-                    case 'right':
-                        axisRect[0] = inset.left + (alongAxis ? value : width - value) - 1;
-                        break;
-                }
-                axisSurface.setRect(axisRect);
+            if (value === null) {
+                delete axis.floatingAtCoord;
+                continue;
             }
+            axisSurface = axis.getSurface();
+            axisRect = axisSurface.getRect();
+            if (!axisRect) {
+                continue;
+            }
+            axisRect = axisRect.slice();
+            alongAxis = me.getAxis(floating.alongAxis);
+            if (alongAxis) {
+                isHorizontal = alongAxis.getAlignment() === 'horizontal';
+                if (Ext.isString(value)) {
+                    value = alongAxis.getCoordFor(value);
+                }
+                alongAxis.floatingAxes[axis.getId()] = value;
+                matrix = alongAxis.getSprites()[0].attr.matrix;
+                if (isHorizontal) {
+                    value = value * matrix.getXX() + matrix.getDX();
+                    axis.floatingAtCoord = value + inner.left + inner.right;
+                } else {
+                    value = value * matrix.getYY() + matrix.getDY();
+                    axis.floatingAtCoord = value + inner.top + inner.bottom;
+                }
+            } else {
+                isHorizontal = axis.getAlignment() === 'horizontal';
+                if (isHorizontal) {
+                    axis.floatingAtCoord = value + inner.top + inner.bottom;
+                } else {
+                    axis.floatingAtCoord = value + inner.left + inner.right;
+                }
+                value = axisSurface.roundPixel(0.01 * value * (isHorizontal ? height : width));
+            }
+            switch (axis.getPosition()) {
+                case 'top':
+                    axisRect[1] = inset.top + inner.top + value - axisRect[3] + 1;
+                    break;
+                case 'bottom':
+                    axisRect[1] = inset.top + inner.top + (alongAxis ? value : height - value);
+                    break;
+                case 'left':
+                    axisRect[0] = inset.left + inner.left + value - axisRect[2];
+                    break;
+                case 'right':
+                    axisRect[0] = inset.left + inner.left + (alongAxis ? value : width - value) - 1;
+                    break;
+            }
+            axisSurface.setRect(axisRect);
         }
     },
 
@@ -324,20 +371,14 @@ Ext.define('Ext.chart.CartesianChart', {
                     sprite.attr.zIndex = zIndex;
                     // Iterate through its marker sprites to do the same.
                     markers = sprite.boundMarkers;
-                    if (markers) {
-                        markerCount = (markers.items ? markers.items.length : 0);
-                        if (markerCount) {
-                            for (markerIndex = 0; markerIndex < markerCount; markerIndex++) {
-                                markerSprite = markers.items[markerIndex];
-                                markerZIndex = (markerSprite.attr.zIndex || 0);
-                                if (markerZIndex == Number.MAX_VALUE) {
-                                    markerSprite.attr.zIndex = zIndex;
-                                } else {
-                                    if (markerZIndex < zBase) {
-                                        markerSprite.attr.zIndex = zIndex + markerZIndex;
-                                    }
-                                }
-                            }
+                    markerCount = (markers && markers.items ? markers.items.length : 0);
+                    for (markerIndex = 0; markerIndex < markerCount; markerIndex++) {
+                        markerSprite = markers.items[markerIndex];
+                        markerZIndex = (markerSprite.attr.zIndex || 0);
+                        if (markerZIndex == Number.MAX_VALUE) {
+                            markerSprite.attr.zIndex = zIndex;
+                        } else if (markerZIndex < zBase) {
+                            markerSprite.attr.zIndex = zIndex + markerZIndex;
                         }
                     }
                 }

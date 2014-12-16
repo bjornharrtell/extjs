@@ -113,7 +113,7 @@ Ext.define('Ext.dom.Fly', {
     Ext.fly = function(dom, named) {
         var fly = null,
             fn = Ext.fly,
-            nodeType;
+            nodeType, data;
 
         // name the flyweight after the calling method name if possible.
         named = named || (fn.caller && fn.caller.$name) || '_global';
@@ -125,14 +125,20 @@ Ext.define('Ext.dom.Fly', {
             // check if we have a valid node type or if the el is a window object before
             // proceeding. This allows elements, document fragments, and document/window
             // objects (even those inside iframes) to be wrapped.
-            if (Fly.prototype.validNodeTypes[nodeType] || (!nodeType && (dom.window === dom))) {
+            // Note: a window object can be detected by comparing it's window property to
+            // itself, but we must use == for the comparison because === will return false
+            // in IE8 even though the 2 window objects are the same
+            if (Fly.prototype.validNodeTypes[nodeType] || (!nodeType && (dom.window == dom))) {
                 fly = Ext.cache[dom.id];
 
                 // If there's no Element cached, or the element cached is for another DOM node, return a Fly
                 if (!fly || fly.dom !== dom) {
                     fly = flyweights[named] || (flyweights[named] = new Fly());
                     fly.dom = dom;
-                    fly.isSynchronized = false;
+                    data = fly.getData(true);
+                    if (data) {
+                        data.isSynchronized = false;
+                    }
                 }
             }
         }

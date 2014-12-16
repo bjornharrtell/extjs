@@ -307,6 +307,7 @@ Ext.define('Ext.tab.Panel', {
     requires: ['Ext.layout.container.Card', 'Ext.tab.Bar'],
 
     config: {
+        // @cmd-auto-dependency { directRef: 'Ext.tab.Bar' }
         /**
          * @cfg {Object} tabBar
          * Optional configuration object for the internal {@link Ext.tab.Bar}.
@@ -445,7 +446,8 @@ Ext.define('Ext.tab.Panel', {
     //inherit docs
     initComponent: function() {
         var me = this,
-            activeTab = me.activeTab || (me.activeTab = 0),
+            // Default to 0 if undefined and not null!
+            activeTab = me.activeTab !== null ? (me.activeTab || 0) : null,
             tabPosition = me.getTabPosition(),
             tabRotation = me.getTabRotation(),
             dockedItems = me.dockedItems,
@@ -463,9 +465,7 @@ Ext.define('Ext.tab.Panel', {
         }, me.layout));
 
         if (tabBarHeaderPosition != null) {
-            if (!header) {
-                header = me.header = {};
-            }
+            header = me.header = Ext.apply({}, header);
 
             headerItems = header.items = (header.items ? header.items.slice() : []);
             header.itemPosition = tabBarHeaderPosition;
@@ -515,20 +515,22 @@ Ext.define('Ext.tab.Panel', {
         var me = this,
             previous;
 
-        card = me.getComponent(card);
+        // Check for a config object
+        if (!Ext.isObject(card) || card.isComponent) {
+            card = me.getComponent(card);
+        }
+        previous = me.getActiveTab();
         if (card) {
-            previous = me.getActiveTab();
-
-            if (previous === card || me.fireEvent('beforetabchange', me, card, previous) === false) {
-                return false;
-            }
-
+            Ext.suspendLayouts();
             // We may be passed a config object, so add it.
             // Without doing a layout!
             if (!card.isComponent) {
-                Ext.suspendLayouts();
                 card = me.add(card);
+            }
+
+            if (previous === card || me.fireEvent('beforetabchange', me, card, previous) === false) {
                 Ext.resumeLayouts();
+                return previous;
             }
 
             // MUST set the activeTab first so that the machinery which listens for show doesn't
@@ -538,7 +540,6 @@ Ext.define('Ext.tab.Panel', {
             // Attempt to switch to the requested card. Suspend layouts because if that was successful
             // we have to also update the active tab in the tab bar which is another layout operation
             // and we must coalesce them.
-            Ext.suspendLayouts();
             me.layout.setActiveItem(card);
 
             // Read the result of the card layout. Events dear boy, events!
@@ -562,6 +563,7 @@ Ext.define('Ext.tab.Panel', {
             }
             return card;
         }
+        return previous;
     },
 
     setActiveItem: function(item) {
@@ -578,7 +580,7 @@ Ext.define('Ext.tab.Panel', {
             result = me.getComponent(me.activeTab);
 
         // Sanitize the result in case the active tab is no longer there.
-        if (result && me.items.indexOf(result) != -1) {
+        if (result && me.items.indexOf(result) !== -1) {
             me.activeTab = result;
         } else {
             me.activeTab = null;
@@ -694,6 +696,13 @@ Ext.define('Ext.tab.Panel', {
         if (me.rendered) {
             item.getBind();
         }
+
+        // Ensure that there is at least one active tab. This is only needed when adding tabs via a loader config, i.e., there
+        // may be no pre-existing tabs. Note that we need to check if activeTab was explicitly set to `null` in the tabpanel
+        // config (which tells the layout not to set an active item), as this is a valid value to mean 'do not set an active tab'.
+        if (me.rendered && me.loader && me.activeTab === undefined && me.layout.activeItem !== null) {
+            me.setActiveTab(0);
+        }
     },
 
     /**
@@ -790,7 +799,7 @@ Ext.define('Ext.tab.Panel', {
                 toActivate;
 
             // Destroying, or removing the last item, nothing to activate
-            if (me.removingAll || me.destroying || me.items.getCount() == 1) {
+            if (me.removingAll || me.destroying || me.items.getCount() === 1) {
                 me.activeTab = null;
             }
 

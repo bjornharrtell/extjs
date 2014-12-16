@@ -34,7 +34,7 @@ Ext.define('KitchenSink.view.form.FieldReplicator', {
 
     items: [{
         xtype: 'container',
-        autoScroll: true,
+        scrollable: true,
         maxHeight: 100,
         layout: 'anchor',
         items: [{

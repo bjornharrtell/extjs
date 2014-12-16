@@ -4,6 +4,8 @@
 Ext.define('Ext.event.gesture.EdgeSwipe', {
     extend: 'Ext.event.gesture.Swipe',
 
+    priority: 800,
+
     handledEvents: [
         'edgeswipe',
         'edgeswipestart',
@@ -151,5 +153,15 @@ Ext.define('Ext.event.gesture.EdgeSwipe', {
             touch: e.changedTouches[0]
         });
         return false;
+    },
+
+    reset: function() {
+        var me = this;
+
+        me.started = me.direction = me.isHorizontal = me.isVertical = me.startX =
+            me.startY = me.startTime = me.distance = null;
     }
+}, function(EdgeSwipe) {
+    var gestures = Ext.manifest.gestures;
+    EdgeSwipe.instance = new EdgeSwipe(gestures && gestures.edgeSwipe);
 });

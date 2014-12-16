@@ -61,17 +61,15 @@ Ext.define('Ext.data.proxy.WebStorage', {
         this.initialize();
     },
 
-    //inherit docs
+    //@inheritdoc
     create: function(operation) {
         var me = this,
             records = operation.getRecords(),
             length = records.length,
             ids = me.getIds(),
-            id, record, i;
+            id, record, i, identifier;
 
-        operation.setStarted();
-
-        if(me.isHierarchical === undefined) {
+        if (me.isHierarchical === undefined) {
             // if the storage object does not yet contain any data, this is the first point at which we can determine whether or not this proxy deals with hierarchical data.
             // it cannot be determined during initialization because the Model is not decorated with NodeInterface until it is used in a TreeStore
             me.isHierarchical = !!records[0].isNode;
@@ -85,7 +83,12 @@ Ext.define('Ext.data.proxy.WebStorage', {
 
             if (record.phantom) {
                 record.phantom = false;
-                id = me.getNextId();
+                identifier = record.identifier;
+                if (identifier && identifier.isUnique) {
+                    id = record.getId();
+                } else {
+                    id = me.getNextId();
+                }
             } else {
                 id = record.getId();
             }
@@ -100,7 +103,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
         operation.setSuccessful(true);
     },
 
-    //inherit docs
+    //@inheritdoc
     read: function(operation) {
         var me = this,
             allRecords,
@@ -111,9 +114,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
             recordCreator = operation.getRecordCreator(),
             filters, sorters, limit, filterLen, valid, record, ids, length, data, id, i, j;
 
-        operation.setStarted();
-
-        if(me.isHierarchical) {
+        if (me.isHierarchical) {
             records = me.getTreeData();
         } else {
             ids = me.getIds();
@@ -185,14 +186,12 @@ Ext.define('Ext.data.proxy.WebStorage', {
         }
     },
 
-    //inherit docs
+    //@inheritdoc
     update: function(operation) {
         var records = operation.getRecords(),
             length  = records.length,
             ids     = this.getIds(),
             record, id, i;
-
-        operation.setStarted();
 
         for (i = 0; i < length; i++) {
             record = records[i];
@@ -210,7 +209,7 @@ Ext.define('Ext.data.proxy.WebStorage', {
         operation.setSuccessful(true);
     },
 
-    //inherit
+    //@inheritdoc
     erase: function(operation) {
         var me = this,
             records = operation.getRecords(),
@@ -220,8 +219,6 @@ Ext.define('Ext.data.proxy.WebStorage', {
             removedHash = {},
             i = records.length,
             id;
-
-        operation.setStarted();
 
         for (; i--;) {
             Ext.apply(removedHash, me.removeRecord(records[i]));

@@ -68,13 +68,14 @@ Ext.define('Ext.data.NodeStore', {
     afterEdit: function(record, modifiedFields) {
         // Only for when being used as the flat NodeStore of a List
         if (this.getNode() && modifiedFields) {
-            if (modifiedFields.indexOf('loaded') !== -1) {
+
+            if (Ext.Array.indexOf(modifiedFields, 'loaded') !== -1) {
                 return this.add(this.retrieveChildNodes(record));
             }
-            if (modifiedFields.indexOf('expanded') !== -1) {
+            if (Ext.Array.indexOf(modifiedFields, 'expanded') !== -1) {
                 return this.filter();
             }
-            if (modifiedFields.indexOf('sorted') !== -1) {
+            if (Ext.Array.indexOf(modifiedFields, 'sorted') !== -1) {
                 return this.sort();
             }
         }

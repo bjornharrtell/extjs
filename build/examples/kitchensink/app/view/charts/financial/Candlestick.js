@@ -73,7 +73,6 @@ Ext.define('KitchenSink.view.charts.financial.Candlestick', {
         height: 500,
         store: {type: 'stock-price'},
         id: 'candlestick-chart',
-        background: 'white',
         insetPadding: 20,
         interactions: [
              {

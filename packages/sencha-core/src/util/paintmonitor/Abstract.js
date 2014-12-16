@@ -35,11 +35,11 @@ Ext.define('Ext.util.paintmonitor.Abstract', {
 
     updateElement: function(element) {
         this.monitorElement = Ext.Element.create({
-            classList: ['x-paint-monitor', this.monitorClass]
+            classList: [Ext.baseCSSPrefix + 'paint-monitor', this.monitorClass]
         }, true);
 
         element.appendChild(this.monitorElement);
-        element.addCls('x-paint-monitored');
+        element.addCls(Ext.baseCSSPrefix + 'paint-monitored');
         this.bindListeners(true);
     },
 
@@ -54,7 +54,7 @@ Ext.define('Ext.util.paintmonitor.Abstract', {
         delete this.monitorElement;
 
         if (element && !element.isDestroyed) {
-            element.removeCls('x-paint-monitored');
+            element.removeCls(Ext.baseCSSPrefix + 'paint-monitored');
             delete this._element;
         }
 

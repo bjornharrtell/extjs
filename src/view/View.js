@@ -53,6 +53,7 @@ Ext.define('Ext.view.View', {
     alias: 'widget.dataview',
 
     inputTagRe: /^textarea$|^input$/i,
+    keyEventRe: /^key/,
 
     inheritableStatics: {
         EventMap: {
@@ -67,6 +68,7 @@ Ext.define('Ext.view.View', {
             mouseenter: 'MouseEnter',
             mouseleave: 'MouseLeave',
             keydown: 'KeyDown',
+            keyup: 'KeyUp',
             keypress: 'KeyPress',
             focus: 'Focus'
         },
@@ -159,6 +161,26 @@ Ext.define('Ext.view.View', {
      */
 
     /**
+     * @event beforeitemkeyup
+     * Fires before the keyup event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event beforeitemkeypress
+     * Fires before the keypress event on an item is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
      * @event itemmousedown
      * Fires when there is a mouse down on an item
      * @param {Ext.view.View} this
@@ -230,6 +252,26 @@ Ext.define('Ext.view.View', {
 
     /**
      * @event itemkeydown
+     * Fires when a key is pressed down while an item is currently selected.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event itemkeyup
+     * Fires when a key is released while an item is currently selected.
+     * @param {Ext.view.View} this
+     * @param {Ext.data.Model} record The record that belongs to the item
+     * @param {HTMLElement} item The item's element
+     * @param {Number} index The item's index
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event itemkeypress
      * Fires when a key is pressed while an item is currently selected.
      * @param {Ext.view.View} this
      * @param {Ext.data.Model} record The record that belongs to the item
@@ -295,6 +337,20 @@ Ext.define('Ext.view.View', {
      */
 
     /**
+     * @event beforecontainerkeyup
+     * Fires before the keyup event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event beforecontainerkeypress
+     * Fires before the keypress event on the container is processed. Returns false to cancel the default action.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
      * @event containermousedown
      * Fires when there is a mousedown on the container
      * @param {Ext.view.View} this
@@ -345,6 +401,20 @@ Ext.define('Ext.view.View', {
 
     /**
      * @event containerkeydown
+     * Fires when a key is pressed down while the container is focused, and no item is currently selected.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event containerkeyup
+     * Fires when a key is released while the container is focused, and no item is currently selected.
+     * @param {Ext.view.View} this
+     * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
+     */
+
+    /**
+     * @event containerkeypress
      * Fires when a key is pressed while the container is focused, and no item is currently selected.
      * @param {Ext.view.View} this
      * @param {Ext.event.Event} e The raw event object. Use {@link Ext.event.Event#getKey getKey()} to retrieve the key that was pressed.
@@ -407,6 +477,7 @@ Ext.define('Ext.view.View', {
             dblclick: me.handleEvent,
             contextmenu: me.handleEvent,
             keydown: me.handleEvent,
+            keyup: me.handleEvent,
             keypress: me.handleEvent,
             mouseover: me.handleMouseOver,
             mouseout: me.handleMouseOut
@@ -469,11 +540,11 @@ Ext.define('Ext.view.View', {
 
     handleEvent: function(e) {
         var me = this,
-            isKeyEvent = Ext.String.startsWith(e.type, 'key'),
-            key = isKeyEvent && e.getKey(),
+            isKeyEvent = me.keyEventRe.test(e.type),
             nm = me.getNavigationModel();
 
         e.view = me;
+        
         if (isKeyEvent) {
             e.item = nm.getItem();
             e.record = nm.getRecord();
@@ -491,14 +562,14 @@ Ext.define('Ext.view.View', {
         if (me.processUIEvent(e) !== false) {
             me.processSpecialEvent(e);
         }
-
-        // After all listeners have processed the event, then unless the user is typing into an input field,
-        // prevent browser's default action on SPACE which is to focus the event's target element.
+        
+        // We need to prevent default action on navigation keys
+        // that can cause View element scroll unless the event is from an input field.
+        // We MUST prevent browser's default action on SPACE which is to focus the event's target element.
         // Focusing causes the browser to attempt to scroll the element into view.
-        if (key === e.SPACE) {
-            if (!me.inputTagRe.test(e.getTarget().tagName)) {
-                e.stopEvent();
-            }
+        
+        if (isKeyEvent && ((e.getKey() === e.SPACE && !Ext.fly(e.target).isInputField()) || e.isNavKeyPress(true))) {
+            e.preventDefault();
         }
     },
 
@@ -593,6 +664,7 @@ Ext.define('Ext.view.View', {
     onItemDblClick: Ext.emptyFn,
     onItemContextMenu: Ext.emptyFn,
     onItemKeyDown: Ext.emptyFn,
+    onItemKeyUp: Ext.emptyFn,
     onItemKeyPress: Ext.emptyFn,
     onBeforeItemLongPress: Ext.emptyFn,
     onBeforeItemMouseDown: Ext.emptyFn,
@@ -604,6 +676,7 @@ Ext.define('Ext.view.View', {
     onBeforeItemDblClick: Ext.emptyFn,
     onBeforeItemContextMenu: Ext.emptyFn,
     onBeforeItemKeyDown: Ext.emptyFn,
+    onBeforeItemKeyUp: Ext.emptyFn,
     onBeforeItemKeyPress: Ext.emptyFn,
 
     // private, template methods
@@ -616,6 +689,7 @@ Ext.define('Ext.view.View', {
     onContainerDblClick: Ext.emptyFn,
     onContainerContextMenu: Ext.emptyFn,
     onContainerKeyDown: Ext.emptyFn,
+    onContainerKeyUp: Ext.emptyFn,
     onContainerKeyPress: Ext.emptyFn,
     onBeforeContainerMouseDown: Ext.emptyFn,
     onBeforeContainerLongPress: Ext.emptyFn,
@@ -626,6 +700,7 @@ Ext.define('Ext.view.View', {
     onBeforeContainerDblClick: Ext.emptyFn,
     onBeforeContainerContextMenu: Ext.emptyFn,
     onBeforeContainerKeyDown: Ext.emptyFn,
+    onBeforeContainerKeyUp: Ext.emptyFn,
     onBeforeContainerKeyPress: Ext.emptyFn,
 
     // @private
@@ -761,9 +836,13 @@ Ext.define('Ext.view.View', {
 
     bindStore: function (store, initial, propertyName) {
         // There could be different data sources (store or dataSource), so figure that out here.
-        var dataSource = this[propertyName];
+        var me = this,
+            dataSource = me[propertyName],
+            selModel = me.getSelectionModel();
 
         if (dataSource && dataSource.isFeatureStore) {
+            selModel.bindStore(dataSource.store);
+            selModel.bindComponent(me);
             // Feature stores will call their own implementation of .bindStore().
             //
             // The passed 'store' function arg will be one of two types depending on the caller.
@@ -771,15 +850,14 @@ Ext.define('Ext.view.View', {
             //    2. grid feature store (data store is bound to it in featureStore.store).
             if (store.isFeatureStore) {
                 // The store listeners need to be bound to the feature store.
-                this.bindStoreListeners(store);
+                me.bindStoreListeners(store);
                 // Pass in the regular data store.
                 dataSource.bindStore(dataSource.store);
             } else {
                 dataSource.bindStore(store);
             }
-            this.getSelectionModel().bindStore(dataSource.store);
         } else {
-            this.callParent(arguments);
+            me.callParent([store, initial, propertyName]);
         }
     },
 

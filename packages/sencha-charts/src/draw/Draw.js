@@ -27,6 +27,7 @@ Ext.define('Ext.draw.Draw', {
     pi2: Math.PI * 2,
 
     /**
+     * @deprecated Please use the {@link Ext.identityFn} instead.
      * Function that returns its first element.
      * @param {Mixed} a
      * @return {Mixed}
@@ -41,7 +42,7 @@ Ext.define('Ext.draw.Draw', {
      * @return {Number}
      */
     rad: function (degrees) {
-        return degrees % 360 * Math.PI / 180;
+        return (degrees % 360) * this.radian;
     },
 
     /**
@@ -50,7 +51,7 @@ Ext.define('Ext.draw.Draw', {
      * @return {Number}
      */
     degrees: function (radian) {
-        return radian * 180 / Math.PI % 360;
+        return (radian / this.radian) % 360;
     },
 
     /**
@@ -64,6 +65,17 @@ Ext.define('Ext.draw.Draw', {
         padding = padding || 0;
         return (Math.max(bbox1.x, bbox2.x) - padding > Math.min(bbox1.x + bbox1.width, bbox2.x + bbox2.width)) ||
             (Math.max(bbox1.y, bbox2.y) - padding > Math.min(bbox1.y + bbox1.height, bbox2.y + bbox2.height));
+    },
+
+    /**
+     * Checks if a point is within a bounding box.
+     * @param x
+     * @param y
+     * @param bbox
+     * @returns {Boolean}
+     */
+    isPointInBBox: function (x, y, bbox) {
+        return !!bbox && x >= bbox.x && x <= (bbox.x + bbox.width) && y >= bbox.y && y <= (bbox.y + bbox.height);
     },
 
     /**

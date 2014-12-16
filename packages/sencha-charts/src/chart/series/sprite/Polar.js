@@ -113,7 +113,7 @@ Ext.define('Ext.chart.series.sprite.Polar', {
                 labels: null,
                 labelOverflowPadding: 10
             },
-            dirtyTriggers: {
+            triggers: {
                 dataX: 'bbox',
                 dataY: 'bbox',
                 dataMinX: 'bbox',

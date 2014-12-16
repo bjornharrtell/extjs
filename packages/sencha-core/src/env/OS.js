@@ -239,7 +239,6 @@ Ext.env.OS.prototype = {
      *
      * For a full list of supported values, refer to the {@link #is} property/method.
      *
-     * @aside guide environment_package
      */
     Ext.os = osEnv = new OS(userAgent, navigation.platform);
 

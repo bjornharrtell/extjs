@@ -264,11 +264,13 @@ Ext.env.Ready = {
         var delay = listener.delay;
 
         if (delay) {
-            Ext.defer(function () {
-                listener.fn.call(listener.scope);
-            }, delay);
+            Ext.defer(listener.fn, delay, listener.scope);
         } else {
-            listener.fn.call(listener.scope);
+            if (Ext.elevateFunction) {
+                Ext.elevateFunction(listener.fn, listener.scope);
+            } else {
+                listener.fn.call(listener.scope);
+            }
         }
     },
 
@@ -277,7 +279,15 @@ Ext.env.Ready = {
      * only be called when DOM ready is achieved. The remaining business of `blocks` is
      * handled here.
      */
-    invokeAll: function () {
+    invokeAll: function() {
+        if (Ext.elevateFunction) {
+            Ext.elevateFunction(this.doInvokeAll, this);
+        } else {
+            this.doInvokeAll();
+        }
+    },
+
+    doInvokeAll: function () {
         var me = this,
             listeners = me.listeners,
             listener;

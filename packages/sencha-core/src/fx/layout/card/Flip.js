@@ -36,10 +36,10 @@ Ext.define('Ext.fx.layout.card.Flip', {
 
     onActiveItemChange: function(cardLayout, newItem, oldItem, options, controller) {
         var parent = newItem.element.getParent();
-        parent.addCls('x-layout-card-perspective');
+        parent.addCls(Ext.baseCSSPrefix + 'layout-card-perspective');
 
         this.on('animationend', function() {
-            parent.removeCls('x-layout-card-perspective');
+            parent.removeCls(Ext.baseCSSPrefix + 'layout-card-perspective');
         }, this, {single: true});
 
         this.callParent(arguments);

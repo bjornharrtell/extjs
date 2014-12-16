@@ -86,6 +86,7 @@ Ext.define('Ext.util.Scheduler', {
         }
 
         me.destroyed = true;
+        me.items.destroy();
         me.items = me.orderedItems = null;
 
         me.destroy = Ext.emptyFn;
@@ -340,7 +341,8 @@ Ext.define('Ext.util.Scheduler', {
         var me = this,
             timer = me.timer,
             cyclesLeft = me.getCycleLimit(),
-            busyCounter, i, item, len, queue;
+            globalEvents = Ext.GlobalEvents,
+            busyCounter, i, item, len, queue, firedEvent;
 
         if (timer) {
             window.clearTimeout(timer);
@@ -364,6 +366,13 @@ Ext.define('Ext.util.Scheduler', {
                 }
                 //</debug>
                 break;
+            }
+
+            if (!firedEvent) {
+                firedEvent = true;
+                if (globalEvents.hasListeners.beforebindnotify) {
+                    globalEvents.fireEvent('beforebindnotify', me);
+                }
             }
 
             ++me.passes;

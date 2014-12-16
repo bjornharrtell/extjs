@@ -267,7 +267,7 @@ Ext.define('Ext.grid.property.Grid', {
         }));
 
         me.selModel = {
-            selType: 'cellmodel',
+            type: 'cellmodel',
             onCellSelect: function(position) {
                 // We are only allowed to select the value column.
                 position.column = me.valueColumn;
@@ -324,7 +324,7 @@ Ext.define('Ext.grid.property.Grid', {
             for (; i < len; ++i) {
                 rec = store.getAt(i);
                 name = rec.get(nameField);
-                if (!me.getConfig(name, 'type')) {
+                if (!me.getConfigProp(name, 'type')) {
                     value = rec.get(valueField);
                     if (Ext.isDate(value)) {
                         type = 'date';
@@ -335,13 +335,13 @@ Ext.define('Ext.grid.property.Grid', {
                     } else {
                         type = 'string';
                     }
-                    me.setConfig(name, 'type', type);
+                    me.setConfigProp(name, 'type', type);
                 }
             }
         }
     },
 
-    getConfig: function(fieldName, key, defaultValue) {
+    getConfigProp: function(fieldName, key, defaultValue) {
         var config = this.sourceConfig[fieldName],
             out;
 
@@ -351,7 +351,7 @@ Ext.define('Ext.grid.property.Grid', {
         return out || defaultValue;
     },
 
-    setConfig: function(fieldName, key, value) {
+    setConfigProp: function(fieldName, key, value) {
         var sourceCfg = this.sourceConfig,
             o = sourceCfg[fieldName];
 
@@ -445,8 +445,8 @@ Ext.define('Ext.grid.property.Grid', {
         var me = this,
             propName = record.get(me.nameField),
             val = record.get(me.valueField),
-            editor = me.getConfig(propName, 'editor'),
-            type = me.getConfig(propName, 'type'),
+            editor = me.getConfigProp(propName, 'editor'),
+            type = me.getConfigProp(propName, 'type'),
             editors = me.editors;
 
         // A custom editor was found. If not already wrapped with a CellEditor, wrap it, and stash it back
@@ -456,7 +456,7 @@ Ext.define('Ext.grid.property.Grid', {
                 if (!(editor instanceof Ext.form.field.Base)) {
                     editor = Ext.ComponentManager.create(editor, 'textfield');
                 }
-                editor = me.setConfig(propName, 'editor', new Ext.grid.CellEditor({ field: editor }));
+                editor = me.setConfigProp(propName, 'editor', new Ext.grid.CellEditor({ field: editor }));
             }
         } else if (type) {
             switch (type) {

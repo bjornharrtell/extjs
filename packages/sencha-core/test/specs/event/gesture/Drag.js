@@ -1,6 +1,6 @@
 describe("Ext.event.gesture.Drag", function() {
     var helper = Ext.testHelper,
-        recognizer = Ext.event.Dispatcher.getInstance().getPublisher('gesture').getRecognizers().drag,
+        recognizer = Ext.event.gesture.Drag.instance,
         minDistance = recognizer.getMinDistance(),
         targetEl, dragstartHandler, dragHandler, dragendHandler, dragcancelHandler,
         dragstartEvent, dragEvent, dragendEvent, dragcancelEvent;

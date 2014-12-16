@@ -691,7 +691,7 @@ td.ext-cal-dtitle-today div {
 }
 
 .ext-color-1,
-.x-ie .ext-color-1-ad,
+.x-ie7m .ext-color-1-ad,
 .x-opera .ext-operaLT11.ext-color-1-ad {
 	color: #306da6;
 }
@@ -712,7 +712,7 @@ td.ext-cal-dtitle-today div {
 }
 
 .ext-color-2,
-.x-ie .ext-color-2-ad,
+.x-ie7m .ext-color-2-ad,
 .x-opera .ext-operaLT11.ext-color-2-ad {
 	color: #86a723;
 }
@@ -732,7 +732,7 @@ td.ext-cal-dtitle-today div {
     border-color: #86a723;
 }
 .ext-color-3,
-.x-ie .ext-color-3-ad,
+.x-ie7m .ext-color-3-ad,
 .x-opera .ext-operaLT11.ext-color-3-ad {
     color: #b6a980;
 }

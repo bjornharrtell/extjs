@@ -94,12 +94,16 @@ Ext.define('Ext.form.field.Display', {
     initEvents: Ext.emptyFn,
 
     submitValue: false,
+
+    getValue: function() {
+        return this.value;
+    },
     
     valueToRaw: function(value) {
-        if (!value && value !== 0) {
-            return '';
-        } else {
+        if (value || value === 0 || value === false) {
             return value;
+        } else {
+            return '';
         }
     },
     

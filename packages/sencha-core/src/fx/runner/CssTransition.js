@@ -5,6 +5,8 @@
 Ext.define('Ext.fx.runner.CssTransition', {
     extend: 'Ext.fx.runner.Css',
     requires: ['Ext.AnimationQueue'],
+    alternateClassName: 'Ext.Animator',
+    singleton: true,
 
     listenersAttached: false,
 
@@ -16,7 +18,8 @@ Ext.define('Ext.fx.runner.CssTransition', {
 
     attachListeners: function() {
         this.listenersAttached = true;
-        this.getEventDispatcher().addListener('element', '*', 'transitionend', 'onTransitionEnd', this);
+
+        Ext.getWin().on('transitionend', 'onTransitionEnd', this);
     },
 
     onTransitionEnd: function(e) {

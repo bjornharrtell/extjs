@@ -22,9 +22,16 @@
  */
 Ext.define('Ext.draw.sprite.Path', {
     extend: 'Ext.draw.sprite.Sprite',
-    requires: ['Ext.draw.Draw', 'Ext.draw.Path'],
-    alias: ['sprite.path', 'Ext.draw.Sprite'],
+    requires: [
+        'Ext.draw.Draw',
+        'Ext.draw.Path'
+    ],
+    alias: [
+        'sprite.path',
+        'Ext.draw.Sprite'
+    ],
     type: 'path',
+    isPath: true,
     //<debug>
     statics: {
         /**
@@ -58,7 +65,7 @@ Ext.define('Ext.draw.sprite.Path', {
             aliases: {
                 d: 'path'
             },
-            dirtyTriggers: {
+            triggers: {
                 path: 'bbox'
             },
             updaters: {
@@ -71,7 +78,7 @@ Ext.define('Ext.draw.sprite.Path', {
                     }
                     path.clear();
                     this.updatePath(path, attr);
-                    attr.dirtyFlags.bbox = ['path'];
+                    this.scheduleUpdaters(attr, {bbox: ['path']});
                 }
             }
         }
@@ -93,7 +100,7 @@ Ext.define('Ext.draw.sprite.Path', {
         var mat = this.attr.matrix,
             attr = this.attr;
 
-        if (!attr.path || attr.path.coords.length === 0) {
+        if (!attr.path || attr.path.params.length === 0) {
             return;
         }
         mat.toContext(ctx);
@@ -129,35 +136,36 @@ Ext.define('Ext.draw.sprite.Path', {
             mat = attr.matrix,
             imat = attr.inverseMatrix,
             path = attr.path,
-            types = path.types,
-            coords = path.coords,
-            ln = path.types.length,
+            commands = path.commands,
+            params = path.params,
+            ln = commands.length,
+            twoPi = Math.PI * 2,
             size = 2,
             i, j;
 
         mat.toContext(ctx);
         ctx.beginPath();
         for (i = 0, j = 0; i < ln; i++) {
-            switch (types[i]) {
+            switch (commands[i]) {
                 case 'M':
-                    ctx.moveTo(coords[j] - size, coords[j + 1] - size);
-                    ctx.rect(coords[j] - size, coords[j + 1] - size, size * 2, size * 2);
+                    ctx.moveTo(params[j] - size, params[j + 1] - size);
+                    ctx.rect(params[j] - size, params[j + 1] - size, size * 2, size * 2);
                     j += 2;
                     break;
                 case 'L':
-                    ctx.moveTo(coords[j] - size, coords[j + 1] - size);
-                    ctx.rect(coords[j] - size, coords[j + 1] - size, size * 2, size * 2);
+                    ctx.moveTo(params[j] - size, params[j + 1] - size);
+                    ctx.rect(params[j] - size, params[j + 1] - size, size * 2, size * 2);
                     j += 2;
                     break;
                 case 'C':
-                    ctx.moveTo(coords[j] + size, coords[j + 1]);
-                    ctx.arc(coords[j], coords[j + 1], size, 0, Math.PI * 2, true);
+                    ctx.moveTo(params[j] + size, params[j + 1]);
+                    ctx.arc(params[j], params[j + 1], size, 0, twoPi, true);
                     j += 2;
-                    ctx.moveTo(coords[j] + size, coords[j + 1]);
-                    ctx.arc(coords[j], coords[j + 1], size, 0, Math.PI * 2, true);
+                    ctx.moveTo(params[j] + size, params[j + 1]);
+                    ctx.arc(params[j], params[j + 1], size, 0, twoPi, true);
                     j += 2;
-                    ctx.moveTo(coords[j] + size * 2, coords[j + 1]);
-                    ctx.rect(coords[j] - size, coords[j + 1] - size, size * 2, size * 2);
+                    ctx.moveTo(params[j] + size * 2, params[j + 1]);
+                    ctx.rect(params[j] - size, params[j + 1] - size, size * 2, size * 2);
                     j += 2;
                     break;
                 default:
@@ -172,21 +180,21 @@ Ext.define('Ext.draw.sprite.Path', {
         mat.toContext(ctx);
         ctx.beginPath();
         for (i = 0, j = 0; i < ln; i++) {
-            switch (types[i]) {
+            switch (commands[i]) {
                 case 'M':
-                    ctx.moveTo(coords[j], coords[j + 1]);
+                    ctx.moveTo(params[j], params[j + 1]);
                     j += 2;
                     break;
                 case 'L':
-                    ctx.moveTo(coords[j], coords[j + 1]);
+                    ctx.moveTo(params[j], params[j + 1]);
                     j += 2;
                     break;
                 case 'C':
-                    ctx.lineTo(coords[j], coords[j + 1]);
+                    ctx.lineTo(params[j], params[j + 1]);
                     j += 2;
-                    ctx.moveTo(coords[j], coords[j + 1]);
+                    ctx.moveTo(params[j], params[j + 1]);
                     j += 2;
-                    ctx.lineTo(coords[j], coords[j + 1]);
+                    ctx.lineTo(params[j], params[j + 1]);
                     j += 2;
                     break;
                 default:

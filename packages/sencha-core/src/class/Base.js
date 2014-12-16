@@ -268,7 +268,7 @@ var noArgs = [],
                                     member.$owner = me;
                                     member.$name = oldName;
                                     //<debug>
-                                    member.displayName = displayName + oldName;
+                                    member.name = displayName + oldName;
                                     //</debug>
                                     if (existing) {
                                         member.$previous = existing;
@@ -462,7 +462,7 @@ var noArgs = [],
                     member = members[name];
                     //<debug>
                     if (typeof member == 'function') {
-                        member.displayName = className + name;
+                        member.name = className + name;
                     }
                     //</debug>
                     this[name] = member;
@@ -539,6 +539,9 @@ var noArgs = [],
                     member = members[name];
 
                     //<debug>
+                    if (privacy === true) {
+                        privacy = 'framework';
+                    }
                     if (member && member.$nullFn && privacy !== member.$privacy) {
                         Ext.Error.raise('Cannot use stock function for private method ' +
                             (me.$className ? me.$className + '#' : '') + name);
@@ -560,15 +563,11 @@ var noArgs = [],
                         member.$name = name;
 
                         //<debug>
-                        member.displayName = displayName + name;
+                        member.name = displayName + name;
 
                         var existing = target[name];
 
                         if (privacy) {
-                            if (privacy === true) {
-                                privacy = 'framework';
-                            }
-
                             member.$privacy = privacy;
 
                             // The general idea here is that an existing, non-private
@@ -616,7 +615,7 @@ var noArgs = [],
                             member.$owner = me;
                             member.$name = name;
                             //<debug>
-                            member.displayName = displayName + name;
+                            member.name = displayName + name;
                             //</debug>
 
                             if (target.hasOwnProperty(name)) {
@@ -1036,7 +1035,7 @@ var noArgs = [],
         isInstance: true,
 
         /**
-         * @property {Boolean} [$configPrefixed=false]
+         * @property {Boolean} [$configPrefixed]
          * The value `true` causes `config` values to be stored on instances using a
          * property name prefixed with an underscore ("_") character. A value of `false`
          * stores `config` values as properties using their exact name (no prefix).
@@ -1046,7 +1045,7 @@ var noArgs = [],
         $configPrefixed: true,
         
         /**
-         * @property {Boolean} [$configStrict=true]
+         * @property {Boolean} [$configStrict]
          * The value `true` instructs the `initConfig` method to only honor values for
          * properties declared in the `config` block of a class. When `false`, properties
          * that are not declared in a `config` block will be placed on the instance.
@@ -1230,7 +1229,7 @@ var noArgs = [],
                         ((method = method.$owner ? method : method.caller) &&
                                 method.$owner.superclass[method.$name]));
 
-            //<debug error>
+            //<debug>
             if (!superMethod) {
                 method = this.callParent.caller;
                 var parentClass, methodName;
@@ -1316,7 +1315,7 @@ var noArgs = [],
                         ((method = method.$owner ? method : method.caller) &&
                           method.$owner.superclass[method.$name]);
 
-            //<debug error>
+            //<debug>
             if (!superMethod) {
                 method = this.callSuper.caller;
                 var parentClass, methodName;

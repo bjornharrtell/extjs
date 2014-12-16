@@ -1,5 +1,9 @@
 /**
- * Creates a visual theme for a Panel
+ * Creates a visual theme for a Panel.
+ *
+ * **Note:** When using `frame: true`, this mixin call creates a UI property with the name and a "-framed" suffix.
+ *
+ * For example, Panel's UI will be set to "highlight-framed" if `frame:true`.
  *
  * @param {string} $ui
  * The name of the UI being created. Can not included spaces or special punctuation
@@ -369,6 +373,24 @@
                 @if $ext-trial {
                     &:after {
                         content: 'Ext JS Trial';
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        // since IE8 does not support opacity on pseudo elements we simulate it by
+                        // mixing the text color with the background color
+                        color: mix($ui-header-color, $ui-header-background-color, 40%);
+                    }
+
+                    @if $include-rtl {
+                        &.#{$prefix}rtl:after {
+                            right: auto;
+                            left: 0;
+                        }
+                    }
+                }
+                @if $ext-beta-trial {
+                    &:after {
+                        content: 'Ext JS Beta';
                         position: absolute;
                         top: 0;
                         right: 0;

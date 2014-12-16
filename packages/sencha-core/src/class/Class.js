@@ -1,25 +1,38 @@
 /**
  * @class Ext.Class
  *
- * Handles class creation throughout the framework. This is a low level factory that is used by Ext.ClassManager and generally
- * should not be used directly. If you choose to use Ext.Class you will lose out on the namespace, aliasing and depency loading
- * features made available by Ext.ClassManager. The only time you would use Ext.Class directly is to create an anonymous class.
+ * This is a low level factory that is used by {@link Ext#define Ext.define} and should not be used
+ * directly in application code.
+ * 
+ * The configs of this class are intended to be used in `Ext.define` calls to describe the class you
+ * are declaring. For example:
+ * 
+ *     Ext.define('App.util.Thing', {
+ *         extend: 'App.util.Other',
+ * 
+ *         alias: 'util.thing',
+ * 
+ *         config: {
+ *             foo: 42
+ *         }
+ *     });
  *
- * If you wish to create a class you should use {@link Ext#define Ext.define} which aliases
- * {@link Ext.ClassManager#create Ext.ClassManager.create} to enable namespacing and dynamic dependency resolution.
- *
- * Ext.Class is the factory and **not** the superclass of everything. For the base class that **all** Ext classes inherit
- * from, see {@link Ext.Base}.
- * @private
+ * Ext.Class is the factory and **not** the superclass of everything. For the base class that **all**
+ * classes inherit from, see {@link Ext.Base}.
  */
 (function() {
 // @tag class
 // @define Ext.Class
 // @require Ext.Base
 // @require Ext.Util
+// @require Ext.util.Cache
     var ExtClass,
         Base = Ext.Base,
-        baseStaticMembers = Base.$staticMembers;
+        baseStaticMembers = Base.$staticMembers,
+        ruleKeySortFn = function (a, b) {
+            // longest to shortest, by text if names are equal
+            return (a.length - b.length) || ((a < b) ? -1 : ((a > b) ? 1 : 0));
+        };
 
     // Creates a constructor that has nothing extra in its scope chain.
     function makeCtor (className) {
@@ -30,7 +43,7 @@
         }
         //<debug>
         if (className) {
-            constructor.displayName = className;
+            constructor.name = className;
         }
         //</debug>
         return constructor;
@@ -436,135 +449,199 @@
     });
     //</feature>
 
+    Ext.createRuleFn = function (code) {
+        return new Function('$c', 'with($c) { return (' + code + '); }');
+    };
+    Ext.expressionCache = new Ext.util.Cache({
+        miss: Ext.createRuleFn
+    });
+
+    Ext.ruleKeySortFn = ruleKeySortFn;
+    Ext.getPlatformConfigKeys = function (platformConfig) {
+        var ret = [],
+            platform, rule;
+
+        for (platform in platformConfig) {
+            rule = Ext.expressionCache.get(platform);
+            if (rule(Ext.platformTags)) {
+                ret.push(platform);
+            }
+        }
+
+        ret.sort(ruleKeySortFn);
+        return ret;
+    };
+
     //<feature classSystem.platformConfig>
     /**
      * @cfg {Object} platformConfig
-     * Allows for setting default config values on specific platforms or themes
+     * Allows setting config values for a class based on specific platforms. The value
+     * of this config is an object whose properties are "rules" and whose values are
+     * objects containing config values.
      *
-     *     Ext.define('MyComponent', {
-     *          config: {
-     *              top: 0
-     *          },
+     * For example:
      *
-     *          platformConfig: [{
-     *              platform: ['ie10'],
-     *              theme: ['Windows'],
-     *              top: null,
-     *              bottom: 0
-     *          }]
-     *     });
+     *      Ext.define('App.view.Foo', {
+     *          extend: 'Ext.panel.Panel',
+     *
+     *          platformConfig: {
+     *              desktop: {
+     *                  title: 'Some Rather Descriptive Title'
+     *              },
+     *
+     *              '!desktop': {
+     *                  title: 'Short Title'
+     *              }
+     *          }
+     *      });
+     *
+     * In the above, "desktop" and "!desktop" are (mutually exclusive) rules. Whichever
+     * evaluates to `true` will have its configs applied to the class. In this case, only
+     * the "title" property, but the object can contain any number of config properties.
+     * In this case, the `platformConfig` is evaluated as part of the class and there is
+     * not cost for each instance created.
+     *
+     * The rules are evaluated expressions in the context of the platform tags contained
+     * in `{@link Ext#platformTags Ext.platformTags}`. Any properties of that object are
+     * implicitly usable (as shown above).
+     *
+     * If a `platformConfig` specifies a config value, it will replace any values declared
+     * on the class itself.
+     *
+     * Use of `platformConfig` on instances is handled by the config system when classes
+     * call `{@link Ext.Base#initConfig initConfig}`. For example:
+     *
+     *      Ext.create({
+     *          xtype: 'panel',
+     *
+     *          platformConfig: {
+     *              desktop: {
+     *                  title: 'Some Rather Descriptive Title'
+     *              },
+     *
+     *              '!desktop': {
+     *                  title: 'Short Title'
+     *              }
+     *          }
+     *      });
+     *
+     * The following is equivalent to the above:
+     *
+     *      if (Ext.platformTags.desktop) {
+     *          Ext.create({
+     *              xtype: 'panel',
+     *              title: 'Some Rather Descriptive Title'
+     *          });
+     *      } else {
+     *          Ext.create({
+     *              xtype: 'panel',
+     *              title: 'Short Title'
+     *          });
+     *      }
+     *
+     * To adjust configs based on dynamic conditions, see `{@link Ext.mixin.Responsive}`.
      */
     ExtClass.registerPreprocessor('platformConfig', function(Class, data, hooks) {
         var platformConfigs = data.platformConfig,
-            config = data.config || {},
-            themeName = Ext.theme || (Ext.theme = {
-                name: 'Default'
-            }),
-            platform, theme, platformConfig, i, ln, j , ln2;
+            config = data.config,
+            added, classConfigs, configs, configurator, hoisted, keys, name, value,
+            platform, theme, platformConfig, i, ln, j , ln2, themeName;
 
         delete data.platformConfig;
-        themeName = themeName && themeName.name;
 
-        if (!Ext.filterPlatform) {
-            Ext.filterPlatform = function(platform) {
-                var profileMatch = false,
-                    ua = navigator.userAgent,
-                    j, jln;
+        if (platformConfigs instanceof Array) {
+            /*
+             * Originally platformConfig was added to Sencha Touch and accepted an array
+             * of objects to filter by platforms or device themes.
+             *
+             *     Ext.define('MyComponent', {
+             *          config: {
+             *              top: 0
+             *          },
+             *
+             *          platformConfig: [{
+             *              platform: ['ie10'],
+             *              theme: ['Windows'],
+             *              top: null,
+             *              bottom: 0
+             *          }]
+             *     });
+             */
+            config = config || {};
+            themeName = (Ext.theme || (Ext.theme = {
+                name: 'Default'
+            })).name;
 
-                platform = [].concat(platform);
+            for (i = 0, ln = platformConfigs.length; i < ln; i++) {
+                platformConfig = platformConfigs[i];
 
-                function isPhone(ua) {
-                    var isMobile = /Mobile(\/|\s)/.test(ua);
+                platform = platformConfig.platform;
+                delete platformConfig.platform;
 
-                    // Either:
-                    // - iOS but not iPad
-                    // - Android 2
-                    // - Android with "Mobile" in the UA
+                theme = [].concat(platformConfig.theme);
+                ln2 = theme.length;
+                delete platformConfig.theme;
 
-                    return /(iPhone|iPod)/.test(ua) ||
-                              (!/(Silk)/.test(ua) && (/(Android)/.test(ua) && (/(Android 2)/.test(ua) || isMobile))) ||
-                              (/(BlackBerry|BB)/.test(ua) && isMobile) ||
-                              /(Windows Phone)/.test(ua);
+                if (platform && Ext.filterPlatform(platform)) {
+                    Ext.merge(config, platformConfig);
                 }
 
-                function isTablet(ua) {
-                    return !isPhone(ua) && (/iPad/.test(ua) || /Android/.test(ua) || /(RIM Tablet OS)/.test(ua) ||
-                        (/MSIE 10/.test(ua) && /; Touch/.test(ua)));
-                }
-
-                // Check if the ?platform parameter is set in the URL
-                var paramsString = window.location.search.substr(1),
-                    paramsArray = paramsString.split("&"),
-                    params = {},
-                    testPlatform, i;
-
-                for (i = 0; i < paramsArray.length; i++) {
-                    var tmpArray = paramsArray[i].split("=");
-                    params[tmpArray[0]] = tmpArray[1];
-                }
-
-                testPlatform = params.platform;
-                if (testPlatform) {
-                    return platform.indexOf(testPlatform) != -1;
-                }
-
-                for (j = 0, jln = platform.length; j < jln; j++) {
-                    switch (platform[j]) {
-                        case 'phone':
-                            profileMatch = isPhone(ua);
-                            break;
-                        case 'tablet':
-                            profileMatch = isTablet(ua);
-                            break;
-                        case 'desktop':
-                            profileMatch = !isPhone(ua) && !isTablet(ua);
-                            break;
-                        case 'ios':
-                            profileMatch = /(iPad|iPhone|iPod)/.test(ua);
-                            break;
-                        case 'android':
-                            profileMatch = /(Android|Silk)/.test(ua);
-                            break;
-                        case 'blackberry':
-                            profileMatch = /(BlackBerry|BB)/.test(ua);
-                            break;
-                        case 'safari':
-                            profileMatch = /Safari/.test(ua) && !(/(BlackBerry|BB)/.test(ua));
-                            break;
-                        case 'chrome':
-                            profileMatch = /Chrome/.test(ua);
-                            break;
-                        case 'ie10':
-                            profileMatch = /MSIE 10/.test(ua);
-                            break;
-                    }
-                    if (profileMatch) {
-                        return true;
+                if (ln2) {
+                    for (j = 0; j < ln2; j++) {
+                        if (themeName === theme[j]) {
+                            Ext.merge(config, platformConfig);
+                        }
                     }
                 }
-                return false;
-            };
-        }
-
-        for (i = 0, ln = platformConfigs.length; i < ln; i++) {
-            platformConfig = platformConfigs[i];
-
-            platform = platformConfig.platform;
-            delete platformConfig.platform;
-
-            theme = [].concat(platformConfig.theme);
-            ln2 = theme.length;
-            delete platformConfig.theme;
-
-            if (platform && Ext.filterPlatform(platform)) {
-                Ext.merge(config, platformConfig);
             }
+        } else {
+            configurator = Class.getConfigurator();
+            classConfigs = configurator.configs;
 
-            if (ln2) {
-                for (j = 0; j < ln2; j++) {
-                    if (Ext.theme.name == theme[j]) {
-                        Ext.merge(config, platformConfig);
+            // Get the keys shortest to longest (ish).
+            keys = Ext.getPlatformConfigKeys(platformConfigs);
+
+            // To leverage the Configurator#add method, we want to generate potentially
+            // two objects to pass in: "added" and "hoisted". For any properties in an
+            // active platformConfig rule that set proper Configs in the base class, we
+            // need to put them in "added". If instead of the proper Config coming from
+            // a base class, it comes from this class's config block, we still need to
+            // put that config in "added" but we also need move the class-level config
+            // out of "config" and into "hoisted".
+            //
+            // This will ensure that the config defined at the class level is added to
+            // the Configurator first.
+            for (i = 0, ln = keys.length; i < ln; ++i) {
+                configs = platformConfigs[keys[i]];
+                hoisted = added = null;
+
+                for (name in configs) {
+                    value = configs[name];
+
+                    // We have a few possibilities for each config name:
+
+                    if (config && name in config) {
+                        //  It is a proper Config defined by this class.
+
+                        (added || (added = {}))[name] = value;
+                        (hoisted || (hoisted = {}))[name] = config[name];
+                        delete config[name];
+                    } else if (name in classConfigs) {
+                        //  It is a proper Config defined by a base class.
+
+                        (added || (added = {}))[name] = value;
+                    } else {
+                        //  It is just a property to put on the prototype.
+
+                        data[name] = value;
                     }
+                }
+
+                if (hoisted) {
+                    configurator.add(hoisted);
+                }
+                if (added) {
+                    configurator.add(added);
                 }
             }
         }
@@ -846,4 +923,32 @@
         return cls;
     };
     //</feature>
+
+    /**
+     * This object contains properties that describe the current device or platform. These
+     * values can be used in `{@link Ext.Class#platformConfig platformConfig}` as well as
+     * `{@link Ext.mixin.Responsive#responsiveConfig responsiveConfig}` statements.
+     *
+     * This object can be modified to include tags that are useful for the application. To
+     * add custom properties, it is advisable to use a sub-object. For example:
+     *
+     *      Ext.platformTags.app = {
+     *          mobile: true
+     *      };
+     *
+     * @property {Object} platformTags
+     * @property {Boolean} platformTags.phone
+     * @property {Boolean} platformTags.tablet
+     * @property {Boolean} platformTags.desktop
+     * @property {Boolean} platformTags.touch Indicates touch inputs are available.
+     * @property {Boolean} platformTags.safari
+     * @property {Boolean} platformTags.chrome
+     * @property {Boolean} platformTags.windows
+     * @property {Boolean} platformTags.firefox
+     * @property {Boolean} platformTags.ios True for iPad, iPhone and iPod.
+     * @property {Boolean} platformTags.android
+     * @property {Boolean} platformTags.blackberry
+     * @property {Boolean} platformTags.tizen
+     * @member Ext
+     */
 }());

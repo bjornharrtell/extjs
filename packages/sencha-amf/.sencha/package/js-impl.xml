@@ -1,4 +1,4 @@
-<project name="js-impl">
+<project name="x-js-impl">
     <target name="-init-compile-js" depends="-init-compiler">
         <if>
             <equals arg1="theme" arg2="${package.type}"/>

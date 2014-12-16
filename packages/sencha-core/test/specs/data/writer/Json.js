@@ -139,6 +139,23 @@ describe("Ext.data.writer.Json", function(){
             }));
             expect(request.getParams().root).toBe(Ext.encode(simpleData));
         });
+
+        describe("with transform", function() {
+            it("should not set the jsonData", function() {
+                buildWriter({
+                    encode: true,
+                    rootProperty: 'root',
+                    transform: Ext.identityFn
+                });
+
+                var request = writer.write(new Ext.data.Request({
+                    params: {},
+                    operation: makeOperation(buildRecords([simpleData]))
+                }));
+                expect(request.getJsonData()).toBeUndefined();
+                expect(request.getParams().root).toBe(Ext.encode(simpleData));
+            });
+        });
     });
     
     describe("with encode: false", function(){

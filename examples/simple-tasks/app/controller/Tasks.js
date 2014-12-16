@@ -231,7 +231,7 @@ Ext.define('SimpleTasks.controller.Tasks', {
     updateTask: function(task) {
         var me = this;
 
-        if(task.modified.done === false) {
+        if (task.modified && task.modified.done === false) {
             task.set('reminder', null);
         }
         task.save({
@@ -660,10 +660,10 @@ Ext.define('SimpleTasks.controller.Tasks', {
             form = taskEditWindow.down('form').getForm(),
             task = form.getRecord();
 
-        if(form.isValid()) {
+        if (form.isValid()) {
             windowEl.mask('saving');
             form.updateRecord(task);
-            if(task.modified.done === false) {
+            if (task.modified && task.modified.done === false) {
                 task.set('reminder', null);
             }
             task.save({

@@ -173,9 +173,21 @@ Ext.define('Ext.data.proxy.Proxy', {
             }
         }
     },
-    
+
     applyWriter: function(writer) {
-        return Ext.Factory.writer(writer);
+        var reader = this.getReader();
+
+        writer = Ext.Factory.writer(writer);
+
+        // XML Writers may have a record config to define the node name of each record tag.
+        // If not set, but the Reader has a record config, use the Reader's record config.
+        if (writer.getRecord && !writer.getRecord() && reader && reader.getRecord) {
+            reader = reader.getRecord();
+            if (reader) {
+                writer.setRecord(reader);
+            }
+        }
+        return writer;
     },
     
     abort: Ext.emptyFn,

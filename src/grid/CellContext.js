@@ -26,13 +26,21 @@ Ext.define('Ext.grid.CellContext', {
     setPosition: function(row, col) {
         var me = this;
 
-        // We were passed {row: 1, column: 2, view: myView}
+        // We were passed {row: 1, column: 2, view: myView} or [2, 1]
         if (arguments.length === 1) {
-            if (row.view) {
-                me.view = row.view;
+            // A [column, row] array passed
+            if (row.length) {
+                col = row[0];
+                col = row[1];
             }
-            col = row.column;
-            row = row.row;
+            // An object containing {row: r, column: c}
+            else {
+                if (row.view) {
+                    me.view = row.view;
+                }
+                col = row.column;
+                row = row.row;
+            }
         }
 
         me.setRow(row);
@@ -76,16 +84,34 @@ Ext.define('Ext.grid.CellContext', {
     
     setColumn: function(col) {
         var me = this,
-            mgr = me.view.getVisibleColumnManager();
-            
+                colMgr = me.view.getVisibleColumnManager();
+
+        // Maintainer:
+        // We MUST NOT update the context view with the column's view because this context
+        // may be for an Ext.locking.View which spans two grid views, and a column references
+        // its local grid view.
         if (col !== undefined) {
             if (typeof col === 'number') {
                 me.colIdx = col;
-                me.column = mgr.getHeaderAtIndex(col);
+                me.column = colMgr.getHeaderAtIndex(col);
             } else if (col.isHeader) {
                 me.column = col;
-                me.colIdx = mgr.getHeaderIndex(col);
+                // Must use the Manager's indexOf because view may be a locking view
+                // And Column#getVisibleIndex returns the index of the column within its own header.
+                me.colIdx = colMgr.indexOf(col);
             }
+        }
+    },
+
+    next: function() {
+        var me = this,
+            mgr = me.view.getVisibleColumnManager();
+
+        me.colIdx++;
+        if (me.colIdx === mgr.getColumns().length) {
+            me.setPosition(Math.min(me.rowIdx + 1, me.view.dataSource.getCount() - 1), me.colIdx);
+        } else {
+            me.setColumn(me.colIdx);
         }
     },
 

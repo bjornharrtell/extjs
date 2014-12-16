@@ -45,6 +45,18 @@ describe("Ext.util.LruCache", function(){
             expect(cache.getValues()).toEqual([obj1, obj2]);
             expect(cache.getKeys()).toEqual([1, 2]);
         });
+
+        it("should be able to add existing keys", function() {
+            createCache();
+            cache.add(1, obj1);
+            cache.add(2, obj2);
+            cache.add(1, obj3);
+            expect(cache.length).toEqual(2);
+            expect(cache.first.value).toBe(obj2);
+            expect(cache.last.value).toBe(obj3);
+            expect(cache.getValues()).toEqual([obj2, obj3]);
+            expect(cache.getKeys()).toEqual([2, 1]);
+        });
     });
 
     describe("Sort on access", function() {
@@ -135,10 +147,20 @@ describe("Ext.util.LruCache", function(){
             cache.add(3, obj3);
             cache.add(4, obj4);
             cache.add(5, obj5);
+            expect(cache.getValues()).toEqual([obj1, obj2, obj3, obj4, obj5]);
+            expect(cache.getKeys()).toEqual([1, 2, 3, 4, 5]);
             cache.add(6, obj6);
+            expect(cache.getValues()).toEqual([obj2, obj3, obj4, obj5, obj6]);
+            expect(cache.getKeys()).toEqual([2, 3, 4, 5, 6]);
             cache.add(7, obj7);
+            expect(cache.getValues()).toEqual([obj3, obj4, obj5, obj6, obj7]);
+            expect(cache.getKeys()).toEqual([3, 4, 5, 6, 7]);
             cache.add(8, obj8);
+            expect(cache.getValues()).toEqual([obj4, obj5, obj6, obj7, obj8]);
+            expect(cache.getKeys()).toEqual([4, 5, 6, 7, 8]);
             cache.add(9, obj9);
+            expect(cache.getValues()).toEqual([obj5, obj6, obj7, obj8, obj9]);
+            expect(cache.getKeys()).toEqual([5, 6, 7, 8, 9]);
             cache.add(10, obj10);
             expect(cache.getValues()).toEqual([obj6, obj7, obj8, obj9, obj10]);
             expect(cache.getKeys()).toEqual([6, 7, 8, 9, 10]);

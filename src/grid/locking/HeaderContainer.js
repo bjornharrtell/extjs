@@ -128,7 +128,7 @@ Ext.define('Ext.grid.locking.HeaderContainer', {
                 }
                 if (existing.locked) {
                     locked.push(existing);
-                    if (!existing.hidden && typeof existing.width == 'number') {
+                    if (!existing.hidden && typeof existing.width === 'number') {
                         lockedWidth += existing.width;
                     }
                 } else {
@@ -138,7 +138,7 @@ Ext.define('Ext.grid.locking.HeaderContainer', {
         }
 
         // state and config must have the same columns (compare counts for now):
-        if (locked.length + normal.length == lockedHeaderCt.items.getCount() + normalHeaderCt.items.getCount()) {
+        if (locked.length + normal.length === lockedHeaderCt.items.getCount() + normalHeaderCt.items.getCount()) {
             lockedHeaderCt.removeAll(false);
             normalHeaderCt.removeAll(false);
 
@@ -147,5 +147,19 @@ Ext.define('Ext.grid.locking.HeaderContainer', {
 
             lockedGrid.setWidth(lockedWidth);
         }
+    },
+
+    disable: function() {
+        var topGrid = this.lockable;
+
+        topGrid.lockedGrid.headerCt.disable();
+        topGrid.normalGrid.headerCt.disable();
+    },
+
+    enable: function() {
+        var topGrid = this.lockable;
+
+        topGrid.lockedGrid.headerCt.enable();
+        topGrid.normalGrid.headerCt.enable();
     }
 });

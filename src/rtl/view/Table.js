@@ -29,15 +29,5 @@ Ext.define('Ext.rtl.view.Table', {
 
     getCellPaddingAfter: function(cell) {
         return Ext.fly(cell).getPadding(this.getInherited().rtl ? 'l' : 'r');
-    },
-
-    scrollElIntoView: function(el, hscroll, animate) {
-        var scrollManager = this.scrollManager;
-
-        if (scrollManager) {
-            scrollManager.scrollIntoView(el, hscroll, animate);
-        } else {
-            Ext.fly(el)[this.getInherited().rtl ? 'rtlScrollIntoView' : 'scrollIntoView'](this.el, hscroll, animate);
-        }
     }
 });

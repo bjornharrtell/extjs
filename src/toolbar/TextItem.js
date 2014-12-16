@@ -7,53 +7,49 @@
  *         width: 300,
  *         height: 200,
  *         tbar: [
- *             { xtype: 'tbtext', text: 'Sample Text Item' }
+ *             { xtype: 'tbtext', html: 'Sample Text Item' }
  *         ],
  *         renderTo: Ext.getBody()
  *     });
  *
- * @constructor
- * Creates a new TextItem
- * @param {Object} text A text string, or a config object containing a #text property
  */
 Ext.define('Ext.toolbar.TextItem', {
     extend: 'Ext.toolbar.Item',
-    requires: ['Ext.XTemplate'],
+    // Toolbar required here because we'll try to decorate it's alternateClassName
+    // with this class' alternate name
+    requires: ['Ext.toolbar.Toolbar', 'Ext.XTemplate'],
     alias: 'widget.tbtext',
     alternateClassName: 'Ext.Toolbar.TextItem',
 
     /**
      * @cfg {String} text
      * The text to be used as innerHTML (html tags are accepted).
+     *
+     * @deprecated 5.1.0 Use {@link #html}
      */
     text: '',
 
-    renderTpl: '{text}',
-    //
     baseCls: Ext.baseCSSPrefix + 'toolbar-text',
     
     ariaRole: null,
 
     beforeRender : function() {
-        var me = this;
+        var text = this.text;
 
-        me.callParent();
+        this.callParent();
 
-        Ext.apply(me.renderData, {
-            text: me.text
-        });
+        if (text) {
+            this.html = text;
+        }
     },
 
     /**
      * Updates this item's text, setting the text to be used as innerHTML.
      * @param {String} text The text to display (html accepted).
+     *
+     * @deprecated 5.1.0 Use {@link #update}
      */
     setText : function(text) {
-        var me = this;
-        me.text = text;
-        if (me.rendered) {
-            me.el.setHtml(text);
-            me.updateLayout();
-        }
+        this.update(text);
     }
 });

@@ -127,33 +127,27 @@ Ext.define('Ext.chart.series.Radar', {
             sprite = me.sprites && me.sprites[0],
             attr = sprite.attr,
             dataX = attr.dataX,
-            dataY = attr.dataY,
-            centerX = attr.centerX,
-            centerY = attr.centerY,
-            minX = attr.dataMinX,
-            maxX = attr.dataMaxX,
-            maxY = attr.dataMaxY,
-            endRho = attr.endRho,
-            startRho = attr.startRho,
-            baseRotation = attr.baseRotation,
-            i, length = dataX.length,
+            length = dataX.length,
             store = me.getStore(),
             marker = me.getMarker(),
-            threshhold = 22,
-            item, th, r;
+            threshhold, item, xy, i, bbox, markers;
 
         if (me.getHidden()) {
             return null;
         }
         if (sprite && marker) {
+            markers = sprite.getBoundMarker('markers')[0];
             for (i = 0; i < length; i++) {
-                th = (dataX[i] - minX) / (maxX - minX + 1) * 2 * Math.PI + baseRotation;
-                r = dataY[i] / maxY * (endRho - startRho) + startRho;
-                if (Math.abs(centerX + Math.cos(th) * r - x) < threshhold && Math.abs(centerY + Math.sin(th) * r - y) < threshhold) {
+                bbox = markers.getBBoxFor(i);
+                threshhold = (bbox.width + bbox.height) * .25;
+                xy = sprite.getDataPointXY(i);
+                if (Math.abs(xy[0] - x) < threshhold &&
+                    Math.abs(xy[1] - y) < threshhold) {
                     item = {
                         series: me,
                         sprite: sprite,
                         index: i,
+                        category: 'markers',
                         record: store.getData().items[i],
                         field: me.getYField()
                     };
@@ -164,14 +158,49 @@ Ext.define('Ext.chart.series.Radar', {
         return me.callParent(arguments);
     },
 
+    getDefaultSpriteConfig: function () {
+        var config = this.callParent(),
+            fx = {
+                customDurations: {
+                    translationX: 0,
+                    translationY: 0,
+                    rotationRads: 0,
+                    // Prevent animation of 'dataMinX' and 'dataMaxX' attributes in order
+                    // to react instantaniously to changes to the 'hidden' attribute.
+                    dataMinX: 0,
+                    dataMaxX: 0
+                }
+            };
+        if (config.fx) {
+            Ext.apply(config.fx, fx);
+        } else {
+            config.fx = fx;
+        }
+        return config;
+    },
+
     getSprites: function () {
-        if (!this.getChart()) {
+        var me = this,
+            chart = me.getChart(),
+            animation = me.getAnimation() || chart && chart.getAnimation(),
+            sprite = me.sprites[0],
+            markers;
+        
+        if (!chart) {
             return [];
         }
-        if (!this.sprites.length) {
-            this.createSprite();
+        if (!sprite) {
+            sprite = me.createSprite();
         }
-        return this.sprites;
+        if (animation) {
+            markers = sprite.getBoundMarker('markers');
+            if (markers) {
+                markers = markers[0];
+                markers.getTemplate().fx.setConfig(animation);
+            }
+            sprite.fx.setConfig(animation);
+        }
+        return me.sprites;
     },
 
     provideLegendInfo: function (target) {

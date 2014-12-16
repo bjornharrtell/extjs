@@ -78,16 +78,14 @@ describe("Ext.event.publisher.Focus", function() {
     });
     
     afterEach(function() {
-        var i, node;
-        
-        for (i = body.childNodes.length - 1; i >= 0; i--) {
-            node = body.childNodes[i];
-            
-            if (node) {
-                Ext.fly(node).remove();
-            }
-        }
-        
+        Ext.each([a, b, c], function(arr) {
+            Ext.each(arr, function(el) {
+                if (el) {
+                    el.destroy();
+                }
+            });
+        });
+
         body.removeAttribute('tabindex');
     });
     

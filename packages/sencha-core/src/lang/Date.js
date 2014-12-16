@@ -46,7 +46,7 @@
  *        P         Difference to Greenwich time (GMT) with colon between hours and minutes   Example: -08:00
  *        T         Timezone abbreviation of the machine running the code                     Examples: EST, MDT, PDT ...
  *        Z         Timezone offset in seconds (negative if west of UTC, positive if east)    -43200 to 50400
- *        c         ISO 8601 date
+ *        c         ISO 8601 date represented as the local time with an offset to UTC appended.
  *                  Notes:                                                                    Examples:
  *                  1) If unspecified, the month / day defaults to the current month / day,   1991 or
  *                     the time defaults to midnight, while the timezone defaults to the      1992-10 or
@@ -59,6 +59,10 @@
  *                  Refer to the examples on the right for the various levels of              1999-03-14T20:24:32Z or
  *                  date-time granularity which are supported, or see                         2000-02-13T21:25:33
  *                  http://www.w3.org/TR/NOTE-datetime for more info.                         2001-01-12 22:26:34
+ *        C         An ISO date string as implemented by the native Date object's             1962-06-17T09:21:34.125Z
+ *                  {@link Date#toISOString} method. This outputs the numeric part
+ *                  with *UTC* hour and minute values, and indicates this by 
+ *                  appending the `'Z'` timezone indentifier.
  *        U         Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)                1193432466 or -2138434463
  *        MS        Microsoft AJAX serialized dates                                           \/Date(1238606590509)\/ (i.e. UTC milliseconds since epoch) or
  *                                                                                            \/Date(1238606590509+0800)\/
@@ -109,12 +113,14 @@ Ext.Date = (function () {
 // @require Ext
 // @require Ext.lang.String
   var utilDate,
+      nativeDate = Date,
       stripEscapeRe = /(\\.)/g,
       hourInfoRe = /([gGhHisucUOPZ]|MS)/,
       dateInfoRe = /([djzmnYycU]|MS)/,
       slashRe = /\\/gi,
       numberTokenRe = /\{(\d+)\}/g,
       MSFormatRe = new RegExp('\\/Date\\(([-+])?(\\d+)(?:[+-]\\d{4})?\\)\\/'),
+      pad = Ext.String.leftPad,
 
       // Most of the date-formatting functions below are the excellent work of Baron Schwartz.
       // (see http://www.xaprb.com/blog/2005/12/12/javascript-closures-for-runtime-efficiency/)
@@ -262,6 +268,22 @@ Ext.Date = (function () {
         "return v;"
       ].join('\n');
 
+    // Polyfill Date's toISOString instance method where not implemented.
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
+    // TODO: Remove this when IE8 retires.
+    if (!Date.prototype.toISOString) {
+        Date.prototype.toISOString = function() {
+            var me = this;
+            return pad(me.getUTCFullYear(), 4, '0') + '-' +
+                   pad(me.getUTCMonth() + 1, 2, '0') + '-' +
+                   pad(me.getUTCDate(), 2, '0') + 'T' +
+                   pad(me.getUTCHours(), 2, '0') + ':' +
+                   pad(me.getUTCMinutes(), 2, '0') + ':' +
+                   pad(me.getUTCSeconds(), 2, '0') + '.' +
+                   pad(me.getUTCMilliseconds(), 3, '0') + 'Z';
+       };
+    }
+
     // create private copy of Ext JS's `Ext.util.Format.format()` method
     // - to remove unnecessary dependency
     // - to resolve namespace conflict with MS-Ajax's implementation
@@ -274,7 +296,7 @@ Ext.Date = (function () {
   
 return utilDate = {
     /** @ignore */
-    now: Date.now, // always available due to polyfill in Ext.js
+    now: nativeDate.now, // always available due to polyfill in Ext.js
 
     /**
      * @private
@@ -282,16 +304,14 @@ return utilDate = {
      */
     toString: function(date) {
         if (!date) {
-            date = new Date();
+            date = new nativeDate();
         }
 
-        var pad = Ext.String.leftPad;
-
         return date.getFullYear() + "-"
-                   + pad(date.getMonth() + 1, 2, '0') + "-"
-                   + pad(date.getDate(), 2, '0') + "T"
-                   + pad(date.getHours(), 2, '0') + ":"
-                   + pad(date.getMinutes(), 2, '0') + ":"
+            + pad(date.getMonth() + 1, 2, '0') + "-"
+            + pad(date.getDate(), 2, '0') + "T"
+            + pad(date.getHours(), 2, '0') + ":"
+            + pad(date.getMinutes(), 2, '0') + ":"
             + pad(date.getSeconds(), 2, '0');
     },
 
@@ -320,7 +340,7 @@ return utilDate = {
         var p = utilDate.parseCodes[character];
 
         if (p) {
-          p = typeof p == 'function'? p() : p;
+          p = typeof p === 'function'? p() : p;
           utilDate.parseCodes[character] = p; // reassign function result to prevent repeated execution
         }
 
@@ -364,19 +384,19 @@ return utilDate = {
             // note: the timezone offset is ignored since the MS Ajax server sends
             // a UTC milliseconds-since-Unix-epoch value (negative values are allowed)
             var r = (input || '').match(MSFormatRe);
-            return r ? new Date(((r[1] || '') + r[2]) * 1) : null;
+            return r ? new nativeDate(((r[1] || '') + r[2]) * 1) : null;
         },
         "time": function(input, strict) {
             var num = parseInt(input, 10);
             if (num || num === 0) {
-                return new Date(num);
+                return new nativeDate(num);
             }
             return null;
         },
         "timestamp": function(input, strict) {
             var num = parseInt(input, 10);
             if (num || num === 0) {
-                return new Date(num * 1000);
+                return new nativeDate(num * 1000);
             }
             return null;
         }
@@ -614,7 +634,7 @@ return utilDate = {
      * @return {String} The short month name.
      */
     getShortMonthName : function(month) {
-        return Ext.Date.monthNames[month].substring(0, 3);
+        return utilDate.monthNames[month].substring(0, 3);
     },
     //</locale>
 
@@ -626,7 +646,7 @@ return utilDate = {
      * @return {String} The short day name.
      */
     getShortDayName : function(day) {
-        return Ext.Date.dayNames[day].substring(0, 3);
+        return utilDate.dayNames[day].substring(0, 3);
     },
     //</locale>
 
@@ -639,7 +659,7 @@ return utilDate = {
      */
     getMonthNumber : function(name) {
         // handle camel casing for English month names (since the keys for the Ext.Date.monthNumbers hash are case sensitive)
-        return Ext.Date.monthNumbers[name.substring(0, 1).toUpperCase() + name.substring(1, 3).toLowerCase()];
+        return utilDate.monthNumbers[name.substring(0, 1).toUpperCase() + name.substring(1, 3).toLowerCase()];
     },
     //</locale>
 
@@ -695,62 +715,52 @@ return utilDate = {
      * @type Object
      */
     formatCodes : {
-        d: "Ext.String.leftPad(this.getDate(), 2, '0')",
-        D: "Ext.Date.getShortDayName(this.getDay())", // get localized short day name
-        j: "this.getDate()",
-        l: "Ext.Date.dayNames[this.getDay()]",
-        N: "(this.getDay() ? this.getDay() : 7)",
-        S: "Ext.Date.getSuffix(this)",
-        w: "this.getDay()",
-        z: "Ext.Date.getDayOfYear(this)",
-        W: "Ext.String.leftPad(Ext.Date.getWeekOfYear(this), 2, '0')",
-        F: "Ext.Date.monthNames[this.getMonth()]",
-        m: "Ext.String.leftPad(this.getMonth() + 1, 2, '0')",
-        M: "Ext.Date.getShortMonthName(this.getMonth())", // get localized short month name
-        n: "(this.getMonth() + 1)",
-        t: "Ext.Date.getDaysInMonth(this)",
-        L: "(Ext.Date.isLeapYear(this) ? 1 : 0)",
-        o: "(this.getFullYear() + (Ext.Date.getWeekOfYear(this) == 1 && this.getMonth() > 0 ? +1 : (Ext.Date.getWeekOfYear(this) >= 52 && this.getMonth() < 11 ? -1 : 0)))",
-        Y: "Ext.String.leftPad(this.getFullYear(), 4, '0')",
-        y: "('' + this.getFullYear()).substring(2, 4)",
-        a: "(this.getHours() < 12 ? 'am' : 'pm')",
-        A: "(this.getHours() < 12 ? 'AM' : 'PM')",
-        g: "((this.getHours() % 12) ? this.getHours() % 12 : 12)",
-        G: "this.getHours()",
-        h: "Ext.String.leftPad((this.getHours() % 12) ? this.getHours() % 12 : 12, 2, '0')",
-        H: "Ext.String.leftPad(this.getHours(), 2, '0')",
-        i: "Ext.String.leftPad(this.getMinutes(), 2, '0')",
-        s: "Ext.String.leftPad(this.getSeconds(), 2, '0')",
-        u: "Ext.String.leftPad(this.getMilliseconds(), 3, '0')",
-        O: "Ext.Date.getGMTOffset(this)",
-        P: "Ext.Date.getGMTOffset(this, true)",
-        T: "Ext.Date.getTimezone(this)",
-        Z: "(this.getTimezoneOffset() * -60)",
+        d: "Ext.String.leftPad(m.getDate(), 2, '0')",
+        D: "Ext.Date.getShortDayName(m.getDay())", // get localized short day name
+        j: "m.getDate()",
+        l: "Ext.Date.dayNames[m.getDay()]",
+        N: "(m.getDay() ? m.getDay() : 7)",
+        S: "Ext.Date.getSuffix(m)",
+        w: "m.getDay()",
+        z: "Ext.Date.getDayOfYear(m)",
+        W: "Ext.String.leftPad(Ext.Date.getWeekOfYear(m), 2, '0')",
+        F: "Ext.Date.monthNames[m.getMonth()]",
+        m: "Ext.String.leftPad(m.getMonth() + 1, 2, '0')",
+        M: "Ext.Date.getShortMonthName(m.getMonth())", // get localized short month name
+        n: "(m.getMonth() + 1)",
+        t: "Ext.Date.getDaysInMonth(m)",
+        L: "(Ext.Date.isLeapYear(m) ? 1 : 0)",
+        o: "(m.getFullYear() + (Ext.Date.getWeekOfYear(m) == 1 && m.getMonth() > 0 ? +1 : (Ext.Date.getWeekOfYear(m) >= 52 && m.getMonth() < 11 ? -1 : 0)))",
+        Y: "Ext.String.leftPad(m.getFullYear(), 4, '0')",
+        y: "('' + m.getFullYear()).substring(2, 4)",
+        a: "(m.getHours() < 12 ? 'am' : 'pm')",
+        A: "(m.getHours() < 12 ? 'AM' : 'PM')",
+        g: "((m.getHours() % 12) ? m.getHours() % 12 : 12)",
+        G: "m.getHours()",
+        h: "Ext.String.leftPad((m.getHours() % 12) ? m.getHours() % 12 : 12, 2, '0')",
+        H: "Ext.String.leftPad(m.getHours(), 2, '0')",
+        i: "Ext.String.leftPad(m.getMinutes(), 2, '0')",
+        s: "Ext.String.leftPad(m.getSeconds(), 2, '0')",
+        u: "Ext.String.leftPad(m.getMilliseconds(), 3, '0')",
+        O: "Ext.Date.getGMTOffset(m)",
+        P: "Ext.Date.getGMTOffset(m, true)",
+        T: "Ext.Date.getTimezone(m)",
+        Z: "(m.getTimezoneOffset() * -60)",
 
         c: function() { // ISO-8601 -- GMT format
-            var c, code, i, l, e;
-            for (c = "Y-m-dTH:i:sP", code = [], i = 0, l = c.length; i < l; ++i) {
+            var c = "Y-m-dTH:i:sP", code = [], i, l = c.length, e;
+            for (i = 0; i < l; ++i) {
                 e = c.charAt(i);
-                code.push(e == "T" ? "'T'" : utilDate.getFormatCode(e)); // treat T as a character literal
+                code.push(e === "T" ? "'T'" : utilDate.getFormatCode(e)); // treat T as a character literal
             }
             return code.join(" + ");
         },
-        /*
-        c: function() { // ISO-8601 -- UTC format
-            return [
-              "this.getUTCFullYear()", "'-'",
-              "Ext.util.Format.leftPad(this.getUTCMonth() + 1, 2, '0')", "'-'",
-              "Ext.util.Format.leftPad(this.getUTCDate(), 2, '0')",
-              "'T'",
-              "Ext.util.Format.leftPad(this.getUTCHours(), 2, '0')", "':'",
-              "Ext.util.Format.leftPad(this.getUTCMinutes(), 2, '0')", "':'",
-              "Ext.util.Format.leftPad(this.getUTCSeconds(), 2, '0')",
-              "'Z'"
-            ].join(" + ");
-        },
-        */
 
-        U: "Math.round(this.getTime() / 1000)"
+        C: function() { // ISO-1601 -- browser format. UTC numerics with the 'Z' TZ id.
+            return 'm.toISOString()';
+        },
+
+        U: "Math.round(m.getTime() / 1000)"
     },
 
     /**
@@ -772,15 +782,15 @@ return utilDate = {
         ms = ms || 0;
 
         // Special handling for year < 100
-        var dt = utilDate.add(new Date(y < 100 ? 100 : y, m - 1, d, h, i, s, ms), utilDate.YEAR, y < 100 ? y - 100 : 0);
+        var dt = utilDate.add(new nativeDate(y < 100 ? 100 : y, m - 1, d, h, i, s, ms), utilDate.YEAR, y < 100 ? y - 100 : 0);
 
-        return y == dt.getFullYear() &&
-            m == dt.getMonth() + 1 &&
-            d == dt.getDate() &&
-            h == dt.getHours() &&
-            i == dt.getMinutes() &&
-            s == dt.getSeconds() &&
-            ms == dt.getMilliseconds();
+        return y === dt.getFullYear() &&
+            m === dt.getMonth() + 1 &&
+            d === dt.getDate() &&
+            h === dt.getHours() &&
+            i === dt.getMinutes() &&
+            s === dt.getSeconds() &&
+            ms === dt.getMilliseconds();
     },
 
     /**
@@ -835,7 +845,7 @@ return utilDate = {
         var f = utilDate.formatCodes[character];
 
         if (f) {
-          f = typeof f == 'function'? f() : f;
+          f = typeof f === 'function'? f() : f;
           utilDate.formatCodes[character] = f; // reassign function result to prevent repeated execution
         }
 
@@ -852,20 +862,20 @@ return utilDate = {
 
         for (i = 0; i < format.length; ++i) {
             ch = format.charAt(i);
-            if (!special && ch == "\\") {
+            if (!special && ch === "\\") {
                 special = true;
             } else if (special) {
                 special = false;
                 code.push("'" + Ext.String.escape(ch) + "'");
             } else {
-                if (ch == '\n') {
+                if (ch === '\n') {
                     code.push("'\\n'");
                 } else {
                     code.push(utilDate.getFormatCode(ch));
                 }
             }
         }
-        utilDate.formatFunctions[format] = Ext.functionFactory("return " + code.join('+'));
+        utilDate.formatFunctions[format] = Ext.functionFactory("var m=this;return " + code.join('+'));
     },
 
     // private
@@ -883,7 +893,7 @@ return utilDate = {
 
         for (; i < len; ++i) {
             ch = format.charAt(i);
-            if (!special && ch == "\\") {
+            if (!special && ch === "\\") {
                 special = true;
             } else if (special) {
                 special = false;
@@ -1271,7 +1281,7 @@ return utilDate = {
      */
     getDayOfYear: function(date) {
         var num = 0,
-            d = Ext.Date.clone(date),
+            d = utilDate.clone(date),
             m = date.getMonth(),
             i;
 
@@ -1299,11 +1309,11 @@ return utilDate = {
             ms7d = 7 * ms1d; // milliseconds in a week
 
         return function(date) { // return a closure so constants get calculated only once
-            var DC3 = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate() + 3) / ms1d, // an Absolute Day Number
+            var DC3 = nativeDate.UTC(date.getFullYear(), date.getMonth(), date.getDate() + 3) / ms1d, // an Absolute Day Number
                 AWN = Math.floor(DC3 / 7), // an Absolute Week Number
-                Wyr = new Date(AWN * ms7d).getUTCFullYear();
+                Wyr = new nativeDate(AWN * ms7d).getUTCFullYear();
 
-            return AWN - Math.floor(Date.UTC(Wyr, 0, 7) / ms7d) + 1;
+            return AWN - Math.floor(nativeDate.UTC(Wyr, 0, 7) / ms7d) + 1;
         };
     }()),
 
@@ -1319,7 +1329,7 @@ return utilDate = {
      */
     isLeapYear : function(date) {
         var year = date.getFullYear();
-        return !!((year & 3) == 0 && (year % 100 || (year % 400 == 0 && year)));
+        return !!((year & 3) === 0 && (year % 100 || (year % 400 === 0 && year)));
     },
 
     /**
@@ -1328,7 +1338,6 @@ return utilDate = {
      * the {@link #monthNames} array to retrieve the textual day name.
      *
      *      @example
-     *
      *      var dt = new Date('1/10/2007'),
      *          firstDay = Ext.Date.getFirstDayOfMonth(dt);
      *      console.log(Ext.Date.dayNames[firstDay]); // output: 'Monday'
@@ -1346,11 +1355,11 @@ return utilDate = {
      * is the numeric day index within the week (0-6) which can be used in conjunction with
      * the {@link #monthNames} array to retrieve the textual day name.
      *
-     *  @example
+     *      @example
+     *      var dt = new Date('1/10/2007'),
+     *          lastDay = Ext.Date.getLastDayOfMonth(dt);
      *
-     *     var dt = new Date('1/10/2007'),
-     *         lastDay = Ext.Date.getLastDayOfMonth(dt);
-     *     console.log(Ext.Date.dayNames[lastDay]); // output: 'Wednesday'
+     *      console.log(Ext.Date.dayNames[lastDay]); // output: 'Wednesday'
      *
      * @param {Date} date The date
      * @return {Number} The day number (0-6).
@@ -1366,7 +1375,7 @@ return utilDate = {
      * @return {Date}
      */
     getFirstDateOfMonth : function(date) {
-        return new Date(date.getFullYear(), date.getMonth(), 1);
+        return new nativeDate(date.getFullYear(), date.getMonth(), 1);
     },
 
     /**
@@ -1375,7 +1384,7 @@ return utilDate = {
      * @return {Date}
      */
     getLastDateOfMonth : function(date) {
-        return new Date(date.getFullYear(), date.getMonth(), utilDate.getDaysInMonth(date));
+        return new nativeDate(date.getFullYear(), date.getMonth(), utilDate.getDaysInMonth(date));
     },
 
     /**
@@ -1390,7 +1399,7 @@ return utilDate = {
         return function(date) { // return a closure for efficiency
             var m = date.getMonth();
 
-            return m == 1 && utilDate.isLeapYear(date) ? 29 : daysInMonth[m];
+            return m === 1 && utilDate.isLeapYear(date) ? 29 : daysInMonth[m];
         };
     }()),
 
@@ -1442,7 +1451,7 @@ return utilDate = {
      * @return {Date} The new Date instance.
      */
     clone : function(date) {
-        return new Date(date.getTime());
+        return new nativeDate(date.getTime());
     },
 
     /**
@@ -1453,7 +1462,7 @@ return utilDate = {
     isDST : function(date) {
         // adapted from http://sencha.com/forum/showthread.php?p=247172#post247172
         // courtesy of @geoffrey.mcgill
-        return new Date(date.getFullYear(), 0, 1).getTimezoneOffset() != date.getTimezoneOffset();
+        return new nativeDate(date.getFullYear(), 0, 1).getTimezoneOffset() !== date.getTimezoneOffset();
     },
 
     /**
@@ -1467,7 +1476,7 @@ return utilDate = {
      */
     clearTime : function(date, clone) {
         if (clone) {
-            return Ext.Date.clearTime(Ext.Date.clone(date));
+            return utilDate.clearTime(utilDate.clone(date));
         }
 
         // get current date before clearing time
@@ -1481,12 +1490,12 @@ return utilDate = {
         date.setSeconds(0);
         date.setMilliseconds(0);
 
-        if (date.getDate() != d) { // account for DST (i.e. day of month changed when setting hour = 0)
+        if (date.getDate() !== d) { // account for DST (i.e. day of month changed when setting hour = 0)
             // note: DST adjustments are assumed to occur in multiples of 1 hour (this is almost always the case)
             // refer to http://www.timeanddate.com/time/aboutdst.html for the (rare) exceptions to this rule
 
             // increment hour until cloned date == current date
-            for (hr = 1, c = utilDate.add(date, Ext.Date.HOUR, hr); c.getDate() != d; hr++, c = utilDate.add(date, Ext.Date.HOUR, hr));
+            for (hr = 1, c = utilDate.add(date, utilDate.HOUR, hr); c.getDate() !== d; hr++, c = utilDate.add(date, utilDate.HOUR, hr));
 
             date.setDate(d);
             date.setHours(c.getHours());
@@ -1520,8 +1529,7 @@ return utilDate = {
      * @return {Date} The new Date instance.
      */
     add : function(date, interval, value) {
-        var d = Ext.Date.clone(date),
-            Date = Ext.Date,
+        var d = utilDate.clone(date),
             day, decimalValue, base = 0;
         if (!interval || value === 0) {
             return d;
@@ -1550,33 +1558,33 @@ return utilDate = {
                 // 02:00am
                 // ....
                 // 
-                case Ext.Date.MILLI:
+                case utilDate.MILLI:
                     d.setTime(d.getTime() + value);
                     break;
-                case Ext.Date.SECOND:
+                case utilDate.SECOND:
                     d.setTime(d.getTime() + value * 1000);
                     break;
-                case Ext.Date.MINUTE:
+                case utilDate.MINUTE:
                     d.setTime(d.getTime() + value * 60 * 1000);
                     break;
-                case Ext.Date.HOUR:
+                case utilDate.HOUR:
                     d.setTime(d.getTime() + value * 60 * 60 * 1000);
                     break;
-                case Ext.Date.DAY:
+                case utilDate.DAY:
                     d.setDate(d.getDate() + value);
                     break;
-                case Ext.Date.MONTH:
+                case utilDate.MONTH:
                     day = date.getDate();
                     if (day > 28) {
-                        day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.MONTH, value)).getDate());
+                        day = Math.min(day, utilDate.getLastDateOfMonth(utilDate.add(utilDate.getFirstDateOfMonth(date), utilDate.MONTH, value)).getDate());
                     }
                     d.setDate(day);
                     d.setMonth(date.getMonth() + value);
                     break;
-                case Ext.Date.YEAR:
+                case utilDate.YEAR:
                     day = date.getDate();
                     if (day > 28) {
-                        day = Math.min(day, Ext.Date.getLastDateOfMonth(Ext.Date.add(Ext.Date.getFirstDateOfMonth(date), Ext.Date.YEAR, value)).getDate());
+                        day = Math.min(day, utilDate.getLastDateOfMonth(utilDate.add(utilDate.getFirstDateOfMonth(date), utilDate.YEAR, value)).getDate());
                     }
                     d.setDate(day);
                     d.setFullYear(date.getFullYear() + value);
@@ -1586,18 +1594,18 @@ return utilDate = {
 
         if (decimalValue) {
             switch (interval.toLowerCase()) {
-                case Ext.Date.MILLI:    base = 1;               break;
-                case Ext.Date.SECOND:   base = 1000;            break;
-                case Ext.Date.MINUTE:   base = 1000*60;         break;
-                case Ext.Date.HOUR:     base = 1000*60*60;      break;
-                case Ext.Date.DAY:      base = 1000*60*60*24;   break;
+                case utilDate.MILLI:    base = 1;               break;
+                case utilDate.SECOND:   base = 1000;            break;
+                case utilDate.MINUTE:   base = 1000*60;         break;
+                case utilDate.HOUR:     base = 1000*60*60;      break;
+                case utilDate.DAY:      base = 1000*60*60*24;   break;
 
-                case Ext.Date.MONTH:
+                case utilDate.MONTH:
                     day = utilDate.getDaysInMonth(d);
                     base = 1000*60*60*24*day;
                     break;
 
-                case Ext.Date.YEAR:
+                case utilDate.YEAR:
                     day = (utilDate.isLeapYear(d) ? 366 : 365);
                     base = 1000*60*60*24*day;
                     break;
@@ -1652,8 +1660,7 @@ return utilDate = {
 
     //Maintains compatibility with old static and prototype window.Date methods.
     compat: function() {
-        var nativeDate = window.Date,
-            p,
+        var p,
             statics = ['useStrict', 'formatCodeToRegex', 'parseFunctions', 'parseRegexes', 'formatFunctions', 'y2kYear', 'MILLI', 'SECOND', 'MINUTE', 'HOUR', 'DAY', 'MONTH', 'YEAR', 'defaults', 'dayNames', 'monthNames', 'monthNumbers', 'getShortMonthName', 'getShortDayName', 'getMonthNumber', 'formatCodes', 'isValid', 'parseDate', 'getFormatCode', 'createFormat', 'createParser', 'parseCodes'],
             proto = ['dateFormat', 'format', 'getTimezone', 'getGMTOffset', 'getDayOfYear', 'getWeekOfYear', 'isLeapYear', 'getFirstDayOfMonth', 'getLastDayOfMonth', 'getDaysInMonth', 'getSuffix', 'clone', 'isDST', 'clearTime', 'add', 'between'],
             sLen    = statics.length,
@@ -1685,30 +1692,30 @@ return utilDate = {
      * @return {Number} The maximum number n of units that min + n * unit <= max.
      */
     diff: function (min, max, unit) {
-        var ExtDate = Ext.Date, est, diff = +max - min;
+        var est, diff = +max - min;
         switch (unit) {
-            case ExtDate.MILLI:
+            case utilDate.MILLI:
                 return diff;
-            case ExtDate.SECOND:
+            case utilDate.SECOND:
                 return Math.floor(diff / 1000);
-            case ExtDate.MINUTE:
+            case utilDate.MINUTE:
                 return Math.floor(diff / 60000);
-            case ExtDate.HOUR:
+            case utilDate.HOUR:
                 return Math.floor(diff / 3600000);
-            case ExtDate.DAY:
+            case utilDate.DAY:
                 return Math.floor(diff / 86400000);
             case 'w':
                 return Math.floor(diff / 604800000);
-            case ExtDate.MONTH:
+            case utilDate.MONTH:
                 est = (max.getFullYear() * 12 + max.getMonth()) - (min.getFullYear() * 12 + min.getMonth());
-                if (Ext.Date.add(min, unit, est) > max) {
+                if (utilDate.add(min, unit, est) > max) {
                     return est - 1;
                 } else {
                     return est;
                 }
-            case ExtDate.YEAR:
+            case utilDate.YEAR:
                 est = max.getFullYear() - min.getFullYear();
-                if (Ext.Date.add(min, unit, est) > max) {
+                if (utilDate.add(min, unit, est) > max) {
                     return est - 1;
                 } else {
                     return est;
@@ -1723,31 +1730,31 @@ return utilDate = {
      * @return {Date} The aligned date.
      */
     align: function (date, unit, step) {
-        var num = new Date(+date);
+        var num = new nativeDate(+date);
         switch (unit.toLowerCase()) {
-            case Ext.Date.MILLI:
+            case utilDate.MILLI:
                 return num;
                 break;
-            case Ext.Date.SECOND:
+            case utilDate.SECOND:
                 num.setUTCSeconds(num.getUTCSeconds() - num.getUTCSeconds() % step);
                 num.setUTCMilliseconds(0);
                 return num;
                 break;
-            case Ext.Date.MINUTE:
+            case utilDate.MINUTE:
                 num.setUTCMinutes(num.getUTCMinutes() - num.getUTCMinutes() % step);
                 num.setUTCSeconds(0);
                 num.setUTCMilliseconds(0);
                 return num;
                 break;
-            case Ext.Date.HOUR:
+            case utilDate.HOUR:
                 num.setUTCHours(num.getUTCHours() - num.getUTCHours() % step);
                 num.setUTCMinutes(0);
                 num.setUTCSeconds(0);
                 num.setUTCMilliseconds(0);
                 return num;
                 break;
-            case Ext.Date.DAY:
-                if (step == 7 || step == 14){
+            case utilDate.DAY:
+                if (step === 7 || step === 14){
                     num.setUTCDate(num.getUTCDate() - num.getUTCDay() + 1);
                 }
                 num.setUTCHours(0);
@@ -1756,7 +1763,7 @@ return utilDate = {
                 num.setUTCMilliseconds(0);
                 return num;
                 break;
-            case Ext.Date.MONTH:
+            case utilDate.MONTH:
                 num.setUTCMonth(num.getUTCMonth() - (num.getUTCMonth() - 1) % step,1);
                 num.setUTCHours(0);
                 num.setUTCMinutes(0);
@@ -1764,7 +1771,7 @@ return utilDate = {
                 num.setUTCMilliseconds(0);
                 return num;
                 break;
-            case Ext.Date.YEAR:
+            case utilDate.YEAR:
                 num.setUTCFullYear(num.getUTCFullYear() - num.getUTCFullYear() % step, 1, 1);
                 num.setUTCHours(0);
                 num.setUTCMinutes(0);

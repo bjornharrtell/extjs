@@ -261,6 +261,34 @@ describe("Ext.CompositeElementLite", function(){
             expect(ce.fill(null)).toBe(ce);
         });
     });
+
+    describe("slice", function() {
+        beforeEach(function() {
+            makeCE(mainRoot.dom.childNodes);
+        });
+
+        it("should return all nodes if no start or end is passed", function() {
+            var nodes = ce.slice();
+            expect(nodes.length).toBe(20);
+        });
+
+        it("should return to the end if a start is specified but the end is omitted", function() {
+            var nodes = ce.slice(17);
+            expect(nodes.length).toBe(3);
+            expect(nodes[0]).toBe(byId('r'));
+            expect(nodes[1]).toBe(byId('s'));
+            expect(nodes[2]).toBe(byId('t'));
+        });
+
+        it("should return to the specified range", function() {
+            var nodes = ce.slice(14, 18);
+            expect(nodes.length).toBe(4);
+            expect(nodes[0]).toBe(byId('o'));
+            expect(nodes[1]).toBe(byId('p'));
+            expect(nodes[2]).toBe(byId('q'));
+            expect(nodes[3]).toBe(byId('r'));
+        });
+    });
     
     describe("filter", function(){
         

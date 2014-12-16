@@ -8,11 +8,16 @@ Ext.define('Ext.draw.sprite.Composite', {
     extend: 'Ext.draw.sprite.Sprite',
     alias: 'sprite.composite',
     type: 'composite',
+    isComposite: true,
+
+    config: {
+        sprites: []
+    },
 
     constructor: function () {
-        this.callParent(arguments);
         this.sprites = [];
         this.sprites.map = {};
+        this.callParent(arguments);
     },
 
     /**
@@ -20,14 +25,17 @@ Ext.define('Ext.draw.sprite.Composite', {
      * @param {Ext.draw.sprite.Sprite|Object} sprite
      */
     add: function (sprite) {
+        if (!sprite) {
+            return null;
+        }
         if (!sprite.isSprite) {
             sprite = Ext.create('sprite.' + sprite.type, sprite);
             sprite.setParent(this);
             sprite.setSurface(this.getSurface());
         }
-        var oldTransformations = sprite.applyTransformations,
-            me = this,
-            attr = me.attr;
+        var me = this,
+            attr = me.attr,
+            oldTransformations = sprite.applyTransformations;
 
         sprite.applyTransformations = function () {
             if (sprite.attr.dirtyTransform) {
@@ -37,8 +45,8 @@ Ext.define('Ext.draw.sprite.Composite', {
             }
             oldTransformations.call(sprite);
         };
-        this.sprites.push(sprite);
-        this.sprites.map[sprite.id] = sprite.getId();
+        me.sprites.push(sprite);
+        me.sprites.map[sprite.id] = sprite.getId();
         attr.bbox.plain.dirty = true;
         attr.bbox.transform.dirty = true;
         return sprite;

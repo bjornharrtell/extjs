@@ -1,4 +1,15 @@
 describe('Ext.mixin.Responsive', function () {
+    function stashProps (object, backup, props) {
+        for (var i = props.length; i-- > 0; ) {
+            var name = props[i];
+            if (name in backup) {
+                object[name] = backup[name];
+            } else {
+                delete object[name];
+            }
+        }
+    }
+
     var Cls, instance, Responsive,
         oldGetOrientation, oldGetViewWidth, oldGetViewHeight,
         environments = {
@@ -102,13 +113,21 @@ describe('Ext.mixin.Responsive', function () {
     });
 
     describe('initialization', function () {
+        var backupProps = ['tablet', 'desktop'],
+            backup;
+
         beforeEach(function () {
             env = environments.ipad.landscape;
-            Responsive.context = {
-                platform: {
-                    tablet: true
-                }
-            }
+
+            backup = {};
+            stashProps(Ext.platformTags, backup, backupProps);
+
+            Ext.platformTags.desktop = false;
+            Ext.platformTags.tablet = true;
+        });
+
+        afterEach(function () {
+            stashProps(backup, Ext.platformTags, backupProps);
         });
 
         it('should init with landscape from class', function () {
@@ -208,11 +227,38 @@ describe('Ext.mixin.Responsive', function () {
             expect(foo).toBe('Tablet');
         });
 
+        it('should init with tablet from instanceConfig', function () {
+            instance = new Cls({
+                responsiveConfig: {
+                    tablet: {
+                        foo: 'Tablet'
+                    }
+                }
+            });
+
+            var foo = instance.getFoo();
+            expect(foo).toBe('Tablet');
+        });
+
         it('should preserve instanceConfig if responsiveConfig has no match', function () {
             instance = new Cls({
                 foo: 'Foo',
                 responsiveConfig: {
                     'platform.desktop': { // env is tablet so this is false
+                        foo: 'Desktop'
+                    }
+                }
+            });
+
+            var foo = instance.getFoo();
+            expect(foo).toBe('Foo');
+        });
+
+        it('should preserve instanceConfig if responsiveConfig has no match w/o prefix', function () {
+            instance = new Cls({
+                foo: 'Foo',
+                responsiveConfig: {
+                    desktop: { // env is tablet so this is false
                         foo: 'Desktop'
                     }
                 }
@@ -235,16 +281,38 @@ describe('Ext.mixin.Responsive', function () {
             var foo = instance.getFoo();
             expect(foo).toBe('Tablet');
         });
+
+        it('should pick responsiveConfig over instanceConfig w/o prefix', function () {
+            instance = new Cls({
+                foo: 'Foo',
+                responsiveConfig: {
+                    tablet: {
+                        foo: 'Tablet'
+                    }
+                }
+            });
+
+            var foo = instance.getFoo();
+            expect(foo).toBe('Tablet');
+        });
     }); // initializing
 
     describe('formulas', function () {
+        var backupProps = ['tablet', 'desktop'],
+            backup;
+
         beforeEach(function () {
             env = environments.ipad.landscape;
-            Responsive.context = {
-                platform: {
-                    tablet: true
-                }
-            }
+
+            backup = {};
+            stashProps(Ext.platformTags, backup, backupProps);
+
+            Ext.platformTags.desktop = false;
+            Ext.platformTags.tablet = true;
+        });
+
+        afterEach(function () {
+            stashProps(backup, Ext.platformTags, backupProps);
         });
 
         it('should init on iPad Landscape using formulas from class', function () {
@@ -273,13 +341,21 @@ describe('Ext.mixin.Responsive', function () {
     }); // formulas
 
     describe('dynamic', function () {
+        var backupProps = ['tablet', 'desktop'],
+            backup;
+
         beforeEach(function () {
             env = environments.ipad.landscape;
-            Responsive.context = {
-                platform: {
-                    tablet: true
-                }
-            }
+
+            backup = {};
+            stashProps(Ext.platformTags, backup, backupProps);
+
+            Ext.platformTags.desktop = false;
+            Ext.platformTags.tablet = true;
+        });
+
+        afterEach(function () {
+            stashProps(backup, Ext.platformTags, backupProps);
         });
 
         it('should update when responsive state changes', function () {

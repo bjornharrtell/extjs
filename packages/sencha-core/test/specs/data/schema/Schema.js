@@ -61,6 +61,155 @@ describe("Ext.data.schema.Schema", function() {
             });
         });
     });
+
+    describe("hasAssociations", function() {
+        beforeEach(function() {
+            schema.setNamespace('spec');
+        });
+
+        describe("one to one", function() {
+            afterEach(function() {
+                Ext.undefine('spec.User');
+                Ext.undefine('spec.Address');
+            });
+
+            it("should have associations when the key holder is declared first", function() {
+                Ext.define('spec.User', {
+                    extend: 'Ext.data.Model',
+                    fields: [{
+                        name: 'addressId',
+                        reference: 'Address',
+                        unique: true
+                    }]
+                });
+                Ext.define('spec.Address', {
+                    extend: 'Ext.data.Model'
+                });
+
+                expect(schema.hasAssociations(spec.User)).toBe(true);
+                expect(schema.hasAssociations(spec.Address)).toBe(true);
+            });
+
+            it("should have associations when the non-key holder is declared first", function() {
+                Ext.define('spec.Address', {
+                    extend: 'Ext.data.Model'
+                });
+                Ext.define('spec.User', {
+                    extend: 'Ext.data.Model',
+                    fields: [{
+                        name: 'addressId',
+                        reference: 'Address',
+                        unique: true
+                    }]
+                });
+
+                expect(schema.hasAssociations(spec.User)).toBe(true);
+                expect(schema.hasAssociations(spec.Address)).toBe(true);
+            });
+        });
+
+        describe("one to many", function() {
+            afterEach(function() {
+                Ext.undefine('spec.User');
+                Ext.undefine('spec.Post');
+            });
+
+            it("should have associations when declaring the one first", function() {
+                Ext.define('spec.User', {
+                    extend: 'Ext.data.Model'
+                });
+                Ext.define('spec.Post', {
+                    extend: 'Ext.data.Model',
+                    fields: [{
+                        name: 'userId',
+                        reference: 'User'
+                    }]
+                });
+
+                expect(schema.hasAssociations(spec.User)).toBe(true);
+                expect(schema.hasAssociations(spec.Post)).toBe(true);
+            });
+
+            it("should have associations when declaring the many first", function() {
+                Ext.define('spec.Post', {
+                    extend: 'Ext.data.Model',
+                    fields: [{
+                        name: 'userId',
+                        reference: 'User'
+                    }]
+                });
+                Ext.define('spec.User', {
+                    extend: 'Ext.data.Model'
+                });
+
+                expect(schema.hasAssociations(spec.User)).toBe(true);
+                expect(schema.hasAssociations(spec.Post)).toBe(true);
+            });
+        });
+
+        describe("many to many", function() {
+            afterEach(function() {
+                Ext.undefine('spec.User');
+                Ext.undefine('spec.Group');
+            });
+
+            describe("association on the left", function() {
+                it("should have associations when declaring the right first", function() {
+                    Ext.define('spec.User', {
+                        extend: 'Ext.data.Model'
+                    });
+                    Ext.define('spec.Group', {
+                        extend: 'Ext.data.Model',
+                        manyToMany: 'User'
+                    });
+
+                    expect(schema.hasAssociations(spec.User)).toBe(true);
+                    expect(schema.hasAssociations(spec.Group)).toBe(true);
+                });
+
+                it("should have associations when declaring the left first", function() {
+                    Ext.define('spec.Group', {
+                        extend: 'Ext.data.Model',
+                        manyToMany: 'User'
+                    });
+                    Ext.define('spec.User', {
+                        extend: 'Ext.data.Model'
+                    });
+
+                    expect(schema.hasAssociations(spec.User)).toBe(true);
+                    expect(schema.hasAssociations(spec.Group)).toBe(true);
+                });
+            });
+
+            describe("association on the right", function() {
+                it("should have associations when declaring the right first", function() {
+                    Ext.define('spec.User', {
+                        extend: 'Ext.data.Model',
+                        manyToMany: 'Group'
+                    });
+                    Ext.define('spec.Group', {
+                        extend: 'Ext.data.Model'
+                    });
+
+                    expect(schema.hasAssociations(spec.User)).toBe(true);
+                    expect(schema.hasAssociations(spec.Group)).toBe(true);
+                });
+
+                it("should have associations when declaring the left first", function() {
+                    Ext.define('spec.Group', {
+                        extend: 'Ext.data.Model'
+                    });
+                    Ext.define('spec.User', {
+                        extend: 'Ext.data.Model',
+                        manyToMany: 'Group'
+                    });
+
+                    expect(schema.hasAssociations(spec.User)).toBe(true);
+                    expect(schema.hasAssociations(spec.Group)).toBe(true);
+                });
+            });
+        });
+    });
     
     describe("legacy associations", function() {
         describe('inherited associations', function () {

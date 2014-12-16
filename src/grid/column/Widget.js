@@ -154,6 +154,7 @@ Ext.define('Ext.grid.column.Widget', {
     },
 
     /**
+     * @cfg
      * @inheritdoc
      */
     sortable: false,
@@ -175,7 +176,21 @@ Ext.define('Ext.grid.column.Widget', {
      * This is used to create the widgets or components which are rendered into the cells of this column.
      *
      * This column's {@link #dataIndex} is used to update the widget/component's {@link Ext.Component#defaultBindProperty defaultBindProperty}.
+     *
+     * The widget will be decorated with 2 methods:
+     * `getWidgetRecord` - Returns the {@link Ext.data.Model record} the widget is associated with.
+     * `getWidgetColumn` - Returns the {@link Ext.grid.column.Widget column} the widget ias associated with.
      */
+    
+    /**
+     * @cfg {Function} onWidgetAttach
+     * A function that will be called when a widget is attached to a record. This may be useful for
+     * doing any post-processing.
+     * @cfg {Ext.grid.column.Column} onWidgetAttach.column The column.
+     * @cfg {Ext.Component/Ext.Widget} onWidgetAttach.widget The widget.
+     * @cfg {Ext.data.Model} onWidgetAttach.record The record.
+     */
+    onWidgetAttach: null,
     
     /**
      * @cfg {Boolean} [stopSelection=true]
@@ -225,18 +240,17 @@ Ext.define('Ext.grid.column.Widget', {
         var me = this,
             widget;
 
-        me.liveWidgets = {};
-        me.cachedStyles = {};
-        me.freeWidgetStack = [];
-        
         me.listenerScopeFn = function (defaultScope) {
             if (defaultScope === 'this') {
                 return this;
             }
             return me.resolveListenerScope(defaultScope);
         };
-        
-        widget = me.getFreeWidget();
+
+        me.liveWidgets = {};
+        me.cachedStyles = {};
+        me.freeWidgetStack = [widget = me.getFreeWidget()];
+
         me.tdCls = widget.getTdCls();
         me.setupViewListeners(me.getView());
         me.callParent(arguments);
@@ -279,15 +293,24 @@ Ext.define('Ext.grid.column.Widget', {
     },
 
     onAdded: function() {
-        var view;
-        
-        this.callParent(arguments);
+        var me = this,
+            view;
 
-        view = this.getView();
+        me.callParent(arguments);
+
+        view = me.getView();
 
         // If we are being added to a rendered HeaderContainer
         if (view) {
-            this.setupViewListeners(view);
+            me.setupViewListeners(view);
+
+            if (view && view.viewReady && me.rendered && view.getEl().down(me.getCellSelector())) {
+                // If the view is ready, it means we're already rendered.
+                // At this point the view may refresh "soon", however we don't have
+                // a way of knowing that the view is pending a refresh, so we need
+                // to ensure the widgets get hooked up correctly here
+                me.onViewRefresh(view, view.getViewRange());
+            }
         }
     },
 
@@ -298,10 +321,7 @@ Ext.define('Ext.grid.column.Widget', {
             id, widget;
 
         if (me.rendered) {
-            if (viewListeners) {
-                viewListeners.destroy();
-                this.viewListeners = null;
-            }
+            me.viewListeners = Ext.destroy(me.viewListeners) ;
 
             // If we are being removed, we have to move all widget elements into the detached body
             if (!isDestroying) {
@@ -357,7 +377,7 @@ Ext.define('Ext.grid.column.Widget', {
 
         getFreeWidget: function() {
             var me = this,
-                result = me.freeWidgetStack.pop();
+                result = me.freeWidgetStack ? me.freeWidgetStack.pop() : null;
 
             if (!result) {
                 result = Ext.widget(me.widget);
@@ -367,79 +387,21 @@ Ext.define('Ext.grid.column.Widget', {
                 result.getWidgetColumn = me.widgetColumnDecorator;
                 result.dataIndex = me.dataIndex;
                 result.measurer = me;
+                result.ownerCmp = me;
             }
             return result;
         },
 
-        onViewRefresh: function(view, records) {
-            var me = this,
-                rows = view.all,
-                hasAttach = !!me.onWidgetAttach,
-                oldWidgetMap = me.liveWidgets,
-                dataIndex = me.dataIndex,
-                isFixedSize = me.isFixedSize,
-                cell, widget, el, width, recordId, 
-                itemIndex, recordIndex, record, id, lastBox;
+        onBeforeRefresh: function () {
+            var liveWidgets = this.liveWidgets,
+                id;
 
-            if (me.rendered && !me.hidden) {
-                me.liveWidgets = {};
-                Ext.suspendLayouts();
-                for (itemIndex = rows.startIndex, recordIndex = 0; itemIndex <= rows.endIndex; itemIndex++, recordIndex++) {
-                    record = records[recordIndex];
-                    if (record.isNonData) {
-                        continue;
-                    }
-
-                    recordId = record.internalId;
-                    cell = view.getRow(rows.item(itemIndex)).cells[me.getVisibleIndex()].firstChild;
-
-                    // Attempt to reuse the existing widget for this record.
-                    widget = me.liveWidgets[recordId] = oldWidgetMap[recordId] || me.getFreeWidget();
-                    delete oldWidgetMap[recordId];
-
-                    lastBox = me.lastBox;
-                    if (lastBox && !isFixedSize && width === undefined) {
-                        width = lastBox.width - parseInt(me.getCachedStyle(cell, 'padding-left'), 10) - parseInt(me.getCachedStyle(cell, 'padding-right'), 10);
-                    }
-
-                    Ext.fly(cell).empty();
-                    if (el = (widget.el || widget.element)) {
-                        cell.appendChild(el.dom);
-                        if (!isFixedSize) {
-                            widget.setWidth(width);
-                        }
-                    } else {
-                        if (!isFixedSize) {
-                            widget.width = width;
-                        }
-                        widget.render(cell);
-                    }
-                    // Call the appropriate setter with this column's data field
-                    if (widget.defaultBindProperty && dataIndex) {
-                        widget.setConfig(widget.defaultBindProperty, records[recordIndex].get(dataIndex));
-                    }
-                    widget.$widgetRecord = record;
-                    widget.$widgetColumn = me;
-                    if (hasAttach) {
-                        me.onWidgetAttach(widget, record);
-                    }
-                }
-
-                Ext.resumeLayouts(true);
-
-                // Free any unused widgets from the old live map.
-                // Move them into detachedBody.
-                for (id in oldWidgetMap) {
-                    widget = oldWidgetMap[id];
-                    widget.$widgetRecord = widget.$widgetColumn = null;
-                    me.freeWidgetStack.unshift(widget);
-                    Ext.detachedBodyEl.dom.appendChild((widget.el || widget.element).dom);
-                }
+            // Because of a memory leak bug in IE 8, we need to handle the dom node here before
+            // it is destroyed.
+            // See EXTJS-14874.
+            for (id in liveWidgets) {
+                Ext.detachedBodyEl.appendChild(liveWidgets[id].el.dom);
             }
-        },
-
-        onItemUpdate: function(record, recordIndex, oldItemDom) {
-            this.updateWidget(record);
         },
 
         onItemAdd: function(records, index, items) {
@@ -477,6 +439,17 @@ Ext.define('Ext.grid.column.Widget', {
 
                         // Render/move a widget into the new row
                         Ext.fly(cell).empty();
+
+                        // Call the appropriate setter with this column's data field
+                        if (widget.defaultBindProperty && me.dataIndex) {
+                            widget.setConfig(widget.defaultBindProperty, record.get(me.dataIndex));
+                        }
+                        widget.$widgetColumn = me;
+                        widget.$widgetRecord = record;
+                        if (hasAttach) {
+                            Ext.callback(me.onWidgetAttach, me.scope, [me, widget, record], 0, me);
+                        }
+
                         if (el = (widget.el || widget.element)) {
                             cell.appendChild(el.dom);
                             if (!isFixedSize) {
@@ -487,15 +460,6 @@ Ext.define('Ext.grid.column.Widget', {
                                 widget.width = width;
                             }
                             widget.render(cell);
-                        }
-                        // Call the appropriate setter with this column's data field
-                        if (widget.defaultBindProperty && me.dataIndex) {
-                            widget.setConfig(widget.defaultBindProperty, record.get(me.dataIndex));
-                        }
-                        widget.$widgetColumn = me;
-                        widget.$widgetRecord = record;
-                        if (hasAttach) {
-                            me.onWidgetAttach(widget, record);
                         }
                     }
                 }
@@ -517,9 +481,85 @@ Ext.define('Ext.grid.column.Widget', {
             }
         },
 
+        onItemUpdate: function(record, recordIndex, oldItemDom) {
+            this.updateWidget(record);
+        },
+
+        onViewRefresh: function(view, records) {
+            var me = this,
+                rows = view.all,
+                hasAttach = !!me.onWidgetAttach,
+                oldWidgetMap = me.liveWidgets,
+                dataIndex = me.dataIndex,
+                isFixedSize = me.isFixedSize,
+                cell, widget, el, width, recordId, 
+                itemIndex, recordIndex, record, id, lastBox, dom;
+
+            if (me.rendered && !me.hidden) {
+                me.liveWidgets = {};
+                Ext.suspendLayouts();
+                for (itemIndex = rows.startIndex, recordIndex = 0; itemIndex <= rows.endIndex; itemIndex++, recordIndex++) {
+                    record = records[recordIndex];
+                    if (record.isNonData) {
+                        continue;
+                    }
+
+                    recordId = record.internalId;
+                    cell = view.getRow(rows.item(itemIndex)).cells[me.getVisibleIndex()].firstChild;
+
+                    // Attempt to reuse the existing widget for this record.
+                    widget = me.liveWidgets[recordId] = oldWidgetMap[recordId] || me.getFreeWidget();
+                    delete oldWidgetMap[recordId];
+
+                    lastBox = me.lastBox;
+                    if (lastBox && !isFixedSize && width === undefined) {
+                        width = lastBox.width - parseInt(me.getCachedStyle(cell, 'padding-left'), 10) - parseInt(me.getCachedStyle(cell, 'padding-right'), 10);
+                    }
+
+                    // Call the appropriate setter with this column's data field
+                    if (widget.defaultBindProperty && dataIndex) {
+                        widget.setConfig(widget.defaultBindProperty, records[recordIndex].get(dataIndex));
+                    }
+                    widget.$widgetRecord = record;
+                    widget.$widgetColumn = me;
+                    if (hasAttach) {
+                        Ext.callback(me.onWidgetAttach, me.scope, [me, widget, record], 0, me);
+                    }
+
+                    if (el = (widget.el || widget.element)) {
+                        dom = el.dom;
+                        if (dom.parentNode !== cell) {
+                            Ext.fly(cell).empty();
+                            cell.appendChild(el.dom);
+                        }
+                        if (!isFixedSize) {
+                            widget.setWidth(width);
+                        }
+                    } else {
+                        if (!isFixedSize) {
+                            widget.width = width;
+                        }
+                        Ext.fly(cell).empty();
+                        widget.render(cell);
+                    }
+                }
+
+                Ext.resumeLayouts(true);
+
+                // Free any unused widgets from the old live map.
+                // Move them into detachedBody.
+                for (id in oldWidgetMap) {
+                    widget = oldWidgetMap[id];
+                    widget.$widgetRecord = widget.$widgetColumn = null;
+                    me.freeWidgetStack.unshift(widget);
+                    Ext.detachedBodyEl.dom.appendChild((widget.el || widget.element).dom);
+                }
+            }
+        },
+
         setupViewListeners: function(view) {
             var me = this;
-            
+
             me.viewListeners = view.on({
                 refresh: me.onViewRefresh,
                 itemupdate: me.onItemUpdate,
@@ -528,6 +568,10 @@ Ext.define('Ext.grid.column.Widget', {
                 scope: me,
                 destroyable: true
             });
+
+            if (Ext.isIE8) {
+                view.on('beforerefresh', me.onBeforeRefresh, me);
+            }
         },
 
         updateWidget: function(record) {

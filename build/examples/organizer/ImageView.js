@@ -32,7 +32,7 @@ Ext.define('Ext.org.ImageView', {
     multiSelect: true,
     singleSelect: false,
     cls: 'x-image-view',
-    autoScroll: true,
+    scrollable: true,
     
     initComponent: function() {
         this.store = new Ext.data.Store({

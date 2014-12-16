@@ -202,9 +202,9 @@ Ext.define('Ext.chart.LegendItem', {
     onMouseOver: function() {
         var me = this;
         
-        me.label.setStyle({
+        me.label.setAttributes({
             'font-weight': 'bold'
-        });
+        }, true);
         me.series._index = me.yFieldIndex;
         me.series.highlightItem();
     },
@@ -217,9 +217,9 @@ Ext.define('Ext.chart.LegendItem', {
             legend = me.legend,
             boldRe = me.boldRe;
 
-        me.label.setStyle({
+        me.label.setAttributes({
             'font-weight': legend.labelFont && boldRe.test(legend.labelFont) ? 'bold' : 'normal'
-        });
+        }, true);
         me.series._index = me.yFieldIndex;
         me.series.unHighlightItem();
     },

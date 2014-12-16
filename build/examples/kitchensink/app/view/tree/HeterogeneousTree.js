@@ -93,7 +93,9 @@ Ext.define('KitchenSink.view.tree.HeterogeneousTree', {
                 // Go up from the view to the owning TreePanel
                 var panel = inputField.up('treepanel');
                 if (e.keyCode === Ext.EventObject.ENTER) {
-                    panel.addClick();
+                    if (!panel.down('#add-button').isDisabled()) {
+                        panel.addClick();
+                    }
                 } else if (e.keyCode === Ext.EventObject.TAB && e.shiftKey) {
                     e.stopEvent();
                     panel.view.focusRow(panel.selModel.getSelection()[0] || 0);
@@ -113,10 +115,15 @@ Ext.define('KitchenSink.view.tree.HeterogeneousTree', {
     addClick: function() {
         var target = this.selModel.getSelection()[0] || this.getRootNode(),
             inputField = this.down('#new-name'),
-            node,
-            value = inputField && inputField.getValue();
+            value = inputField && inputField.getValue(),
+            store = this.getStore(),
+            node;
 
         if (value) {
+            if (store.getNodeById(value)) {
+                Ext.Msg.alert('Error', 'A node with this name already exists.');
+                return;
+            }
             node = {
                 name: value
             };
@@ -139,8 +146,7 @@ Ext.define('KitchenSink.view.tree.HeterogeneousTree', {
 
             // User might want to see what they've just added!
             if (!target.isExpanded()) {
-                target.expand(false, function() {
-                });
+                target.expand(false);
             }
             this.selModel.select(node);
             inputField.reset();

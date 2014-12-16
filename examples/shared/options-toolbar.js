@@ -131,6 +131,7 @@
                     valueField: 'value',
                     labelStyle: 'cursor:move;',
                     margin: '0 5 0 0',
+                    queryMode: 'local',
                     store: Ext.create('Ext.data.Store', {
                         fields: ['value', 'name'],
                         data : [

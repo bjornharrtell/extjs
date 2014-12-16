@@ -221,7 +221,7 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
         var me       = this,
             dragHd   = me.dragHd,
             width    = dragHd.el.getWidth(),
-            headerCt = dragHd.getOwnerHeaderCt(),
+            headerCt = dragHd.getRootHeaderCt(),
             x, y, markerOwner, lhsMarker, rhsMarker, markerHeight;
 
         me.headerCt.dragging = true;

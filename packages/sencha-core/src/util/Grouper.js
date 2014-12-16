@@ -23,6 +23,12 @@ Ext.define('Ext.util.Grouper', {
         groupFn: null,
 
         /**
+         * @cfg {String} property The field by which records are grouped. Groups are 
+         * sorted alphabetically by group value as the default. To sort groups by a different 
+         * property, use the {@link #sortProperty} configuration.
+         */
+
+        /**
          * @cfg {String} sortProperty You can set this configuration if you want the groups
          * to be sorted on something other then the group string returned by the `groupFn`.
          * This serves the same role as `property` on a normal `Ext.util.Sorter`.

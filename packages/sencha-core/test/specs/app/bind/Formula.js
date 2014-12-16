@@ -116,6 +116,20 @@ describe("Ext.app.bind.Formula", function() {
             matchExpr('function (get) { return get("foo"); };', ['foo']);
         });
 
+        describe("spacing", function() {
+            it("should match leading spaces", function() {
+                matchExpr('function (get) { return get(        "foo"); };', ['foo']);
+            });
+
+            it("should match trailing spaces", function() {
+                matchExpr('function (get) { return get("foo"   ); };', ['foo']);
+            });
+
+            it("should match leading & trailing spaces", function() {
+                matchExpr('function (get) { return get( "foo" ); };', ['foo']);
+            });
+        });
+
         describe("non-matches", function() {
             it("should not match when the identifier has a prefix", function() {
                 matchExpr("function (get) { return get('foo') + forget('bar'); };", ['foo']);

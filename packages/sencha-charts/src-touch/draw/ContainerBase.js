@@ -12,12 +12,7 @@ Ext.define('Ext.draw.ContainerBase', {
 
     initialize: function () {
         this.callParent();
-        this.element.on('resize', 'onElementResize', this);
-    },
-
-    onElementResize: function () {
-        // TODO: get body element size here
-        this.onBodyResize(width, height);
+        this.element.on('resize', 'onBodyResize', this);
     },
 
     getElementConfig: function () {

@@ -58,7 +58,7 @@ Ext.define('Ext.draw.sprite.Arc', {
                 endAngle: Math.PI * 2,
                 anticlockwise: false
             },
-            dirtyTriggers: {
+            triggers: {
                 startAngle: 'path',
                 endAngle: 'path',
                 anticlockwise: 'path'

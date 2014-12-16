@@ -122,7 +122,7 @@ Ext.define('ChartsKitchenSink.view.charts.other.TipCharts', {
                 }, {
                     xtype: 'grid',
                     store: me.tipStore,
-                    scroll: false,
+                    scrollable: false,
                     flex: 1,
                     columns: [
                         { text: 'Browser', dataIndex: 'browser' },

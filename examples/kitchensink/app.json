@@ -33,6 +33,7 @@
      */
     "requires": [
         "ext-locale",
+        "ext-ux",
         "sencha-amf",
         "sencha-soap",
         "sencha-charts"
@@ -229,11 +230,10 @@
     
     /**
      * Controls the name of the manifest file used by the microloader for
-     * dev and build modes
+     * dev mode
      */
-    "manifest": {
-        "name": "${build.id}.json",
-        "bootstrap": "${build.id}.json"
+    "bootstrap": {
+        "manifest": "${build.id}.json"
     },
     
     /**

@@ -36,14 +36,6 @@ Ext.define('KitchenSink.view.charts.column.Renderer', {
         store: {
             type: 'pie'
         },
-        background: 'white',
-        interactions: [
-            {
-                type: 'panzoom',
-                zoomOnPanGesture: false
-            },
-            'itemhighlight'
-        ],
         series: [
             {
                 type: 'bar',
@@ -59,7 +51,6 @@ Ext.define('KitchenSink.view.charts.column.Renderer', {
                     var store = rendererData.store,
                         storeItems = store.getData().items,
                         record = storeItems[index],
-                        // diff = record && (record.data['g2'] - record.data['g1']),
                         last = storeItems.length - 1,
                         surface = sprite.getSurface(),
                         isRtl = surface.getInherited().rtl,
@@ -93,26 +84,26 @@ Ext.define('KitchenSink.view.charts.column.Renderer', {
                                 y1 = firstColumnConfig.y,
                                 x2 = changes.x,
                                 y2 = changes.y;
-                            lineSprites[0].setAttributes({
-                                lineWidth: 1,
-                                stroke: 'blue',
-                                zIndex: 10000,
-                                opacity: 0.4,
-                                path: "M" + x2 + " " + y2 + " L" + x1 + " " + y1 + " L" + x2 + " " + y1 + (lastData < firstData ? " L" : " M") + x2 + " " + y2 + " Z"
-                            });
 
                             growth = Math.round(100 * (lastData - firstData) / (firstData || 1));
+                            lineSprites[0].setAttributes({
+                                lineWidth: 1,
+                                strokeStyle: growth > 0 ? '#61C102' : '#FF4D35',
+                                zIndex: 10000,
+                                opacity: 0.7,
+                                path: "M" + x2 + " " + y2 + " L" + x1 + " " + y1 + " L" + x2 + " " + y1 + (lastData < firstData ? " L" : " M") + x2 + " " + y2 + " Z"
+                            });
                             string = (growth > 0 ? "+ " : "- ") + Math.abs(growth) + " %";
                             lineSprites[1].setAttributes({
                                 text: string,
                                 x: changes.x + (isRtl ? 12 : -12),
                                 y: firstColumnConfig.y + (changes.y - firstColumnConfig.y)/2 + 10,
-                                fill: '#00c',
+                                fillStyle: growth > 0 ? '#61C102' : '#FF4D35',
                                 fontSize: 20,
                                 zIndex: 10000,
                                 opacity: 0.6,
                                 scalingY: -1,
-                                textAlign: "center",
+                                textAlign: 'center',
                                 rotate: -90
                             });
                         }

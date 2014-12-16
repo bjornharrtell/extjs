@@ -194,19 +194,19 @@ describe("Ext.data.reader.Reader", function() {
         it("should set the root property", function() {
             reader.onMetaChange(meta);
 
-            expect(reader.getRootProperty()).toEqual('someRootProperty');
+            expect(reader.getRootProperty()).toBe('someRootProperty');
         });
 
         it("should set the totalProperty", function() {
             reader.onMetaChange(meta);
 
-            expect(reader.getTotalProperty()).toEqual('someTotalProperty');
+            expect(reader.getTotalProperty()).toBe('someTotalProperty');
         });
 
         it("should set the successProperty", function() {
             reader.onMetaChange(meta);
 
-            expect(reader.getSuccessProperty()).toEqual('someSuccessProperty');
+            expect(reader.getSuccessProperty()).toBe('someSuccessProperty');
         });
 
         it("should rebuild the extractor functions", function() {
@@ -239,6 +239,14 @@ describe("Ext.data.reader.Reader", function() {
                 expect(fields.length).toBe(3);
                 expect(fields.items[0].getName()).toBe('uniqueId');
                 expect(fields.items[1].getName()).toBe('name');
+            });
+        });
+
+        describe("if fields are not present in the meta data", function() {
+            it("should leave the existing model in place", function() {
+                var model = reader.getModel();
+                reader.onMetaChange(meta);
+                expect(reader.getModel()).toBe(model);
             });
         });
     });

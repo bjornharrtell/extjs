@@ -28,19 +28,25 @@ Ext.define('Ext.ux.DataView.Animated', {
      * @param {Ext.view.View} dataview The dataview
      */
     init: function(dataview) {
+        var me = this,
+            store = dataview.store,
+            items = dataview.all,
+            task = {
+                interval: 20
+            },
+            duration   = me.duration;
+
         /**
          * @property dataview
          * @type Ext.view.View
          * Reference to the DataView this instance is bound to
          */
-        this.dataview = dataview;
-        
-        var store = dataview.store;
+        me.dataview = dataview;
         
         dataview.blockRefresh = true;
         dataview.updateIndexes = Ext.Function.createSequence(dataview.updateIndexes, function() {
             this.getTargetEl().select(this.itemSelector).each(function(element, composite, index) {
-                element.id = element.dom.id = Ext.util.Format.format("{0}-{1}", dataview.id, store.getAt(index).internalId);
+                element.dom.id = Ext.util.Format.format("{0}-{1}", dataview.id, store.getAt(index).internalId);
             }, this);
         }, dataview);
         
@@ -49,7 +55,7 @@ Ext.define('Ext.ux.DataView.Animated', {
          * @type String
          * The string ID of the DataView component. This is used internally when animating child objects
          */
-        this.dataviewID = dataview.id;
+        me.dataviewID = dataview.id;
         
         /**
          * @property cachedStoreData
@@ -57,10 +63,10 @@ Ext.define('Ext.ux.DataView.Animated', {
          * A cache of existing store data, keyed by id. This is used to determine
          * whether any items were added or removed from the store on data change
          */
-        this.cachedStoreData = {};
+        me.cachedStoreData = {};
         
         //catch the store data with the snapshot immediately
-        this.cacheStoreData(store.data || store.snapshot);
+        me.cacheStoreData(store.data || store.snapshot);
 
         dataview.on('resize', function() {
             var store = dataview.store;
@@ -68,147 +74,136 @@ Ext.define('Ext.ux.DataView.Animated', {
                 // reDraw.call(this, store);
             }
         }, this);
+
+        // Buffer listenher so that rapid calls, for example a filter followed by a sort
+        // Only produce one redraw.
+        dataview.store.on({
+            datachanged: reDraw,
+            scope: this,
+            buffer: 50
+        });
         
-        dataview.store.on('datachanged', reDraw, this);
-        
-        function reDraw(store) {
+        function reDraw() {
             var parentEl = dataview.getTargetEl(),
-                calcItem = store.getAt(0),
-                added    = this.getAdded(store),
-                removed  = this.getRemoved(store),
-                previous = this.getRemaining(store);
+                parentElY = parentEl.getY(),
+                parentElPaddingTop = parentEl.getPadding('t'),
+                added    = me.getAdded(store),
+                removed  = me.getRemoved(store),
+                remaining = me.getRemaining(store),
+                itemArray,
+                i, id,
+                itemFly = new Ext.dom.Fly(),
+                rtl = me.dataview.getInherited().rtl,
+                oldPos, newPos,
+                styleSide = rtl ? 'right' : 'left',
+                newStyle = {};
 
             // Not yet rendered
             if (!parentEl) {
                 return;
             }
 
-            //make sure the correct styles are applied to the parent element
-            if (Ext.isIEQuirks) {
-                parentEl.applyStyles({
-                    zoom: 1,
-                    display : 'block',
-                    position: 'relative'
-                });
-            }
-            
-            //hide old items
-            Ext.each(removed, function(item) {
-                var id = this.dataviewID + '-' + item.internalId;
-                Ext.fly(id).animate({
-                    remove  : false,
-                    duration: duration,
-                    opacity : 0,
-                    useDisplay: true,
-                    callback: function() {
-                        Ext.fly(id).setDisplayed(false);
-                    }
-                });
-            }, this);
-            
-            //store is empty
-            if (calcItem == undefined) {
-                this.cacheStoreData(store);
-                return;
-            }
-            
-            this.cacheStoreData(store);
-            
-            var el = Ext.get(this.dataviewID + "-" + calcItem.internalId);
-            
-            //if there is nothing rendered, force a refresh and return. This happens when loading asynchronously (was not
-            //covered correctly in previous versions, which only accepted local data)
-            if (!el) {
-                dataview.refresh();
-                return true;
-            }
-            
-            //calculate the number of rows and columns we have
-            var itemWidth   = el.getMargin('lr') + el.getWidth(),
-                itemHeight  = el.getMargin('bt') + el.getHeight(),
-                dvWidth     = parentEl.dom.clientWidth,
-                columns     = Math.floor(dvWidth / itemWidth),
-                rtl = this.dataview.getInherited().rtl,
-                styleSide = rtl ? 'right' : 'left',
-                newStyle;
-            
-            //stores the current top and left values for each element (discovered below)
-            var oldPositions = {},
-                newPositions = {},
-                elCache      = {};
-            
-            //find current positions of each element and save a reference in the elCache
-            Ext.iterate(previous, function(id, item) {
-                var id = item.internalId,
-                    el = elCache[id] = Ext.get(this.dataviewID + '-' + id);
+            // Collect nodes that will be removed in the forthcoming refresh so
+            // that we can put them back in order to fade them out
+            Ext.iterate(removed, function(recId, item) {
+                id = me.dataviewID + '-' + recId;
 
-                oldPositions[id] = {
-                    top : el.getY()  - parentEl.getY()  - el.getMargin('t') - parentEl.getPadding('t')
-                };
-                oldPositions[id][styleSide] = this.getItemX(el);
-            }, this);
-            
-            //set absolute positioning on all DataView items. We need to set position, left and 
-            //top at the same time to avoid any flickering
-            Ext.iterate(previous, function(id, item) {
-                var oldPos = oldPositions[id],
-                    el     = elCache[id];
+                // Stop any animations for removed items and ensure th.
+                Ext.fx.Manager.stopAnimation(id);
 
-                if (el.getStyle('position') != 'absolute') {
-                    newStyle = {
-                        position: 'absolute',
-                        top     : oldPos.top + "px"
-                    };
-                    newStyle[styleSide] = oldPos[styleSide] + "px";
-                    elCache[id].applyStyles(newStyle);
+                item.dom = Ext.getDom(id);
+                if (!item.dom) {
+                    delete removed[recId];
                 }
             });
-            
-            //get new positions
-            var index = 0;
-            Ext.iterate(store.data.items, function(item) {
-                var id = item.internalId,
-                    column = index % columns,
-                    row    = Math.floor(index / columns),
-                    top    = row    * itemHeight,
-                    left   = column * itemWidth;
+
+            me.cacheStoreData(store);
+
+            // stores the current top and left values for each element (discovered below)
+            var oldPositions = {},
+                newPositions = {};
+
+            // Find current positions of elements which are to remain after the refresh.
+            Ext.iterate(remaining, function(id, item) {
+                if (itemFly.attach(Ext.getDom(me.dataviewID + '-' + id))) {
+                    oldPos = oldPositions[id] = {
+                        top : itemFly.getY() - parentElY - itemFly.getMargin('t') - parentElPaddingTop
+                    };
+                    oldPos[styleSide] = me.getItemX(itemFly);
+                } else {
+                    delete remaining[id];
+                }
+            });
+
+            // The view MUST refresh, creating items in the natural flow, and collecting the items
+            // so that its item collection is consistent.
+            dataview.refresh();
+
+            // Replace removed nodes so that they can be faded out, THEN removed
+            Ext.iterate(removed, function(id, item) {
+                parentEl.dom.appendChild(item.dom);
+                itemFly.attach(item.dom).animate({
+                    duration: duration,
+                    opacity : 0,
+                    callback: function(anim) {
+                        var el = Ext.get(anim.target.id);
+                        if (el) {
+                            el.destroy();
+                        }
+                    }
+                });
+                delete item.dom;
+            });
+
+            // We have taken care of any removals.
+            // If the store is empty, we are done.
+            if (!store.getCount()) {
+                return;
+            }
+
+            // Collect the correct new positions after the refresh
+            itemArray = items.slice();
+
+            // Reverse order so that moving to absolute position does not affect the position of
+            // the next one we're looking at.
+            for (i = itemArray.length - 1; i >= 0; i--) {
+                id = store.getAt(i).internalId;
+                itemFly.attach(itemArray[i]);
 
                 newPositions[id] = {
-                    top : top
+                    dom: itemFly.dom,
+                    top : itemFly.getY() - parentElY - itemFly.getMargin('t') - parentElPaddingTop
                 };
-                newPositions[id][styleSide] = left;
-                
-                index ++;
-            }, this);
-            
-            //do the movements
-            var startTime  = new Date(),
-                duration   = this.duration,
-                dataviewID = this.dataviewID;
-            
+                newPositions[id][styleSide] = me.getItemX(itemFly);
+
+                // We're going to absolutely position each item.
+                // If it is a "remaining" one from last refesh, shunt it back to
+                // its old position from where it will be animated.
+                newPos = oldPositions[id] || newPositions[id];
+
+                // set absolute positioning on all DataView items. We need to set position, left and 
+                // top at the same time to avoid any flickering
+                newStyle.position = 'absolute';
+                newStyle.top = newPos.top + "px";
+                newStyle[styleSide] = newPos.left + "px";
+                itemFly.applyStyles(newStyle);
+            }
+
+            // This is the function which moves remaining items to their new position
             var doAnimate = function() {
-                var elapsed  = new Date() - startTime,
-                    fraction = elapsed / duration,
-                    id;
+                var elapsed  = new Date() - task.taskStartTime,
+                    fraction = elapsed / duration;
 
                 if (fraction >= 1) {
+                    // At end, return all items to natural flow.
+                    newStyle.position = newStyle.top = newStyle[styleSide] = '';
                     for (id in newPositions) {
-                        newStyle = {
-                            top : newPositions[id].top + "px"
-                        };
-                        newStyle[styleSide] = newPositions[id][styleSide] + "px";
-                        
-                        Ext.fly(dataviewID + '-' + id).applyStyles(newStyle);
+                        itemFly.attach(newPositions[id].dom).applyStyles(newStyle);
                     }
-
                     Ext.TaskManager.stop(task);
                 } else {
-                    //move each item
-                    for (id in newPositions) {
-                        if (!previous[id]) {
-                            continue;
-                        }
-                        
+                    // In frame, move each "remaining" item according to time elapsed
+                    for (id in remaining) {
                         var oldPos  = oldPositions[id],
                             newPos  = newPositions[id],
                             oldTop  = oldPos.top,
@@ -220,42 +215,33 @@ Ext.define('Ext.ux.DataView.Animated', {
                             midTop  = oldTop  > newTop  ? oldTop  - diffTop  : oldTop  + diffTop,
                             midLeft = oldLeft > newLeft ? oldLeft - diffLeft : oldLeft + diffLeft;
 
-                        newStyle = {
-                            top : midTop + "px"
-                        };
+                        newStyle.top = midTop + "px";
                         newStyle[styleSide] = midLeft + "px";
-                        Ext.fly(dataviewID + '-' + id).applyStyles(newStyle).setDisplayed(true);
+                        itemFly.attach(newPos.dom).applyStyles(newStyle);
                     }
                 }
             };
-            
-            var task = {
-                run     : doAnimate,
-                interval: 20,
-                scope   : this
-            };
-            
-            Ext.TaskManager.start(task);
-            
-            //show new items
+
+            // Fade in new items
             Ext.iterate(added, function(id, item) {
-                newStyle = {
-                    top    : newPositions[item.internalId].top + "px"
-                };
-                newStyle[styleSide] = newPositions[item.internalId][styleSide] + "px";
-                Ext.fly(this.dataviewID + '-' + item.internalId).applyStyles(newStyle).setDisplayed(true);
-                
-                Ext.fly(this.dataviewID + '-' + item.internalId).animate({
-                    remove  : false,
-                    duration: duration,
-                    opacity : 1
-                });
-            }, this);
-            
-            this.cacheStoreData(store);
+                if (itemFly.attach(Ext.getDom(me.dataviewID + '-' + id))) {
+                    itemFly.setOpacity(0);
+                    itemFly.animate({
+                        duration: duration,
+                        opacity : 1
+                    });
+                }
+            });
+
+            // Stop any previous animations
+            Ext.TaskManager.stop(task);
+            task.run = doAnimate;
+            Ext.TaskManager.start(task);
+
+            me.cacheStoreData(store);
         }
     },
-    
+
     getItemX: function(el) {
         var rtl = this.dataview.getInherited().rtl,
             parentEl = el.up('');
@@ -266,17 +252,17 @@ Ext.define('Ext.ux.DataView.Animated', {
             return el.getX() - parentEl.getX() - el.getMargin('l') - parentEl.getPadding('l');
         }
     },
-    
+
     /**
      * Caches the records from a store locally for comparison later
      * @param {Ext.data.Store} store The store to cache data from
      */
     cacheStoreData: function(store) {
-        this.cachedStoreData = {};
+        var cachedStoreData = this.cachedStoreData = {};
         
         store.each(function(record) {
-             this.cachedStoreData[record.internalId] = record;
-        }, this);
+             cachedStoreData[record.internalId] = record;
+        });
     },
     
     /**
@@ -308,13 +294,14 @@ Ext.define('Ext.ux.DataView.Animated', {
      * @return {Object} Object of records not already present in the dataview in format {id: record}
      */
     getAdded: function(store) {
-        var added = {};
+        var cachedStoreData = this.cachedStoreData,
+            added = {};
         
         store.each(function(record) {
-            if (this.cachedStoreData[record.internalId] == undefined) {
+            if (cachedStoreData[record.internalId] == null) {
                 added[record.internalId] = record;
             }
-        }, this);
+        });
         
         return added;
     },
@@ -325,12 +312,13 @@ Ext.define('Ext.ux.DataView.Animated', {
      * @return {Array} Array of records that used to be present
      */
     getRemoved: function(store) {
-        var removed = [],
+        var cachedStoreData = this.cachedStoreData,
+            removed = {},
             id;
         
-        for (id in this.cachedStoreData) {
+        for (id in cachedStoreData) {
             if (store.findBy(function(record) {return record.internalId == id;}) == -1) {
-                removed.push(this.cachedStoreData[id]);
+                removed[id] = cachedStoreData[id];
             }
         }
         
@@ -343,13 +331,14 @@ Ext.define('Ext.ux.DataView.Animated', {
      * @return {Object} Object of records that are still present from last time in format {id: record}
      */
     getRemaining: function(store) {
-        var remaining = {};
+        var cachedStoreData = this.cachedStoreData,
+            remaining = {};
 
         store.each(function(record) {
-            if (this.cachedStoreData[record.internalId] != undefined) {
+            if (cachedStoreData[record.internalId] != null) {
                 remaining[record.internalId] = record;
             }
-        }, this);
+        });
         
         return remaining;
     }

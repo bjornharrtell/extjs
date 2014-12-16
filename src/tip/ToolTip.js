@@ -387,6 +387,35 @@ Ext.define('Ext.tip.ToolTip', {
         }
     },
 
+    /**
+     * Override's Positionable's calculateConstrainedPosition to return a value that is valid for ToolTip
+     * @private
+     */
+    calculateConstrainedPosition: function(constrainTo) {
+        var me = this,
+            visible,
+            result,
+            floatParentBox;
+
+        // If this is a floating child, account for the fact that positioning will be relative to it
+        if (!constrainTo && me.isContainedFloater()) {
+            visible = me.isVisible();
+            if (!visible) {
+                me.el.show();
+            }
+            result = me.getTargetXY();
+            if (!visible) {
+                me.el.hide();
+            }
+            floatParentBox = me.floatParent.getTargetEl().getViewRegion();
+            result[0] -= floatParentBox.left;
+            result[1] -= floatParentBox.top;
+        } else {
+            result = me.callOverridden(arguments);
+        }
+        return result;
+    },
+
     getMouseOffset: function() {
         var me = this,
         offset = me.anchor ? [0, 0] : [15, 18];
@@ -613,13 +642,6 @@ Ext.define('Ext.tip.ToolTip', {
                 // If the caller was this.showFromDelay(), the XY coords may have been cached.
                 me.showAt(xy || me.getTargetXY());
             }
-
-            if (me.anchor) {
-                me.syncAnchor();
-                me.anchorEl.show();
-            } else {
-                me.anchorEl.hide();
-            }
         }
     },
 
@@ -642,17 +664,9 @@ Ext.define('Ext.tip.ToolTip', {
                 me.doConstrain();
             }
             me.toFront(true);
-            me.el.sync(true);
+            me.el.syncUnderlays();
             if (me.dismissDelay && me.autoHide !== false) {
                 me.dismissTimer = Ext.defer(me.hide, me.dismissDelay, me);
-            }
-            if (me.anchor) {
-                me.syncAnchor();
-                if (!me.anchorEl.isVisible()) {
-                    me.anchorEl.show();
-                }
-            } else {
-                me.anchorEl.hide();
             }
         }
         delete me.calledFromShowAt;
@@ -691,11 +705,16 @@ Ext.define('Ext.tip.ToolTip', {
     },
 
     // @private
-    setPagePosition: function(x, y) {
+    afterSetPosition: function(x, y) {
         var me = this;
         me.callParent(arguments);
         if (me.anchor) {
             me.syncAnchor();
+            if (!me.anchorEl.isVisible()) {
+                me.anchorEl.show();
+            }
+        } else {
+            me.anchorEl.hide();
         }
     },
 

@@ -1,6 +1,6 @@
 Ext.define('KitchenSink.store.Restaurants', {
     extend: 'Ext.data.Store',
-    storeId: 'restaraunts',
+    storeId: 'restaurants',
     model: 'KitchenSink.model.Restaurant',
     groupField: 'cuisine',
     sorters: ['cuisine','name'],

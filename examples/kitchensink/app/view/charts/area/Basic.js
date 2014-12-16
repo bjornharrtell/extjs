@@ -18,26 +18,39 @@ Ext.define('KitchenSink.view.charts.area.Basic', {
 
     width: 650,
 
+    getSeriesConfig: function (field, title) {
+        return {
+            type: 'area',
+            title: title,
+            xField: 'year',
+            yField: field,
+            style: {
+                opacity: 0.60
+            },
+            marker: {
+                opacity: 0,
+                scaling: 0.01,
+                fx: {
+                    duration: 200,
+                    easing: 'easeOut'
+                }
+            },
+            highlightCfg: {
+                opacity: 1,
+                scaling: 1.5
+            },
+            tooltip: {
+                trackMouse: true,
+                style: 'background: #fff',
+                renderer: function(storeItem, item) {
+                    this.setHtml(title + ' (' + storeItem.get('year') + '): ' + storeItem.get(field));
+                }
+            }
+        };
+    },
+
     initComponent: function() {
         var me = this;
-
-        me.myDataStore = Ext.create('Ext.data.JsonStore', {
-            fields: ['month', 'data1' ],
-            data: [
-                { month: 'Jan', data1: 20 },
-                { month: 'Feb', data1: 20 },
-                { month: 'Mar', data1: 19 },
-                { month: 'Apr', data1: 18 },
-                { month: 'May', data1: 18 },
-                { month: 'Jun', data1: 17 },
-                { month: 'Jul', data1: 16 },
-                { month: 'Aug', data1: 16 },
-                { month: 'Sep', data1: 16 },
-                { month: 'Oct', data1: 16 },
-                { month: 'Nov', data1: 15 },
-                { month: 'Dec', data1: 15 }
-            ]
-        });
         //<example>
         me.tbar = [
             '->',
@@ -53,12 +66,13 @@ Ext.define('KitchenSink.view.charts.area.Basic', {
         me.items = [{
             xtype: 'cartesian',
             width: '100%',
-            height: 500,
-            store: this.myDataStore,
-            insetPadding: 40,
+            height: 600,
+            store: {type: 'gdp'},
+            legend: {docked: 'bottom'},
+            insetPadding: '40 40 40 40',
             sprites: [{
                 type: 'text',
-                text: 'Area Charts - Basic Area',
+                text: 'Economic Development in the USA, Japan and China',
                 fontSize: 22,
                 width: 100,
                 height: 30,
@@ -66,71 +80,50 @@ Ext.define('KitchenSink.view.charts.area.Basic', {
                 y: 20  // the sprite y position
             }, {
                 type: 'text',
-                text: 'Data: Browser Stats 2012 - Internet Explorer',
+                text: 'Data: Gross domestic product based on purchasing-power-parity (PPP) valuation of country GDP. Figures for FY2014 are forecasts.',
                 fontSize: 10,
                 x: 12,
-                y: 480
+                y: 525
             }, {
                 type: 'text',
-                text: 'Source: http://www.w3schools.com/',
+                text: 'Source: http://www.imf.org/ World Economic Outlook Database October 2014.',
                 fontSize: 10,
                 x: 12,
-                y: 495
+                y: 540
             }],
             axes: [{
                 type: 'numeric',
                 position: 'left',
+                title: 'GDP in billions of US Dollars',
                 grid: true,
-                fields: ['data1'],
+                fields: ['china', 'japan', 'usa'],
                 renderer: function (v, layoutContext) {
                     // Custom renderer overrides the native axis label renderer.
                     // Since we don't want to do anything fancy with the value
-                    // ourselves except appending a '%' sign, but at the same time
+                    // ourselves except adding a thousands separator, but at the same time
                     // don't want to loose the formatting done by the native renderer,
                     // we let the native renderer process the value first.
-                    return layoutContext.renderer(v) + '%';
+                    var value = layoutContext.renderer(v);
+                    return value !== '0' ? (value / 1000 + ',000') : value;
                 },
                 minimum: 0,
-                maximum: 24
+                maximum: 20000,
+                majorTickSteps: 10
             }, {
                 type: 'category',
                 position: 'bottom',
-                grid: true,
-                fields: ['month'],
+                fields: 'year',
                 label: {
                     rotate: {
                         degrees: -45
                     }
                 }
             }],
-            series: [{
-                type: 'area',
-                axis: 'left',
-                xField: 'month',
-                yField: 'data1',
-                style: {
-                    opacity: 0.80
-                },
-                marker: {
-                    opacity: 0,
-                    scaling: 0.01,
-                    fx: {
-                        duration: 200,
-                        easing: 'easeOut'
-                    }
-                },
-                highlightCfg: {
-                    opacity: 1,
-                    scaling: 1.5
-                },
-                tooltip: {
-                    trackMouse: true,
-                    style: 'background: #fff',
-                    renderer: function(storeItem, item) {
-                        this.setHtml(storeItem.get('month') + ': ' + storeItem.get('data1') + ' %');
-                    }
-                }
-            }]
+            series: [
+                me.getSeriesConfig('usa', 'USA'),
+                me.getSeriesConfig('china', 'China'),
+                me.getSeriesConfig('japan', 'Japan')
+            ]
         //<example>
         }, {
             style: 'margin-top: 10px;',
@@ -141,11 +134,13 @@ Ext.define('KitchenSink.view.charts.area.Basic', {
                     menuDisabled: true
                 },
                 items: [
-                    { text: 'Month', dataIndex: 'month' },
-                    { text: 'IE', dataIndex: 'data1', renderer: function(v) { return v + '%'; } }
+                    { text: 'Year', dataIndex: 'year' },
+                    { text: 'China', dataIndex: 'china'},
+                    { text: 'Japan', dataIndex: 'japan'},
+                    { text: 'USA', dataIndex: 'usa'}
                 ]
             },
-            store: this.myDataStore,
+            store: {type: 'gdp'},
             width: '100%'
         //</example>
         }];

@@ -309,13 +309,14 @@ describe("Ext.Element.insertion", function() {
     describe("wrap", function() {
         it("should wrap the element", function() {
             var parent = Ext.getDom(child1).parentNode;
-            
-            child1.wrap({
+
+            var wrap = child1.wrap({
                 cls: 'wrapper'
             });
             
             expect(Ext.getDom(child1).parentNode.parentNode).toEqual(parent);
             expect(Ext.getDom(child1).parentNode.className).toEqual('wrapper');
+            wrap.destroy();
         });
         
         it("return the el", function() {
@@ -324,6 +325,7 @@ describe("Ext.Element.insertion", function() {
             });
             
             expect(Ext.isElement(node)).toBeFalsy();
+            node.destroy();
         });
         
         it("return the dom", function() {
@@ -386,6 +388,7 @@ describe("Ext.Element.insertion", function() {
             var node = child1.insertHtml('afterEnd', '<div></div>', true);
 
             expect(Ext.isElement(node)).toBeFalsy();
+            node.destroy();
         });
     });
 }, "/src/dom/Element.insertion.js");

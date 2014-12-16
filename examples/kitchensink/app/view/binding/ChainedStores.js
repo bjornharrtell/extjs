@@ -57,7 +57,8 @@ Ext.define('KitchenSink.view.binding.ChainedStores', {
             dataIndex: 'age',
             text: 'Age',
             width: 120,
-            field: 'numberfield'
+            field: 'numberfield',
+            align: 'right'
         }, {
             dataIndex: 'favoriteColor',
             text: 'Fav. Color',
@@ -81,11 +82,19 @@ Ext.define('KitchenSink.view.binding.ChainedStores', {
         }]
     }, {
         xtype: 'grid',
-        bind: '{adults}',
+        bind: {
+            store: '{adults}',
+            title: 'People aged {minimumAge} or over'
+        },
         flex: 1,
-        title: 'The Adults',
         reference: 'adultsGrid',
         margin: '10 0 0 0',
+        tbar: [{
+            xtype: 'slider',
+            fieldLabel: 'Minimum Age',
+            width: 300,
+            bind: '{minimumAge}'
+        }],
         columns: [{
             dataIndex: 'firstName',
             text: 'First Name',
@@ -97,7 +106,8 @@ Ext.define('KitchenSink.view.binding.ChainedStores', {
         }, {
             dataIndex: 'age',
             text: 'Age',
-            width: 120
+            width: 120,
+            align: 'right'
         }, {
             dataIndex: 'favoriteColor',
             text: 'Fav. Color',

@@ -4,10 +4,31 @@
     background-repeat: repeat-x;
 }
 
+/*
+ * TODO:
+ * When IE8 retires, revisit https://jsbin.com/honawo/quiet for better way to center header text
+ */
 .#{$prefix}column-header-inner {
     white-space: nowrap;
     position: relative;
     overflow: hidden;
+}
+
+.#{$prefix}leaf-column-header {
+    height: 100%;
+    .#{$prefix}column-header-text-container {
+        height: 100%;
+    }
+}
+
+.#{$prefix}column-header-text-container {
+    width: 100%;
+    display: table
+}
+
+.#{$prefix}column-header-text-wrapper {
+    display: table-cell;
+    vertical-align:middle
 }
 
 .#{$prefix}column-header-text {

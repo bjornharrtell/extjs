@@ -84,7 +84,7 @@ Ext.define('Desktop.Settings', {
             title: 'Desktop Background',
             rootVisible: false,
             lines: false,
-            autoScroll: true,
+            scrollable: true,
             width: 150,
             region: 'west',
             split: true,

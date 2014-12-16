@@ -1,3 +1,6 @@
+/**
+ * A sprite that represents a cross.
+ */
 Ext.define('Ext.draw.sprite.Cross', {
     extend: 'Ext.draw.sprite.Path',
     alias: 'sprite.cross',
@@ -18,7 +21,7 @@ Ext.define('Ext.draw.sprite.Cross', {
                 y: 0,
                 size: 4
             },
-            dirtyTriggers: {
+            triggers: {
                 x: 'path',
                 y: 'path',
                 size: 'path'

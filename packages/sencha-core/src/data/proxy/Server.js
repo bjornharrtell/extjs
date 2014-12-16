@@ -243,10 +243,25 @@ Ext.define('Ext.data.proxy.Server', {
         return request;
     },
 
-    // Should this be documented as protected method?
+    /*
+     * Processes response, which may involve updating or committing records, each of which
+     * will inform the owning stores and their interested views. Finally, we may perform
+     * an additional layout if the data shape has changed. 
+     *
+     * @protected
+     */
     processResponse: function(success, operation, request, response) {
         var me = this,
             exception, reader, resultSet;
+
+        // Processing a response may involve updating or committing many records
+        // each of which will inform the owning stores, which will ultimately
+        // inform interested views which will most likely have to do a layout
+        // assuming that the data shape has changed.
+        // Bracketing the processing with this event gives owning stores the ability
+        // to fire their own beginupdate/endupdate events which can be used by interested
+        // views to suspend layouts.
+        me.fireEvent('beginprocessresponse', me, response, operation);
 
         if (success === true) {
             reader = me.getReader();
@@ -272,6 +287,11 @@ Ext.define('Ext.data.proxy.Server', {
         }
 
         me.afterRequest(request, success);
+
+        // Tell owning store processing has finished.
+        // It will fire its endupdate event which will cause interested views to 
+        // resume layouts.
+        me.fireEvent('endprocessresponse', me, response, operation);
     },
     
     /**

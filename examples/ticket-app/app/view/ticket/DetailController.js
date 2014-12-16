@@ -16,8 +16,7 @@ Ext.define('Ticket.view.ticket.DetailController', {
             rec;
         
         if (form.isValid()) {
-            rec = this.getViewModel().getData().theTicket;
-            // TODO: implement isolated sessions
+            rec = this.getViewModel().get('theTicket');
             Ext.Msg.wait('Saving', 'Saving ticket...');
             rec.save({
                 scope: this,

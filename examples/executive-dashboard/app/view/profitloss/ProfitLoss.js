@@ -15,7 +15,6 @@ Ext.define('ExecDashboard.view.profitloss.ProfitLoss', {
         type: 'profitloss'
     },
 
-    columns: [],
     enableLocking: true,
 
     store: {

@@ -26,7 +26,7 @@
 Ext.define("Ext.draw.sprite.Ellipse", {
     extend: "Ext.draw.sprite.Path",
     alias: 'sprite.ellipse',
-    type: 'circle',
+    type: 'ellipse',
     inheritableStatics: {
         def: {
             processors: {
@@ -71,7 +71,7 @@ Ext.define("Ext.draw.sprite.Ellipse", {
                 ry: 1,
                 axisRotation: 0
             },
-            dirtyTriggers: {
+            triggers: {
                 cx: 'path',
                 cy: 'path',
                 rx: 'path',

@@ -33,7 +33,7 @@ describe('Ext.data.BufferedStore', function() {
                 })
             });
 
-            requests = Ext.Ajax.mockGetAllRequests()
+            requests = Ext.Ajax.mockGetAllRequests();
         }
     }
 
@@ -80,7 +80,18 @@ describe('Ext.data.BufferedStore', function() {
         Ext.data.Model.schema.clear();
         Ext.undefine('spec.ForumThread');
     });
-    
+
+    it('should be able to lookup a record by its inmternalId', function() {
+        createStore();
+        bufferedStore.loadPage(1);
+        satisfyRequests();
+
+        var rec0 = bufferedStore.getAt(0);
+
+        // Lookup by the string version of internalId because that's how we get from DOM to record: https://sencha.jira.com/browse/EXTJS-15388
+        expect(bufferedStore.getByInternalId(String(rec0.internalId))).toBe(rec0);
+    });
+
     it('should be able to start from any page', function() {
         createStore();
         bufferedStore.loadPage(10);
@@ -209,8 +220,6 @@ describe('Ext.data.BufferedStore', function() {
         });
 
         describe('should assign dataset index numbers to the records in the Store dependent upon configured pageSize', function () {
-            var endIndex;
-
             it('should not exceed 100 records', function () {
                 createStore();
 
@@ -223,8 +232,8 @@ describe('Ext.data.BufferedStore', function() {
                 satisfyRequests();
 
                 expect(spy).toHaveBeenCalled();
-                expect(bufferedStore.getAt(0).index).toBe(0);
-                expect(bufferedStore.getAt(99).index).toBe(99);
+                expect(bufferedStore.indexOf(bufferedStore.getAt(0))).toBe(0);
+                expect(bufferedStore.indexOf(bufferedStore.getAt(99))).toBe(99);
                 expect(spy.mostRecentCall.args[0].length).toBe(100);
             });
 
@@ -242,8 +251,8 @@ describe('Ext.data.BufferedStore', function() {
                 satisfyRequests(50);
                 expect(spy).toHaveBeenCalled();
 
-                expect(bufferedStore.getAt(0).index).toBe(0);
-                expect(bufferedStore.getAt(49).index).toBe(49);
+                expect(bufferedStore.indexOf(bufferedStore.getAt(0))).toBe(0);
+                expect(bufferedStore.indexOf(bufferedStore.getAt(49))).toBe(49);
                 expect(spy.mostRecentCall.args[0].length).toBe(50);
             });
         });
@@ -251,20 +260,83 @@ describe('Ext.data.BufferedStore', function() {
 
     describe('reload', function () {
         it('should not increase the number of pages when reloading', function () {
+            var refreshed = 0,
+                count;
+
             createStore();
             bufferedStore.load();
 
             satisfyRequests();
 
+            bufferedStore.on('refresh', function() {
+                refreshed++;
+            });
             bufferedStore.reload();
             satisfyRequests();
+            
+            waitsFor(function() {
+                return refreshed === 1;
+            });
+            
+            runs(function() {
+                expect(refreshed).toBe(1);
+                count = bufferedStore.getData().getCount();
 
-            var count = bufferedStore.getData().getCount();
+                bufferedStore.reload();
+                satisfyRequests();
+            });
 
-            bufferedStore.reload();
+            waitsFor(function() {
+                return refreshed === 2;
+            });
+            
+            runs(function() {
+                expect(bufferedStore.getData().getCount()).toBe(count);
+            });
+        });
+    });
+    
+    describe('pruning', function() {
+        it('should prune least recently used pages as new ones are added above the purgePageCount', function() {
+            var keys;
+
+            // Keep it simple
+            createStore({
+                pageSize: 10,
+                viewSize: 10,
+                leadingBufferZone: 0,
+                trailingBufferZone: 0,
+                purgePageCount: new Number(0)
+            });
+            bufferedStore.load();
             satisfyRequests();
 
-            expect(bufferedStore.getData().getCount()).toBe(count);
+
+            // The PageMap should contain page 1
+            keys = [];
+            bufferedStore.getData().forEach(function(rec){
+                keys.push(String(rec.internalId));
+            });
+            expect(keys.length).toBe(10);
+            expect(Ext.Object.getKeys(bufferedStore.getData().map)).toEqual(['1']);
+
+            // The indexMap must contain only the keys to the records that are now there.
+            expect(Ext.Object.getKeys(bufferedStore.getData().indexMap)).toEqual(keys);
+
+            // This should evict page one because there are no buffer zones, and a non-falsy purgePageCount of zero
+            bufferedStore.loadPage(2);
+            satisfyRequests();
+
+            // The PageMap should contain ONLY page 2
+            keys = [];
+            bufferedStore.getData().forEach(function(rec){
+                keys.push(String(rec.internalId));
+            });
+            expect(keys.length).toBe(10);
+            expect(Ext.Object.getKeys(bufferedStore.getData().map)).toEqual(['2']);
+
+            // The indexMap must contain only the keys to the records that are now there.
+            expect(Ext.Object.getKeys(bufferedStore.getData().indexMap)).toEqual(keys);
         });
     });
 });

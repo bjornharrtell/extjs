@@ -11,9 +11,34 @@ describe("Ext.direct.RemotingProvider", function() {
                     len:  1,
                     name: "directFail"
                 }, {
-                    len: 0,
                     name: 'directForm',
                     formHandler: true
+                }, {
+                    len: 1,
+                    name: 'directMetaNamed',
+                    metadata: {
+                        params: [],
+                        strict: false
+                    }
+                }, {
+                    len: 1,
+                    name: 'directMetaOrdered',
+                    metadata: {
+                        len: 2
+                    }
+                }, {
+                    name: 'directMetaFormNamed',
+                    formHandler: true,
+                    metadata: {
+                        params: [],
+                        strict: false
+                    }
+                }, {
+                    name: 'directMetaFormOrdered',
+                    formHandler: true,
+                    metadata: {
+                        len: 2
+                    }
                 }],
                 
                 "TestAction.Foo": [{
@@ -61,6 +86,36 @@ describe("Ext.direct.RemotingProvider", function() {
                 };
             },
             
+            directMetaNamed: function(data, metadata) {
+                return {
+                    data: data,
+                    metadata: metadata
+                }
+            },
+            
+            directMetaOrdered: function(data, metadata) {
+                return {
+                    data: data,
+                    metadata: metadata
+                }
+            },
+            
+            directMetaFormNamed: function(form, metadata) {
+                return {
+                    success: true,
+                    data: form,
+                    metadata: metadata
+                }
+            },
+            
+            directMetaFormOrdered: function(form, metadata) {
+                return {
+                    success: true,
+                    data: form,
+                    metadata: metadata
+                }
+            },
+            
             foo: function() {
                 return 'foo';
             },
@@ -87,13 +142,14 @@ describe("Ext.direct.RemotingProvider", function() {
             isUpload = options.isUpload,
             arg = {},
             data, tid, action, method, arg, fn, success,
-            result, response, xhr, opt;
+            result, response, xhr, opt, metadata;
         
         if (isForm) {
-            data   = options.params;
-            tid    = data.extTID;
-            action = data.extAction;
-            method = data.extMethod;
+            data     = options.params;
+            tid      = data.extTID;
+            action   = data.extAction;
+            method   = data.extMethod;
+            metadata = data.extMetadata;
             
             // Collect the input field values
             Ext.fly(options.form).select('input').each(function(el, c, idx) { 
@@ -102,14 +158,20 @@ describe("Ext.direct.RemotingProvider", function() {
             arg = [arg];
         }
         else {
-            data   = options.jsonData;
-            tid    = data.tid;
-            action = data.action;
-            method = data.method;
-            arg    = data.data || [];
+            data     = options.jsonData;
+            tid      = data.tid;
+            action   = data.action;
+            method   = data.method;
+            arg      = data.data || [];
+            metadata = data.metadata;
         }
         
         fn = directMethods[method];
+        
+        // TODO Come up with something less hacky
+        if (/^directMeta/.test(method)) {
+            arg.push(metadata);
+        }
         
         if (options.timeout === 666) {
             response = {
@@ -173,6 +235,7 @@ describe("Ext.direct.RemotingProvider", function() {
     
     describe("handles namespaces:", function() {
         var ns;
+        
         it("creates namespace for itself if passed a string", function() {
             expect(Direct.foo.bar).toBeDefined();
         });
@@ -302,6 +365,20 @@ describe("Ext.direct.RemotingProvider", function() {
         
         function checkHandler() {
             return !!handler.callCount;
+        }
+        
+        function waitForEcho(fn, desc, timeout) {
+            fn      = fn   || checkEcho;
+            desc    = desc || 'callback never fired';
+            timeout = timeout != null ? timeout : 100;
+            
+            waitsFor(fn, desc, timeout);
+        }
+        
+        function expectEcho(want) {
+            runs(function() {
+                expect(this.echo).toEqual(want);
+            });
         }
         
         beforeEach(function() {
@@ -557,7 +634,7 @@ describe("Ext.direct.RemotingProvider", function() {
                     ns.TestAction.echo('foo', echoResult, this);
                 });
                 
-                waitsFor(checkEcho, 'callback never fired', 200);
+                waitForEcho();
                 
                 runs(function() {
                     expect(handler).toHaveBeenCalled();
@@ -606,12 +683,10 @@ describe("Ext.direct.RemotingProvider", function() {
                     runs(function() {
                         ns.TestAction.echo('foo', echoResult, this);
                     });
-            
-                    waitsFor(checkEcho, 'callback never fired', 100);
-            
-                    runs(function() {
-                        expect(this.echo).toEqual('foo');
-                    });
+                    
+                    waitForEcho();
+                    
+                    expectEcho('foo');
                 });
         
                 it('runs w/ additional options', function() {
@@ -620,9 +695,9 @@ describe("Ext.direct.RemotingProvider", function() {
                             victory: 'Huzzah!'
                         });
                     });
-            
-                    waitsFor(checkEcho, 'callback never fired', 100);
-            
+                    
+                    waitForEcho();
+                    
                     runs(function() {
                         expect(this.echo).toEqual('bar');
                         expect(this.options).toBeDefined();
@@ -634,38 +709,61 @@ describe("Ext.direct.RemotingProvider", function() {
                     runs(function() {
                         ns.TestAction.Foo.foo(echoResult, this);
                     });
-            
-                    waitsFor(checkEcho, 'callback never fired', 100);
-            
-                    runs(function() {
-                        expect(this.echo).toEqual('foo');
-                    });
+                    
+                    waitForEcho();
+                    
+                    expectEcho('foo');
                 });
         
                 it('runs in deeply nested namespaces', function() {
                     runs(function() {
                         ns.TestAction.Foo.Bar.bar(echoResult, this);
                     });
-            
-                    waitsFor(checkEcho, 'callback never fired', 100);
-            
-                    runs(function() {
-                        expect(this.echo).toEqual('bar');
-                    });
+                    
+                    waitForEcho();
+                    
+                    expectEcho('bar');
                 });
         
                 it('runs in really truly deeply nested namespaces', function() {
                     runs(function() {
                         ns.TestAction.Foo.Bar.Baz.baz(echoResult, this);
                     });
-            
-                    waitsFor(checkEcho, 'callback never fired');
-            
-                    runs(function() {
-                        expect(this.echo).toEqual('baz');
-                    });
+                    
+                    waitForEcho();
+                    
+                    expectEcho('baz');
                 });
             });
+            
+            describe("metadata", function() {
+                it("will pass named metadata", function() {
+                    runs(function() {
+                        ns.TestAction.directMetaNamed('foo', echoResult, this, {
+                            metadata: {
+                                bleh: 'blah'
+                            }
+                        });
+                    });
+                    
+                    waitForEcho();
+                    
+                    expectEcho({ data: 'foo', metadata: { bleh: 'blah' } });
+                });
+                
+                it("will pass ordered metadata", function() {
+                    runs(function() {
+                        ns.TestAction.directMetaOrdered('bar', echoResult, this, {
+                            metadata: ['blerg', 'blam', 'frob']
+                        });
+                    });
+                    
+                    waitForEcho();
+                    
+                    // Metadata len === 2, so 3rd argument should be cut off
+                    expectEcho({ data: 'bar', metadata: ['blerg', 'blam'] });
+                });
+            })
         });
         
         describe("form calls:", function() {
@@ -680,10 +778,7 @@ describe("Ext.direct.RemotingProvider", function() {
                     layout: 'form',
                     
                     api: {
-                        // TODO The fn name should be TestAction.directForm
-                        // but Direct manager is not aware of the Providers'
-                        // namespaces. We gotta fix this.
-                        submit: 'Direct.foo.bar.TestAction.directForm'
+                        submit: 'TestAction.directForm'
                     },
                     
                     items: [{
@@ -780,6 +875,64 @@ describe("Ext.direct.RemotingProvider", function() {
                                 overt_foo: 'behold the false, deceitful overt foo',
                                 MEGA_FOO: 'ALL YOUR FOO ARE BELONG TO US!'
                             }
+                        });
+                    });
+                });
+                
+                it("should pass named metadata", function() {
+                    runs(function() {
+                        form.getForm().api.submit = 'TestAction.directMetaFormNamed';
+                        
+                        form.getForm().metadata = {
+                            foo: 'bargh!'
+                        };
+                        
+                        form.submit({
+                            success: echoFormResult,
+                            scope: this
+                        });
+                    });
+                    
+                    waitsFor(checkEcho, 'callback that never fired', 2000);
+                    
+                    runs(function() {
+                        expect(this.echo).toEqual({
+                            success: true,
+                            data: {
+                                hidden_foo: 'hide the sacred foo from infoodels!',
+                                overt_foo: 'behold the false, deceitful overt foo'
+                            },
+                            
+                            // JSONified!
+                            metadata: '{"foo":"bargh!"}'
+                        });
+                    });
+                });
+                
+                it("should pass ordered metadata", function() {
+                    runs(function() {
+                        form.getForm().api.submit = 'TestAction.directMetaFormOrdered';
+                        
+                        form.getForm().metadata = ['bram', 'blam', 'qux?'];
+                        
+                        form.submit({
+                            success: echoFormResult,
+                            scope: this
+                        });
+                    });
+                    
+                    waitsFor(checkEcho, 'callback that never fired', 2000);
+                    
+                    runs(function() {
+                        expect(this.echo).toEqual({
+                            success: true,
+                            data: {
+                                hidden_foo: 'hide the sacred foo from infoodels!',
+                                overt_foo: 'behold the false, deceitful overt foo'
+                            },
+                            
+                            // JSONified!
+                            metadata: '["bram","blam"]'
                         });
                     });
                 });

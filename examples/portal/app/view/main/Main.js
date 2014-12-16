@@ -76,7 +76,7 @@ Ext.define('Portal.view.main.Main', {
         items: [{
             html: '<div class="portlet-content">' + shortLorem + '</div>',
             title:'Navigation',
-            autoScroll: true,
+            scrollable: true,
             border: false,
             glyph: '9798@'
             //iconCls: 'nav'
@@ -84,7 +84,7 @@ Ext.define('Portal.view.main.Main', {
             title:'Settings',
             html: '<div class="portlet-content">' + shortLorem + '</div>',
             border: false,
-            autoScroll: true,
+            scrollable: true,
             iconCls: 'settings'
         }]
     },{

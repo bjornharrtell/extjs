@@ -116,9 +116,8 @@ Ext.define('Ext.menu.CheckItem', {
 
         me.callParent(arguments);
 
-        Ext.menu.Manager.registerCheckable(me);
-
         if (me.group) {
+            Ext.menu.Manager.registerCheckable(me);
             if (me.initialConfig.hideOnClick !== false) {
                 me.hideOnClick = true;
             }
@@ -178,8 +177,15 @@ Ext.define('Ext.menu.CheckItem', {
 
     onClick: function(e) {
         var me = this;
-        if(!me.disabled && !me.checkChangeDisabled && !(me.checked && me.group)) {
+
+        if (!me.disabled && !me.checkChangeDisabled && !(me.checked && me.group)) {
             me.setChecked(!me.checked);
+
+            // Clicked using SPACE or ENTER just unchecks.
+            // RightArrow to invoke any submenu
+            if (e.type === 'keydown' && me.menu) {
+                return false;
+            }
         }
         this.callParent([e]);
     },
@@ -199,7 +205,7 @@ Ext.define('Ext.menu.CheckItem', {
             checkedCls = me.checkedCls,
             uncheckedCls = me.uncheckedCls,
             el = me.el;
-            
+
         if (me.checked !== checked && (suppressEvents || me.fireEvent('beforecheckchange', me, checked) !== false)) {
             if (el) {
                 if (checked) {
@@ -210,8 +216,10 @@ Ext.define('Ext.menu.CheckItem', {
                     el.removeCls(checkedCls);
                 }
             }
+
             me.checked = checked;
             Ext.menu.Manager.onCheckChange(me, checked);
+
             if (!suppressEvents) {
                 Ext.callback(me.checkHandler, me.scope || me, [me, checked]);
                 me.fireEvent('checkchange', me, checked);

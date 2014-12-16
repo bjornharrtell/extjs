@@ -684,5 +684,52 @@ describe("Ext.Number", function(){
                     expect(actual).toEqual(suite.expect);
                 });
         });
+    });  // clipIndices
+
+    describe('sign', function () {
+        it('should return 0 for 0', function () {
+            expect(Ext.Number.sign(0)).toBe(0);
+        });
+
+        it('should return +1 for positive numbers', function () {
+            expect(Ext.Number.sign(3)).toBe(1);
+        });
+
+        it('should return +1 for positive numbers as strings', function () {
+            expect(Ext.Number.sign('3')).toBe(1);
+        });
+
+        it('should return -1 for negative numbers', function () {
+            expect(Ext.Number.sign(-3)).toBe(-1);
+        });
+
+        it('should return -1 for negative numbers as strings', function () {
+            expect(Ext.Number.sign('-3')).toBe(-1);
+        });
+
+        it('should return NaN for non-numbers', function () {
+            expect(isNaN(Ext.Number.sign('x'))).toBe(true);
+        });
+
+        it('should return NaN for undefined', function () {
+            expect(isNaN(Ext.Number.sign(undefined))).toBe(true);
+        });
+
+        it('should return 0 for null', function () {
+            // Odd as this sounds, this is what Math.sign(null) returns!
+            expect(Ext.Number.sign(null)).toBe(0);
+        });
+
+        // This gets silly now. In JavaScript, we have +0 and -0 and they are === to
+        // each other. To tell them apart we divide by them to get Infinity or -Infinity
+        // which can be told apart.
+
+        it('should return -0 for -0', function () {
+            expect(1 / Ext.Number.sign(-0)).toBe(-Infinity);
+        });
+
+        it('should return +0 for +0', function () {
+            expect(1 / Ext.Number.sign(+0)).toBe(Infinity);
+        });
     });
 });

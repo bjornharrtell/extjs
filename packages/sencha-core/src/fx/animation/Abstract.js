@@ -130,6 +130,12 @@ Ext.define('Ext.fx.animation.Abstract', {
         return this.states;
     },
 
+    end: function() {
+        // alias for stop so that the following api is the same between ext/touch:
+        // element.getActiveAnimation().end()
+        this.stop();
+    },
+
     stop: function() {
         this.fireEvent('stop', this);
     },
@@ -148,7 +154,7 @@ Ext.define('Ext.fx.animation.Abstract', {
         if (stateInstance) {
             states[name] = stateInstance;
         }
-        //<debug error>
+        //<debug>
         else if (name === this.STATE_TO) {
             Ext.Logger.error("Setting and invalid '100%' / 'to' state of: " + state);
         }

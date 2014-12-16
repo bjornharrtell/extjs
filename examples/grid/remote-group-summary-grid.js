@@ -56,7 +56,6 @@ Ext.onReady(function(){
                 toggleHandler: function(btn, pressed){
                     var view = grid.getView();
                     view.getFeature('group').toggleSummaryRow(pressed);
-                    view.refresh();
                 }
             }]
         }],

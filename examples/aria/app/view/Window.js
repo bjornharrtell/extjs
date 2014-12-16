@@ -6,7 +6,7 @@ Ext.define('Aria.view.Window', {
     minHeight: 100,
     minWidth: 300,
     width: 500,
-    autoScroll: true,
+    scrollable: true,
     title: 'ARIA Window',
     closable: true,
     constrain: true,

@@ -152,7 +152,6 @@ Ext.define('Ext.data.writer.Json', {
         transform = this.getTransform();
         if (transform) {
             data = transform(data, request);
-            request.setJsonData(data);
         }
         
         if (me.getEncode()) {

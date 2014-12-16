@@ -122,6 +122,36 @@ describe("Ext.data.association.HasMany_legacy", function() {
             });
             expectFn('pastes');
         });
+
+        it("should accept a storeConfig when given a name", function() {
+            Ext.define('spec.Foo', {
+                extend: 'Ext.data.Model',
+                hasMany: {
+                    model: 'spec.Post',
+                    name: 'hosts',
+                    storeConfig: {
+                        trackRemoved: false
+                    }
+                }
+            });
+            var o = new spec.Foo();
+            expect(o.hosts().getTrackRemoved()).toBe(false);
+        });
+
+        it("should accept a storeConfig when given an associationKey", function() {
+            Ext.define('spec.Foo', {
+                extend: 'Ext.data.Model',
+                hasMany: {
+                    model: 'spec.Post',
+                    associationKey: 'asdf',
+                    storeConfig: {
+                        trackRemoved: false
+                    }
+                }
+            });
+            var o = new spec.Foo();
+            expect(o.posts().getTrackRemoved()).toBe(false);
+        });
     });
     
     describe("instance", function() {

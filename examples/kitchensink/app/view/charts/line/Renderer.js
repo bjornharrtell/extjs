@@ -41,8 +41,7 @@ Ext.define('KitchenSink.view.charts.line.Renderer', {
         store: {
             type: 'pie'
         },
-        id: 'line-chart-markers',
-        background: 'white',
+        id: 'line-chart-renderer',
         interactions: {
             type: 'panzoom',
             zoomOnPanGesture: true
@@ -78,7 +77,7 @@ Ext.define('KitchenSink.view.charts.line.Renderer', {
                             break;
                         case 'line':
                             changes.strokeStyle = (isUp ? 'cornflowerblue' : 'tomato');
-                            changes.fillStyle = (isUp ? 'aliceblue' : 'rgba(211, 211, 211, 1.0)');
+                            changes.fillStyle = (isUp ? 'rgba(100, 149, 237, 0.4)' : 'rgba(255, 99, 71, 0.4)');
                             break;
                     }
                     return changes;
@@ -92,7 +91,7 @@ Ext.define('KitchenSink.view.charts.line.Renderer', {
                 fields: ['g1'],
                 minimum: 0,
                 listeners: {
-                    'rangechange': function (range) {
+                    rangechange: function (axis, range) {
                         if (!range) {
                             return;
                         }

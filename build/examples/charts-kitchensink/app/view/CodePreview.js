@@ -2,7 +2,7 @@ Ext.define('ChartsKitchenSink.view.CodePreview', {
     extend: 'Ext.panel.Panel',
     xtype: 'codePreview',
     title: 'Code Preview',
-    autoScroll: true,
+    scrollable: true,
     cls: 'preview-container',
     bodyStyle: 'padding: 5px;',
 

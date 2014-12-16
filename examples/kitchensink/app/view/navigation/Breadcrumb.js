@@ -20,7 +20,9 @@ Ext.define('KitchenSink.view.navigation.Breadcrumb', {
             reference: 'toolbar',
             selection: this.getSelection(),
             flex: 1,
-            store: Ext.StoreMgr.get('navigation')
+            // hide glyphs on the buttons (too busy)
+            showIcons: false,
+            store: 'navigation'
         }];
 
         this.callParent();

@@ -4,7 +4,7 @@
  * 
  * Vertical Grid sprite. Used in Cartesian Charts.
  */
-Ext.define("Ext.chart.grid.VerticalGrid", {
+Ext.define('Ext.chart.grid.VerticalGrid', {
     extend: 'Ext.draw.sprite.Sprite',
     alias: 'grid.vertical',
 
@@ -31,6 +31,7 @@ Ext.define("Ext.chart.grid.VerticalGrid", {
         var attr = this.attr,
             x = surface.roundPixel(attr.x),
             halfLineWidth = ctx.lineWidth * 0.5;
+
         ctx.beginPath();
         ctx.rect(x - halfLineWidth, clipRect[1] - surface.matrix.getDY(), attr.width, clipRect[3]);
         ctx.fill();

@@ -7,7 +7,7 @@ Ext.define('Neptune.view.Content', {
         deferredRender: true
     },
     bodyPadding: '10 ' + (Ext.getScrollbarSize().width + 10) + ' 10 10',
-    autoScroll: true,
+    scrollable: true,
     items: [
         { xtype: 'panels' },
         { xtype: 'framedPanels' },

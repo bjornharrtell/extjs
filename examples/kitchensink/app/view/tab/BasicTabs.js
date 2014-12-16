@@ -20,7 +20,7 @@ Ext.define('KitchenSink.view.tab.BasicTabs', {
     height: 300,
     defaults: {
         bodyPadding: 10,
-        autoScroll: true
+        scrollable: true
     },
     items: [{
         title: 'Active Tab',

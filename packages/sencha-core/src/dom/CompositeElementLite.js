@@ -2,8 +2,8 @@
  * This class encapsulates a *collection* of DOM elements, providing methods to filter members, or to perform collective
  * actions upon the whole set.
  *
- * Although they are not listed, this class supports all of the methods of {@link Ext.dom.Element} and
- * {@link Ext.Anim}. The methods from these classes will be performed on all the elements in this collection.
+ * Although they are not listed, this class supports all of the methods of {@link Ext.dom.Element}. The
+ * methods from these classes will be performed on all the elements in this collection.
  *
  * Example:
  *
@@ -38,15 +38,8 @@ Ext.define('Ext.dom.CompositeElementLite', {
     // configs and properties which we don't want, so hide them explicitly:
     /** @cfg bubbleEvents @hide */
     /** @cfg listeners @hide */
-    /** @property DISPLAY @hide */
-    /** @property OFFSETS @hide */
-    /** @property VISIBILITY @hide */
-    /** @property defaultUnit @hide */
     /** @property dom @hide */
     /** @property id @hide */
-    // Also hide the static #get method that also gets inherited
-    /** @method get @static @hide */
-
     statics: {
         // this method is called once in the class creation callback to import all methods
         // from Ext.dom.Element into CompositeElementLite.  It is important to remember
@@ -202,8 +195,8 @@ Ext.define('Ext.dom.CompositeElementLite', {
      * @param {Number} end (optional) The index of the last node in the range
      * @return {HTMLElement[]} An array of nodes
      */
-    slice: function() {
-        return this.elements.slice.apply(this.elements, arguments);
+    slice: function(start, end) {
+        return Ext.Array.slice(this.elements, start, end);
     },
 
     /**

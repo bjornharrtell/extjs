@@ -302,37 +302,11 @@ Ext.define('Ext.grid.feature.Grouping', {
         '</tpl>', {
             priority: 200,
 
-            syncRowHeights: function(firstRow, secondRow) {
-                firstRow = Ext.fly(firstRow, 'syncDest');
-                secondRow = Ext.fly(secondRow, 'sycSrc');
-                var owner = this.owner,
-                    firstHd = firstRow.down(owner.eventSelector, true),
-                    secondHd,
-                    firstSummaryRow = firstRow.down(owner.summaryRowSelector, true),
-                    secondSummaryRow,
-                    firstHeight, secondHeight;
+            beginRowSync: function (rowSync) {
+                var owner = this.owner;
 
-                // Sync the heights of header elements in each row if they need it.
-                if (firstHd && (secondHd = secondRow.down(owner.eventSelector, true))) {
-                    firstHd.style.height = secondHd.style.height = '';
-                    if ((firstHeight = firstHd.offsetHeight) > (secondHeight = secondHd.offsetHeight)) {
-                        Ext.fly(secondHd).setHeight(firstHeight);
-                    }
-                    else if (secondHeight > firstHeight) {
-                        Ext.fly(firstHd).setHeight(secondHeight);
-                    }
-                }
-
-                // Sync the heights of summary row in each row if they need it.
-                if (firstSummaryRow && (secondSummaryRow = secondRow.down(owner.summaryRowSelector, true))) {
-                    firstSummaryRow.style.height = secondSummaryRow.style.height = '';
-                    if ((firstHeight = firstSummaryRow.offsetHeight) > (secondHeight = secondSummaryRow.offsetHeight)) {
-                        Ext.fly(secondSummaryRow).setHeight(firstHeight);
-                    }
-                    else if (secondHeight > firstHeight) {
-                        Ext.fly(firstSummaryRow).setHeight(secondHeight);
-                    }
-                }
+                rowSync.add('header', owner.eventSelector);
+                rowSync.add('summary', owner.summaryRowSelector);
             },
 
             syncContent: function(destRow, sourceRow, columnsToUpdate) {
@@ -375,7 +349,7 @@ Ext.define('Ext.grid.feature.Grouping', {
         var me = this,
             view = me.view,
             store = view.getStore(),
-            lockPartner;
+            lockPartner, dataSource;
 
         view.isGrouping = !!store.getGrouper();
 
@@ -412,27 +386,37 @@ Ext.define('Ext.grid.feature.Grouping', {
             // Share the GroupStore between both sides of a locked grid
             lockPartner = me.lockingPartner;
             if (lockPartner && lockPartner.dataSource) {
-                me.dataSource = view.dataSource = lockPartner.dataSource;
+                me.dataSource = view.dataSource = dataSource = lockPartner.dataSource;
             } else {
-                me.dataSource = view.dataSource = new Ext.grid.feature.GroupStore(me, store);
+                me.dataSource = view.dataSource = dataSource = new Ext.grid.feature.GroupStore(me, store);
             }
         }
 
         grid = grid.ownerLockable || grid;
+
+        // Before the reconfigure, rebind our GroupStore dataSource to the new store
         grid.on({
-            reconfigure: me.onReconfigure,
+            beforeReconfigure: me.beforeReconfigure,
             scope: me
         });
+
         view.on({
             afterrender: me.afterViewRender,
             scope: me,
             single: true
         });
-        me.storeListeners = view.store.on({
-            groupchange: me.onGroupChange,
-            scope: me,
-            destroyable: true
-        });
+
+        if (dataSource) {
+            // Listen to dataSource groupchange so it has a chance to do any processing
+            // before we react to it
+            dataSource.on('groupchange', me.onGroupChange, me);
+        } else {
+            me.storeListeners = view.store.on({
+                groupchange: me.onGroupChange,
+                scope: me,
+                destroyable: true
+            });
+        }
     },
 
     indexOf: function(record) {
@@ -558,7 +542,7 @@ Ext.define('Ext.grid.feature.Grouping', {
 
         // "Group by this field" must be disabled if there's only one column left visible.
         if (activeHeader && groupMenuItem) {
-            groupMenuMeth = activeHeader.groupable === false || activeHeader.dataIndex == null || this.view.headerCt.getVisibleGridColumns().length < 2 ?  'disable' : 'enable';
+            groupMenuMeth = activeHeader.groupable === false || !activeHeader.dataIndex || this.view.headerCt.getVisibleGridColumns().length < 2 ?  'disable' : 'enable';
             groupMenuItem[groupMenuMeth]();
         }
 
@@ -602,10 +586,10 @@ Ext.define('Ext.grid.feature.Grouping', {
         }
     },
 
-    showMenuBy: function(t, header) {
+    showMenuBy: function(clickEvent, t, header) {
         var menu = this.getMenu(),
             groupMenuItem  = menu.down('#groupMenuItem'),
-            groupMenuMeth = header.groupable === false || header.dataIndex == null || this.view.headerCt.getVisibleGridColumns().length < 2 ?  'disable' : 'enable',
+            groupMenuMeth = header.groupable === false || !header.dataIndex || this.view.headerCt.getVisibleGridColumns().length < 2 ?  'disable' : 'enable',
             groupToggleMenuItem  = menu.down('#groupToggleMenuItem'),
             isGrouped = this.view.store.isGrouped();
 
@@ -668,6 +652,7 @@ Ext.define('Ext.grid.feature.Grouping', {
             me.enable();
             me.unblock();
         }
+        view.isGrouping = true;
 
         store.group(hdr.dataIndex);
         me.pruneGroupedHeader();
@@ -1119,12 +1104,12 @@ Ext.define('Ext.grid.feature.Grouping', {
         var me = this,
             data = me.refreshData,
             view = rowValues.view,
-            isGrouped = view.store.isGrouped(),
-            isGrouping = !me.disabled && view.isGrouping && isGrouped;
+            // Need to check if groups have been added since init(), such as in the case of stateful grids.
+            isGrouping = view.isGrouping = !me.disabled && view.store.isGrouped();
 
         me.skippedRows = 0;
         if (view.bufferedRenderer) {
-            view.bufferedRenderer.variableRowHeight = view.bufferedRenderer.variableRowHeight || isGrouped;
+            view.bufferedRenderer.variableRowHeight = view.bufferedRenderer.variableRowHeight || isGrouping;
         }
         data.groupField = me.getGroupField();
         data.header = me.getGroupedHeader(data.groupField);
@@ -1141,6 +1126,57 @@ Ext.define('Ext.grid.feature.Grouping', {
 
         rowValues.groupInfo = rowValues.groupHeaderTpl = rowValues.isFirstRow = null;
         data.groupField = data.header = null;
+    },
+
+    /**
+     * Used by the Grouping Feature when {@link #showSummaryRow} is `true`.
+     *
+     * Generates group summary data for the whole store.
+     * @private
+     * @return {Object} An object hash keyed by group name containing summary records.
+     */
+    generateSummaryData: function(){
+        var me = this,
+            store = me.view.store,
+            groups = store.getGroups().items,
+            reader = store.getProxy().getReader(),
+            groupField = me.getGroupField(),
+            lockingPartner = me.lockingPartner,
+            updateNext = me.updateNext,
+            data = {},
+            i, len, group, groupInfo, record, hasRemote, remoteData;
+
+        /**
+         * @cfg {String} [remoteRoot=undefined]
+         * The name of the property which contains the Array of summary objects.
+         * It allows to use server-side calculated summaries.
+         */
+        if (me.remoteRoot && reader.rawData) {
+            hasRemote = true;
+            remoteData = me.mixins.summary.generateSummaryData.call(me, groupField);
+        }
+
+        for (i = 0, len = groups.length; i < len; ++i) {
+            group = groups[i];
+            groupInfo = me.getGroupInfo(group);
+            // Something has changed or it doesn't exist, populate it.
+            if (updateNext || hasRemote || store.updating || groupInfo.lastGeneration !== group.generation) {
+                record = me.populateRecord(group, groupInfo, remoteData);
+
+                // Clear the dirty state of the group if this is the only Summary, or this is the right hand (normal grid's) summary.
+                if (!lockingPartner || (me.view.ownerCt === me.view.ownerCt.ownerLockable.normalGrid)) {
+                    groupInfo.lastGeneration = group.generation;
+                }
+            } else {
+                record = me.getAggregateRecord(group);
+            }
+
+            data[group.getGroupKey()] = record;
+        }
+
+        me.updateNext = false;
+
+        return data;
     },
 
     getGroupName: function(element) {
@@ -1209,33 +1245,36 @@ Ext.define('Ext.grid.feature.Grouping', {
         return [type, view, targetEl, this.getGroupName(targetEl), e];
     },
 
-    destroy: function(){
+    destroy: function() {
         var me = this,
             dataSource = me.dataSource;
 
+        Ext.destroy(me.storeListeners);
         me.view = me.prunedHeader = me.grid = me.groupCache = me.dataSource = null;
         me.callParent();
         if (dataSource) {
             dataSource.bindStore(null);
+            Ext.destroy(dataSource);
         }
     },
 
-    onReconfigure: function(grid, store, columns, oldStore, oldColumns) {
+    beforeReconfigure: function(grid, store, columns, oldStore, oldColumns) {
         var me = this,
             view = me.view,
             dataSource = me.dataSource,
-            ownerLockable = grid.lockable ? grid : null,
             bufferedStore;
 
         if (store && store !== oldStore) {
             bufferedStore = store.isBufferedStore;
 
-            me.storeListeners && me.storeListeners.destroy();
-            me.storeListeners = store.on({
-                groupchange: me.onGroupChange,
-                scope: me,
-                destroyable: true
-            });
+            if (!dataSource) {
+                Ext.destroy(me.storeListeners);
+                me.storeListeners = store.on({
+                    groupchange: me.onGroupChange,
+                    scope: me,
+                    destroyable: true
+                });
+            }
 
             // Grouping involves injecting a dataSource in early
             if (bufferedStore !== oldStore.isBufferedStore) {
@@ -1244,12 +1283,6 @@ Ext.define('Ext.grid.feature.Grouping', {
 
             view.isGrouping = !!store.getGrouper();
             dataSource.bindStore(store);
-            if (ownerLockable) {
-                ownerLockable.getView().bindStore(dataSource, false, 'dataSource');
-            } else {
-                view.refresh();
-            }
-
         }
-    }
+     }
 });

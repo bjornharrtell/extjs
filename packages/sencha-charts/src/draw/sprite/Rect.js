@@ -41,12 +41,12 @@ Ext.define('Ext.draw.sprite.Rect', {
                 y: 'number',
 
                 /**
-                 * @cfg {Number} [width=1] The width of the sprite.
+                 * @cfg {Number} [width=8] The width of the sprite.
                  */
                 width: 'number',
 
                 /**
-                 * @cfg {Number} [height=1] The height of the sprite.
+                 * @cfg {Number} [height=8] The height of the sprite.
                  */
                 height: 'number',
 
@@ -58,7 +58,7 @@ Ext.define('Ext.draw.sprite.Rect', {
             aliases: {
 
             },
-            dirtyTriggers: {
+            triggers: {
                 x: 'path',
                 y: 'path',
                 width: 'path',
@@ -68,8 +68,8 @@ Ext.define('Ext.draw.sprite.Rect', {
             defaults: {
                 x: 0,
                 y: 0,
-                width: 1,
-                height: 1,
+                width: 8,
+                height: 8,
                 radius: 0
             }
         }

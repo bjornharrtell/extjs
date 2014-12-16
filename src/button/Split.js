@@ -85,7 +85,7 @@ Ext.define('Ext.button.Split', {
                 // Force prevent default here, if we click on the arrow part
                 // we want to trigger the menu, not any link if we have it
                 e.preventDefault();
-                me.maybeShowMenu();
+                me.maybeShowMenu(e);
                 me.fireEvent("arrowclick", me, e);
                 if (me.arrowHandler) {
                     me.arrowHandler.call(me.scope || me, me, e);

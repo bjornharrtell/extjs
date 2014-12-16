@@ -13,7 +13,7 @@ Ext.define('FeedViewer.FeedPost', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.feedpost',
     cls: 'preview',
-    autoScroll: true,
+    scrollable: true,
     border: true,
 
     tpl: ['<div class="post-data">',

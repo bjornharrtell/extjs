@@ -76,7 +76,8 @@ Ext.define('Ext.slider.Thumb', {
             slider = me.slider,
             styleProp = slider.vertical ? 'bottom' : slider.horizontalProp,
             to,
-            from;
+            from,
+            animCfg;
 
         v += '%';
 
@@ -91,24 +92,36 @@ Ext.define('Ext.slider.Thumb', {
                 from[styleProp] = el.dom.style[styleProp];
             }
 
-            new Ext.fx.Anim({
+            // Animation config
+            animCfg = {
                 target: el,
                 duration: 350,
                 from: from,
-                to: to
-            });
+                to: to,
+                scope: me,
+                callback: me.onAnimComplete
+            };
+            if (animate !== true) {
+                Ext.apply(animCfg, animate);
+            }
+
+            me.anim = new Ext.fx.Anim(animCfg);
         }
+    },
+
+    onAnimComplete: function() {
+        this.anim = null;
     },
 
     /**
      * Enables the thumb if it is currently disabled
      */
     enable: function() {
-        var me = this;
+        var el = this.el;
 
-        me.disabled = false;
-        if (me.el) {
-            me.el.removeCls(me.slider.disabledCls);
+        this.disabled = false;
+        if (el) {
+            el.removeCls(this.slider.disabledCls);
         }
     },
 
@@ -116,11 +129,11 @@ Ext.define('Ext.slider.Thumb', {
      * Disables the thumb if it is currently enabled
      */
     disable: function() {
-        var me = this;
+        var el = this.el;
 
-        me.disabled = true;
-        if (me.el) {
-            me.el.addCls(me.slider.disabledCls);
+        this.disabled = true;
+        if (el) {
+            el.addCls(this.slider.disabledCls);
         }
     },
 
@@ -265,8 +278,12 @@ Ext.define('Ext.slider.Thumb', {
     },
 
     destroy: function() {
-        Ext.destroy(this.tracker);
-        this.el.destroy();
-        this.el = null;
+        var me = this,
+            anim = this.anim;
+
+        if (anim) {
+            anim.end();
+        }
+        me.el = me.tracker = me.anim = Ext.destroy(me.el, me.tracker);
     }
 });

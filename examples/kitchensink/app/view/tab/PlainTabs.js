@@ -22,7 +22,7 @@ Ext.define('KitchenSink.view.tab.PlainTabs', {
     plain: true,
     defaults: {
         bodyPadding: 10,
-        autoScroll: true
+        scrollable: true
     },
     items: [{
         title: 'Active Tab',

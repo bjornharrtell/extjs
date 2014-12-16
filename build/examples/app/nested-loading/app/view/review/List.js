@@ -14,7 +14,7 @@ Ext.define('Books.view.review.List', {
             border: false,
             cls: 'review-list',
 
-            autoScroll: true,
+            scrollable: true,
 
             itemSelector: '.review',
             tpl: new Ext.XTemplate(

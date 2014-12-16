@@ -4,78 +4,89 @@ Ext.define('Ext.overrides.event.publisher.Dom', {
 
 }, function() {
     var DomPublisher = Ext.event.publisher.Dom,
-        prototype = DomPublisher.prototype;
+        prototype = DomPublisher.prototype,
+        docBody = document.body,
+        prototype, onDirectEvent;
 
     if (Ext.isIE9m) {
+        prototype = DomPublisher.prototype;
+        prototype.target = document;
+        prototype.directBoundListeners = {};
+
+        // This method gets bound to the element scope in addDirectListener so that
+        // the currentTarget can be captured using "this".
+        onDirectEvent = function(e, publisher, capture) {
+            e.target = e.srcElement || window;
+            e.currentTarget = this;
+            if (capture) {
+                // Although directly attached capture listeners are not supported in IE9m
+                // we still need to call the handler so at least the event fires.
+                publisher.onDirectCaptureEvent(e);
+            } else {
+                publisher.onDirectEvent(e);
+            }
+        };
+
+        onDirectCaptureEvent = function(e, publisher) {
+            e.target = e.srcElement || window;
+            e.currentTarget = this; // this, not DomPublisher
+            publisher.onDirectCaptureEvent(e);
+        };
+
         DomPublisher.override({
-            initHandlers: function() {
-                var me = this,
-                    docBody = document.body,
-                    superOnDelegatedEvent, superOnDirectEvent;
-
-                me.callParent();
-
-                superOnDelegatedEvent = me.onDelegatedEvent;
-                superOnDirectEvent = me.onDirectEvent;
-
-                me.target = document;
-                me.targetIsWin = false;
-
-                me.onDelegatedEvent = function(e) {
-                    e.target = e.srcElement || window;
-                    
-                    if (e.type === 'focusin') {
-                        e.relatedTarget = e.fromElement === docBody ? null : e.fromElement;
-                    }
-                    else if (e.type === 'focusout') {
-                        e.relatedTarget = e.toElement === docBody ? null : e.toElement;
-                    }
-                    
-                    superOnDelegatedEvent.call(me, e);
-                };
-
-                // This method gets bound to the element scope in addDirectListener so that
-                // the currentTarget can be captured using "this".
-                me.onDirectEvent = function(e) {
-                    e.target = e.srcElement || window;
-                    e.currentTarget = this; // this, not me
-                    superOnDirectEvent.call(me, e);
-                };
-            },
-
             addDelegatedListener: function(eventName) {
+                this.delegatedListeners[eventName] = 1;
                 // Use attachEvent for IE9 and below.  Even though IE9 strict supports
                 // addEventListener, it has issues with using synthetic events.
                 this.target.attachEvent('on' + eventName, this.onDelegatedEvent);
             },
 
             removeDelegatedListener: function(eventName) {
+                delete this.delegatedListeners[eventName];
                 this.target.detachEvent('on' + eventName, this.onDelegatedEvent);
             },
 
-            addDirectListener: function(eventName, element) {
+            addDirectListener: function(eventName, element, capture) {
                 var me = this,
+                    dom = element.dom,
                     // binding the listener to the element allows us to capture the
                     // "currentTarget" (see onDirectEvent)
-                    boundFn = Ext.Function.bind(me.onDirectEvent, element);
+                    boundFn = Ext.Function.bind(onDirectEvent, dom, [me, capture], true),
+                    directBoundListeners = me.directBoundListeners,
+                    handlers = directBoundListeners[eventName] || (directBoundListeners[eventName] = {});
 
-                me.directSubscribers[element.id][eventName].fn = boundFn;
+                handlers[dom.id] = boundFn;
                 // may be called with an SVG element here, which
                 // does not have the attachEvent method on IE 9 strict
-                if(element.attachEvent) {
-                    element.attachEvent('on' + eventName, boundFn);
+                if(dom.attachEvent) {
+                    dom.attachEvent('on' + eventName, boundFn);
                 } else {
                     me.callParent(arguments);
                 }
             },
 
             removeDirectListener: function(eventName, element) {
-                if(element.detachEvent) {
-                    element.detachEvent('on' + eventName,
-                        this.directSubscribers[element.id][eventName].fn);
+                var dom = element.dom;
+
+                if (dom.detachEvent) {
+                    dom.detachEvent('on' + eventName,
+                        this.directBoundListeners[eventName][dom.id]);
                 } else {
                     this.callParent(arguments);
                 }
+            },
+
+            doDelegatedEvent: function(e, invokeAfter) {
+                e.target = e.srcElement || window;
+
+                if (e.type === 'focusin') {
+                    e.relatedTarget = e.fromElement === docBody ? null : e.fromElement;
+                }
+                else if (e.type === 'focusout') {
+                    e.relatedTarget = e.toElement === docBody ? null : e.toElement;
+                }
+
+                return this.callParent([e, invokeAfter]);
             }
         });
 

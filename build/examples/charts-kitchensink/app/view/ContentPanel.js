@@ -11,5 +11,5 @@ Ext.define('ChartsKitchenSink.view.ContentPanel', {
         minHeight: 50,
         height: 'auto'
     }],
-    autoScroll: true
+    scrollable: true
 });

@@ -48,36 +48,155 @@ describe("Ext.Array", function() {
     describe("removing items", function() {
         var myArray;
 
-        it("should do nothing when removing from an empty array", function() {
-            myArray = [];
+        describe("remove", function() {
+            describe("with an empty array", function() {
+                beforeEach(function() {
+                    myArray = [];
+                });
 
-            expect(function() {
-                Ext.Array.remove(myArray, 1);
-            }).not.toRaiseExtError();
+                it("should not cause an exception", function() {
+                    expect(function() {
+                        Ext.Array.remove(myArray, 1);
+                    }).not.toRaiseExtError();
 
-            expect(myArray).toEqual([]);
+                    expect(myArray).toEqual([]);
+                });
+
+                it("should return the passed array", function() {
+                    expect(Ext.Array.remove(myArray, 1)).toBe(myArray);
+                });
+            });
+
+            describe("with a filled array", function() {
+                beforeEach(function() {
+                    myArray = [1, 2, 3, 4, 5];
+                });
+
+                it("should remove the item", function() {
+                    Ext.Array.remove(myArray, 1);
+                    expect(myArray).toEqual([2, 3, 4, 5]);
+                });
+
+                it("should return the array", function() {
+                    expect(Ext.Array.remove(myArray, 1)).toBe(myArray);
+                });
+
+                it("should update the index of the following items", function() {
+                    Ext.Array.remove(myArray, 1);
+                    expect(myArray[0]).toBe(2);
+                    expect(myArray[1]).toBe(3);
+                    expect(myArray[2]).toBe(4);
+                    expect(myArray[3]).toBe(5);
+                });
+
+                it("should update the collection length", function() {
+                    Ext.Array.remove(myArray, 1);
+                    expect(myArray.length).toBe(4);
+                });
+
+                it("should remove only using a strict type check", function() {
+                    Ext.Array.remove(myArray, '1');
+                    expect(myArray).toEqual([1, 2, 3, 4, 5]);
+                });
+
+                it("should only remove the first occurrence", function() {
+                    var a = {},
+                        b = {};
+
+                    myArray = [a, b, a, b, a, b];
+                    Ext.Array.remove(myArray, b);
+                    expect(myArray).toEqual([a, a, b, a, b]);
+                });
+            });
         });
 
-        describe("when removing an item inside an array", function() {
+        describe("removeAt", function() {
             beforeEach(function() {
                 myArray = [1, 2, 3, 4, 5];
-
-                Ext.Array.remove(myArray, 1);
             });
 
-            it("should remove the item", function() {
-                expect(myArray).toEqual([2, 3, 4, 5]);
+            describe("invalid indexes", function() {
+                describe("index less than 0", function() {
+                    it("should not cause an exception", function() {
+                        expect(function() {
+                            Ext.Array.removeAt(myArray, -1);
+                        }).not.toThrow();
+                    });
+
+                    it("should return the array", function() {
+                        expect(Ext.Array.removeAt(myArray, -1)).toBe(myArray);
+                    });
+
+                    it("should not modify the array", function() {
+                        Ext.Array.removeAt(myArray, -1);
+                        expect(myArray.length).toBe(5);
+                    });
+                });
+
+                describe("index larger than the length", function() {
+                    it("should not cause an exception", function() {
+                        expect(function() {
+                            Ext.Array.removeAt(myArray, 100);
+                        }).not.toThrow();
+                    });
+
+                    it("should return the array", function() {
+                        expect(Ext.Array.removeAt(myArray, 100)).toBe(myArray);
+                    });
+
+                    it("should not modify the array", function() {
+                        Ext.Array.removeAt(myArray, 100);
+                        expect(myArray.length).toBe(5);
+                    });
+                });
             });
 
-            it("should update the index of the following items", function() {
-                expect(myArray[1]).toEqual(3);
-                expect(myArray[2]).toEqual(4);
-                expect(myArray[3]).toEqual(5);
-            });
+            describe("valid indexes", function() {
+                it("should return the array", function() {
+                    expect(Ext.Array.removeAt(myArray, 1)).toBe(myArray);
+                });
 
-            it("should remove only using a strict type check", function(){
-                Ext.Array.remove(myArray, '2');
-                expect(myArray).toEqual([2, 3, 4, 5]);
+                it("should remove the first item", function() {
+                    Ext.Array.removeAt(myArray, 0);
+                    expect(myArray).toEqual([2, 3, 4, 5]);
+                });
+
+                it("should remove the last item", function() {
+                    Ext.Array.removeAt(myArray, 4);
+                    expect(myArray).toEqual([1, 2, 3, 4]);
+                });
+
+                it("should remove an item in the middle", function() {
+                    Ext.Array.removeAt(myArray, 2);
+                    expect(myArray).toEqual([1, 2, 4, 5]);
+                });
+
+                describe("count", function() {
+                    it("should default to 1", function() {
+                        Ext.Array.removeAt(myArray, 0);
+                        expect(myArray).toEqual([2, 3, 4, 5]);
+                    });
+
+                    it("should remove the specified amount of items", function() {
+                        Ext.Array.removeAt(myArray, 0, 2);
+                        expect(myArray).toEqual([3, 4, 5]);
+                    });
+
+                    it("should be able to remove all items", function() {
+                        Ext.Array.removeAt(myArray, 0, 5);
+                        expect(myArray).toEqual([]);
+                    });
+
+                    it("should be able to remove up to the last item", function() {
+                        Ext.Array.removeAt(myArray, 1, 4);
+                        expect(myArray).toEqual([1]);
+                    });
+
+                    it("should remove til the end if index + count >= length", function() {
+                        Ext.Array.removeAt(myArray, 2, 100);
+                        expect(myArray).toEqual([1, 2]);
+                    });
+                });
             });
         });
     });
@@ -1140,54 +1259,194 @@ describe("Ext.Array", function() {
     });
 
     describe('toMap', function () {
-        it('should handle just an array', function () {
+        it("should return an empty object with an empty array", function() {
+            var map = Ext.Array.toMap([]);
+            expect(map).toEqual({});
+        });
+
+        it('should default the value to the index + 1', function () {
             var map = Ext.Array.toMap(['a','b','c']);
-
-            expect(map.a).toEqual(1);
-            expect(map.b).toEqual(2);
-            expect(map.c).toEqual(3);
-
-            delete map.a;
-            delete map.b;
-            delete map.c;
-
-            expect(Ext.encode(map)).toEqual('{}');
+            expect(map).toEqual({
+                a: 1,
+                b: 2,
+                c: 3
+            });
         });
-        it('should handle just an array and a property name', function () {
-            var map = Ext.Array.toMap([
-                { name: 'aaa' },
-                { name: 'bbb' },
-                { name: 'ccc' }
-            ], 'name');
 
-            expect(map.aaa).toEqual(1);
-            expect(map.bbb).toEqual(2);
-            expect(map.ccc).toEqual(3);
+        describe("with getKey", function() {
+            it('should extract the property name from the object and default the value to index + 1', function () {
+                var map = Ext.Array.toMap([
+                    { name: 'aaa' },
+                    { name: 'bbb' },
+                    { name: 'ccc' }
+                ], 'name');
 
-            delete map.aaa;
-            delete map.bbb;
-            delete map.ccc;
-
-            expect(Ext.encode(map)).toEqual('{}');
-        });
-        it('should handle just an array and a key extractor', function () {
-            var map = Ext.Array.toMap([
-                { name: 'aaa' },
-                { name: 'bbb' },
-                { name: 'ccc' }
-            ], function (obj) {
-                return obj.name.toUpperCase();
+                expect(map).toEqual({
+                    aaa: 1,
+                    bbb: 2,
+                    ccc: 3
+                });
             });
 
-            expect(map.AAA).toEqual(1);
-            expect(map.BBB).toEqual(2);
-            expect(map.CCC).toEqual(3);
+            it('should use a key extractor fn and default the value to index + 1', function () {
+                var map = Ext.Array.toMap([
+                    { name: 'aaa' },
+                    { name: 'bbb' },
+                    { name: 'ccc' }
+                ], function (obj) {
+                    return obj.name.toUpperCase();
+                });
 
-            delete map.AAA;
-            delete map.BBB;
-            delete map.CCC;
+                expect(map).toEqual({
+                    AAA: 1,
+                    BBB: 2,
+                    CCC: 3
+                });
+            });
 
-            expect(Ext.encode(map)).toEqual('{}');
+            it("should use the passed scope for the key fn", function() {
+                var o = {},
+                    spy = jasmine.createSpy().andReturn('X'),
+                    map = Ext.Array.toMap([
+                        { name: 'aaa' },
+                        { name: 'bbb' },
+                        { name: 'ccc' }
+                    ], spy, o);
+
+                expect(spy.mostRecentCall.object).toBe(o);
+            });
+        });
+    });
+
+    describe("toValueMap", function() {
+        var a, b, c, aDup;
+
+        beforeEach(function() {
+            a = {name: 'a'};
+            b = {name: 'b'};
+            c = {name: 'c'};
+            aDup = {name: 'a'};
+        });
+
+        afterEach(function() {
+            a = b = c = aDup = null;
+        });
+
+        it("should return an empty object with an empty array", function() {
+            var map = Ext.Array.toValueMap([]);
+            expect(map).toEqual({});
+        });
+
+        it("should default the value to the key", function () {
+            var map = Ext.Array.toValueMap(['a','b','c']);
+            expect(map).toEqual({
+                a: 'a',
+                b: 'b',
+                c: 'c'
+            });
+        });
+
+        it("should be able to use numeric keys", function() {
+            var map = Ext.Array.toValueMap([1, 2, 3]);
+            expect(map).toEqual({
+                '1': 1,
+                '2': 2,
+                '3': 3
+            });
+        });
+
+        describe("with getKey", function() {
+            describe("with getKey as a string", function() {
+                it("should extract the object key", function() {
+                    var map = Ext.Array.toValueMap([a, b, c], 'name');
+                    expect(map).toEqual({
+                        a: a,
+                        b: b,
+                        c: c
+                    });
+                });
+
+                describe("arrayify options", function() {
+                    it("should use the last encountered key as a default", function() {
+                        var map = Ext.Array.toValueMap([a, b, c, aDup], 'name');
+                        expect(map).toEqual({
+                            a: aDup,
+                            b: b,
+                            c: c
+                        });
+                    });
+
+                    it("should force all values to arrays when passing arrayify: 1", function() {
+                        var map = Ext.Array.toValueMap([a, b, c, aDup], 'name', 1);
+                        expect(map).toEqual({
+                            a: [a, aDup],
+                            b: [b],
+                            c: [c]
+                        }); 
+                    });
+
+                    it("should only create arrays when dupes exist with arrayify: 2", function() {
+                        var map = Ext.Array.toValueMap([a, b, c, aDup], 'name', 2);
+                        expect(map).toEqual({
+                            a: [a, aDup],
+                            b: b,
+                            c: c
+                        });
+                    });
+                });
+            });
+
+            describe("with getKey as a function", function() {
+                var toUpper = function(o) {
+                    return o.name.toUpperCase();
+                };
+
+                it("should extract the object key", function() {
+                    var map = Ext.Array.toValueMap([a, b, c], toUpper);
+                    expect(map).toEqual({
+                        A: a,
+                        B: b,
+                        C: c
+                    });
+                });
+
+                describe("arrayify options", function() {
+                    it("should use the last encountered key as a default", function() {
+                        var map = Ext.Array.toValueMap([a, b, c, aDup], toUpper);
+                        expect(map).toEqual({
+                            A: aDup,
+                            B: b,
+                            C: c
+                        });
+                    });
+
+                    it("should force all values to arrays when passing arrayify: 1", function() {
+                        var map = Ext.Array.toValueMap([a, b, c, aDup], toUpper, null, 1);
+                        expect(map).toEqual({
+                            A: [a, aDup],
+                            B: [b],
+                            C: [c]
+                        }); 
+                    });
+
+                    it("should only create arrays when dupes exist with arrayify: 2", function() {
+                        var map = Ext.Array.toValueMap([a, b, c, aDup], toUpper, null, 2);
+                        expect(map).toEqual({
+                            A: [a, aDup],
+                            B: b,
+                            C: c
+                        });
+                    });
+
+                    it("should use the passed scope", function() {
+                        var spy = jasmine.createSpy(),
+                            o = {},
+                            map = Ext.Array.toValueMap([a, b, c, aDup], spy, o);
+
+                        expect(spy.mostRecentCall.object).toBe(o);
+                    });
+                });
+            });
         });
     });
     

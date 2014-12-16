@@ -24,7 +24,7 @@ Ext.define('KitchenSink.view.tab.IconTabs', {
         height: 200,
         defaults: {
             bodyPadding: 10,
-            autoScroll: true
+            scrollable: true
         }
     },
     

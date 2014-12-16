@@ -42,6 +42,16 @@ Ext.define('Ext.form.trigger.Spinner', {
                 ' {childElCls} {upDisabledCls}"></div>' +
         '</tpl>',
 
+    destroy: function() {
+        var me = this;
+
+        if (me.spinnerEl) {
+            me.spinnerEl.destroy();
+            me.spinnerEl = me.upEl = me.downEl = null;
+        }
+
+        me.callParent();
+    },
 
     getBodyRenderData: function() {
         var me = this;

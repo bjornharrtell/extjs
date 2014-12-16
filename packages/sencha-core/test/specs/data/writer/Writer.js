@@ -342,39 +342,8 @@ describe("Ext.data.writer.Writer", function(){
 
         });
         
-        describe("nameProperty", function(){
-            it("should use the nameProperty", function(){
-                buildWriter({
-                    writeAllFields: false,
-                    nameProperty: 'writeName'
-                });
-                article.set('body', 'new body');
-                var result = writer.getRecordData(article, operation);
-                expect(result).toEqual({
-                    id: 1,
-                    content: 'new body'
-                });
-            });
-            
-            it("should fall back to the name property", function(){
-                buildWriter({
-                    nameProperty: 'writeName'
-                });
-                var result = writer.getRecordData(article, operation);
-                expect(result).toEqual({
-                    id: 1,
-                    title: 'Foo',
-                    content: 'Bar'
-                });
-            });
-            
-            it("should write mapped names correctly when phantom = false", function(){
-                // Validate a fix for the non-mapped id always being written out
-                // in addition to the mapped id for non-phantom records
-                buildWriter({
-                    writeAllFields: true,
-                    nameProperty: 'writeName'
-                });
+        describe("nameProperty", function() {
+            function redefineArticle() {
                 Ext.data.Model.schema.clear();
                 Ext.undefine('spec.Article');
                 Article = Ext.define('spec.Article', {
@@ -385,18 +354,125 @@ describe("Ext.data.writer.Writer", function(){
                         {name: 'body',   type: 'string',  writeName: 'mapped_body'}
                     ]
                 });
-                article = new Article({
-                    id: 123,
-                    title: 'Foo',
-                    body: 'Bar',
-                    phantom: false // <-- this is the key
+            }
+
+            describe("destroy", function() {
+                describe("with writeAllFields: false", function() {
+                    beforeEach(function() {
+                        operation = new Ext.data.operation.Destroy({
+                            records: [article]
+                        });
+                        buildWriter({
+                            nameProperty: 'writeName',
+                            writeAllFields: false
+                        });
+                    });
+
+                    it("should use the nameProperty", function() {
+                        redefineArticle();
+                        article = new Article({
+                            id: 123,
+                            title: 'Foo',
+                            body: 'Bar',
+                            phantom: false // <-- this is the key
+                        });
+                        operation.setRecords([article]);
+                        var result = writer.getRecordData(article, operation);
+                        expect(result).toEqual({
+                            mapped_id: 123
+                        });
+                    });
+
+                    it("should fallback to the name", function() {
+                        var result = writer.getRecordData(article, operation);
+                        expect(result).toEqual({
+                            id: 1
+                        });
+                    });
                 });
-                var result = writer.getRecordData(article, operation);
-                expect(result).toEqual({
-                    mapped_id: 123,
-                    mapped_title: 'Foo',
-                    mapped_body: 'Bar',
-                    phantom: false
+            });
+
+            describe("update", function() {
+                beforeEach(function() {
+                    operation = new Ext.data.operation.Update({
+                        records: [article]
+                    });
+                });
+
+                it("should use the nameProperty", function(){
+                    buildWriter({
+                        writeAllFields: false,
+                        nameProperty: 'writeName'
+                    });
+                    article.set('body', 'new body');
+                    var result = writer.getRecordData(article, operation);
+                    expect(result).toEqual({
+                        id: 1,
+                        content: 'new body'
+                    });
+                });
+                
+                it("should fall back to the name property", function(){
+                    buildWriter({
+                        nameProperty: 'writeName'
+                    });
+                    var result = writer.getRecordData(article, operation);
+                    expect(result).toEqual({
+                        id: 1,
+                        title: 'Foo',
+                        content: 'Bar'
+                    });
+                });
+            });
+
+            describe("create", function() {
+                it("should use the nameProperty", function(){
+                    buildWriter({
+                        writeAllFields: false,
+                        nameProperty: 'writeName'
+                    });
+                    article.set('body', 'new body');
+                    var result = writer.getRecordData(article, operation);
+                    expect(result).toEqual({
+                        id: 1,
+                        content: 'new body'
+                    });
+                });
+                
+                it("should fall back to the name property", function(){
+                    buildWriter({
+                        nameProperty: 'writeName'
+                    });
+                    var result = writer.getRecordData(article, operation);
+                    expect(result).toEqual({
+                        id: 1,
+                        title: 'Foo',
+                        content: 'Bar'
+                    });
+                });
+                
+                it("should write mapped names correctly when phantom = false", function(){
+                    // Validate a fix for the non-mapped id always being written out
+                    // in addition to the mapped id for non-phantom records
+                    buildWriter({
+                        writeAllFields: true,
+                        nameProperty: 'writeName'
+                    });
+                    redefineArticle();
+                    article = new Article({
+                        id: 123,
+                        title: 'Foo',
+                        body: 'Bar',
+                        phantom: false // <-- this is the key
+                    });
+                    operation.setRecords([article]);
+                    var result = writer.getRecordData(article, operation);
+                    expect(result).toEqual({
+                        mapped_id: 123,
+                        mapped_title: 'Foo',
+                        mapped_body: 'Bar',
+                        phantom: false
+                    });
                 });
             });
         });

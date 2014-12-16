@@ -26,8 +26,8 @@
  *         }
  *     });
  */
-Ext.define("Ext.draw.sprite.EllipticalArc", {
-    extend: "Ext.draw.sprite.Ellipse",
+Ext.define('Ext.draw.sprite.EllipticalArc', {
+    extend: 'Ext.draw.sprite.Ellipse',
     alias: 'sprite.ellipticalArc',
     type: 'ellipticalArc',
     inheritableStatics: {
@@ -36,30 +36,30 @@ Ext.define("Ext.draw.sprite.EllipticalArc", {
                 /**
                  * @cfg {Number} [startAngle=0] The beginning angle of the arc.
                  */
-                startAngle: "number",
+                startAngle: 'number',
 
                 /**
                  * @cfg {Number} [endAngle=Math.PI*2] The ending angle of the arc.
                  */
-                endAngle: "number",
+                endAngle: 'number',
 
                 /**
                  * @cfg {Boolean} [anticlockwise=false] Determines whether or not the arc is drawn clockwise.
                  */
-                anticlockwise: "bool"
+                anticlockwise: 'bool'
             },
             aliases: {
-                from: "startAngle",
-                to: "endAngle",
-                start: "startAngle",
-                end: "endAngle"
+                from: 'startAngle',
+                to: 'endAngle',
+                start: 'startAngle',
+                end: 'endAngle'
             },
             defaults: {
                 startAngle: 0,
                 endAngle: Math.PI * 2,
                 anticlockwise: false
             },
-            dirtyTriggers: {
+            triggers: {
                 startAngle: 'path',
                 endAngle: 'path',
                 anticlockwise: 'path'

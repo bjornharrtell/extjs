@@ -55,10 +55,6 @@ Ext.define('Ext.tip.Tip', {
     autoRender: true,
     hidden: true,
     baseCls: Ext.baseCSSPrefix + 'tip',
-    floating: {
-        shadow: true,
-        shim: true
-    },
     focusOnToFront: false,
 
     /**

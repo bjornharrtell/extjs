@@ -622,7 +622,7 @@ Ext.define('Ext.form.field.Text', {
 
         me.autoSize();
         me.callParent();
-        this.invokeTriggers('afterFieldRender');
+        me.invokeTriggers('afterFieldRender');
     },
 
     onMouseDown: function(){
@@ -878,6 +878,9 @@ Ext.define('Ext.form.field.Text', {
             if (isEmpty) {
                 me.inputEl.addCls(me.emptyUICls);
             }
+            else {
+                me.inputEl.removeCls(me.emptyUICls);
+            }
 
             me.autoSize();
         }
@@ -968,12 +971,9 @@ Ext.define('Ext.form.field.Text', {
         me.triggerWrap.removeCls(me.triggerWrapFocusCls);
         me.inputWrap.removeCls(me.inputWrapFocusCls);
         me.invokeTriggers('onFieldBlur', [e]);
-        
-        me.postBlur();
     },
 
-    // private
-    postBlur: function() {
+    completeEdit: function() {
         var task = this.inputFocusTask;
 
         this.callParent(arguments);
@@ -1172,31 +1172,34 @@ Ext.define('Ext.form.field.Text', {
      * @param {Number} [start=0] The index where the selection should start
      * @param {Number} [end] The index where the selection should end (defaults to the text length)
      */
-    selectText : function(start, end){
+    selectText: function (start, end) {
         var me = this,
             v = me.getRawValue(),
+            len = v.length,
             doFocus = true,
             el = me.inputEl.dom,
-            undef,
             range;
 
-        if (v.length > 0) {
-            start = start === undef ? 0 : start;
-            end = end === undef ? v.length : end;
+        if (len > 0) {
+            start = start === undefined ? 0 : Math.min(start, len);
+            end = end === undefined ? len : Math.min(end, len);
+
             if (el.setSelectionRange) {
                 el.setSelectionRange(start, end);
-            }
-            else if(el.createTextRange) {
+            } else if (el.createTextRange) {
                 range = el.createTextRange();
                 range.moveStart('character', start);
-                range.moveEnd('character', end - v.length);
+                range.moveEnd('character', end - len);
                 range.select();
             }
-            doFocus = Ext.isGecko || Ext.isOpera;
         }
-        if (doFocus) {
-            me.focus();
-        }
+
+        // TODO: Reinvestigate FF and Opera.
+    },
+
+    // Template method, override in Combobox.
+    getGrowWidth: function () {
+        return this.inputEl.dom.value;
     },
 
     /**
@@ -1214,7 +1217,7 @@ Ext.define('Ext.form.field.Text', {
             triggerWidth = 0;
 
             value = Ext.util.Format.htmlEncode(
-                inputEl.dom.value || (me.hasFocus ? '' : me.emptyText) || ''
+                me.getGrowWidth() || (me.hasFocus ? '' : me.emptyText) || ''
             );
             value += me.growAppend;
 

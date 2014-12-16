@@ -1,6 +1,6 @@
 /**
- * A specialized floating Component that supports a drop status icon, {@link Ext.Layer} styles
- * and auto-repair.  This is the default drag proxy used by all Ext.dd components.
+ * A specialized floating Component that supports a drop status icon and auto-repair.
+ * This is the default drag proxy used by all Ext.dd components.
  */
 Ext.define('Ext.dd.StatusProxy', {
     extend: 'Ext.Component',
@@ -130,10 +130,10 @@ Ext.define('Ext.dd.StatusProxy', {
     },
 
     /**
-     * Force the Layer to sync its shadow and shim positions to the element
+     * Force the Element to sync its shadow and shim positions
      */
     sync : function(){
-        this.el.sync();
+        this.el.syncUnderlays();
     },
 
     /**
@@ -151,7 +151,7 @@ Ext.define('Ext.dd.StatusProxy', {
         me.scope = scope;
         if (xy && me.animRepair !== false) {
             me.el.addCls(me.repairCls);
-            me.el.hideUnders(true);
+            me.el.setUnderlaysVisible(false);
             me.anim = me.el.animate({
                 duration: me.repairDuration || 500,
                 easing: 'ease-out',

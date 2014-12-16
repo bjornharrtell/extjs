@@ -51,6 +51,10 @@ Ext.define('Ext.grid.column.RowNumberer', {
 
     align: 'right',
 
+    /**
+     * @cfg {Boolean} producesHTML
+     * @inheritdoc
+     */
     producesHTML: false,
 
     constructor: function (config) {

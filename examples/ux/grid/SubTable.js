@@ -1,3 +1,8 @@
+/**
+ * A small grid nested within a parent grid's row. 
+ *
+ * See the [Kitchen Sink](http://dev.sencha.com/extjs/5.0.1/examples/kitchensink/#customer-grid) for example usage.
+ */
 Ext.define('Ext.ux.grid.SubTable', {
     extend: 'Ext.grid.plugin.RowExpander',
 

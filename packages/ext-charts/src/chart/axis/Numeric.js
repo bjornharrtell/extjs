@@ -82,7 +82,9 @@ Ext.define('Ext.chart.axis.Numeric', {
 
     type: 'Numeric',
 
-    // @private
+    /**
+     * Indicates whether or not the axis is Numeric
+     */
     isNumericAxis: true,
 
     alias: 'axis.numeric',

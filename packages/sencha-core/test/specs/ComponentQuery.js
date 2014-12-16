@@ -66,7 +66,13 @@ describe("Ext.ComponentQuery", function() {
                     return EA.contains(this.type.split('/'), type);
                 },
                 
-                ownerCt: parent
+                ownerCt: parent,
+
+                self: {
+                    $config: {
+                        configs: {}
+                    }
+                }
             });
             
             cm.register(o);
@@ -701,18 +707,20 @@ describe("Ext.ComponentQuery", function() {
     });
     
     describe('ownProperty tests', function() {
-        var TestClass = function(){},
+        var TestClass = Ext.define(null, {
+                extend: 'Ext.Component',
+                foo: 'bar',
+                bletch: 0
+            }),
             candidates;
-
-        TestClass.prototype = { foo: 'bar', bletch: 0 };
 
          // Only candidates[1] has *ownProperties* foo and bletch
          // And the value of bletch is zero, so by [bletch] will never match.
          // Test that [?bletch] tests for just *presence* of property in object.
-        candidates = [new TestClass(), {
+        candidates = [new TestClass(), new TestClass({
             foo: 'bar',
             bletch: 0
-        }];
+        })];
 
         it('should only match candidates [@foo=bar] with ownProperty "foo" equal to "bar"', function() {
             expect(Ext.ComponentQuery.query('[@foo=bar]', candidates).length).toBe(1);
@@ -971,6 +979,58 @@ describe("Ext.ComponentQuery", function() {
 
                 expect(foo).toBe(true);
             });
+        });
+    });
+
+    describe("selecting by attribute", function(){
+
+        var foo, bar;
+        beforeEach(function(){
+            Ext.define('spec.Foo', {
+                extend: 'Ext.Component',
+                config: {
+                    bar: 1
+                },
+                baz: 2
+            });
+
+            foo = new spec.Foo({
+                jaz:3
+            });
+
+            Ext.define('spec.Bar', {
+                extend: 'Ext.Component',
+                config: {
+                    bar: 4
+                },
+                baz: 5
+            });
+
+            bar = new spec.Bar({
+                jaz: 6
+            });
+        });
+
+        afterEach(function() {
+            Ext.undefine('spec.Foo');
+            Ext.undefine('spec.Bar');
+        });
+        it("should match instance config", function(){
+            result = cq.query('[bar=1]');
+            expect(result.length).toBe(1);
+            expect(result[0]).toBe(foo);
+        });
+
+        it("should match a property on the instance", function() {
+            result = cq.query('[baz=2]');
+            expect(result.length).toBe(1);
+            expect(result[0]).toBe(foo);
+        });
+
+        it("should match an arbitrary property on the config object", function() {
+            result = cq.query('[jaz=3]');
+            expect(result.length).toBe(1);
+            expect(result[0]).toBe(foo);
         });
     });
 });

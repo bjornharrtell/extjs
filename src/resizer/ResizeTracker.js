@@ -203,7 +203,7 @@ Ext.define('Ext.resizer.ResizeTracker', {
         // Snap value between stops according to configured increments
         snappedWidth = Ext.Number.snap(newBox.width, me.widthIncrement);
         snappedHeight = Ext.Number.snap(newBox.height, me.heightIncrement);
-        if (snappedWidth != newBox.width || snappedHeight != newBox.height){
+        if (snappedWidth !== newBox.width || snappedHeight !== newBox.height){
             switch (region) {
                 case 'northeast':
                     newBox.y -= snappedHeight - newBox.height;
@@ -256,12 +256,12 @@ Ext.define('Ext.resizer.ResizeTracker', {
             newWidth = Math.min(Math.max(me.minWidth, newBox.height * ratio), me.maxWidth);
 
             // X axis: width-only change, height must obey
-            if (axis == 1) {
+            if (axis === 1) {
                 newBox.height = newHeight;
             }
 
             // Y axis: height-only change, width must obey
-            else if (axis == 2) {
+            else if (axis === 2) {
                 newBox.width = newWidth;
             }
 
@@ -279,12 +279,12 @@ Ext.define('Ext.resizer.ResizeTracker', {
                 }
 
                 // Handle dragging start coordinates
-                if (region == 'northeast') {
+                if (region === 'northeast') {
                     newBox.y = box.y - (newBox.height - box.height);
-                } else if (region == 'northwest') {
+                } else if (region === 'northwest') {
                     newBox.y = box.y - (newBox.height - box.height);
                     newBox.x = box.x - (newBox.width - box.width);
-                } else if (region == 'southwest') {
+                } else if (region === 'southwest') {
                     newBox.x = box.x - (newBox.width - box.width);
                 }
             }

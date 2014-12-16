@@ -212,7 +212,8 @@ Ext.define('Ext.panel.Header', {
 
         title = title || '';
 
-        if (typeof title === 'string') {
+        isString = typeof title === 'string';
+        if (isString) {
             title = {
                 text: title
             };
@@ -226,6 +227,9 @@ Ext.define('Ext.panel.Header', {
             Ext.resumeLayouts(true);
             title = oldTitle;
         } else {
+            if (isString) {
+                title.xtype = 'title';
+            }
             title.ui = me.ui;
             title.headerRole = me.headerRole;
             configHasRotation = ('rotation' in title);

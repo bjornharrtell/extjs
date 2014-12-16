@@ -77,7 +77,10 @@ Ext.define('Ext.Component', {
         'Ext.ComponentQuery',
         'Ext.ComponentManager',
         'Ext.util.ProtoElement',
-        'Ext.dom.CompositeElement'
+        'Ext.dom.CompositeElement',
+        'Ext.scroll.Scroller',
+        'Ext.scroll.TouchScroller',
+        'Ext.scroll.DomScroller'
     ],
 
     mixins: [
@@ -104,9 +107,7 @@ Ext.define('Ext.Component', {
         'Ext.layout.component.Auto',
         'Ext.LoadMask',
         'Ext.ZIndexManager',
-        'Ext.scroll.Manager',
         'Ext.util.DelayedTask',
-        'Ext.Layer',
         'Ext.resizer.Resizer',
         'Ext.util.ComponentDragger'
     ],
@@ -368,7 +369,27 @@ Ext.define('Ext.Component', {
          *
          * **Warning:** This will override any size management applied by layout managers.
          */
-        minWidth: null
+        minWidth: null,
+
+        /**
+         * @cfg {Boolean/String/Object} scrollable
+         * Configuration options to make this Component scrollable. Acceptable values are:
+         *
+         * - `true` to enable auto scrolling.
+         * - `false` (or `null`) to disable scrolling - this is the default.
+         * - `x` or `horizontal` to enable horizontal scrolling only
+         * - `y` or `vertical` to enable vertical scrolling only
+         *
+         * Also accepts a configuration object for a `{@link Ext.scroll.Scroller}` if
+         * if advanced configuration is needed.
+         *
+         * The getter for this config returns the {@link Ext.scroll.Scroller Scroller}
+         * instance.  You can use the Scroller API to read or manipulate the scroll position:
+         *
+         *     // scrolls the component to 5 on the x axis and 10 on the y axis
+         *     component.getScrollable().scrollTo(5, 10);
+         */
+        scrollable: null
     },
 
     defaultBindProperty: 'html',
@@ -439,7 +460,9 @@ Ext.define('Ext.Component', {
      * @cfg {Boolean} [autoScroll=false]
      * `true` to use overflow:'auto' on the components layout element and show scroll bars automatically when necessary,
      * `false` to clip any overflowing content.
+     *
      * This should not be combined with {@link #overflowX} or  {@link #overflowY}.
+     * @deprecated 5.1.0 Use {@link #scrollable} instead
      */
 
     /**
@@ -495,8 +518,9 @@ Ext.define('Ext.Component', {
     },
 
     /**
-     * @cfg {String} [cls='']
-     * An optional extra CSS class that will be added to this component's Element. This can be useful
+     * @cfg {String/String[]} [cls='']
+     * An optional extra CSS class that will be added to this component's Element. 
+     * The value can be a string, a list of strings separated by spaces, or an array of strings. This can be useful 
      * for adding customized styles to the component or any of its children using standard CSS rules.
      *
      * @since 1.1.0
@@ -848,6 +872,7 @@ Ext.define('Ext.Component', {
      *  - `'scroll'` to always enable horizontal scrollbar (Style overflow-x: 'scroll').
      *
      * The default is overflow-x: 'hidden'. This should not be combined with {@link #autoScroll}.
+     * @deprecated 5.1.0 Use {@link #scrollable} instead
      */
 
     /**
@@ -858,6 +883,7 @@ Ext.define('Ext.Component', {
      *  - `'scroll'` to always enable vertical scrollbar (Style overflow-y: 'scroll').
      *
      * The default is overflow-y: 'hidden'. This should not be combined with {@link #autoScroll}.
+     * @deprecated 5.1.0 Use {@link #scrollable} instead
      */
 
     /**
@@ -1411,10 +1437,58 @@ Ext.define('Ext.Component', {
     layoutSuspendCount: 0,
 
     /**
-     * @private
+     * @cfg {Boolean}
      * Components that achieve their internal layout results using solely CSS with no JS
-     * intervention must set this to true.  Failure to set this property to true may result
-     * in setSize failing to work if the component opted out of the layout run.
+     * intervention must set this to true.  This allows the component to opt out of the
+     * layout run when used inside certain container layouts such as {@link 
+     * Ext.layout.container.Form Form} and {@link Ext.layout.container.Auto Auto}
+     * resulting in a performance gain. The following components currently use liquid
+     * layout (`liquidLayout: true`):
+     * 
+     * - All Form Fields (subclasses of {@link Ext.form.field.Base})
+     * - {@link Ext.button.Button}
+     * 
+     * It is important to keep in mind that components using liquidLayout do not fire
+     * the following events:
+     * 
+     * - {@link #event-resize}
+     * - {@link #event-boxready}
+     * 
+     * In addition liquidLayout components do not call the following template methods:
+     * 
+     * - {@link #afterComponentLayout}
+     * - {@link #onBoxReady}
+     * - {@link #onResize}
+     * 
+     * Any component that needs to fire these events or to have these methods called during
+     * its lifecycle needs to set `liquidLayout` to `false`.  The following example
+     * demonstrates how to enable the resize event for a
+     * {@link Ext.form.field.TextArea TextArea Field}:
+     * 
+     *     @example
+     *     var win = Ext.create({
+     *             xtype: 'window',
+     *             title: 'Resize This Window!',
+     *             height: 100,
+     *             width: 200,
+     *             layout: 'anchor',
+     *             items: [{
+     *                 xtype: 'textarea',
+     *                 anchor: '0 0',
+     *                 liquidLayout: false // allows the textarea to fire "resize"
+     *             }]
+     *         }),
+     *         textfield = win.items.getAt(0);
+     *
+     *     win.show();
+     *
+     *     textfield.on('resize', function(textfield, width, height) {
+     *         Ext.Msg.alert('Text Field Resized', 'width: ' + width + ', height: ' + height);
+     *     });
+     *     
+     * Use caution when setting `liquidLayout` to `false` as it carries a performance penalty
+     * since it means the layout system must perform expensive DOM reads to determine the
+     * Component's size.
      */
     liquidLayout: false,
 
@@ -1458,8 +1532,147 @@ Ext.define('Ext.Component', {
     rootCls: Ext.baseCSSPrefix + 'body',
 
     // private
-    scrollerCls: Ext.baseCSSPrefix + 'touch-scroller',
-    scrollerSelector: '.' + Ext.baseCSSPrefix + 'touch-scroller',
+    scrollerCls: Ext.baseCSSPrefix + 'scroll-scroller',
+    scrollerSelector: '.' + Ext.baseCSSPrefix + 'scroll-scroller',
+
+    /**
+     * @property {Object} scrollFlags
+     * An object property which provides unified information as to which dimensions are
+     * scrollable based upon the {@link #scrollable} settings (And for *views* of trees and
+     * grids, the owning panel's {@link Ext.panel.Table#scroll scroll} setting).
+     *
+     * Note that if you set overflow styles using the {@link #style} config or
+     * {@link Ext.panel.Panel#bodyStyle bodyStyle} config, this object does not include
+     * that information. Use {@link #scrollable} if you need to access these flags.
+     *
+     * This object has the following properties:
+     * @property {Boolean} scrollFlags.x `true` if this Component is scrollable
+     * horizontally - style setting may be `'auto'` or `'scroll'`.
+     * @property {Boolean} scrollFlags.y `true` if this Component is scrollable
+     * vertically - style setting may be `'auto'` or `'scroll'`.
+     * @property {Boolean} scrollFlags.both `true` if this Component is scrollable both
+     * horizontally and vertically.
+     * @property {String} scrollFlags.overflowX The `overflow-x` style setting, `'auto'`
+     * or `'scroll'` or `''`.
+     * @property {String} scrollFlags.overflowY The `overflow-y` style setting, `'auto'`
+     * or `'scroll'` or `''`.
+     * @readonly
+     * @private
+     */
+    _scrollFlags: {
+        auto: {
+            // x:auto, y:auto
+            auto: {
+                overflowX: 'auto',
+                overflowY: 'auto',
+                x: true,
+                y: true,
+                both: true
+            },
+            // x:auto, y:false
+            'false': {
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                x: true,
+                y: false,
+                both: false
+            },
+            // x:auto, y:scroll
+            scroll: {
+                overflowX: 'auto',
+                overflowY: 'scroll',
+                x: true,
+                y: true,
+                both: true
+            }
+        },
+        'false': {
+            // x:false, y:auto
+            auto: {
+                overflowX: 'hidden',
+                overflowY: 'auto',
+                x: false,
+                y: true,
+                both: false
+            },
+            // x:false, y:false
+            'false': {
+                overflowX: 'hidden',
+                overflowY: 'hidden',
+                x: false,
+                y: false,
+                both: false
+            },
+            // x:false, y:scroll
+            scroll: {
+                overflowX: 'hidden',
+                overflowY: 'scroll',
+                x: false,
+                y: true,
+                both: false
+            }
+        },
+        scroll: {
+            // x:scroll, y:auto
+            auto: {
+                overflowX: 'scroll',
+                overflowY: 'auto',
+                x: true,
+                y: true,
+                both: true
+            },
+            // x:scroll, y:false
+            'false': {
+                overflowX: 'scroll',
+                overflowY: 'hidden',
+                x: true,
+                y: false,
+                both: false
+            },
+            // x:scroll, y:scroll
+            scroll: {
+                overflowX: 'scroll',
+                overflowY: 'scroll',
+                x: true,
+                y: true,
+                both: true
+            }
+        },
+        none: {
+            overflowX: '',
+            overflowY: '',
+            x: false,
+            y: false,
+            both: false
+        }
+    },
+
+    _scrollableCfg: {
+        x: {
+            x: true,
+            y: false
+        },
+        y: {
+            x: false,
+            y: true
+        },
+        horizontal: {
+            x: true,
+            y: false
+        },
+        vertical: {
+            x: false,
+            y: true
+        },
+        both: {
+            x: true,
+            y: true
+        },
+        'true': {
+            x: true,
+            y: true
+        }
+    },
 
     validIdRe: Ext.validIdRe,
 
@@ -1601,6 +1814,9 @@ Ext.define('Ext.Component', {
     /**
      * @event boxready
      * Fires *one time* - after the component has been laid out for the first time at its initial size.
+     *
+     * This event does not fire on components that use {@link #liquidLayout}, such as
+     * {@link Ext.button.Button Buttons} and {@link Ext.form.field.Base Form Fields}.
      * @param {Ext.Component} this
      * @param {Number} width The initial width.
      * @param {Number} height The initial height.
@@ -1625,6 +1841,9 @@ Ext.define('Ext.Component', {
      * @event resize
      * Fires after the component is resized. Note that this does *not* fire when the component is first laid out at its initial
      * size. To hook that point in the life cycle, use the {@link #boxready} event.
+     * 
+     * This event does not fire on components that use {@link #liquidLayout}, such as
+     * {@link Ext.button.Button Buttons} and {@link Ext.form.field.Base Form Fields}.
      * @param {Ext.Component} this
      * @param {Number} width The new width that was set.
      * @param {Number} height The new height that was set.
@@ -1655,7 +1874,7 @@ Ext.define('Ext.Component', {
      */
     constructor: function(config) {
         var me = this,
-            i, len, xhooks, controller;
+            i, len, xhooks, controller, autoScroll, overflowX, overflowY, scrollable;
 
         config = config || {};
         if (config.initialConfig) {
@@ -1681,7 +1900,35 @@ Ext.define('Ext.Component', {
         // Ensure that we have an id early so that config getters may access it
         me.getId();
         me.protoEl = new Ext.util.ProtoElement();
+        //<debug>
+        me.$calledInitConfig = true;
+        //</debug>
         me.initConfig(config);
+        //<debug>
+        delete me.$calledInitConfig;
+        //</debug>
+
+        if (me.scrollable == null) {
+            autoScroll = me.autoScroll;
+
+            if (autoScroll) {
+                scrollable = !!autoScroll;
+            } else {
+                overflowX = me.overflowX;
+                overflowY = me.overflowY;
+
+                if (overflowX || overflowY) {
+                    scrollable = {
+                        x: (overflowX && overflowX !== 'hidden') ? overflowX : false,
+                        y: (overflowY && overflowY !== 'hidden') ? overflowY : false
+                    };
+                }
+            }
+
+            if (scrollable) {
+                me.setScrollable(scrollable);
+            }
+        }
 
         xhooks = me.xhooks;
         if (xhooks) {
@@ -1770,6 +2017,11 @@ Ext.define('Ext.Component', {
     },
 
     beforeInitConfig: function() {
+        //<debug>
+        if (!this.$calledInitConfig) {
+            Ext.Error.raise('initConfig should not be called by subclasses, it will be called by Ext.Component');
+        }
+        //</debug>
         this.mixins.observable.constructor.call(this);
     },
 
@@ -1835,6 +2087,9 @@ Ext.define('Ext.Component', {
     /**
      * Called by the layout system after the Component has been laid out.
      *
+     * This method is not called on components that use {@link #liquidLayout}, such as
+     * {@link Ext.button.Button Buttons} and {@link Ext.form.field.Base Form Fields}.
+     *
      * @param {Number} width The width that was set
      * @param {Number} height The height that was set
      * @param {Number/undefined} oldWidth The old width, or `undefined` if this was the initial layout.
@@ -1857,48 +2112,6 @@ Ext.define('Ext.Component', {
         if (this.floating) {
             this.onAfterFloatLayout();
         }
-    },
-
-    addListener: function(element, listeners, scope, options) {
-        var me = this,
-            fn,
-            option;
-
-        if (Ext.isString(element) && (Ext.isObject(listeners) || options && options.element)) {
-            if (options.element) {
-                fn = listeners;
-
-                listeners = {};
-                listeners[element] = fn;
-                element = options.element;
-                if (scope) {
-                    listeners.scope = scope;
-                }
-
-                for (option in options) {
-                    if (options.hasOwnProperty(option)) {
-                        if (me.eventOptionsRe.test(option)) {
-                            listeners[option] = options[option];
-                        }
-                    }
-                }
-            }
-
-            // At this point we have a variable called element,
-            // and a listeners object that can be passed to on
-            if (me[element] && me[element].on) {
-                me.mon(me[element], listeners);
-            } else {
-                me.afterRenderEvents = me.afterRenderEvents || {};
-                if (!me.afterRenderEvents[element]) {
-                    me.afterRenderEvents[element] = [];
-                }
-                me.afterRenderEvents[element].push(listeners);
-            }
-            return;
-        }
-
-        return me.mixins.observable.addListener.apply(me, arguments);
     },
 
     // @private
@@ -1925,7 +2138,7 @@ Ext.define('Ext.Component', {
      * @param {Object} state The state object.
      * @param {String} propName The name of the property on this object to save.
      * @param {String} [value] The value of the state property (defaults to `this[propName]`).
-     * @return {Boolean} The state object or a new object if state was `null` and the property
+     * @return {Object} The state object or a new object if state was `null` and the property
      * was saved.
      * @protected
      */
@@ -2053,8 +2266,13 @@ Ext.define('Ext.Component', {
         }
 
         Ext.callback(cb, scope || me);
-        me.fireEvent('hide', me);
+        
+        // Order of events is important here. Hierarchy event kicks off
+        // ZIndexManager's collection sorting and floater activation;
+        // component event may have user defined listeners that should
+        // logically fire after hiding is complete.
         me.fireHierarchyEvent('hide');
+        me.fireEvent('hide', me);
         
         if (container) {
             container.onFocusableChildHide(me);
@@ -2254,6 +2472,77 @@ Ext.define('Ext.Component', {
         return me.mixins.animate.animate.apply(me, arguments);
     },
 
+    applyScrollable: function(scrollable, oldScrollable) {
+        var me = this,
+            rendered = me.rendered,
+            scrollableCfg,
+            innerEl;
+
+        if (scrollable) {
+            if (scrollable === true || typeof scrollable === 'string') {
+                scrollableCfg = me._scrollableCfg[scrollable];
+
+                //<debug>
+                if (!scrollableCfg) {
+                    Ext.Error.raise("'" + scrollable + "' is not a valid value for 'scrollable'");
+                }
+                //</debug>
+
+                scrollable = scrollableCfg;
+            }
+
+            if (oldScrollable) {
+                oldScrollable.setConfig(scrollable);
+                scrollable = oldScrollable;
+            } else {
+                scrollable = Ext.Object.chain(scrollable); // don't mutate the user's config
+
+                if (rendered) {
+                    // we create the scroller without an element by default (because the
+                    // element is not available at configuration time) and then assign
+                    // the element in onBoxReady. If we got here it means the scroller
+                    // is being configured after render, so we need to make sure the
+                    // element is in its config object
+                    scrollable.element = me.getOverflowEl();
+                    innerEl = me.getScrollerEl();
+                    if (innerEl) {
+                        scrollable.innerElement = innerEl;
+                    }
+                }
+
+                // scroller gets refreshed by Component#onResize,
+                // so there is no need to initialize a SizeMonitor
+                scrollable.autoRefresh = false;
+
+                if (Ext.supports.touchScroll === 1) {
+                    // running in a browser that uses the touch scroller to control naturally
+                    // overflowing elements.
+                    scrollable.translatable = {
+                        translationMethod: 'scrollparent'
+                    };
+                    // We'll have native scrollbars, so no indicators are needed
+                    scrollable.indicators = false;
+                }
+
+                scrollable = Ext.scroll.Scroller.create(scrollable);
+                scrollable.component = me;
+            }
+        } else if (oldScrollable) {
+            oldScrollable.setConfig({
+                x: false,
+                y: false
+            });
+            oldScrollable.destroy();
+        }
+
+        if (me.rendered) {
+            me.getOverflowStyle(); // refresh the scrollFlags
+            me.updateLayout();
+        }
+
+        return scrollable;
+    },
+
     /**
      * Occurs before `componentLayout` is run. Returning `false` from this method will prevent the `componentLayout` from
      * being executed.
@@ -2413,8 +2702,7 @@ Ext.define('Ext.Component', {
             selectors = me.renderSelectors,
             viewModel = me.getConfig('viewModel', true),
             session = me.getConfig('session', true),
-            selector, ownerCt,
-            el;
+            selector, ownerCt, el;
 
         if (!me.isDestroyed) {
             if (!me.hasListeners.beforedestroy || me.fireEvent('beforedestroy', me) !== false) {
@@ -2799,27 +3087,23 @@ Ext.define('Ext.Component', {
     },
 
     /**
-     * Returns the "x" scroll position for this component.  Only applicable for components
-     * that have been configured with `{@link #autoScroll}` or `{@link #overflowX}`.
+     * Returns the "x" scroll position for this component.  Only applicable for
+     * {@link #scrollable} components
      * @return {Number}
      */
     getScrollX: function() {
-        var me = this,
-            scrollManager = me.scrollManager;
-
-        return scrollManager ? scrollManager.getPosition().x : me.getScrollLeft();
+        var scroller = this.getScrollable();
+        return scroller ? scroller.getPosition().x : 0;
     },
 
     /**
-     * Returns the "y" scroll position for this component.  Only applicable for components
-     * that have been configured with `{@link #autoScroll}` or `{@link #overflowY}`.
+     * Returns the "y" scroll position for this component.  Only applicable for
+     * {@link #scrollable} components
      * @return {Number}
      */
     getScrollY: function() {
-        var me = this,
-            scrollManager = me.scrollManager;
-
-        return scrollManager ? scrollManager.getPosition().y : me.getOverflowEl().getScrollTop();
+        var scroller = this.getScrollable();
+        return scroller ? scroller.getPosition().y : 0;
     },
 
     /**
@@ -3060,9 +3344,7 @@ Ext.define('Ext.Component', {
      * @method
      */
     hasCls: function (cls) {
-        var me = this,
-            el = me.rendered ? me.el : me.protoEl;
-
+        var el = this.rendered ? this.el : this.protoEl;
         return el.hasCls.apply(el, arguments);
     },
 
@@ -3103,6 +3385,11 @@ Ext.define('Ext.Component', {
                 me.hidden = true;
                 me.getInherited().hidden = true;
                 if (me.rendered) {
+                    // Must deactivate floaters *before* hiding so that they can detect whether they currently
+                    // contain focus, and transfer focus to the previously focused element.
+                    if (me.floating) {
+                        me.setActive(false);
+                    }
                     me.onHide.apply(me, arguments);
                 }
             }
@@ -3212,14 +3499,34 @@ Ext.define('Ext.Component', {
     },
 
     /**
-     * Determines whether this component is the descendant of a particular container.
-     * @param {Ext.Container} container
-     * @return {Boolean} `true` if the component is the descendant of a particular container, otherwise `false`.
+     * Determines whether this component is the descendant of a passed component.
+     * @param {Ext.Component} ancestor A Component which may contain this Component.
+     * @return {Boolean} `true` if the component is the descendant of the passed component, otherwise `false`.
      */
-    isDescendantOf: function(container) {
-        return !!this.findParentBy(function(p){
-            return p === container;
-        });
+    isDescendantOf: function(ancestor) {
+        var p;
+
+        // Iterate up the owner chain until we don't have one, or we find the ancestor.
+        for (p = this.getRefOwner(); p && p !== ancestor; p = p.getRefOwner()) {
+            // do nothing
+        }
+        return p || null;
+    },
+
+    /**
+     * Determines whether **this Component** is an ancestor of the passed Component.
+     * This will return `true` if the passed Component is anywhere within the subtree
+     * beneath this Component.
+     * @param {Ext.Component} possibleDescendant The Component to test for presence
+     * within this Component's subtree.
+     */
+    isAncestor: function(possibleDescendant) {
+        while (possibleDescendant) {
+            if (possibleDescendant.getRefOwner() === this) {
+                return true;
+            }
+            possibleDescendant = possibleDescendant.getRefOwner();
+        }
     },
 
     /**
@@ -3296,6 +3603,20 @@ Ext.define('Ext.Component', {
         }
 
         return hidden;
+    },
+
+    /**
+     * Checks if this component will be contained by the passed component as part of its
+     * layout run. If `true`, then the layout on `this` can be skipped because it will be
+     * encompassed when the layout for `comp` runs. Typical cases where this may be be `false`
+     * is when asking about floaters nested in containers.
+     * @param {Ext.Component} comp The potentional owner.
+     * @return {Boolean} `true` if this component is a layout child of `comp`.
+     *
+     * @private
+     */
+    isLayoutChild: function(ownerCandidate) {
+        return !this.floating && !!this.up(ownerCandidate);
     },
 
     /**
@@ -3649,6 +3970,9 @@ Ext.define('Ext.Component', {
      * Invoked when this component has first achieved size. Occurs after the
      * {@link #componentLayout} has completed its initial run.
      *
+     * This method is not called on components that use {@link #liquidLayout}, such as
+     * {@link Ext.button.Button Buttons} and {@link Ext.form.field.Base Form Fields}.
+     *
      * @param {Number} width The width of this component
      * @param {Number} height The height of this component
      * 
@@ -3656,7 +3980,8 @@ Ext.define('Ext.Component', {
      * @protected
      */
     onBoxReady: function(width, height) {
-        var me = this;
+        var me = this,
+            scroller = me.scrollable;
 
         if (me.resizable) {
             me.initResizable(me.resizable);
@@ -3668,10 +3993,13 @@ Ext.define('Ext.Component', {
             me.initDraggable();
         }
 
-        if (me.touchScroll) {
-            me.initScrollManager();
+        if (scroller) {
+            if (me.touchScroll) {
+                scroller.setInnerElement(me.getScrollerEl());
+            }
+            scroller.setElement(me.getOverflowEl());
         }
-       
+
         if (me.hasListeners.boxready) {
             me.fireEvent('boxready', me, width, height);
         }
@@ -3705,7 +4033,9 @@ Ext.define('Ext.Component', {
                 me.resizer,
                 me.proxy,
                 me.proxyWrap,
-                me.resizerComponent
+                me.resizerComponent,
+                me.scrollable,
+                me.contentEl
             );
         }
         
@@ -3801,11 +4131,22 @@ Ext.define('Ext.Component', {
             ghostPanel,
             fromSize,
             toBox,
-            activeEl = Ext.Element.getActiveElement();
+            focusTarget = me.previousFocus;
 
-        // If hiding a Component which is focused, or contains focus: blur the focused el.
-        if (activeEl === me.el || me.el.contains(activeEl)) {
-            Ext.fly(activeEl).blur();
+        me.previousFocus = null;
+
+        // IF this floating component contains focus...
+        //  Before hiding, restore focus to what was focused when we were shown.
+        //  IE8 will throw an exception is the target is not focusable
+        //  Blur the focused element before hiding to force focusLeave
+        if (me.floating && focusTarget && me.containsFocus) {
+            // Allow the previousFocus target to be an htmlEement or Component
+            if (!focusTarget.isComponent) {
+                focusTarget = Ext.fly(focusTarget);
+            }
+            if (Ext.isIE8 || focusTarget.isFocusable()) {
+                focusTarget.focus();
+            }
         }
 
         // Default to configured animate target if none passed
@@ -3858,9 +4199,10 @@ Ext.define('Ext.Component', {
     onPosition: Ext.emptyFn,
 
     /**
-     * Allows addition of behavior to the resize operation.
+     * Called when the component is resized.
      *
-     * Called when Ext.resizer.Resizer#drag event is fired.
+     * This method is not called on components that use {@link #liquidLayout}, such as
+     * {@link Ext.button.Button Buttons} and {@link Ext.form.field.Base Form Fields}.
      *
      * @method
      * @template
@@ -3885,6 +4227,33 @@ Ext.define('Ext.Component', {
             me.fireEvent('resize', me, width, height, oldWidth, oldHeight);
         }
     },
+
+    /**
+     * Invoked when a scroll is initiated on this component via its {@link #scrollable scroller}.
+     * @method onScrollStart
+     * @param {Number} x The current x position
+     * @param {Number} y The current y position
+     * @template
+     * @protected
+     */
+
+    /**
+     * Invoked when this component is scrolled via its {@link #scrollable scroller}.
+     * @method onScrollMove
+     * @param {Number} x The current x position
+     * @param {Number} y The current y position
+     * @template
+     * @protected
+     */
+
+    /**
+     * Invoked when a scroll operation is completed via this component's {@link #scrollable scroller}.
+     * @method onScrollEnd
+     * @param {Number} x The current x position
+     * @param {Number} y The current y position
+     * @template
+     * @protected
+     */
 
     /**
      * Allows addition of behavior to the show operation. After
@@ -4128,33 +4497,26 @@ Ext.define('Ext.Component', {
      * @param {Boolean/Object} animate Animate flag/config object if the delta values were passed separately.
      */
     scrollBy: function(deltaX, deltaY, animate) {
-        var me = this,
-            scrollManager = me.scrollManager;
+        var scroller = this.getScrollable();
 
-        if (scrollManager) {
-            scrollManager.scrollBy(deltaX, deltaY, animate);
-        } else {
-            me.doScrollBy(deltaX, deltaY, animate);
+        if (scroller) {
+            scroller.scrollBy(deltaX, deltaY, animate);
         }
     },
 
     /**
      * Scrolls this component to the specified `x` and `y` coordinates.  Only applicable
-     * for components that have been configured with `{@link #autoScroll}` or
-     * `{@link #overflowX}` and `{@link #overflowY}`.
+     * for {@link #scrollable} components.
      * @param {Number} x
      * @param {Number} y
      * @param {Boolean/Object} [animate] true for the default animation or a standard Element
      * animation config object
      */
     scrollTo: function(x, y, animate) {
-        var me = this,
-            scrollManager = me.scrollManager;
+        var scroller = this.getScrollable();
 
-        if (scrollManager) {
-            scrollManager.scrollTo(x, y, animate);
-        } else {
-            me.doScrollTo(x, y, animate);
+        if (scroller) {
+            scroller.scrollTo(x, y, animate);
         }
     },
 
@@ -4162,20 +4524,11 @@ Ext.define('Ext.Component', {
      * Sets the overflow on the content element of the component.
      * @param {Boolean} scroll True to allow the Component to auto scroll.
      * @return {Ext.Component} this
+     * @deprecated 5.0.0 Use {@link #setScrollable} instead
      */
     setAutoScroll: function(scroll) {
-        var me = this;
-
-        me.autoScroll = !!scroll;
-
-        // Scrolling styles must be applied to Component's main element.
-        // Layouts which use an innerCt (Box layout), shrinkwrap the innerCt round overflowing content,
-        // so the innerCt must be scrolled by the container, it does not scroll content.
-        if (me.rendered) {
-            me.getOverflowEl().setStyle(me.getOverflowStyle());
-        }
-        me.updateLayout();
-        return me;
+        this.setScrollable(!!scroll);
+        return this;
     },
 
     /**
@@ -4338,9 +4691,14 @@ Ext.define('Ext.Component', {
                 }
                 margin = this.unitizeBox(margin);
             }
-            me.getTargetEl().setStyle('margin', margin);
+            me.margin = margin;
+            // See: EXTJS-13359
+            me.margin$ = null;
+            me.getEl().setStyle('margin', margin);
             if (!preventLayout) {
-                me.updateLayout();
+                // Changing the margins can impact the position of this (and possibly) 
+                // other subsequent components in the layout.
+                me.updateLayout(me._notAsLayoutRoot);
             }
         } else {
             me.margin = margin;
@@ -4350,36 +4708,20 @@ Ext.define('Ext.Component', {
     /**
      * Sets the overflow x/y on the content element of the component. The x/y overflow
      * values can be any valid CSS overflow (e.g., 'auto' or 'scroll'). By default, the
-     * value is 'hidden'. Passing null for one of the values will erase the inline style.
-     * Passing `undefined` will preserve the current value.
+     * value is 'hidden'.  Passing `undefined` will preserve the current value.
      *
      * @param {String} overflowX The overflow-x value.
      * @param {String} overflowY The overflow-y value.
      * @return {Ext.Component} this
+     * @deprecated 5.0.0 Use {@link #setScrollable} instead
      */
     setOverflowXY: function(overflowX, overflowY) {
-        var me = this,
-            argCount = arguments.length,
-            ownerCt = me.ownerCt;
+        this.setScrollable({
+            x: (overflowX && overflowX !== 'hidden') ? overflowX : false,
+            y: (overflowY && overflowY !== 'hidden') ? overflowY : false
+        });
 
-        if (argCount) {
-            me.overflowX = overflowX || '';
-            if (argCount > 1) {
-                me.overflowY = overflowY || '';
-            }
-        }
-
-        // Scrolling styles must be applied to Component's main element.
-        // Layouts which use an innerCt (Box layout), shrinkwrap the innerCt round overflowing content,
-        // so the innerCt must be scrolled by the container, it does not scroll content.
-        if (me.rendered) {
-            me.getOverflowEl().setStyle(me.getOverflowStyle());
-        }
-
-        // When overflow status changes, addition/removal of scrollbars potentially changes calculated content size.
-        // Lay the owning container out if we have one.
-        (ownerCt || me).updateLayout();
-        return me;
+        return this;
     },
 
     /**
@@ -4477,34 +4819,32 @@ Ext.define('Ext.Component', {
     },
 
     /**
-     * Sets the "x" scroll position for this component.  Only applicable for components
-     * that have been configured with `{@link #autoScroll}` or `{@link #overflowX}`.
+     * Sets the "x" scroll position for this component.  Only applicable for
+     * {@link #scrollable} components
      * @param {Number} x
+     * @param {Boolean/Object} [animate] true for the default animation or a standard Element
+     * animation config object
      */
-    setScrollX: function(x) {
-        var me = this,
-            scrollManager = me.scrollManager;
+    setScrollX: function(x, animate) {
+        var scroller = this.getScrollable();
 
-        if (scrollManager) {
-            scrollManager.scrollTo(x, scrollManager.getPosition().y);
-        } else {
-            me.setScrollLeft(x);
+        if (scroller) {
+            scroller.scrollTo(x, null, animate);
         }
     },
 
     /**
-     * Sets the "y" scroll position for this component.  Only applicable for components
-     * that have been configured with `{@link #autoScroll}` or `{@link #overflowY}`.
+     * Sets the "y" scroll position for this component.  Only applicable for
+     * {@link #scrollable} components
      * @param {Number} y
+     * @param {Boolean/Object} [animate] true for the default animation or a standard Element
+     * animation config object
      */
-    setScrollY: function(y) {
-        var me = this,
-            scrollManager = me.scrollManager;
+    setScrollY: function(y, animate) {
+        var scroller = this.getScrollable();
 
-        if (scrollManager) {
-            scrollManager.scrollTo(scrollManager.getPosition().x, y);
-        } else {
-            me.getOverflowEl().setScrollTop(y);
+        if (scroller) {
+            scroller.scrollTo(null, y, animate);
         }
     },
 
@@ -4576,12 +4916,9 @@ Ext.define('Ext.Component', {
      * @return {Ext.Component} this
      */
     setStyle: function (prop, value) {
-        var me = this,
-            el = me.el || me.protoEl;
-
+        var el = this.el || this.protoEl;
         el.setStyle(prop, value);
-
-        return me;
+        return this;
     },
 
     /**
@@ -4939,7 +5276,7 @@ Ext.define('Ext.Component', {
     update: function(htmlOrData, loadScripts, callback) {
         var me = this,
             isData = (me.tpl && !Ext.isString(htmlOrData)),
-            scrollManager = me.scrollManager,
+            scroller = me.getScrollable(),
             container = me.focusableContainer,
             sizeModel, doLayout, el;
 
@@ -4971,8 +5308,8 @@ Ext.define('Ext.Component', {
             if (doLayout) {
                 me.updateLayout();
             }
-            if (scrollManager) {
-                scrollManager.refresh();
+            if (scroller) {
+                scroller.refresh(true);
             }
             
             if (container) {
@@ -5133,69 +5470,6 @@ Ext.define('Ext.Component', {
     // </editor-fold>
 
     privates: {
-        statics: {
-            /**
-             * Walk the DOM tree upwards and find the Component these elements belong to.
-             * @private
-             */
-            findComponentByElement: function(node) {
-                var topmost = document.body,
-                    target = node,
-                    cmp;
-
-                while (target && target.nodeType === 1 && target !== topmost) {
-                    cmp = Ext.getCmp(target.id);
-
-                    if (cmp) {
-                        return cmp;
-                    }
-
-                    target = target.parentNode;
-                }
-
-                return null;
-            },
-
-            /**
-             * Find a Component that the given Element belongs to.
-             *
-             * @param {Ext.dom.Element/HTMLElement} el
-             * @return {Ext.Component/null} Component, or null
-             * @private
-             */
-            getComponentByElement: function(el) {
-                var cmpIdAttr = Ext.Component.componentIdAttribute,
-                    cmpId;
-
-                el = Ext.fly(el);
-
-                if (!el) {
-                    return null;
-                }
-
-                cmpId = el.getAttribute(cmpIdAttr);
-
-                if (cmpId) {
-                    return Ext.getCmp(cmpId);
-                }
-                else {
-                    return Ext.Component.findComponentByElement(el.dom);
-                }
-            },
-
-            /**
-             * Return the currently active (focused) Component
-             *
-             * @return {Ext.Component/null} Active Component, or null
-             * @private
-             */
-            getActiveComponent: function() {
-                var el = Ext.dom.Element.getActiveElement();
-
-                return Ext.Component.getComponentByElement(el);
-            }
-        }, // statics
-
         addOverCls: function() {
             var me = this;
             if (!me.disabled) {
@@ -5310,19 +5584,45 @@ Ext.define('Ext.Component', {
             return result;
         },
 
-        // private - hook for rtl override
-        doScrollBy: function(deltaX, deltaY, animate) {
-            var overflowEl = this.getOverflowEl();
-            if (overflowEl) {
-                overflowEl.scrollBy(deltaX, deltaY, animate);
-            }
-        },
+        doAddListener: function(ename, fn, scope, options, order, caller, manager) {
+            var me = this,
+                listeners, option, eventOptions, elementName, element;
 
-        // private - hook for rtl override
-        doScrollTo: function(x, y, animate) {
-            var overflowEl = this.getOverflowEl();
-            overflowEl.scrollTo('left', x, animate);
-            overflowEl.scrollTo('top', y, animate);
+            if (Ext.isObject(fn) || (options && options.element)) {
+                if (options.element) {
+                    elementName = options.element;
+                    listeners = {};
+                    listeners[ename] = fn;
+                    if (scope) {
+                        listeners.scope = scope;
+                    }
+
+                    eventOptions = me.$elementEventOptions;
+                    for (option in options) {
+                        if (eventOptions[option]) {
+                            listeners[option] = options[option];
+                        }
+                    }
+                } else {
+                    listeners = fn;
+                    elementName = ename;
+                }
+
+                element = me[elementName];
+
+                if (element && element.isObservable) { // can be any kind of observable, not just element
+                    me.mon(element, listeners);
+                } else {
+                    me.afterRenderEvents = me.afterRenderEvents || {};
+                    if (!me.afterRenderEvents[elementName]) {
+                        me.afterRenderEvents[elementName] = [];
+                    }
+                    me.afterRenderEvents[elementName].push(listeners);
+                }
+                return;
+            }
+
+            me.mixins.observable.doAddListener.call(me, ename, fn, scope, options, order, caller, manager);
         },
 
         /**
@@ -5385,82 +5685,35 @@ Ext.define('Ext.Component', {
 
         /**
          * @private
-         * Returns the CSS style object which will set the Component's scroll styles. This must be applied
-         * to the {@link #getTargetEl target element}.
+         * Returns the CSS style object which will set the Component's scroll styles.
+         * This must be applied to the {@link #getTargetEl target element}.
          */
         getOverflowStyle: function() {
             var me = this,
-                result = null,
-                auto = me.autoScroll,
-                ox, oy,
-                overflowStyle;
+                scroller = me.getScrollable(),
+                flags = me._scrollFlags,
+                x, y, scrollFlags;
 
-            // Note to maintainer. To save on waves of testing, setting and defaulting, the code below
-            // rolls assignent statements into conditional test value expressions and property object initializers.
-            // This avoids sprawling code. Maintain with care.
-            if (typeof auto === 'boolean') {
-                result = {
-                    overflow: overflowStyle = (auto ? 'auto' : '')
-                };
-                me.scrollFlags = {
-                    overflowX: overflowStyle,
-                    overflowY: overflowStyle,
-                    x: auto,
-                    y: auto,
-                    both: auto
-                };
-            } else {
-                ox = me.overflowX;
-                oy = me.overflowY;
-                if (ox !== undefined || oy !== undefined) {
-                    if (ox && ox === true) {
-                        ox = 'auto';
-                    }
-
-                    if (oy && oy === true) {
-                        oy = 'auto';
-                    }
-                    result = {
-                        'overflowX':  ox = ox || '',
-                        'overflowY':  oy = oy || ''
-                    };
-
-                    /**
-                     * @member Ext.Component
-                     * @property {Object} scrollFlags
-                     * An object property which provides unified information as to which dimensions are scrollable based upon
-                     * the {@link #autoScroll}, {@link #overflowX} and {@link #overflowY} settings (And for *views* of trees and grids, the owning panel's {@link Ext.panel.Table#scroll scroll} setting).
-                     *
-                     * Note that if you set overflow styles using the {@link #style} config or {@link Ext.panel.Panel#bodyStyle bodyStyle} config, this object does not include that information;
-                     * it is best to use {@link #autoScroll}, {@link #overflowX} and {@link #overflowY} if you need to access these flags.
-                     *
-                     * This object has the following properties:
-                     * @property {Boolean} scrollFlags.x `true` if this Component is scrollable horizontally - style setting may be `'auto'` or `'scroll'`.
-                     * @property {Boolean} scrollFlags.y `true` if this Component is scrollable vertically - style setting may be `'auto'` or `'scroll'`.
-                     * @property {Boolean} scrollFlags.both `true` if this Component is scrollable both horizontally and vertically.
-                     * @property {String} scrollFlags.overflowX The `overflow-x` style setting, `'auto'` or `'scroll'` or `''`.
-                     * @property {String} scrollFlags.overflowY The `overflow-y` style setting, `'auto'` or `'scroll'` or `''`.
-                     * @readonly
-                     */
-                    me.scrollFlags = {
-                        overflowX: ox,
-                        overflowY: oy,
-                        x: ox = (ox === 'auto' || ox === 'scroll'),
-                        y: oy = (oy === 'auto' || oy === 'scroll'),
-                        both: ox && oy
-                    };
-                } else {
-                    me.scrollFlags = {
-                        overflowX: '',
-                        overflowY: '',
-                        x: false,
-                        y: false,
-                        both: false
-                    };
+            if (scroller) {
+                x = scroller.getX();
+                if (x === true) {
+                    x = 'auto';
                 }
+                y = scroller.getY();
+                if (y === true) {
+                    y = 'auto';
+                }
+                scrollFlags = flags[x][y];
+            } else {
+                scrollFlags = flags.none;
             }
 
-            return result;
+            me.scrollFlags = scrollFlags;
+
+            return {
+                overflowX: scrollFlags.overflowX,
+                overflowY: scrollFlags.overflowY
+            };
         },
 
         /**
@@ -5483,11 +5736,6 @@ Ext.define('Ext.Component', {
                 me.proxy = me.el.createProxy(Ext.baseCSSPrefix + 'proxy-el', target, true);
             }
             return me.proxy;
-        },
-
-        // private - hook for rtl override
-        getScrollLeft: function() {
-            return this.getOverflowEl().getScrollLeft();
         },
 
         getScrollerEl: function() {
@@ -5534,7 +5782,12 @@ Ext.define('Ext.Component', {
 
         initCls: function() {
             var me = this,
-                cls = [ me.baseCls, me.getComponentLayout().targetCls ];
+                cls = [me.baseCls],
+                targetCls = me.getComponentLayout().targetCls;
+
+            if (targetCls) {
+                cls.push(targetCls);
+            }
 
             //<deprecated since=0.99>
             if (Ext.isDefined(me.cmpCls)) {
@@ -5626,20 +5879,6 @@ Ext.define('Ext.Component', {
             }, resizable);
             resizable.target = me;
             me.resizer = new Ext.resizer.Resizer(resizable);
-        },
-
-        initScrollManager: function() {
-            var me = this,
-                scrollFlags = me.scrollFlags,
-                scrollerEl = me.getScrollerEl();
-
-            if (scrollerEl && !me.scrollManager) {
-                return me.scrollManager = new Ext.scroll.Manager({
-                    owner: me,
-                    el: scrollerEl,
-                    direction: scrollFlags.both ? 'auto' : scrollFlags.y ? 'vertical' : 'horizontal'
-                });
-            }
         },
 
         /**
@@ -5735,11 +5974,6 @@ Ext.define('Ext.Component', {
             return false;
         },
 
-        // @private
-        makeFloating: function (dom) {
-            this.mixins.floating.constructor.call(this, dom);
-        },
-
         /**
          * @private
          * Returns `true` if the passed element is within the container tree of this component.
@@ -5758,7 +5992,7 @@ Ext.define('Ext.Component', {
                 element = element.dom;
             }
 
-            cmp = Ext.Component.findComponentByElement(element);
+            cmp = Ext.ComponentManager.byElement(element);
 
             if (cmp) {
                 result = (cmp === this) || (!!cmp.up(this));
@@ -5777,10 +6011,10 @@ Ext.define('Ext.Component', {
          * Subclasses may change implementation.
          */
         refreshScroll: function() {
-            var scrollManager = this.scrollManager;
+            var scroller = this.getScrollable();
 
-            if (scrollManager) {
-                scrollManager.refresh();
+            if (scroller) {
+                scroller.refresh();
             }
         },
 
@@ -5851,9 +6085,11 @@ Ext.define('Ext.Component', {
         },
 
         setHiddenState: function (hidden) {
-            var inheritedState = this.getInherited();
+            var me = this,
+                inheritedState = me.getInherited(),
+                zIndexManager = me.zIndexManager;
 
-            this.hidden = hidden;
+            me.hidden = hidden;
 
             if (hidden) {
                 inheritedState.hidden = true;
@@ -5862,7 +6098,9 @@ Ext.define('Ext.Component', {
             }
 
             // Ensutre any ZIndexManager knowns about visibility state change to keep its filtering correct
-            this.zIndexManager && this.zIndexManager.onComponentShowHide(this);
+            if (zIndexManager) {
+                zIndexManager.onComponentShowHide(me);
+            }
         },
 
         setupProtoEl: function() {
@@ -5871,16 +6109,16 @@ Ext.define('Ext.Component', {
             this.protoEl.addCls(cls);
         },
 
-        // private - hook for rtl override
-        setScrollLeft: function(left) {
-            this.getOverflowEl().setScrollLeft(left);
-        },
-
         wrapPrimaryEl: function (dom) {
-            if (this.floating) {
-                this.makeFloating(dom);
-            } else {
-                this.el = Ext.get(dom);
+            var me = this,
+                el = me.el;
+
+            if (!el || !el.isElement) { // allow subclass override to instantiate the element
+                me.el = Ext.get(dom);
+            }
+
+            if (me.floating) {
+                this.mixins.floating.constructor.call(this);
             }
         }
     }, // private
@@ -5932,6 +6170,10 @@ Ext.define('Ext.Component', {
         }
     }
 }, function(Component) {
+    // event options for listeners that use the "element" event options must also include
+    // event options from Ext.Element
+    (Component.prototype.$elementEventOptions =
+        Ext.Object.chain(Ext.Element.prototype.$eventOptions)).element = 1;
 
     Component.createAlias({
         on: 'addListener',

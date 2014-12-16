@@ -22,31 +22,23 @@ Ext.define('Ext.util.LruCache', {
      */
     add: function(key, newValue) {
         var me = this,
-            existingKey = me.findKey(newValue),
-            entry;
+            entry, last;
 
-        // "new" value is in the list.
-        if (existingKey) {
-            me.unlinkEntry(entry = me.map[existingKey]);
-            entry.prev = me.last;
-            entry.next = null;
-        }
-        // Genuinely new: create an entry for it.
-        else {
-            entry = {
-                prev: me.last,
-                next: null,
-                key: key,
-                value: newValue
-            };
-        }
+        me.removeAtKey(key);
+        last = me.last;
+        entry = {
+            prev: last,
+            next: null,
+            key: key,
+            value: newValue
+        };
 
-        // If the list is not empty, update the last entry
-        if (me.last) {
-            me.last.next = entry;
-        }
-        // List is empty
-        else {
+        
+        if (last) {
+            // If the list is not empty, update the last entry
+            last.next = entry;
+        } else {
+            // List is empty
             me.first = entry;
         }
         me.last = entry;

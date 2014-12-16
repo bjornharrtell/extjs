@@ -38,7 +38,7 @@
  *             },
  *             {header: 'Phone', dataIndex: 'phone'}
  *         ],
- *         selType: 'rowmodel',
+ *         selModel: 'rowmodel',
  *         plugins: {
  *             ptype: 'rowediting',
  *             clicksToEdit: 1
@@ -270,13 +270,6 @@ Ext.define('Ext.grid.plugin.RowEditing', {
             },
             single: true
         });
-    },
-
-    startEditByClick: function() {
-        var me = this;
-        if (!me.editing || me.clicksToMoveEditor === me.clicksToEdit) {
-            me.callParent(arguments);
-        }
     },
 
     moveEditorByClick: function() {

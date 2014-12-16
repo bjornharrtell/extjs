@@ -46,7 +46,7 @@ Ext.define('Ext.menu.Item', {
 
     /**
      * @cfg {String} activeCls
-     * The CSS class added to the menu item when the item is activated (focused/mouseover).
+     * The CSS class added to the menu item when the item is focused.
      */
     activeCls: Ext.baseCSSPrefix + 'menu-item-active',
 
@@ -58,9 +58,9 @@ Ext.define('Ext.menu.Item', {
 
     /**
      * @cfg {Boolean} canActivate
-     * Whether or not this menu item can be activated when focused/mouseovered.
+     * Whether or not this menu item can be focused.
+     * @deprecated 5.1.0 Use the {@link #focusable} config.
      */
-    canActivate: true,
 
     /**
      * @cfg {Number} clickHideDelay
@@ -272,40 +272,45 @@ Ext.define('Ext.menu.Item', {
      * @param {String} newIcon
      */
 
-    activate: function(skipCheck) {
+    canFocus: function() {
+        var me = this;
+        
+        // This is an override of the implementation in Focusable.
+        // We do not refuse focus if the Item is disabled.
+        // http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#menu
+        // "Disabled menu items receive focus but have no action when Enter or Left Arrow/Right Arrow is pressed."
+        // Test that deprecated canActivate config has not been set to false.
+        return me.focusable && me.rendered && me.canActivate !== false &&
+               !me.destroying && !me.isDestroyed &&
+               me.isVisible(true);
+    },
+
+    onFocus: function(e) {
         var me = this;
 
-        if (skipCheck || (!me.activated && me.canActivate && me.rendered && !me.isDisabled() && me.isVisible())) {
-            if (!me.plain) {
-                me.el.addCls(me.activeCls);
-            }
+        me.callParent([e]);
 
-            // Delay focus so as not to focus/blur during mousemoves, and keyboard navigation
-            // This was the cause of perf problems on IE: https://sencha.jira.com/browse/EXTJSIV-7488
-            me.focus(false, true);
-            me.activated = true;
-            if (me.hasListeners.activate) {
-                me.fireEvent('activate', me);
-            }
+        if (!me.plain) {
+            me.addCls(me.activeCls);
+        }
+
+        me.activated = true;
+        if (me.hasListeners.activate) {
+            me.fireEvent('activate', me);
         }
     },
 
-    deactivate: function() {
-        var me = this,
-            parent;
+    onFocusLeave: function(e) {
+        var me = this;
+
+        me.callParent([e]);
 
         if (me.activated) {
-            parent = me.up('');
             if (!me.plain) {
-                me.el.removeCls(me.activeCls);
+                me.removeCls(me.activeCls);
             }
 
-            // Delay focus of parent so as not to focus/blur during mousemoves, and keyboard navigation
-            // This was the cause of perf problems on IE: https://sencha.jira.com/browse/EXTJSIV-7488
-            if (parent) {
-                parent.focus(false, true);
-            }
-            me.hideMenu();
+            me.doHideMenu();
             me.activated = false;
             if (me.hasListeners.deactivate) {
                 me.fireEvent('deactivate', me);
@@ -313,9 +318,11 @@ Ext.define('Ext.menu.Item', {
         }
     },
 
-    deferHideMenu: function() {
-        if (this.menu.isVisible()) {
-            this.menu.hide();
+    doHideMenu: function() {
+        var menu = this.menu;
+
+        if (menu && menu.isVisible()) {
+            menu.hide();
         }
     },
 
@@ -323,34 +330,48 @@ Ext.define('Ext.menu.Item', {
         clearTimeout(this.hideMenuTimer);
     },
 
+    /**
+     * @private
+     * Hides the entire floating menu tree that we are within.
+     * Walks up the refOwner axis to find topmost floating Menu and hides that.
+     */
     deferHideParentMenus: function() {
-        var ancestor;
-        Ext.menu.Manager.hideAll();
+        var topMenu = this.getRefOwner(),
+            owner;
 
-        if (!Ext.Element.getActiveElement()) {
-            // If we have just hidden all Menus, and there is no currently focused element in the dom, transfer focus to the first visible ancestor if any.
-            ancestor = this.up(':not([hidden])');
-            if (ancestor) {
-                ancestor.focus();
-            }
+        if (topMenu.floating) {
+            topMenu.bubble(function(parent) {
+                if (!parent.floating && !parent.isMenuItem) {
+                    return false;
+                }
+                if (parent.isMenu) {
+                    topMenu = parent;
+                }
+            });
+            topMenu.hide();
         }
     },
 
-    expandMenu: function(delay) {
+    expandMenu: function(event, delay) {
         var me = this;
 
         if (me.menu) {
+
+            // hideOnClick makes no sense when there's a child menu
+            me.hideOnClick = false;
+
             me.cancelDeferHide();
             if (delay === 0) {
-                me.doExpandMenu();
+                me.doExpandMenu(event);
             } else {
                 clearTimeout(me.expandMenuTimer);
-                me.expandMenuTimer = Ext.defer(me.doExpandMenu, Ext.isNumber(delay) ? delay : me.menuExpandDelay, me);
+                // Delay can't be 0 by this point
+                me.expandMenuTimer = Ext.defer(me.doExpandMenu, delay || me.menuExpandDelay, me, [event]);
             }
         }
     },
 
-    doExpandMenu: function() {
+    doExpandMenu: function(clickEvent) {
         var me = this,
             menu = me.menu;
 
@@ -359,6 +380,9 @@ Ext.define('Ext.menu.Item', {
             menu.ownerCmp = me;
             menu.parentMenu = me.parentMenu;
             menu.constrainTo = document.body;
+
+            // Pointer-invoked menus do not auto focus, key invoked ones do.
+            menu.autoFocus = !clickEvent || !clickEvent.pointerType;
             menu.showBy(me, me.menuAlign);
         }
     },
@@ -374,34 +398,40 @@ Ext.define('Ext.menu.Item', {
         return items || [];
     },
 
+    getValue: function () {
+        return this.value;
+    },
+
     hideMenu: function(delay) {
         var me = this;
 
         if (me.menu) {
             clearTimeout(me.expandMenuTimer);
-            me.hideMenuTimer = Ext.defer(me.deferHideMenu, Ext.isNumber(delay) ? delay : me.menuHideDelay, me);
+            me.hideMenuTimer = Ext.defer(me.doHideMenu, Ext.isNumber(delay) ? delay : me.menuHideDelay, me);
         }
     },
 
     initComponent: function() {
         var me = this,
-            prefix = Ext.baseCSSPrefix,
-            cls = '',
+            cls = me.cls ? [me.cls] : [],
             menu;
 
+        // During deprecation period of canActivate config, copy it into focusable config.
+        if (me.hasOwnProperty('canActivate')) {
+            me.focusable = me.canActivate;
+        }
+
         if (me.plain) {
-            cls += prefix + 'menu-item-plain';
+            cls.push(Ext.baseCSSPrefix + 'menu-item-plain');
         }
 
-        if (me.cls) {
-            cls += ' ' + me.cls;
+        if (cls.length) {
+            me.cls  = cls.join(' ');
         }
-
-        me.cls = cls;
 
         if (me.menu) {
             menu = me.menu;
-            delete me.menu;
+            me.menu = null;
             me.setMenu(menu);
         }
 
@@ -412,25 +442,26 @@ Ext.define('Ext.menu.Item', {
         var me = this,
             clickHideDelay = me.clickHideDelay,
             browserEvent = e.browserEvent,
-            preventDefault;
+            clickResult, preventDefault;
 
         if (!me.href || me.disabled) {
             e.stopEvent();
+            if (me.disabled) {
+                return false;
+            }
         }
 
         if (me.disabled || me.handlingClick) {
             return;
         }
 
-        if (me.hideOnClick &&
+        if (me.hideOnClick) {
             // on mobile webkit, when the menu item has an href, a longpress will trigger
             // the touch callout menu to show.  If this is the case, the tap event object's
             // browser event type will be 'touchcancel', and we do not want to hide the menu.
-            e.browserEvent.type !== 'touchcancel' &&
+            
             // items with submenus are activated by touchstart on mobile browsers, so
             // we cannot hide the menu on "tap"
-            !(e.type === 'tap' && me.menu)) {
-
             if (!clickHideDelay) {
                 me.deferHideParentMenus();
             } else {
@@ -438,8 +469,15 @@ Ext.define('Ext.menu.Item', {
             }
         }
 
-        Ext.callback(me.handler, me.scope, [me, e], 0, me);
-        me.fireEvent('click', me, e);
+        // Click event may have destroyed the menu, don't do anything further
+        clickResult = me.fireEvent('click', me, e);
+        if (me.isDestroyed) {
+            return;
+        }
+
+        if (clickResult !== false && me.handler) {
+            Ext.callback(me.handler, me.scope, [me, e], 0, me);
+        }
 
         // If there's an href, invoke dom.click() after we've fired the click event in case a click
         // listener wants to handle it.
@@ -451,7 +489,7 @@ Ext.define('Ext.menu.Item', {
         // the default action has been prevented.  If so, we don't want to honor the .href config.
         if (Ext.isIE9m) {
             // Here we need to invert the value since it's meaning is the opposite of defaultPrevented.
-            preventDefault = (browserEvent.returnValue === false) ? true : false;
+            preventDefault = browserEvent.returnValue === false ? true : false;
         } else {
             preventDefault = !!browserEvent.defaultPrevented;
         }
@@ -460,12 +498,13 @@ Ext.define('Ext.menu.Item', {
         if (me.href && e.type !== 'click' && !preventDefault) {
             me.handlingClick = true;
             me.itemEl.dom.click();
-            delete me.handlingClick;
+            me.handlingClick = false;
         }
 
         if (!me.hideOnClick) {
             me.focus();
         }
+        return clickResult;
     },
 
     onRemoved: function() {
@@ -601,7 +640,8 @@ Ext.define('Ext.menu.Item', {
         }
         if (menu) {
             menu = me.menu = Ext.menu.Manager.get(menu, {
-                ownerCmp: me
+                ownerCmp: me,
+                focusOnToFront: false
             });
             // We need to forcibly set this here because we could be passed an existing menu, which means
             // the config above won't get applied during creation.
@@ -675,8 +715,7 @@ Ext.define('Ext.menu.Item', {
 
         if (me.rendered) {
             el.setHtml(text || '');
-            // cannot just call layout on the component due to stretchmax
-            me.ownerCt.updateLayout();
+            me.updateLayout();
         }
         me.fireEvent('textchange', me, oldText, text);
     },

@@ -35,7 +35,7 @@ Ext.define('Ext.dd.Registry', {
      */
     register : function(el, data){
         data = data || {};
-        if (typeof el == "string") {
+        if (typeof el === "string") {
             el = document.getElementById(el);
         }
         data.ddel = el;

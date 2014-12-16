@@ -1,6 +1,6 @@
 /**
- * Tracks what records are currently selected in a databound widget. This class is mixed in to {@link Ext.dataview.DataView} and
- * all subclasses.
+ * Tracks what records are currently selected in a databound widget. This class is mixed in to
+ * {@link Ext.view.View dataview} and all subclasses.
  * @private
  */
 Ext.define('Ext.mixin.Selectable', {

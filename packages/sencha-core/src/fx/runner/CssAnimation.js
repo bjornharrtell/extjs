@@ -20,12 +20,13 @@ Ext.define('Ext.fx.runner.CssAnimation', {
     },
 
     attachListeners: function() {
-        var eventDispatcher = this.getEventDispatcher();
-
         this.listenersAttached = true;
 
-        eventDispatcher.addListener('element', '*', 'animationstart', 'onAnimationStart', this);
-        eventDispatcher.addListener('element', '*', 'animationend', 'onAnimationEnd', this);
+        Ext.getWin().on({
+            animationstart: 'onAnimationStart',
+            animationend: 'onAnimationEnd',
+            scope: this
+        });
     },
 
     onAnimationStart: function(e) {

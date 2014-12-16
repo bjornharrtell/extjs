@@ -104,6 +104,8 @@ Ext.apply(Ext, {
             scope = scope || Ext.global;
             if (delay) {
                 Ext.defer(callback, delay, scope, args);
+            } else if (Ext.elevateFunction) {
+                ret = Ext.elevateFunction(callback, scope, args);
             } else if (args) {
                 ret = callback.apply(scope, args);
             } else {
@@ -177,28 +179,61 @@ Ext.apply(Ext, {
      * @param {Object} source The source object.
      * @param {String/String[]} names Either an Array of property names, or a comma-delimited list
      * of property names to copy.
-     * @param {Boolean} [usePrototypeKeys=falae] Pass `true` to copy keys off of the
+     * @param {Boolean} [usePrototypeKeys=false] Pass `true` to copy keys off of the
      * prototype as well as the instance.
      * @return {Object} The `dest` object.
      */
-    copyTo : function(dest, source, names, usePrototypeKeys){
-        if(typeof names == 'string'){
-            names = names.split(/[,;\s]/);
+    copyTo: function (dest, source, names, usePrototypeKeys) {
+        if (typeof names === 'string') {
+            names = names.split(Ext.propertyNameSplitRe);
         }
 
-        var n,
-            nLen = names? names.length : 0,
-            name;
+        for (var name, i = 0, n = names ? names.length : 0; i < n; i++) {
+            name = names[i];
 
-        for(n = 0; n < nLen; n++) {
-            name = names[n];
-
-            if (usePrototypeKeys || source.hasOwnProperty(name)){
+            if (usePrototypeKeys || source.hasOwnProperty(name)) {
                 dest[name] = source[name];
             }
         }
 
         return dest;
+    },
+
+    propertyNameSplitRe: /[,;\s]+/,
+
+    /**
+     * @method copyToIf
+     * @member Ext
+     * Copies a set of named properties fom the source object to the destination object
+     * if the destination object does not already have them.
+     *
+     * Example:
+     *
+     *     var foo = { a: 1, b: 2, c: 3 };
+     *
+     *     var bar = Ext.copyToIf({ a:42 }, foo, 'a,c');
+     *     // bar = { a: 42, c: 3 };
+     *
+     * @param {Object} destination The destination object.
+     * @param {Object} source The source object.
+     * @param {String/String[]} names Either an Array of property names, or a single string
+     * with a list of property names separated by ",", ";" or spaces.
+     * @return {Object} The `dest` object.
+     */
+    copyToIf: function (destination, source, names) {
+        if (typeof names === 'string') {
+            names = names.split(Ext.propertyNameSplitRe);
+        }
+
+        for (var name, i = 0, n = names ? names.length : 0; i < n; i++) {
+            name = names[i];
+
+            if (destination[name] === undefined) {
+                destination[name] = source[name];
+            }
+        }
+
+        return destination;
     },
 
     /**
@@ -508,7 +543,7 @@ Ext.apply(Ext, {
             return instance || Ext.create(classReference);
         }
 
-        //<debug error>
+        //<debug>
         if (!Ext.isObject(config)) {
             Ext.Logger.error("Invalid config, must be a valid config object");
         }

@@ -65,7 +65,7 @@ Ext.define('Ext.rtl.dom.Element', {
         return styles;
     },
 
-   getXY: function() {
+    getXY: function() {
         var doc = document,
             round = Math.round,
             dom = this.dom,
@@ -243,15 +243,23 @@ Ext.define('Ext.rtl.dom.Element', {
     },
 
     rtlSetLocalX: function(x) {
-        var style = this.dom.style;
+        var me = this,
+            style = me.dom.style;
 
         // clear left style just in case it was previously set by setXY/setLocalXY
         style.left = 'auto';
         style.right = (x === null) ? 'auto' : x + 'px';
+
+        if (me.shadow || me.shim) {
+            me.syncUnderlays();
+        }
+
+        return me;
     },
 
     rtlSetLocalXY: function(x, y) {
-        var style = this.dom.style;
+        var me = this,
+            style = me.dom.style;
 
         // clear left style just in case it was previously set by setXY/setLocalXY
         style.left = 'auto';
@@ -272,6 +280,12 @@ Ext.define('Ext.rtl.dom.Element', {
         } else if (y !== undefined) {
             style.top = y + 'px';
         }
+
+        if (me.shadow || me.shim) {
+            me.syncUnderlays();
+        }
+
+        return me;
     },
 
     rtlSetScrollLeft: function(left){

@@ -10,9 +10,13 @@ Ext.example = function(){
        return '<div class="msg ' + Ext.baseCSSPrefix + 'border-box"><h3>' + t + '</h3><p>' + s + '</p></div>';
     }
     return {
-        msg : function(title, format){
-            if (!msgCt) {
-                msgCt = Ext.DomHelper.insertFirst(document.body, {id:'msg-div'}, true);
+        msg : function(title, format) {
+            // Ensure message container is last in the DOM so it cannot interfere with
+            // layout#isValidParent's DOM ordering requirements.
+            if (msgCt) {
+                document.body.appendChild(msgCt.dom);
+            } else {
+                msgCt = Ext.DomHelper.append(document.body, {id:'msg-div'}, true);
             }
             var s = Ext.String.format.apply(String, Array.prototype.slice.call(arguments, 1));
             var m = Ext.DomHelper.append(msgCt, createBox(title, s), true);

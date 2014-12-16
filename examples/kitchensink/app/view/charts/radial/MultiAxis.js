@@ -81,10 +81,6 @@ Ext.define('KitchenSink.view.charts.radial.MultiAxis', {
                 handler: refreshChart
             },
             {
-                xtype: 'tbspacer',
-                width: 10
-            },
-            {
                 text: 'Preview',
                 handler: function() {
                     chart.preview();

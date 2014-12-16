@@ -5,11 +5,13 @@
  */
 Ext.define('Ext.draw.gradient.Gradient', {
 
+    requires: ['Ext.draw.Color'],
+
     isGradient: true,
 
     config: {
         /**
-         * @cfg {Array/Object} Defines the stops of the gradient.
+         * Defines the stops of the gradient.
          */
         stops: []
     },
@@ -21,7 +23,10 @@ Ext.define('Ext.draw.gradient.Gradient', {
 
         for (i = 0; i < ln; i++) {
             stop = newStops[i];
-            color = Ext.draw.Color.fly(stop.color || 'none');
+            color = stop.color;
+            if (!(color && color.isColor)) {
+                color = Ext.draw.Color.fly(color || Ext.draw.Color.NONE);
+            }
             stops.push({
                 offset: Math.min(1, Math.max(0, 'offset' in stop ? stop.offset : stop.position || 0)),
                 color: color.toString()

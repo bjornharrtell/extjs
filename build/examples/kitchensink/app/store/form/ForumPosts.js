@@ -23,18 +23,20 @@ Ext.define('KitchenSink.store.form.ForumPosts', {
         beforeload: 'onBeforeLoad',
         scope: 'this'
     },
-    
-    onBeforeLoad: function() {
-        var proxy, params;
-        
-        proxy = this.getProxy();
-        params = proxy.getExtraParams();
-        
-        if (params.query) {
-            proxy.setExtraParam('forumId', undefined);
-        }
-        else {
-            proxy.setExtraParam('forumId', this.self.defaultForumId);
+
+    privates: {
+        onBeforeLoad: function() {
+            var proxy, params;
+
+            proxy = this.getProxy();
+            params = proxy.getExtraParams();
+
+            if (params.query) {
+                proxy.setExtraParam('forumId', undefined);
+            }
+            else {
+                proxy.setExtraParam('forumId', this.self.defaultForumId);
+            }
         }
     }
 });

@@ -1,6 +1,6 @@
 /**
  * The Store class encapsulates a client side cache of {@link Ext.data.Model Model} objects. Stores load data via a
- * {@link Ext.data.proxy.Proxy Proxy}, and also provide functions for {@link #sort sorting}, {@link #filter filtering}
+ * {@link Ext.data.proxy.Proxy Proxy}, and also provide functions for {@link #method-sort sorting}, {@link #filter filtering}
  * and querying the {@link Ext.data.Model model} instances contained within it.
  *
  * Creating a Store is easy - we just tell it the Model and the Proxy to use for loading and saving its data:
@@ -117,7 +117,7 @@
  *
  * Stores can be sorted and filtered - in both cases either remotely or locally. The {@link #cfg-sorters} and
  * {@link #cfg-filters} are held inside {@link Ext.util.MixedCollection MixedCollection} instances to make them easy to manage.
- * Usually it is sufficient to either just specify sorters and filters in the Store configuration or call {@link #sort}
+ * Usually it is sufficient to either just specify sorters and filters in the Store configuration or call {@link #method-sort}
  * or {@link #filter}:
  *
  *      var store = Ext.create('Ext.data.Store', {
@@ -146,11 +146,11 @@
  *
  *     store.filter('eyeColor', 'Brown');
  *
- * Change the sorting at any time by calling {@link #sort}:
+ * Change the sorting at any time by calling {@link #method-sort}:
  *
  *     store.sort('height', 'ASC');
  *
- * Note that all existing sorters will be removed in favor of the new sorter data (if {@link #sort} is called with no
+ * Note that all existing sorters will be removed in favor of the new sorter data (if {@link #method-sort} is called with no
  * arguments, the existing sorters are just reapplied instead of being removed). To keep existing sorters and add new
  * ones, just add them to the MixedCollection:
  *
@@ -298,6 +298,8 @@ Ext.define('Ext.data.Store', {
      */
     complete: false,
 
+    moveMapCount: 0,
+
     /**
      * Creates the store.
      * @param {Object} [config] Config object.
@@ -383,25 +385,30 @@ Ext.define('Ext.data.Store', {
         me.getFields();
         me.getModel();
 
-        if (!dataCollection) {
-            dataCollection = me.constructDataCollection();
-        }
+        // We might be configured with a Collection instance
+        if (data && data.isCollection) {
+            dataCollection = data;
+        } else {
+            if (!dataCollection) {
+                dataCollection = me.constructDataCollection();
+            }
 
-        if (data) {
-            if (me.isInitializing) {
-                // When data is configured on the instance of a Store we must wait for
-                // all the things to initialize (sorters, filters, groupers) so that we
-                // can properly process that data. All of those appliers, however, depend
-                // on the dataCollection (us) to get booted up first so we must defer
-                // this back to after initConfig. In previous versions this was hacked
-                // at by the constructor via "config.data" but "data" can also be set on
-                // the Ext.define level so best to pick it up here and store aside to be
-                // finished in the constructor.
-                me.inlineData = data;
-            } else {
-                // If we are not constructing the Store than a setData call needs to be equivalent
-                // to the legacy loadData method with respect to events that fire, etc..
-                me.loadData(data);
+            if (data) {
+                if (me.isInitializing) {
+                    // When data is configured on the instance of a Store we must wait for
+                    // all the things to initialize (sorters, filters, groupers) so that we
+                    // can properly process that data. All of those appliers, however, depend
+                    // on the dataCollection (us) to get booted up first so we must defer
+                    // this back to after initConfig. In previous versions this was hacked
+                    // at by the constructor via "config.data" but "data" can also be set on
+                    // the Ext.define level so best to pick it up here and store aside to be
+                    // finished in the constructor.
+                    me.inlineData = data;
+                } else {
+                    // If we are not constructing the Store than a setData call needs to be equivalent
+                    // to the legacy loadData method with respect to events that fire, etc..
+                    me.loadData(data);
+                }
             }
         }
 
@@ -415,14 +422,16 @@ Ext.define('Ext.data.Store', {
 
         if (proxy && proxy.isMemoryProxy) {
             proxy.setData(data);
-            blocked = me.unblockLoad(true); // fully unblock
+            blocked = me.blockLoadCounter;
+
+            me.blockLoadCounter = 0;
 
             // Allow a memory proxy to trigger a load initially
             me.suspendEvents();
             me.read();
             me.resumeEvents();
 
-            me.blockLoad(blocked);
+            me.blockLoadCounter = blocked;
         } else {
             // We make it silent because we don't want to fire a refresh event
             me.removeAll(true);
@@ -461,48 +470,27 @@ Ext.define('Ext.data.Store', {
     },
 
     /**
-     * Inserts Model instances into the Store at the given index and fires the {@link #event-add} event.
-     * See also {@link #method-add}.
-     *
-     * @param {Number} index The start index at which to insert the passed Records.
-     * @param {Ext.data.Model[]} records An Array of Ext.data.Model objects to add to the store.
-     * @return {Ext.data.Model[]} records The added records
+     * @method insert
+     * @inheritdoc Ext.data.LocalStore#insert
      */
-    insert: function(index, records) {
-        var me = this,
-            len, i;
-        
-        if (records) {
-            if (!Ext.isIterable(records)) {
-                records = [records];
-            } else {
-                records = Ext.Array.clone(records);
-            }
-            len = records.length;
-        }
-        
-        if (!len) {
-            return [];
-        }
-        
-        for (i = 0; i < len; ++i) {
-            records[i] = me.createModel(records[i]);
-        }
-        
-        me.getData().insert(index, records);
-        return records;
-    },
     
     onCollectionAdd: function(collection, info) {
+        this.onCollectionAddItems(collection, info.items, info);
+    },
+
+    onCollectionFilterAdd: function(collection, items) {
+        this.onCollectionAddItems(collection, items);
+    },
+
+    onCollectionAddItems: function(collection, records, info) {
         var me = this,
-            records = info.items,
             len = records.length,
-            lastChunk = !info.next,
+            lastChunk = info ? !info.next : false,
             removed = me.getRemovedRecords(),
             ignoreAdd = me.ignoreCollectionAdd,
             session = me.getSession(),
-            i, sync, record;
-
+            replaced = info && info.replaced,
+            i, sync, record, replacedItems;
 
         for (i = 0; i < len; ++i) {
             record = records[i];
@@ -525,13 +513,28 @@ Ext.define('Ext.data.Store', {
         if (ignoreAdd) {
             return;
         }
+
+        if (replaced) {
+            replacedItems = [];
+            do {
+                Ext.Array.push(replacedItems, replaced.items);
+                replaced = replaced.next;
+            } while (replaced)
+            me.setMoving(replacedItems, true);
+        }
         
-        me.fireEvent('add', me, records, info.at);
-        // If there is a next property, that means there is another range that needs
-        // to be removed after this. Wait until everything is gone before firing datachanged
-        // since it should be a bulk operation
-        if (lastChunk) {
-            me.fireEvent('datachanged', me);
+        if (info) {
+            me.fireEvent('add', me, records, info.at);
+            // If there is a next property, that means there is another range that needs
+            // to be removed after this. Wait until everything is gone before firing datachanged
+            // since it should be a bulk operation
+            if (lastChunk) {
+                me.fireEvent('datachanged', me);
+            }
+        }
+
+        if (replaced) {
+            me.setMoving(replacedItems, false);
         }
 
         // Addition means a sync is needed.
@@ -556,59 +559,31 @@ Ext.define('Ext.data.Store', {
         me.fireEvent('update', me, record, type, modifiedFieldNames, info);
     },
 
+    afterChange: function(record, modifiedFieldNames, type) {
+        this.getData().itemChanged(record, modifiedFieldNames || null, undefined, type);
+    },
+
     afterCommit: function(record, modifiedFieldNames) {
-        this.getData().itemChanged(record, modifiedFieldNames || null, undefined, Ext.data.Model.COMMIT);
+        this.afterChange(record, modifiedFieldNames, Ext.data.Model.COMMIT);
     },
 
     afterEdit: function(record, modifiedFieldNames) {
         this.needsSync = this.needsSync || record.dirty;
-        this.getData().itemChanged(record, modifiedFieldNames || null, undefined, Ext.data.Model.EDIT);
+        this.afterChange(record, modifiedFieldNames, Ext.data.Model.EDIT);
     },
 
     afterReject: function(record) {
-        this.getData().itemChanged(record, null, undefined, Ext.data.Model.REJECT);
+        this.afterChange(record, null, Ext.data.Model.REJECT);
     },
 
     afterDrop: function(record) {
         this.getData().remove(record);
     },
-    
-    onCollectionFilterAdd: function(collection, items) {
-        var len = items.length,
-            session = this.getSession(),
-            i, record;
-        
-        for (i = 0; i < len; ++i) {
-            record = items[i];
-            record.join(this);
-            if (session) {
-                session.adopt(record);
-            }
-        }
-    },
 
     /**
-     * Adds Model instance to the Store. This method accepts either:
-     *
-     * - An array of Model instances or Model configuration objects.
-     * - Any number of Model instance or Model configuration object arguments.
-     *
-     * The new Model instances will be added at the end of the existing collection.
-     *
-     * Sample usage:
-     *
-     *     myStore.add({some: 'data'}, {some: 'other data'});
-     *
-     * Note that if this Store is sorted, the new Model instances will be inserted
-     * at the correct point in the Store to maintain the sort order.
-     *
-     * @param {Ext.data.Model[]/Ext.data.Model.../Object[]/Object...} model An array of Model instances
-     * or Model configuration objects, or variable number of Model instance or config arguments.
-     * @return {Ext.data.Model[]} The model instances that were added
+     * @method add
+     * @inheritdoc Ext.data.LocalStore#add
      */
-    add: function(arg) {
-        return this.insert(this.getCount(), arguments.length === 1 ? arg : arguments);
-    },
 
     /**
      * (Local sort only) Inserts the passed Record into the Store at the index where it
@@ -631,21 +606,6 @@ Ext.define('Ext.data.Store', {
         }
         
         return me.insert(index, record);
-    },
-
-    /**
-     * Converts a literal to a model, if it's not a model already
-     * @private
-     * @param {Ext.data.Model/Object} record The record to create
-     * @return {Ext.data.Model}
-     */
-    createModel: function(record) {
-        var session = this.getSession();
-        if (!record.isModel) {
-            var Model = this.getModel();
-            record = new Model(record);
-        }
-        return record;
     },
 
     /**
@@ -703,32 +663,42 @@ Ext.define('Ext.data.Store', {
     
     onCollectionRemove: function(collection, info) {
         var me = this,
+            // Use class-specific removed collection.
+            // TreeStore uses a different property and must not collect nodes on removal from the collection
+            // but on removal of child nodes on onNodeRemove,
             removed = me.removed,
             records = info.items,
-            index = info.at,
             len = records.length,
+            index = info.at,
             isMove = me.removeIsMove,
             silent = me.removeIsSilent,
             lastChunk = !info.next,
-            i, record, sync, notPhantom;
+            replacement = info.replacement,
+            i, record;
         
         if (me.ignoreCollectionRemove) {
             return;
+        }
+
+        if (replacement) {
+            me.setMoving(replacement.items, true);
         }
         
         for (i = 0; i < len; ++i) {
             record = records[i];
             record.unjoin(me);
-            notPhantom = !record.phantom;
-            // don't push phantom records onto removed
-            if (removed && !isMove && notPhantom) {
+
+            // Don't push interally moving, or phantom (client side only), or erasing (informing server through its own proxy) records onto removed
+            if (removed && !isMove && !record.phantom && !record.erasing) {
                 // Store the index the record was removed from so that rejectChanges can re-insert at the correct place.
                 // The record's index property won't do, as that is the index in the overall dataset when Store is buffered.
                 record.removedFrom = index + i;
                 removed.push(record);
+
+                // Removal of a non-phantom record which is NOT erasing (informing the server through its own proxy)
+                // requires that the store be synced at some point.
+                me.needsSync = true;
             }
-            
-            sync = sync || notPhantom;
         }
         
         if (!silent) {
@@ -741,8 +711,9 @@ Ext.define('Ext.data.Store', {
             }
         }
 
-        // Removal means a sync is needed unless it's just for a move within the store
-        me.needsSync = me.needsSync || (sync && !isMove);
+        if (replacement) {
+            me.setMoving(replacement.items, false);
+        }
     },
 
     onFilterEndUpdate: function() {
@@ -793,6 +764,7 @@ Ext.define('Ext.data.Store', {
             me.removeIsSilent = true;
             me.callObservers('BeforeRemoveAll');
             data.removeAll();
+            me.removeIsSilent = false;
             if (!silent) {
                 me.fireEvent('clear', me, records);
                 me.fireEvent('datachanged', me);
@@ -875,9 +847,9 @@ Ext.define('Ext.data.Store', {
         }
 
         if (pageSize || 'start' in options || 'limit' in options || 'page' in options) {
-            options.page = options.page || me.currentPage;
+            options.page  = options.page != null ? options.page : me.currentPage;
             options.start = (options.start !== undefined) ? options.start : (options.page - 1) * pageSize;
-            options.limit = options.limit || pageSize;
+            options.limit = options.limit != null ? options.limit : pageSize;
         }
 
         options.addRecords = options.addRecords || false;
@@ -900,8 +872,7 @@ Ext.define('Ext.data.Store', {
         var me = this,
             resultSet = operation.getResultSet(),
             records = operation.getRecords(),
-            successful = operation.wasSuccessful(),
-            session, associatedEntity;
+            successful = operation.wasSuccessful();
 
         if (me.isDestroyed) {
             return;
@@ -911,24 +882,19 @@ Ext.define('Ext.data.Store', {
             me.totalCount = resultSet.getTotal();
         }
 
-        // Loading should be set to false before loading the records.
-        // loadRecords doesn't expose any hooks or events until refresh
-        // and datachanged, so by that time loading should be false
-        me.loading = false;
         if (successful) {
-            session = me.getSession();
-            associatedEntity = me.getAssociatedEntity();
-            if (session && associatedEntity && !associatedEntity.phantom) {
-                records = me.getRole().validateAssociationRecords(session, associatedEntity, records);
-            }
+            records = me.processAssociation(records);
             me.loadRecords(records, operation.getAddRecords() ? {
                 addRecords: true
             } : undefined);
+        } else {
+            me.loading = false;
         }
 
         if (me.hasListeners.load) {
             me.fireEvent('load', me, records, successful, operation);
         }
+        me.callObservers('AfterLoad', [records, successful, operation]);
     },
 
     getUnfiltered: function() {
@@ -958,16 +924,19 @@ Ext.define('Ext.data.Store', {
      * to remove the old ones first.
      */
     loadData: function(data, append) {
-        var length = data.length,
+        var me = this,
+            length = data.length,
             newData = [],
             i;
 
         //make sure each data element is an Ext.data.Model instance
         for (i = 0; i < length; i++) {
-            newData.push(this.createModel(data[i]));
+            newData.push(me.createModel(data[i]));
         }
 
-        this.loadRecords(newData, append ? this.addRecordsOptions : undefined);
+        newData = me.processAssociation(newData);
+
+        me.loadRecords(newData, append ? me.addRecordsOptions : undefined);
     },
 
     /**
@@ -1012,15 +981,14 @@ Ext.define('Ext.data.Store', {
         var me     = this,
             length = records.length,
             data   = me.getData(),
-            addRecords, autoSort, skipSort, i;
+            addRecords, i, skipSort;
 
         if (options) {
             addRecords = options.addRecords;
         }
-        
-        skipSort = me.getRemoteSort() || !me.getSortOnLoad();
-        if (skipSort) {
-            autoSort = data.getAutoSort();
+
+        if (!me.getRemoteSort() && !me.getSortOnLoad()) {
+            skipSort = true;
             data.setAutoSort(false);
         }
 
@@ -1028,23 +996,28 @@ Ext.define('Ext.data.Store', {
             me.clearData(true);
         }
 
+        // Clear the flag AFTER the stores collection has been cleared down so that
+        // observers of that collection know that it was due to a load, and a refresh is imminent.
+        me.loading = false;
+
         me.ignoreCollectionAdd = true;
-        me.callObservers('BeforeLoad');
+        me.callObservers('BeforePopulate');
         data.add(records);
         me.ignoreCollectionAdd = false;
+
+        if (skipSort) {
+            data.setAutoSort(true);
+        }
 
         for (i = 0; i < length; i++) {
             records[i].join(me);
         }
 
-        if (skipSort) {
-            data.setAutoSort(autoSort);
-        }
         ++me.loadCount;
         me.complete = true;
         me.fireEvent('datachanged', me);
         me.fireEvent('refresh', me);
-        me.callObservers('AfterLoad');
+        me.callObservers('AfterPopulate');
     },
 
     // PAGING METHODS
@@ -1214,6 +1187,79 @@ Ext.define('Ext.data.Store', {
             source.destroy();
         }
         me.setData(null);
+    },
+
+    privates: {
+        onBeforeLoad: function(operation) {
+            this.callObservers('BeforeLoad', [operation]);
+        },
+
+        /**
+         * Checks whether records are being moved within the store. This can be used in conjunction with the
+         * {@link #event-add} and {@link #event-remove} events to determine whether the records are being removed/added
+         * or just having the position changed.
+         * @param {Ext.data.Model[]/Ext.data.Model} [records] The record(s).
+         * @return {Number} The number of records being moved. `0` if no records are moving. If records are passed
+         * the number will refer to how many of the passed records are moving.
+         */
+        isMoving: function(records, getMap) {
+            var map = this.moveMap,
+                moving = 0,
+                len, i;
+
+            if (map) {
+                if (records) {
+                    if (Ext.isArray(records)) {
+                        for (i = 0, len = records.length; i < len; ++i) {
+                            moving += map[records[i].id] ? 1 : 0;
+                        }
+                    } else if (map[records.id]) {
+                        ++moving;
+                    }
+                } else {
+                    moving = getMap ? map : this.moveMapCount;
+                }
+            }
+            return moving;
+        },
+
+        setMoving: function(records, isMoving) {
+            var me = this,
+                map = me.moveMap || (me.moveMap = {}),
+                len = records.length,
+                i, id;
+
+            for (i = 0; i < len; ++i) {
+                id = records[i].id;
+                if (isMoving) {
+                    if (map[id]) {
+                        ++map[id];
+                    } else {
+                        map[id] = 1;
+                        ++me.moveMapCount;
+                    }
+                } else {
+                    if (--map[id] === 0) {
+                        delete map[id];
+                        --me.moveMapCount;
+                    }
+                }
+            }
+
+            if (me.moveMapCount === 0) {
+                me.moveMap = null;
+            }
+        },
+
+        processAssociation: function(records) {
+            var me = this,
+                associatedEntity = me.getAssociatedEntity();
+
+            if (associatedEntity) {
+                records = me.getRole().processLoad(me, associatedEntity, records, me.getSession());
+            }
+            return records;
+        }
     }
 
     // Provides docs from the mixin

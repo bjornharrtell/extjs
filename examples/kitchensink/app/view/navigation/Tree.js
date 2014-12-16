@@ -16,6 +16,8 @@ Ext.define('KitchenSink.view.navigation.Tree', {
     stateful: true,
     stateId: 'mainnav.west',
     collapsible: true,
+    
+    bufferedRenderer: !Ext.microloaderTags.test,
 
     tools: [{
         type: 'up',

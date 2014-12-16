@@ -31,7 +31,7 @@ Ext.define('KitchenSink.view.panel.HeaderPosition', {
     defaults: {
         bodyPadding: 10,
         height: 300,
-        autoScroll: true
+        scrollable: true
     },
 
     initComponent: function() {

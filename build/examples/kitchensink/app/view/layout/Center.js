@@ -20,7 +20,7 @@ Ext.define('KitchenSink.view.layout.Center', {
         title: 'Centered Panel: 75% of container width and 95% height',
         border: true,
         layout: 'center',
-        autoScroll: true,
+        scrollable: true,
         width: '75%',
         height: '95%',
         bodyPadding: '20 0',

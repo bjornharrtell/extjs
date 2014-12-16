@@ -4,10 +4,10 @@
  * 
  * Pie3D series sprite.
  */
-Ext.define("Ext.chart.series.sprite.Pie3DPart", {
+Ext.define('Ext.chart.series.sprite.Pie3DPart', {
     extend: 'Ext.draw.sprite.Path',
     mixins: {
-        markerHolder: "Ext.chart.MarkerHolder"
+        markerHolder: 'Ext.chart.MarkerHolder'
     },
     alias: 'sprite.pie3dPart',
     type: 'pie3dPart',
@@ -17,78 +17,78 @@ Ext.define("Ext.chart.series.sprite.Pie3DPart", {
                 /**
                  * @cfg {Number} [centerX=0] The central point of the series on the x-axis.
                  */
-                centerX: "number",
+                centerX: 'number',
 
                 /**
                  * @cfg {Number} [centerY=0] The central point of the series on the x-axis.
                  */
-                centerY: "number",
+                centerY: 'number',
 
                 /**
                  * @cfg {Number} [startAngle=0] The starting angle of the polar series.
                  */
-                startAngle: "number",
+                startAngle: 'number',
 
                 /**
                  * @cfg {Number} [endAngle=Math.PI] The ending angle of the polar series.
                  */
-                endAngle: "number",
+                endAngle: 'number',
 
                 /**
                  * @cfg {Number} [startRho=0] The starting radius of the polar series.
                  */
-                startRho: "number",
+                startRho: 'number',
 
                 /**
                  * @cfg {Number} [endRho=150] The ending radius of the polar series.
                  */
-                endRho: "number",
+                endRho: 'number',
 
                 /**
                  * @cfg {Number} [margin=0] Margin from the center of the pie. Used for donut.
                  */
-                margin: "number",
+                margin: 'number',
 
                 /**
                  * @cfg {Number} [thickness=0] The thickness of the 3D pie part.
                  */
-                thickness: "number",
+                thickness: 'number',
 
                 /**
                  * @cfg {Number} [distortion=0] The distortion of the 3D pie part.
                  */
-                distortion: "number",
+                distortion: 'number',
 
                 /**
                  * @cfg {Object} [baseColor='white'] The color of the 3D pie part before adding the 3D effect.
                  */
-                baseColor: "color",
+                baseColor: 'color',
 
                 /**
                  * @cfg {Number} [baseRotation=0] The starting rotation of the polar series.
                  */
-                baseRotation: "number",
+                baseRotation: 'number',
 
                 /**
-                 * @cfg {String} [part=0] The part of the 3D Pie represented by the sprite.
+                 * @cfg {String} [part='top'] The part of the 3D Pie represented by the sprite.
                  */
-                part: "enums(top,start,end,inner,outer)"
+                part: 'enums(top,start,end,inner,outer)'
             },
             aliases: {
                 rho: 'endRho'
             },
-            dirtyTriggers: {
-                centerX: "path,bbox",
-                centerY: "path,bbox",
-                startAngle: "path,partZIndex",
-                endAngle: "path,partZIndex",
-                startRho: "path",
-                endRho: "path,bbox",
-                margin: "path,bbox",
-                thickness: "path",
-                baseRotation: "path,partZIndex,partColor",
+            triggers: {
+                centerX: 'path,bbox',
+                centerY: 'path,bbox',
+                startAngle: 'path,partZIndex',
+                endAngle: 'path,partZIndex',
+                startRho: 'path',
+                endRho: 'path,bbox',
+                margin: 'path,bbox',
+                thickness: 'path',
+                baseRotation: 'path,partZIndex,partColor',
                 baseColor: 'partZIndex,partColor',
-                part: "path,partZIndex"
+                part: 'path,partZIndex'
             },
             defaults: {
                 centerX: 0,
@@ -101,18 +101,19 @@ Ext.define("Ext.chart.series.sprite.Pie3DPart", {
                 distortion: 1,
                 baseRotation: 0,
                 baseColor: 'white',
-                part: "top"
+                part: 'top'
             },
             updaters: {
-                "partColor": function (attrs) {
-                    var color = Ext.draw.Color.fly(attrs.baseColor),
+                partColor: function (attr) {
+                    var color = Ext.draw.Color.fly(attr.baseColor),
                         fillStyle;
-                    switch (attrs.part) {
+
+                    switch (attr.part) {
                         case 'top':
                             fillStyle = color.toString();
                             break;
                         case 'outer':
-                            fillStyle = Ext.create("Ext.draw.gradient.Linear", {
+                            fillStyle = Ext.create('Ext.draw.gradient.Linear', {
                                 type: 'linear',
                                 stops: [
                                     {
@@ -141,7 +142,7 @@ Ext.define("Ext.chart.series.sprite.Pie3DPart", {
                             fillStyle = color.createDarker(0.3).toString();
                             break;
                         case 'inner':
-                            fillStyle = Ext.create("Ext.draw.gradient.Linear", {
+                            fillStyle = Ext.create('Ext.draw.gradient.Linear', {
                                 type: 'linear',
                                 stops: [
                                     {
@@ -165,29 +166,32 @@ Ext.define("Ext.chart.series.sprite.Pie3DPart", {
                             break;
                     }
 
-                    attrs.fillStyle = fillStyle;
-                    attrs.canvasAttributes.fillStyle = fillStyle;
+                    attr.fillStyle = fillStyle;
+                    attr.canvasAttributes.fillStyle = fillStyle;
+                    //console.groupCollapsed('partColor:', attr.part);
+                    //console.trace();
+                    //console.groupEnd();
                 },
-                "partZIndex": function (attrs) {
-                    var rotation = attrs.baseRotation;
-                    switch (attrs.part) {
+                partZIndex: function (attr) {
+                    var rotation = attr.baseRotation;
+                    switch (attr.part) {
                         case 'top':
-                            attrs.zIndex = 5;
+                            attr.zIndex = 5;
                             break;
                         case 'outer':
-                            attrs.zIndex = 4;
+                            attr.zIndex = 4;
                             break;
                         case 'start':
-                            attrs.zIndex = 1 + Math.sin(attrs.startAngle + rotation);
+                            attr.zIndex = 1 + Math.sin(attr.startAngle + rotation);
                             break;
                         case 'end':
-                            attrs.zIndex = 1 + Math.sin(attrs.endAngle + rotation);
+                            attr.zIndex = 1 + Math.sin(attr.endAngle + rotation);
                             break;
                         case 'inner':
-                            attrs.zIndex = 1;
+                            attr.zIndex = 1;
                             break;
                     }
-                    attrs.dirtyZIndex = true;
+                    attr.dirtyZIndex = true;
                 }
             }
         }

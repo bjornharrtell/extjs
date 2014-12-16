@@ -49,7 +49,7 @@ Ext.define('Ext.draw.sprite.Sector', {
             aliases: {
                 rho: 'endRho'
             },
-            dirtyTriggers: {
+            triggers: {
                 centerX: 'path,bbox',
                 centerY: 'path,bbox',
                 startAngle: 'path,bbox',
@@ -71,10 +71,14 @@ Ext.define('Ext.draw.sprite.Sector', {
         }
     },
 
+    getMidAngle: function () {
+        return this.midAngle || 0;
+    },
+
     updatePath: function (path, attr) {
         var startAngle = Math.min(attr.startAngle, attr.endAngle),
             endAngle = Math.max(attr.startAngle, attr.endAngle),
-            midAngle = (startAngle + endAngle) * 0.5,
+            midAngle = this.midAngle = (startAngle + endAngle) * 0.5,
             margin = attr.margin,
             centerX = attr.centerX,
             centerY = attr.centerY,

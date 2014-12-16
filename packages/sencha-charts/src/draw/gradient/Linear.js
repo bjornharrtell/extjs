@@ -35,23 +35,46 @@
 
 Ext.define('Ext.draw.gradient.Linear', {
     extend: 'Ext.draw.gradient.Gradient',
+    requires: ['Ext.draw.Color'],
     type: 'linear',
     config: {
         /**
-         * @cfg {Number} The degree of rotation of the gradient.
+         * @cfg {Number} The angle of rotation of the gradient in degrees.
          */
-        degrees: 0
+        degrees: 0,
+        /**
+         * @cfg {Number} The angle of rotation of the gradient in radians.
+         */
+        radians: 0
     },
 
-    setAngle: function (angle) {
-        this.setDegrees(angle);
+    applyRadians: function (radians, oldRadians) {
+        if (Ext.isNumber(radians)) {
+            return radians;
+        }
+        return oldRadians;
+    },
+
+    applyDegrees: function (degrees, oldDegrees) {
+        if (Ext.isNumber(degrees)) {
+            return degrees;
+        }
+        return oldDegrees;
+    },
+
+    updateRadians: function (radians) {
+        this.setDegrees(Ext.draw.Draw.degrees(radians));
+    },
+
+    updateDegrees: function (degrees) {
+        this.setRadians(Ext.draw.Draw.rad(degrees));
     },
 
     /**
      * @inheritdoc
      */
     generateGradient: function (ctx, bbox) {
-        var angle = Ext.draw.Draw.rad(this.getDegrees()),
+        var angle = this.getRadians(),
             cos = Math.cos(angle),
             sin = Math.sin(angle),
             w = bbox.width,
@@ -75,6 +98,6 @@ Ext.define('Ext.draw.gradient.Linear', {
             }
             return gradient;
         }
-        return 'none';
+        return Ext.draw.Color.NONE;
     }
 });

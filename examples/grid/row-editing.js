@@ -135,11 +135,6 @@ Ext.onReady(function(){
                 cls: 'x-grid-checkheader-editor'
             }
         }],
-        renderTo: 'editor-grid',
-        width: 700,
-        height: 400,
-        title: 'Employee Salaries',
-        frame: true,
         tbar: [{
             text: 'Add Employee',
             iconCls: 'employee-add',
@@ -179,4 +174,12 @@ Ext.onReady(function(){
             }
         }
     });
+    new Ext.window.Window({
+        width: 700,
+        height: 400,
+        title: 'Employee Salaries',
+        items: grid,
+        layout: 'fit',
+        closable: false
+    }).show();
 });

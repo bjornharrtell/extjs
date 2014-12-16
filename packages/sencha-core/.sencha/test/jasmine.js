@@ -657,7 +657,7 @@ jasmine.hashString = function (s, hash) {
     }
     
     if (jasmine.hashes[hash]) {
-        console.log("Identical hash detected: " + s);
+        jasmine.getEnv().reporter.log("Identical hash detected: " + s);
     }
     
     jasmine.hashes[hash] = true;
@@ -767,9 +767,6 @@ jasmine.showDebugPrompt = function(callback) {
         callback();
     }
 };
-
-
-addGlobal = function() {};
 
 jasmine.getByIds = function (items, ids) {
     var result = [],
@@ -1913,6 +1910,27 @@ jasmine.Matchers.prototype.toThrow = function(expected) {
   if (typeof this.actual != 'function') {
     throw new Error('Actual is not a function');
   }
+
+  // mock the console to avoid logging to the real console during the tests
+  var global = Ext.global;
+
+  Ext.global = {
+    console: {
+      dir: function(s) {
+        return s;
+      },
+      log: function(s) {
+        return s;
+      },
+      error: function(s) {
+        return s;
+      },
+      warn: function(s) {
+        return s;
+      }
+    }
+  };
+
   try {
     this.actual();
   } catch (e) {
@@ -1921,6 +1939,8 @@ jasmine.Matchers.prototype.toThrow = function(expected) {
   if (exception) {
     result = (expected === jasmine.undefined || this.env.contains_(exception.message || exception, expected.message || expected));
   }
+
+  Ext.global = global;
 
   var not = this.isNot ? "not " : "";
 
@@ -2091,7 +2111,8 @@ jasmine.Matchers.prototype.toBePositionedAt = function(x, y) {
             }
         }
         return expected['*'] || expected;
-    };
+    },
+    layoutFly = new Ext.dom.Fly();
 
 
     function checkLayout (comp, layout, root, path) {
@@ -2120,7 +2141,7 @@ jasmine.Matchers.prototype.toBePositionedAt = function(x, y) {
 
                 if (!el) {
                     // no child el matched, assume the key is a CSS selector
-                    el = comp.el.selectNode(name, false);
+                    el = layoutFly.attach(comp.el.selectNode(name, true));
                 }
 
                 if (el.isComponent) {
@@ -2167,7 +2188,10 @@ jasmine.Matchers.prototype.toBePositionedAt = function(x, y) {
         return this.actual >= expected;
     };
 
-    jasmine.Matchers.prototype.toBeAtLeast = jasmine.Matchers.prototype.toBeGreaterThanOrEqual;
+    jasmine.Matchers.prototype.toBeGE = jasmine.Matchers.prototype.toBeAtLeast = jasmine.Matchers.prototype.toBeGreaterThanOrEqual;
+    jasmine.Matchers.prototype.toBeLE = jasmine.Matchers.prototype.toBeLessThanOrEqual;
+    jasmine.Matchers.prototype.toBeLT = jasmine.Matchers.prototype.toBeLessThan;
+    jasmine.Matchers.prototype.toBeGT = jasmine.Matchers.prototype.toBeGreaterThan;
 })();
 
 
@@ -2203,7 +2227,21 @@ jasmine.Matchers.prototype.toBePositionedAt = function(x, y) {
         return "Expected events flow to be (" + expectedEvents.length + " events): \n" + expectedEvents.join('\n') + "\nBut it was (" + actualEvents.length + " events): \n"+ actualEvents.join('\n');
     };
     return ret;
- };/**
+ };
+
+jasmine.Matchers.prototype.toBeApprox = function(expected, errorMargin) {
+    errorMargin = errorMargin || 1;
+    
+    var min = expected - errorMargin,
+        max = expected + errorMargin;
+    
+    this.message = function() {
+        return "Expected " + this.actual + " to be approximately " + expected + " by " + errorMargin;
+    }
+    return this.actual >= min && this.actual <= max;
+};
+
+/**
  * @constructor
  */
 jasmine.MultiReporter = function() {
@@ -2453,12 +2491,31 @@ jasmine.StringPrettyPrinter.prototype.append = function(value) {
         superFormat = prototype.format;
 
     prototype.format = function(value) {
-        if (value && value.$className) {
-            // support for pretty printing instances of Ext classes
-            this.emitScalar(value.$className + '#' + value.id);
-        } else {
-            superFormat.call(this, value);
+        var className, superclass;
+
+        if (value) {
+            className = value.$className;
+
+            if (className !== undefined) {
+                // support for pretty printing instances of Ext classes
+
+                if (!className) {
+                    // support for anonymous classes - Ext.define(null, ...)
+                    // loop up the inheritance chain to find nearest non-anonymous ancestor
+                    superclass = value.superclass;
+                    while (superclass && !superclass.$className) {
+                        superclass = superclass.superclass;
+                    }
+                    if (superclass) {
+                        className = superclass.$className;
+                    }
+                }
+                this.emitScalar(className + '#' + (value.id || (value.getId && value.getId())));
+                return;
+            }
         }
+
+        superFormat.call(this, value);
     };
 })();jasmine.Queue = function(env) {
   this.env = env;
@@ -2578,6 +2635,65 @@ jasmine.Queue.prototype.results = function() {
 };
 
 
+jasmine.Queue.prototype.next_ = function() {
+    var self = this;
+    var goAgain = true;
+
+    while (goAgain) {
+        goAgain = false;
+
+        if (self.index < self.blocks.length) {
+            var calledSynchronously = true;
+            var completedSynchronously = false;
+
+            var onComplete = function () {
+                if (jasmine.Queue.LOOP_DONT_RECURSE && calledSynchronously) {
+                    completedSynchronously = true;
+                    return;
+                }
+
+                if (self.blocks[self.index].abort) {
+                    self.abort = true;
+                }
+
+                self.offset = 0;
+                self.index++;
+
+                var now = new Date().getTime();
+                if (self.env.updateInterval && now - self.env.lastUpdate > self.env.updateInterval) {
+                    self.env.lastUpdate = now;
+                    self.env.setTimeout(function() {
+                        self.next_();
+                    }, 0);
+                } else {
+                    if (jasmine.Queue.LOOP_DONT_RECURSE && completedSynchronously) {
+                        goAgain = true;
+                    } else {
+                        self.next_();
+                    }
+                }
+            };
+
+            if (!this.abort || this.ensured[self.index]) {
+                self.blocks[self.index].execute(onComplete);
+            }
+            else {
+                onComplete();
+            }
+
+            calledSynchronously = false;
+            if (completedSynchronously) {
+                onComplete();
+            }
+
+        } else {
+            self.running = false;
+            if (self.onComplete) {
+                self.onComplete();
+            }
+        }
+    }
+};
 /**
  * Runner
  *
@@ -2667,9 +2783,9 @@ jasmine.Runner.prototype.filter = function (suiteIds, specIds) {
 
     var specs = jasmine.getByIds(this.specs(), specIds),
         suites = jasmine.getByIds(this.suites(), suiteIds),
-        blocks = [], 
+        blocks = [],
         i, length, suite;
-    
+
     length = specs.length;
     for (i = 0; i < length; i++) {
         suite = specs[i].getRootSuite();
@@ -2678,7 +2794,7 @@ jasmine.Runner.prototype.filter = function (suiteIds, specIds) {
             blocks.push(suite);
         }
     }
-    
+
     length = suites.length;
     for (i = 0; i < length; i++) {
         suite = suites[i].getRootSuite();
@@ -2690,7 +2806,15 @@ jasmine.Runner.prototype.filter = function (suiteIds, specIds) {
 
     if (blocks.length) {
         this.queue.blocks = blocks;
+    } else {
+        blocks = this.queue.blocks;
     }
+
+    this.env.totalSpecs = 0;
+    for (i = 0; i < blocks.length; ++i) {
+        this.env.totalSpecs += blocks[i].totalSpecs;
+    }
+    this.env.remainingSpecs = this.env.totalSpecs;
 
     return this;
 };
@@ -2939,12 +3063,54 @@ jasmine.Spec.prototype.removeAllSpies = function() {
 
 (function () {
     var _Spec = jasmine.Spec,
-        proto = _Spec.prototype;
+        proto = _Spec.prototype,
+        allowedGlobals = {},
+        prop;
+
+    // Any properties already in the window object when we are loading jasmine are ok
+    for (prop in window) {
+        allowedGlobals[prop] = true;
+    }
+
+    // Old Firefox needs these
+    allowedGlobals.getInterface =
+    allowedGlobals.loadFirebugConsole =
+    allowedGlobals._createFirebugConsole =
+    allowedGlobals.netscape =
+    allowedGlobals.XPCSafeJSObjectWrapper =
+    allowedGlobals.XPCNativeWrapper =
+    allowedGlobals.Components =
+    allowedGlobals._firebug =
+    // IE10+ F12 dev tools adds these properties when opened.
+    allowedGlobals.__IE_DEVTOOLBAR_CONSOLE_COMMAND_LINE =
+    allowedGlobals.__BROWSERTOOLS_CONSOLE_BREAKMODE_FUNC =
+    allowedGlobals.__BROWSERTOOLS_CONSOLE_SAFEFUNC =
+    // in IE8 jasmine's overrides of setTimeout/setInterval make them iterable
+    allowedGlobals.setTimeout =
+    allowedGlobals.setInterval =
+    allowedGlobals.clearTimeout =
+    allowedGlobals.clearInterval =
+    // we're going to add the addGlobal function to the window object, so specs can call it
+    allowedGlobals.addGlobal =
+    allowedGlobals.id = true; // In Ext JS 4 Ext.get(window) adds an id property
+
+    window.addGlobal = function(property) {
+        var len;
+
+        if (property.charAt) { // string
+            allowedGlobals[property] = true;
+        } else { // array
+            for (len = property.length; len--;) {
+                allowedGlobals[property[len]] = true;
+            }
+        }
+    };
 
     jasmine.Spec = function () {
         _Spec.apply(this, arguments);
         this.fileName = jasmine.getCurrentScript();
         this.id = jasmine.hashString(this.getFullName(), this.suite.id);
+        this.totalSpecs = 1;
     };
 
     jasmine.Spec.prototype = proto;
@@ -2966,11 +3132,17 @@ jasmine.Spec.prototype.removeAllSpies = function() {
     // Override: check for DOM and global variable leaks
     proto.finishCallback = function() {
         this.checkDomLeak();
-        // TODO
-        // this.checkGlobalsLeak();
+        this.checkGlobalsLeak();
+
+        // TODO: this causes too many failures so is disabled for now.
+        // clean up orphan elements and re-enable this at some point.
+        // this.collectGarbage();
+
+        Ext.event.publisher.Gesture.instance.reset();
+
         this.env.reporter.reportSpecResults(this);
     };
-    
+
     proto.checkDomLeak = function() {
         var body = document.body,
             children = body && body.childNodes || [],
@@ -2990,6 +3162,40 @@ jasmine.Spec.prototype.removeAllSpies = function() {
 
         if (badNodes.length) {
             this.fail('document.body contains childNodes after spec execution');
+        }
+    };
+
+    proto.checkGlobalsLeak = function(spec) {
+        var property, value;
+
+        for (property in window) {
+            try {
+                // IE throws error when trying to access window.localStorage
+                value = window[property];
+            } catch(e) {
+                continue;
+            }
+            if (value !== undefined && !allowedGlobals[property] &&
+                (!value || // make sure we don't try to do a property lookup on a null value
+                    // old browsers (IE6 and opera 11) add element IDs as enumerable properties
+                    // of the window object, so make sure the global var is not a HTMLElement
+                    value.nodeType !== 1 &&
+                    // make sure it isn't a reference to a window object.  This happens in
+                    // some browsers (e.g. IE6) when the document contains iframes.  The
+                    // frames' window objects are referenced by id in the parent window object.
+                    !(value.location && value.document))) {
+                this.fail('Bad global variable: ' + property + ' = ' + value);
+                // add the bad global to allowed globals so that it only fails this one spec
+                allowedGlobals[property] = true;
+            }
+        }
+    };
+
+    proto.collectGarbage = function() {
+        var ids = Ext.dom.GarbageCollector.collect();
+
+        if (ids.length) {
+            this.fail("Orphan Ext.dom.Element(s) detected: '" + ids.join("', '") + "'");
         }
     };
 
@@ -3090,6 +3296,22 @@ function waitsForAnimation() {
         return done;
     });
 }
+
+/**
+ * Waits for the Spy to have been called before proceeding to the next block.
+ *
+ * @param {Function} spy to wait for
+ * @param {String} [timeoutMessage] Optional timeout message
+ * @param {Number} [timeout] Optional timeout in ms
+ */
+function waitsForSpy(spy, timeoutMessage, timeout) {
+    var currentSpec = jasmine.getEnv().currentSpec;
+
+    currentSpec.waitsFor.call(currentSpec, function() { return !!spy.callCount }, timeoutMessage, timeout);
+};
+
+var waitForSpy = waitsForSpy;
+
 /**
  * Internal representation of a Jasmine suite.
  *
@@ -3180,6 +3402,7 @@ jasmine.Suite.prototype.execute = function(onComplete) {
         _Suite.apply(this, arguments);
 
         var parentSuite = this.parentSuite;
+        this.totalSpecs = 0;
         this.fileName = jasmine.getCurrentScript();
         this.id = jasmine.hashString(this.getFullName(), parentSuite ? parentSuite.id : 0);
     };
@@ -3208,6 +3431,12 @@ jasmine.Suite.prototype.execute = function(onComplete) {
 
     proto.isDisabled = function() {
         return !this.enabled;
+    };
+
+    proto.adjustCounts = function (amount) {
+        for (var suite = this; suite; suite = suite.parentSuite) {
+            suite.totalSpecs += amount;
+        }
     };
 
     proto.disable = function() {
@@ -3239,7 +3468,6 @@ jasmine.Suite.prototype.execute = function(onComplete) {
     };
 
     proto.filter = function (suiteIds, specIds) {
-
         if (!suiteIds[this.id]) {
             var specs = this.specs(),
                 suites = this.suites(),
@@ -3251,6 +3479,7 @@ jasmine.Suite.prototype.execute = function(onComplete) {
                 spec = specs[i];
                 if (!specIds[spec.id]) {
                     jasmine.array.remove(this.queue.blocks, spec);
+                    this.adjustCounts(-spec.totalSpecs);
                 }
             }
 
@@ -3261,6 +3490,7 @@ jasmine.Suite.prototype.execute = function(onComplete) {
                 suite.filter(suiteIds, specIds);
                 if (suite.empty) {
                     jasmine.array.remove(this.queue.blocks, suite);
+                    this.adjustCounts(-suite.totalSpecs);
                 }
             }
 
@@ -3280,6 +3510,21 @@ jasmine.Suite.prototype.execute = function(onComplete) {
         }
 
         return suite;
+    };
+
+    proto.add = function(suiteOrSpec) {
+        this.children_.push(suiteOrSpec);
+        if (suiteOrSpec instanceof jasmine.Suite) {
+            this.suites_.push(suiteOrSpec);
+            this.env.currentRunner().addSuite(suiteOrSpec);
+        } else {
+            this.specs_.push(suiteOrSpec);
+        }
+        this.queue.add(suiteOrSpec);
+
+        for (var p = this; p; p = p.parentSuite) {
+            p.totalSpecs += suiteOrSpec.totalSpecs;
+        }
     };
 
 })();
@@ -3535,22 +3780,43 @@ jasmine.getGlobal().clearInterval = function(timeoutKey) {
   }
 };
 
-/**
+jasmine.mouseToPointerMap = {
+    mousedown: 'pointerdown',
+    mousemove: 'pointermove',
+    mouseup: 'pointerup',
+    mouseover: 'pointerover',
+    mouseout: 'pointerout',
+    mouseenter: 'pointerenter',
+    mouseleave: 'pointerleave'
+};
+
+jasmine.pointerEventsMap = Ext.supports.MSPointerEvents && !Ext.supports.PointerEvents ? {
+    // translation map for IE10
+    pointerdown: 'MSPointerDown',
+    pointermove: 'MSPointerMove',
+    pointerup: 'MSPointerUp',
+    pointerover: 'MSPointerOver',
+    pointerout: 'MSPointerOut',
+    // IE10 does not have pointer events for enter/leave
+    pointerenter: 'mouseenter',
+    pointerleave: 'mouseleave'
+} : {};
+
+ /**
  * Utility function to fire a fake mouse event to a given target element
  */
 jasmine.fireMouseEvent = function (target, type, x, y, button) {
-    var e,
-        doc,
-        docEl,
-        body,
-        ret;
-    
+    var e, doc, docEl, body, ret, pointerEventType;
+
     target = Ext.getDom(target);
+    if (!target) {
+        throw 'Cannot fire mouse event on null element';
+    }
     doc = target.ownerDocument || document;
     x = x || 0;
     y = y || 0;
-    
-    if (doc.createEventObject){ // IE event model
+
+    if (Ext.isIE9m && doc.createEventObject){ // IE event model
         e = doc.createEventObject();
         docEl = doc.documentElement;
         body = doc.body;
@@ -3565,14 +3831,72 @@ jasmine.fireMouseEvent = function (target, type, x, y, button) {
             clientY: y,
             button: button || 1
         });
+        if (type === 'click') {
+            target.fireEvent('onmousedown', e);
+            target.fireEvent('onmouseup', e);
+        } else if (type === 'dblclick') {
+            jasmine.fireMouseEvent(target, 'click', x, y, button);
+            target.fireEvent('onmousedown', e);
+            target.fireEvent('onmouseup', e);
+        }
         ret = target.fireEvent('on' + type, e);
     } else {
-        e = doc.createEvent("MouseEvents");
-        e.initMouseEvent(type, true, true, doc.defaultView || doc.parentWindow, 1, x, y, x, y, false, false, false, false, button || 0, null);
-        ret = target.dispatchEvent(e);
+        if (Ext.supports.PointerEvents || Ext.supports.MSPointerEvents) {
+            // In IE10 and higher the framework translates mouse event listeners to pointer
+            // event listeners by default. This means that if we fire only mouse events, our
+            // pointer event listeners will not be fired.  To fix this, we have to emulate
+            // what the browser does when the mouse is clicked or screen is touched - fire
+            // a pointer event followed by a compatibility mouse event.
+            // see http://www.w3.org/TR/pointerevents/#dfn-compatibility-mouse-events
+            if (type === 'click') {
+                // In IE10+ the framework translates click to tap, which means we must
+                // fire the events from which tap is sythesized (pointerdown/pointerup)
+                // if we want our listeners to run.
+                jasmine.firePointerEvent(target, 'pointerdown', 1, x, y, button);
+                jasmine.doFireMouseEvent(target, 'mousedown', x, y, button);
+                jasmine.firePointerEvent(target, 'pointerup', 1, x, y, button);
+                jasmine.doFireMouseEvent(target, 'mouseup', x, y, button);
+            } else if (type === 'dblclick') {
+                // click (which triggers its own (pointerdown/mousdown/pointerup/mouseup
+                // sequence) followed by a second pointerdown/mousedown/pointerup/mouseup
+                // sequence always precedes dblclick
+                jasmine.fireMouseEvent(target, 'click', x, y, button);
+                jasmine.firePointerEvent(target, 'pointerdown', 1, x, y, button);
+                jasmine.doFireMouseEvent(target, 'mousedown', x, y, button);
+                jasmine.firePointerEvent(target, 'pointerup', 1, x, y, button);
+                jasmine.doFireMouseEvent(target, 'mouseup', x, y, button);
+            } else {
+                // plain old mouse event (mousedown, mousemove, etc.) - fire the corresponding
+                // pointer event before dispatching the mouse event
+                pointerEventType = jasmine.mouseToPointerMap[type];
+                if (pointerEventType) {
+                    jasmine.firePointerEvent(target, pointerEventType, 1, x, y, button);
+                }
+            }
+        } else if (type === 'click') {
+            // simulate a mousedown/mouseup sequence before firing a click event
+            jasmine.fireMouseEvent(target, 'mousedown', x, y, button);
+            jasmine.fireMouseEvent(target, 'mouseup', x, y, button);
+        } else if (type === 'dblclick') {
+            // click (which includes its own mousedown/mouseup sequence) followed by a second
+            // mousedown/mouseup always precedes dblclick
+            jasmine.fireMouseEvent(target, 'click', x, y, button);
+            jasmine.fireMouseEvent(target, 'mousedown', x, y, button);
+            jasmine.fireMouseEvent(target, 'mouseup', x, y, button);
+        }
+
+        ret = jasmine.doFireMouseEvent(target, type, x, y, button);
     }
-    
-    return (ret === false ? ret : e);
+
+    return (ret === false) ? ret : e;
+};
+
+jasmine.doFireMouseEvent = function(target, type, x, y, button) {
+    var doc = target.ownerDocument || document,
+        e = doc.createEvent("MouseEvents");
+
+    e.initMouseEvent(type, true, true, doc.defaultView || doc.parentWindow, 1, x, y, x, y, false, false, false, false, button || 0, null);
+    return target.dispatchEvent(e);
 };
 
 /**
@@ -3594,6 +3918,12 @@ jasmine.firePointerEvent = function(target, type, pointerId, x, y, button) {
         target = Ext.getDom(target),
         dispatched;
 
+    if (!target) {
+        throw 'Cannot fire pointer event on null element';
+    }
+
+    type = jasmine.pointerEventsMap[type] || type;
+
     e.initMouseEvent(
         type, // type
         true, // canBubble
@@ -3612,13 +3942,11 @@ jasmine.firePointerEvent = function(target, type, pointerId, x, y, button) {
         null // relatedTarget
     );
     e.pointerId = pointerId || 1;
-    target.setPointerCapture = Ext.emptyFn;
+    e.pointerType = 'mouse';
 
     dispatched = target.dispatchEvent(e);
 
-    delete target.setPointerCapture;
-
-    return dispatched;
+    return (dispatched === false) ? dispatched : e;
 };
 
 jasmine.createTouchList = function(touchList, target) {
@@ -3675,7 +4003,12 @@ jasmine.fireTouchEvent = function(target, type, touches, changedTouches, targetT
             bubbles: true,
             cancelable: true
         }),
-        target = Ext.getDom(target);
+        target = Ext.getDom(target),
+        dispatched;
+
+    if (!target) {
+        throw 'Cannot fire touch event on null element';
+    }
 
     Ext.apply(e, {
         target: target,
@@ -3684,31 +4017,195 @@ jasmine.fireTouchEvent = function(target, type, touches, changedTouches, targetT
         targetTouches: jasmine.createTouchList(targetTouches ? targetTouches : touches, target)
     });
 
-    return target.dispatchEvent(e);
+    dispatched = target.dispatchEvent(e);
+
+    return (dispatched === false) ? dispatched : e;
 };
 
 /**
  * Utility function to fire a fake key event to a given target element
  */
-jasmine.fireKeyEvent = function(target, type, key) {
+jasmine.fireKeyEvent = function(target, type, key, shiftKey, ctrlKey, altKey) {
     var e,
         doc;
     target = Ext.getDom(target);
+    if (!target) {
+        throw 'Cannot fire key event on null element';
+    }
     doc = target.ownerDocument || document;
-    if (doc.createEventObject) { //IE event model
+    if (Ext.isIE9m && doc.createEventObject) { //IE event model
         e = doc.createEventObject();
         Ext.apply(e, {
             bubbles: true,
             cancelable: true,
-            keyCode: key
+            keyCode: key,
+            shiftKey: !!shiftKey,
+            ctrlKey: !!ctrlKey,
+            altKey: !!altKey
         });
         return target.fireEvent('on' + type, e);
     } else {
         e = doc.createEvent("Events");
         e.initEvent(type, true, true);
-        e.keyCode = key;
+        Ext.apply(e, {
+            keyCode: key,
+            shiftKey: !!shiftKey,
+            ctrlKey: !!ctrlKey,
+            altKey: !!altKey
+        });
         return target.dispatchEvent(e);
     }
+};
+
+// This implementation is very naïve but since it's not easy to simulate
+// real Tab key presses (if at all possible), it doesn't make sense
+// to go any further than this.
+jasmine.simulateTabKey = function(from, forward) {
+    function getNextTabTarget(currentlyFocused, forward) {
+        var body = Ext.getBody(),
+            currentDom, tabbables, idx, lastIdx, next;
+
+        currentDom = Ext.getDom(currentlyFocused);
+        tabbables  = body.selectTabbableElements();
+        lastIdx    = tabbables.length - 1;
+        idx        = Ext.Array.indexOf(tabbables, currentDom);
+
+        // If the currently focused element is not itself tababble,
+        // go to first (or last) tababble element
+        if (forward) {
+            next = idx < 0 ? tabbables[0] : tabbables[idx + 1];
+        }
+        else {
+            next = idx < 0 ? tabbables[lastIdx] : tabbables[idx - 1];
+        }
+
+        return Ext.get(next || body);
+    }
+
+    from = from.isComponent ? from.getFocusEl() : from;
+    var to = getNextTabTarget(from, forward);
+
+    jasmine.fireKeyEvent(from, 'keydown', 9, forward);
+    to.focus();
+    jasmine.fireKeyEvent(from, 'keyup',   9, forward);
+
+    return to;
+};
+
+jasmine.simulateArrowKey = function(from, key) {
+    var keyCode = Ext.event.Event[key.toUpperCase()];
+
+    from = from.isComponent ? from.getFocusEl() : from;
+
+    var target = Ext.getDom(from);
+
+    if (!target) {
+        throw 'Cannot fire arrow key event on null element';
+    }
+
+    jasmine.fireKeyEvent(target, 'keydown', keyCode);
+    jasmine.fireKeyEvent(target, 'keyup',   keyCode);
+};
+
+// In IE, focus events are asynchronous so we often have to wait
+// after attempting to focus something. Otherwise tests will fail.
+jasmine.waitForFocus = jasmine.waitsForFocus = function(cmp, desc, timeout) {
+    var dom = cmp.isComponent ? cmp.getFocusEl().dom
+            : cmp.isElement   ? cmp.dom
+            :                   cmp
+        ;
+    
+    if (!desc) {
+        desc = dom.id + ' to focus';
+    }
+
+    // Default to Jasmine's default timeout.
+    timeout = timeout || 5000;
+
+    waitsFor(
+        function() {
+            return document.activeElement === dom;
+        },
+        desc,
+        timeout
+    );
+};
+
+// In IE (all of 'em), focus/blur events are asynchronous. To us it means
+// not only that we have to wait for the actual element to focus but
+// also for its container-injected focus handler to fire; and since
+// container focus handler may focus yet another element we have to yield
+// for *that* focus handler to fire, too. The third `waits` is to
+// accommodate for any repercussions caused by secondary focus handler,
+// and of course as a good luck charm.
+// Note that the timeout value is not important here because effectively
+// we just want to yield enough cycles to unwind all the async event handlers
+// before the test checks done in the specs, so we default to 1 ms.
+jasmine.waitAWhile = jasmine.waitsAWhile = function(timeout) {
+    timeout = timeout != null ? timeout : 1;
+
+    waits(timeout);
+    waits(timeout);
+    waits(timeout);
+};
+
+jasmine.focusAndWait = function(cmp, waitFor) {
+    runs(function() {
+        cmp.focus();
+    });
+
+    jasmine.waitForFocus(waitFor || cmp);
+
+    jasmine.waitAWhile();
+};
+
+jasmine.pressTabKey = function(from, forward) {
+    jasmine.focusAndWait(from);
+
+    runs(function() {
+        jasmine.simulateTabKey(from, forward);
+    });
+
+    jasmine.waitAWhile();
+};
+
+jasmine.pressArrowKey = function(from, key) {
+    jasmine.focusAndWait(from);
+
+    runs(function() {
+        jasmine.simulateArrowKey(from, key);
+    });
+
+    jasmine.waitAWhile();
+};
+
+// Can't add this one and below as simple matchers,
+// because there's async waiting involved
+jasmine.expectFocused = jasmine.expectsFocused = function(want, noWait) {
+    if (!noWait) {
+        jasmine.waitForFocus(want);
+    }
+
+    runs(function() {
+        var have = want.isComponent ? Ext.ComponentManager.getActiveComponent()
+                 : want.isElement   ? Ext.fly(document.activeElement)
+                 :                    document.activeElement
+                 ;
+        
+        expect(have).toBe(want);
+    });
+};
+
+jasmine.expectTabIndex = jasmine.expectsTabIndex = function(wantIndex, el) {
+    runs(function() {
+        if (el && el.isComponent) {
+            el = el.getFocusEl();
+        }
+
+        var haveIndex = el.dom.getAttribute('tabindex');
+
+        expect(haveIndex - 0).toBe(wantIndex);
+    });
 };
 
 /*
@@ -3981,353 +4478,12 @@ MockAjax.prototype.xmlDOM = function(xml) {
         };
     } 
 
-    try {
-        return (new DOMParser()).parseFromString(xml, "text/xml");
-    } catch (e) {
-        return null;
+    if (xml && xml.substr(0, 1) === '<') {
+        try {
+            return (new DOMParser()).parseFromString(xml, "text/xml");
+        }
+        catch (e) {}
     }
+    
+    return null;
 };
-SenchaTestRunner = {
-    allowedGlobals: {},
-    
-    specTimeout: 10 * 1000, // 10 secs
-
-    isRunning: function() {
-        if (!this.reporter) {
-            return false;
-        }
-        
-        var isRunning = this.reporter.isRunning,
-            currentSpec = jasmine.getEnv().currentSpec,
-            testResult = currentSpec._testResult;
-    
-        if (!isRunning || !currentSpec) {
-            return isRunning;
-        }
-               
-        if (jasmine.getOptions().debug !== true && testResult) {
-            var duration = (new Date).getTime() - parseInt(testResult.startTime);
-            if (duration > this.specTimeout) {
-                throw new Error ("The spec '" + currentSpec.getFullName() + "' is taking more than " + (this.specTimeout/1000) + " seconds to complete.");
-            }
-        }
-
-        this.currentSpec = currentSpec;
-        
-        return isRunning;
-        
-    },
-
-    /**
-     * initializes the allowed globals object with all the propeties in the current
-     * window.  Should be called after frameworks are loaded but before specs are loaded.
-     */
-    initGlobals: function() {
-        var me = this,
-            allowedGlobals = me.allowedGlobals,
-            prop;
-
-        for (prop in window) {
-            allowedGlobals[prop] = true;
-        }
-
-        // Old Firefox needs these
-        allowedGlobals.getInterface =
-        allowedGlobals.loadFirebugConsole =
-        allowedGlobals._createFirebugConsole =
-        allowedGlobals.netscape = 
-        allowedGlobals.XPCSafeJSObjectWrapper =
-        allowedGlobals.XPCNativeWrapper =
-        allowedGlobals.Components =
-        allowedGlobals._firebug =
-        // IE10 F12 dev tools adds this property when opened.
-        allowedGlobals.__IE_DEVTOOLBAR_CONSOLE_COMMAND_LINE =
-        // we're going to add the addGlobal function to the window object, so specs can call it
-        allowedGlobals.addGlobal = true;
-        allowedGlobals.id = true; // In Ext JS 4 Ext.get(window) adds an id property
-
-        window.addGlobal = function() {
-            me.addGlobal.apply(me, arguments);
-        };
-    },
-
-    /**
-     * Add an allowed global variable.
-     * @param {String/Array} property The variable name, or array of names
-     */
-    addGlobal: function(property) {
-        var len;
-
-        if (property.charAt) { // string
-            this.allowedGlobals[property] = true;
-        } else { // array
-            for (len = property.length; len--;) {
-                this.allowedGlobals[property[len]] = true;
-            }
-        }
-    },
-
-    checkGlobals: function(spec) {
-        var allowedGlobals = this.allowedGlobals,
-            property, value;
-        
-        for (property in window) {
-            value = window[property];
-            if (value !== undefined && !allowedGlobals[property] &&
-                (!value || // make sure we don't try to do a property lookup on a null value
-                // old browsers (IE6 and opera 11) add element IDs as enumerable properties
-                // of the window object, so make sure the global var is not a HTMLElement
-                value.nodeType !== 1 &&
-                // make sure it isn't a reference to a window object.  This happens in
-                // some browsers (e.g. IE6) when the document contains iframes.  The
-                // frames' window objects are referenced by id in the parent window object.
-                !(value.location && value.document))) {
-                spec.fail('Bad global variable: ' + property + ' = ' + value);
-                allowedGlobals[property] = true;
-            }
-        }  
-    },
-            
-    results : [],
-    
-    Reporter : function() { 
-        var me = this;
-        // some browsers add an empty text node in the document.body.  This ensures
-        // we start with an emtpy body
-        document.body.innerHTML = '';
-        me.suites = {};
-        me.results = {
-            startTime: null,
-            endTime: null,
-            failures: 0,
-            suitesCount: 0,
-            specsCount: 0,
-            suites: []
-        };
-        SenchaTestRunner.reporter = this;
-    }
-};
-
-
-SenchaTestRunner.Reporter.prototype = {
-    initContextMapping: function() {
-//        var xhr = new jasmine.XmlHttpRequest();
-//        window.alert(SenchaTestRunner.testArtifactServerURL + "context-directory-mapping");
-//        xhr.open("GET", SenchaTestRunner.testArtifactServerURL + "context-directory-mapping", false);
-//        xhr.send(null);
-//        if (xhr.status === 200) {
-//            jasmine.contextMapping = JSON.parse(xhr.responseText);
-//        } else {
-//            jasmine.contextMapping = null;
-//        }
-    },
-            
-    reportRunnerStarting: function() {
-        this.initContextMapping();
-        this.isRunning = true;
-    },
-            
-    reportRunnerResults: function() {
-        this.isRunning = false;
-        Ext.cmd.api.adapter.onTestsDone();
-    },
-                
-    extractRe: /((http:\/\/|file:\/\/\/).*\.js)[^:]*:(\d*)/,
-
-    extractFileAndLine: function(line) {
-        var result = line.match(this.extractRe);
-
-        if (!result) {
-            return null;
-        }
-
-        return {
-            fileName : result[1],
-            lineNumber : parseInt(result[3], 10)
-        };
-    },
-    
-    extractStackTrace: function(error) {
-        var stack = error.stack || error.stackTrace,
-            results = [],
-            lines, line, length, i, extract, fileName, lineNumber;
-
-        if (stack) {
-            lines = stack.split("\n");
-            length = lines.length;
-            for (i = 0; i < length; i++) {
-                line = lines[i];
-                if (line.search(jasmine.util.getOrigin() + "/jasmine.js") === -1) {
-                    extract = this.extractFileAndLine(line);
-                    if (extract) {
-                        results.push(extract);
-                    }
-                }
-            }
-        } else {
-            fileName = error.sourceURL || error.fileName;
-            lineNumber = error.line || error.lineNumber;
-
-            if (fileName && lineNumber) {
-                results.push({
-                    fileName : fileName,
-                    lineNumber : lineNumber
-                });
-            }
-        }
-        return results;
-    },
-    
-    filterRe: /\n|\t|\r|\v|'|"|="|=/g,
-    
-    filterChars: function(string) {
-        return jasmine.util.htmlEscape(string).replace(this.filterRe, ' ');
-    },
-
-    reportSpecStarting: function(spec) {
-        var me = this,
-            testResult = {
-                startTime: (new Date).getTime()
-            };
-
-        spec.startTime = (new Date).getTime();
-        spec._testResult = testResult;
-    },
-
-    reportSpecResults: function(spec) {
-        var blocksArray = [],
-            blocks = spec.queue.blocks,
-            block,
-            results, 
-            result, 
-            length, 
-            i, 
-            expectation,
-            testResult = spec._testResult,
-            suiteTestResult = spec.suite && spec.suite._testResult;
-
-        this.checkForCleanup(spec);
-
-        testResult.description = this.filterChars(spec.description);
-        testResult.hash = '' + spec.id;
-        testResult.fileName = spec.fileName;
-        testResult.expectations = [];
-        testResult.duration = (new Date).getTime() - testResult.startTime;
-        testResult.passed = spec.results().passed();
-
-        if (!testResult.passed) {
-            if(suiteTestResult) {
-                suiteTestResult.failures++;
-                suiteTestResult.passed = false;
-            }
-        }
-
-        results = spec.results().getItems();
-
-        length = results.length;
-        for (i = 0; i < length; i++) {
-            result = results[i];
-
-            if (result.type === 'expect') {
-
-                expectation = {
-                    description: result.message
-                };
-
-                if (!result.passed() && result.error) {
-                    expectation.stackTrace = this.extractStackTrace(result.error);
-                } 
-
-                if (result.passed()) {
-                    expectation.passed = true;
-                } else {
-                    expectation.passed = false;
-                }
-
-                testResult.expectations.push(expectation);
-            }
-        }
-
-        length = blocks.length,
-        i = 0;
-        for (; i < length; i++) {
-            block = blocks[i];
-            if (block.func && block.func.typeName) {
-                blocksArray.push({
-                    idx: i,
-                    fn: block.func.toString(),
-                    typeName: block.func.typeName
-                });
-            }
-        }
-
-        testResult.blocks = blocksArray;
-        Ext.cmd.api.adapter.onTestResult(testResult);
-        delete spec._testResult;
-    },
-    
-    reportSuiteStarting: function(suite) {
-        var testResult = {
-                startTime: (new Date).getTime(),
-                failures: 0,
-                passed: true
-            };
-            
-        suite._testResult = testResult;
-    },
-    
-    reportSuiteResults: function(suite) {
-        var testResult = suite._testResult,
-            parentTestResult = suite.parentSuite && suite.parentSuite._testResult;
-
-        testResult.description = this.filterChars(suite.description);
-        testResult.hash = '' +  suite.id;
-        testResult.duration = (new Date).getTime() - testResult.startTime;
-        
-        if (parentTestResult) {
-            parentTestResult.failures += testResult.failures;
-            if (!testResult.passed) {
-                parentTestResult.passed = false;
-            }
-        }
-
-        Ext.cmd.api.adapter.onTestResult(testResult);
-        delete suite._testResult;
-    },
-
-    checkDom: function(spec) {
-        var body = document.body,
-            children = body && body.childNodes || [],
-            len = children.length,
-            badNodes = [],
-            i = 0;
-
-        for (; i < len; i++) {
-            if (children[i].nodeType === 3 || !children[i].getAttribute('data-sticky')) {
-                badNodes.push(children[i]);
-            }
-        }
-
-        for (i = 0, len = badNodes.length; i < len; i++) {
-            document.body.removeChild(badNodes[i]);
-        }
-
-        if (badNodes.length) {
-            spec.fail('document.body contains childNodes after spec execution');
-        }
-    },
-
-    checkForCleanup: function(spec) {
-        this.checkDom(spec);
-        SenchaTestRunner.checkGlobals(spec);
-    }
-};
-
-// The initGlobals() method adds all currently enumerable window properties to a list of
-// allowed globals.  It needs to be called after Ext and jasmine are loaded, but before any
-// of the spec files are executed.  This ensures that bad globals defined in the spec
-// files do not get added to the list of allowed globals.
-
-
-
-SenchaTestRunner.initGlobals();

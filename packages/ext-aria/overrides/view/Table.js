@@ -110,26 +110,5 @@ Ext.define('Ext.aria.view.Table', {
         });
         
         return data;
-    },
-    
-    privates: {
-        // Override because we changed focus() and focusRow() to not actually focus a row
-        // The call to focusRow() in this function causes a focus to happen whenever the table is refreshed
-        getFocusEl: function() {
-            return this.el;
-        },
-
-        // Ensure that the main element has focus
-        focus: function() {
-            var me = this;
-        
-            me.callParent();
-            me.el.focus();
-        
-            // If, before wer were blurred, we had transferred focus into the grid header, jump back in there upon focus
-            if (me.headerFocused) {
-                me.up('tablepanel').headerCt.focus();
-            }
-        }
     }
 });

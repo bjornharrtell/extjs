@@ -48,7 +48,7 @@ $datepicker-monthpicker-small-yearnav-height: $datepicker-monthpicker-small-item
 
 @if $datepicker-arrow-opacity-over != 1 or $datepicker-arrow-opacity != 1  {
     // include the element name since :hover causes performance issues in IE7 and 8 otherwise
-    a.#{$prefix}datepicker-arrow:hover {
+    div.#{$prefix}datepicker-arrow:hover {
         @include opacity($datepicker-arrow-opacity-over);
     }
 }
@@ -86,9 +86,13 @@ $datepicker-monthpicker-small-yearnav-height: $datepicker-monthpicker-small-item
         }
     }
 
-    .#{$prefix}btn-split-right:after {
+    .#{$prefix}btn-split-right:after, .#{$prefix}btn-over .#{$prefix}btn-split-right:after {
         background-image: theme-background-image($datepicker-month-button-arrow-image);
         padding-right: $datepicker-month-button-arrow-width;
+    }
+
+    .#{$prefix}btn-over {
+        border-color: transparent;
     }
 }
 
@@ -136,7 +140,7 @@ $datepicker-monthpicker-small-yearnav-height: $datepicker-monthpicker-small-item
 }
 
 // include the element name since :hover causes performance issues in IE7 and 8 otherwise
-a.#{$prefix}datepicker-date:hover {
+div.#{$prefix}datepicker-date:hover {
     color: $datepicker-item-color; // needed to override color for prevday/nextday
     background-color: $datepicker-item-hover-background-color;
 }
@@ -164,7 +168,7 @@ a.#{$prefix}datepicker-date:hover {
 
 .#{$prefix}datepicker-disabled {
     // include the element name to increase the specificity over the :hover rule
-    a.#{$prefix}datepicker-date {
+    .#{$prefix}datepicker-date {
         background-color: $datepicker-item-disabled-background-color;
         cursor: $datepicker-item-disabled-cursor;
         color: $datepicker-item-disabled-color;
@@ -172,8 +176,9 @@ a.#{$prefix}datepicker-date:hover {
 }
 
 // include the element name since :hover causes performance issues in IE7 and 8 otherwise
-.#{$prefix}datepicker-disabled  a.#{$prefix}datepicker-date:hover {
+.#{$prefix}datepicker-disabled  div.#{$prefix}datepicker-date:hover {
     background-color: $datepicker-item-disabled-background-color;
+    color: $datepicker-item-disabled-color;
 }
 
 .#{$prefix}datepicker-footer,

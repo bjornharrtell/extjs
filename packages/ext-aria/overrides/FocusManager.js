@@ -148,14 +148,13 @@ Ext.define('Ext.aria.FocusManager', {
         return false;
     },
 
-    addWindow: function(window, defaultFocus) {
+    addWindow: function(window) {
         var me = this,
             win = {
                 cmp: window
             };
 
         me.windows.push(win);
-        defaultFocus.focus(false, 100);
     },
 
     removeWindow: function(window) {

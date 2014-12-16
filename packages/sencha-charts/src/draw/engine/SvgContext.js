@@ -4,6 +4,9 @@
  * A class that imitates a canvas context but generates svg elements instead.
  */
 Ext.define('Ext.draw.engine.SvgContext', {
+
+    requires: ['Ext.draw.Color'],
+
     /**
      * @private
      * Properties to be saved/restored in the `save` and `restore` methods.
@@ -601,6 +604,14 @@ Ext.define('Ext.draw.engine.SvgContext', {
 
     appendPath: function (path) {
         this.path = path.clone();
+    },
+
+    setLineDash: function (lineDash) {
+        this.lineDash = lineDash;
+    },
+
+    getLineDash: function () {
+        return this.lineDash;
     },
 
     /**

@@ -14,7 +14,7 @@ Ext.define('Ext.direct.JsonProvider', {
         'Ext.direct.Manager'
     ],
 
-   /**
+    /**
     * Parse the JSON response
     * @private
     *
@@ -22,13 +22,15 @@ Ext.define('Ext.direct.JsonProvider', {
     *
     * @return {Object} The data in the response.
     */
-   parseResponse: function(response) {
-        if (!Ext.isEmpty(response.responseText)) {
-            if (Ext.isObject(response.responseText)) {
-                return response.responseText;
+    parseResponse: function(response) {
+        var text = response && response.responseText;
+        
+        if (text) {
+            if (Ext.isObject(text) || Ext.isArray(text)) {
+                return text;
             }
 
-            return Ext.decode(response.responseText);
+            return Ext.decode(text);
         }
 
         return null;

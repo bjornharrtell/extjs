@@ -93,11 +93,11 @@ Ext.define('Ext.data.schema.ManyToMany', {
 
         digitRe: /^\d+$/,
 
-        validateAssociationRecords: function(session, associatedEntity, leftRecords) {
-            var slice = session.getMatrixSlice(this.inverse, associatedEntity.id),
+        findRecords: function(session, rightRecord, leftRecords) {
+            var slice = session.getMatrixSlice(this.inverse, rightRecord.id),
                 members = slice.members,
-                cls = this.cls,
                 ret = [], 
+                cls = this.cls,
                 seen, i, len, id, member, leftRecord;
 
             if (leftRecords) {
@@ -128,6 +128,15 @@ Ext.define('Ext.data.schema.ManyToMany', {
             return ret;
         },
 
+        processLoad: function(store, rightRecord, leftRecords, session) {
+            var ret = leftRecords;
+            if (session) {
+                ret = this.findRecords(session, rightRecord, leftRecords);
+                this.onAddToMany(store, ret, true);
+            }
+            return ret;
+        },
+
         processUpdate: function(session, associationData) {
             var me = this,
                 entityType = me.inverse.cls,
@@ -141,10 +150,8 @@ Ext.define('Ext.data.schema.ManyToMany', {
                         leftRecords = session.getEntityList(me.cls, items[id]);
                         store = me.getAssociatedItem(rightRecord);
                         if (store) {
-                            leftRecords = me.validateAssociationRecords(session, rightRecord, leftRecords);
-                            store.loadRecords(leftRecords);
+                            store.loadData(leftRecords);
                             store.complete = true;
-                            me.onAddToMany(store, leftRecords, true);
                         } else {
                             // We don't have a store. Create it and add the records.
                             rightRecord[me.getterName](null, null, leftRecords);
@@ -196,6 +203,24 @@ Ext.define('Ext.data.schema.ManyToMany', {
             }
         },
 
+        onStoreCreate: function(store, session, id) {
+            var me = this,
+                matrix;
+
+            if (session) {
+                // If we are creating a store of say Groups in a UserGroups matrix, we want
+                // to traverse the inverse side of the matrix (Users) because the id we have
+                // is that of the User to which these Groups are associated.
+                matrix = session.getMatrixSlice(me.inverse, id);
+
+                matrix.attach(store);
+                matrix.notify = me.onMatrixUpdate;
+                matrix.scope = me;
+
+
+            }
+        },
+
         processMatrixBlock: function(session, leftKeys, state) {
             var inverse = this.inverse,
                 digitRe = this.digitRe,
@@ -224,7 +249,7 @@ Ext.define('Ext.data.schema.ManyToMany', {
 
                 if (session) {
                     hadRecords = !!leftRecords;
-                    leftRecords = me.validateAssociationRecords(session, this, leftRecords);
+                    leftRecords = me.findRecords(session, this, leftRecords);
                     if (!hadRecords && !leftRecords.length) {
                         leftRecords = null;
                     }
@@ -248,8 +273,6 @@ Ext.define('Ext.data.schema.ManyToMany', {
                 store.matrixUpdate = 0;
             }
         },
-
-        onLoadMany: Ext.emptyFn,
 
         /*
          * This method is called when records are removed from the association store. The
@@ -300,6 +323,20 @@ Ext.define('Ext.data.schema.ManyToMany', {
                 }
 
                 store.matrixUpdate = 0;
+            }
+        },
+
+        adoptAssociated: function(record, session) {
+            var store = this.getAssociatedItem(record),
+                records, i, len;
+
+            if (store) {
+                store.setSession(session);
+                this.onStoreCreate(store, session, record.getId());
+                records = store.getData().items;
+                for (i = 0, len = records.length; i < len; ++i) {
+                    session.adopt(records[i]);
+                }
             }
         }
     },

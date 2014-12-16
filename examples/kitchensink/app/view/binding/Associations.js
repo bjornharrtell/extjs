@@ -10,7 +10,21 @@ Ext.define('KitchenSink.view.binding.Associations', {
     height: 300,
     referenceHolder: true,
     layout: 'hbox',
-
+    //<example>
+    otherContent: [{
+        type: 'Model',
+        path: 'app/model/Customer.js'
+    },{
+        type: 'Model',
+        path: 'app/model/Order.js'
+    },{
+        type: 'Data',
+        path: 'app/data/Customer.js'
+    },{
+        type: 'Data',
+        path: 'app/data/Order.js'
+    }],
+    //</example>
     viewModel: {
         stores: {
             customers: {

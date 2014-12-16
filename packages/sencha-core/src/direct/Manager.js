@@ -1,31 +1,39 @@
 /**
- * Ext.Direct aims to streamline communication between the client and server by providing a single interface that
- * reduces the amount of common code typically required to validate data and handle returned data packets (reading data,
- * error conditions, etc).
+ * Ext Direct aims to streamline communication between the client and server
+ * by providing a single interface that reduces the amount of common code
+ * typically required to validate data and handle returned data packets
+ * (reading data, error conditions, etc).
  *
- * The Ext.direct namespace includes several classes for a closer integration with the server-side. The Ext.data
- * namespace also includes classes for working with Ext.data.Stores which are backed by data from an Ext.Direct method.
+ * The Ext.direct namespace includes several classes for a closer integration
+ * with the server-side. The Ext.data namespace also includes classes for working
+ * with Ext.data.Stores which are backed by data from an Ext Direct method.
  *
  * # Specification
  *
- * For additional information consult the [Ext.Direct Specification][1].
+ * For additional information consult the [Ext Direct Specification][1].
  *
  * # Providers
  *
- * Ext.Direct uses a provider architecture, where one or more providers are used to transport data to and from the
- * server. There are several providers that exist in the core at the moment:
+ * Ext Direct uses a provider architecture, where one or more providers are used
+ * to transport data to and from the server. There are several providers that exist
+ * in the core at the moment:
  *
  * - {@link Ext.direct.JsonProvider JsonProvider} for simple JSON operations
  * - {@link Ext.direct.PollingProvider PollingProvider} for repeated requests
- * - {@link Ext.direct.RemotingProvider RemotingProvider} exposes server side on the client.
+ * - {@link Ext.direct.RemotingProvider RemotingProvider} exposes server side to the client.
  *
- * A provider does not need to be invoked directly, providers are added via {@link Ext.direct.Manager}.{@link #addProvider}.
+ * A provider does not need to be invoked directly, providers are added via
+ * {@link Ext.direct.Manager #addProvider}. RemotingProviders' API declarations
+ * can also be loaded with {@link Ext.direct.Manager #loadProvider}, with
+ * Provider instance created automatically after successful retrieval.
  *
  * # Router
  *
- * Ext.Direct utilizes a "router" on the server to direct requests from the client to the appropriate server-side
- * method. Because the Ext.Direct API is completely platform-agnostic, you could completely swap out a Java based server
- * solution and replace it with one that uses C# without changing the client side JavaScript at all.
+ * Ext Direct RemotingProviders utilize a "router" on the server to direct
+ * requests from the client to the appropriate server-side method. Because
+ * the Ext Direct API is platform-agnostic, you could completely swap out
+ * a Java based server solution and replace it with one that uses C#
+ * without changing the client side JavaScript at all, or vice versa.
  *
  * # Server side events
  *
@@ -52,9 +60,9 @@ Ext.define('Ext.direct.Manager', {
         'Ext.util.MixedCollection'
     ],
 
-    mixins: {
-        observable: 'Ext.util.Observable'
-    },
+    mixins: [
+        'Ext.mixin.Observable'
+    ],
 
     /**
      * Exception types.
@@ -67,13 +75,30 @@ Ext.define('Ext.direct.Manager', {
         SERVER: 'exception'
     },
     
+    // Classes of Providers available to the application
+    providerClasses: {},
+    
+    // Remoting Methods registered with the Manager
+    remotingMethods: {},
+    
+    config: {
+        /**
+         * @cfg {String} [varName="Ext.app.REMOTING_API"]
+         * Default variable name to use for Ext.Direct API declaration.
+         */
+        varName: 'Ext.app.REMOTING_API'
+    },
+    
+    apiNotFoundError: 'Ext Direct API was not found at {0}',
+    
     /**
      * @event event
      *
      * Fires after an event.
      *
-     * @param {Ext.direct.Event} event The Ext.direct.Event type that occurred.
-     * @param {Ext.direct.Provider} provider The {@link Ext.direct.Provider Provider}.
+     * @param {Ext.direct.Event} event The {@link Ext.direct.Event Event} that occurred.
+     * @param {Ext.direct.Provider} provider The {@link Ext.direct.Provider Provider}
+     * that provided the event.
      */
 
     /**
@@ -81,31 +106,55 @@ Ext.define('Ext.direct.Manager', {
      *
      * Fires after an event exception.
      *
-     * @param {Ext.direct.Event} event The event type that occurred.
+     * @param {Ext.direct.Event} event The {@link Ext.direct.Event Event} that occurred.
+     * @param {Ext.direct.Provider} provider The {@link Ext.direct.Provider Provider}
+     * that provided the event.
+     */
+    
+    /**
+     * @event providerload
+     *
+     * Fired by {@link #loadProvider} after successfully loading RemotingProvider API
+     * declaration and creating a new Provider instance.
+     *
+     * @param {String} url The URL used to retrieve remoting API.
+     * @param {Ext.direct.Provider} provider The {@link Ext.direct.Provider Provider}
+     * instance that was created.
+     */
+    
+    /**
+     * @event providerloaderror
+     * 
+     * Fired by {@link #loadProvider} when remoting API could not be loaded, or
+     * Provider instance could not be created.
+     *
+     * @param {String} url The URL used to retrieve remoting API.
+     * @param {String} error The error that occured.
      */
 
     constructor: function() {
         var me = this;
+        
+        me.mixins.observable.constructor.call(me);
 
         me.transactions = new Ext.util.MixedCollection();
         me.providers    = new Ext.util.MixedCollection();
-
-        me.mixins.observable.constructor.call(me);
     },
 
     /**
-     * Adds an Ext.Direct Provider and creates the proxy or stub methods to execute server-side methods. If the provider
-     * is not already connected, it will auto-connect.
+     * Adds an Ext Direct Provider and creates the proxy or stub methods to execute
+     * server-side methods for RemotingProviders. If the provider is not already connected,
+     * it will auto-connect.
      *
      *      var pollProv = new Ext.direct.PollingProvider({
      *          url: 'php/poll2.php'
      *      });
      *
      *      Ext.direct.Manager.addProvider({
-     *          type: 'remoting',           // create a {@link Ext.direct.RemotingProvider}
-     *          url:  'php/router.php',     // url to connect to the Ext.Direct server-side router.
-     *          actions: {                  // each property within the actions object represents a Class
-     *              TestAction: [{          // array of methods within each server side Class
+     *          type: 'remoting',           // create a Ext.direct.RemotingProvider
+     *          url:  'php/router.php',     // url to connect to the Ext Direct server-side router.
+     *          actions: {                  // each property within the actions object represents an Action
+     *              TestAction: [{          // array of Methods within each server side Action
      *                  name: 'doEcho',     // name of method
      *                  len:  1
      *              }, {
@@ -113,19 +162,20 @@ Ext.define('Ext.direct.Manager', {
      *                  len:  1
      *              }, {
      *                  name: 'doForm',
-     *                  formHandler: true   // handle form on server with Ext.Direct.Transaction
+     *                  formHandler: true   // handle form on server with Ext.direct.Transaction
      *              }]
      *          },
      *          namespace: 'myApplication', // namespace to create the Remoting Provider in
      *      }, {
-     *          type: 'polling',            // create a {@link Ext.direct.PollingProvider}
+     *          type: 'polling',            // create an Ext.direct.PollingProvider
      *          url:  'php/poll.php'
      *      },
      *      pollProv);                      // reference to previously created instance
      *
      * @param {Ext.direct.Provider/Object...} provider
+     *
      * Accepts any number of Provider descriptions (an instance or config object for
-     * a Provider). Each Provider description instructs Ext.Direct how to create
+     * a Provider). Each Provider description instructs Ext Direct how to create
      * client-side stub methods.
      */
     addProvider: function(provider) {
@@ -160,10 +210,104 @@ Ext.define('Ext.direct.Manager', {
 
         return provider;
     },
-
+    
     /**
-     * Retrieves a {@link Ext.direct.Provider provider} by the **{@link Ext.direct.Provider#id id}** specified when the
-     * provider is {@link #addProvider added}.
+     * Load Ext Direct Provider API declaration from the server and construct
+     * a new Provider instance. The new Provider will then auto-connect and
+     * create stub functions for the methods exposed by the server side. See 
+     * {@link #addProvider}.
+     * 
+     *      Ext.direct.Manager.loadProvider({
+     *          url: 'php/api.php',
+     *          varName: 'MY_REMOTING_API' // defaults to 'Ext.app.REMOTING_API'
+     *      });
+     *
+     * @param {Object} config Remoting API configuration.
+     * @param {String} config.url URL to retrieve remoting API declaration from.
+     * @param {String} config.varName Name of the variable that will hold 
+     * RemotingProvider configuration block, including its Actions.
+     * @param {Function} [callback] Optional callback to execute when
+     * Provider is created, or when an error has occured.
+     * @param {Object} [scope] Optional scope to execute callback function in.
+     *
+     * For additional information see the [Ext Direct specification][1].
+     */
+    loadProvider: function(config, callback, scope) {
+        var me = this,
+            classes = me.providerClasses,
+            type, url, varName, provider, i, len;
+        
+        if (Ext.isArray(config)) {
+            for (i = 0, len = config.length; i < len; i++) {
+                me.loadProvider(config[i], callback, scope);
+            }
+            
+            return;
+        }
+        
+        // We may have been passed config object containing enough
+        // information to create a Provider without further ado.
+        type = config.type;
+        url  = config.url;
+        
+        if (classes[type] && classes[type].checkConfig(config)) {
+            provider = me.addProvider(config);
+            
+            me.fireEventArgs('providerload', [url, provider]);
+            Ext.callback(callback, scope, [url, provider]);
+            
+            // We're deliberately not returning the provider here
+            // to make way for the future Promises based implementation
+            // that should be consistent with the remote API declaration
+            // retrieval below.
+            return;
+        }
+        
+        // For remote API declaration retrieval we need to know the
+        // service discovery URL and variable name, at the minimum.
+        // We have a default for the variable name but not for URL.
+        varName = config.varName || me.getVarName();
+        delete config.varName;
+        
+        //<debug>
+        if (!url) {
+            Ext.Error.raise("Need API discovery URL to load a Remoting provider!");
+        }
+        //</debug>
+        
+        // The URL we are requesting API from is not the same as the
+        // service URL, and we don't need them to mix.
+        delete config.url;
+        
+        // Have to use closures here as Loader does not allow passing
+        // options object from caller to callback.
+        Ext.Loader.loadScript({
+            url: url,
+            scope: me,
+            
+            onLoad: function() {
+                this.onApiLoadSuccess({
+                    url: url,
+                    varName: varName,
+                    config: config,
+                    callback: callback,
+                    scope: scope
+                });
+            },
+            
+            onError: function() {
+                this.onApiLoadFailure({
+                    url: url,
+                    callback: callback,
+                    scope: scope
+                });
+            }
+        });
+    },
+    
+    /**
+     * Retrieves a {@link Ext.direct.Provider provider} by the id specified when the
+     * provider is added.
      *
      * @param {String/Ext.direct.Provider} id The id of the provider, or the provider instance.
      */
@@ -279,27 +423,82 @@ Ext.define('Ext.direct.Manager', {
      * @param {String/Function} fn The direct function
      *
      * @return {Function} The function to use in the direct call. Null if not found
-     *
-     * @protected
      */
     parseMethod: function(fn) {
-        if (Ext.isString(fn)) {
-            var parts = fn.split('.'),
-                i = 0,
-                len = parts.length,
-                current = Ext.global;
-                
-            while (current && i < len) {
-                current = current[parts[i]];
-                ++i;
-            }
+        var current = Ext.global,
+            i = 0,
+            resolved, parts, len;
+        
+        if (Ext.isFunction(fn)) {
+            resolved = fn;
+        }
+        else if (Ext.isString(fn)) {
+            resolved = this.remotingMethods[fn];
             
-            fn = Ext.isFunction(current) ? current : null;
+            // Support legacy resolution as top-down lookup
+            // from the window scope
+            if (!resolved) {
+                parts = fn.split('.');
+                len   = parts.length;
+
+                while (current && i < len) {
+                    current = current[parts[i]];
+                    ++i;
+                }
+            
+                resolved = Ext.isFunction(current) ? current : null;
+            }
         }
         
-        return fn || null;
-    }
+        return resolved || null;
+    },
     
+    privates: {
+        addProviderClass: function(type, cls) {
+            this.providerClasses[type] = cls;
+        },
+        
+        onApiLoadSuccess: function(options) {
+            var me = this,
+                url = options.url,
+                varName = options.varName,
+                api, provider, error;
+            
+            try {
+                // Variable name could be nested (default is Ext.app.REMOTING_API),
+                // so we use eval() to get the actual value.
+                api = Ext.apply(options.config, eval(varName));
+                
+                provider = me.addProvider(api);
+            }
+            catch (e) {
+                error = e + '';
+            }
+            
+            if (error) {
+                me.fireEventArgs('providerloaderror', [url, error]);
+                Ext.callback(options.callback, options.scope, [url, error]);
+            }
+            else {
+                me.fireEventArgs('providerload', [url, provider]);
+                Ext.callback(options.callback, options.scope, [url, provider]);
+            }
+        },
+        
+        onApiLoadFailure: function(options) {
+            var url = options.url,
+                error;
+            
+            error = Ext.String.format(this.apiNotFoundError, url);
+            
+            this.fireEventArgs('providerloaderror', [url, error]);
+            Ext.callback(options.callback, options.scope, [url, error]);
+        },
+        
+        registerMethod: function(name, method) {
+            this.remotingMethods[name] = method;
+        }
+    }
 }, function() {
     // Backwards compatibility
     Ext.Direct = Ext.direct.Manager;

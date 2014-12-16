@@ -259,6 +259,11 @@
 
         .#{$prefix}toolbar-item {
             margin: 0 0 $vertical-spacing 0;
+            @if $include-rtl {
+                &.#{$prefix}rtl {
+                    margin: 0 0 $vertical-spacing 0;
+                }
+            }
         }
 
         .#{$prefix}toolbar-separator-vertical {

@@ -30,7 +30,7 @@ Ext.define('Desktop.AccordionWindow', {
             title: 'Online Users',
             rootVisible:false,
             lines:false,
-            autoScroll:true,
+            scrollable:true,
             tools:[{
                 type: 'refresh',
                 listeners: {
@@ -123,7 +123,7 @@ Ext.define('Desktop.AccordionWindow', {
                     {
                         title: 'Settings',
                         html:'<p>Something useful would be in here.</p>',
-                        autoScroll:true
+                        scrollable:true
                     },
                     {
                         title: 'Even More Stuff',

@@ -33,7 +33,7 @@
  *             { text : 'Email', dataIndex : 'email', flex : 1 },
  *             { text : 'Phone', dataIndex : 'phone' }
  *         ],
- *         selType: 'cellmodel'
+ *         selModel: 'cellmodel'
  *     });
  */
 Ext.define('Ext.selection.CellModel', {
@@ -52,6 +52,11 @@ Ext.define('Ext.selection.CellModel', {
 
 
     isCellModel: true,
+
+    /**
+     * @inheritdoc
+     */
+    deselectOnContainerClick: false,
 
     /**
      * @cfg {Boolean} enableKeyNav
@@ -86,25 +91,35 @@ Ext.define('Ext.selection.CellModel', {
 
     bindComponent: function(view) {
         var me = this,
-            // view.grid is present during View construction, before the view has been
-            // added as a child of the Panel, and an upward link it still needed.
-            grid = view.grid || view.ownerCt;
+            grid;
+
+        // Unbind from a view
+        if (me.view && me.gridListeners) {
+            me.gridListeners.destroy();
+        }
 
         // DataViewModel's bindComponent
         me.callParent([view]);
 
-        if (grid.optimizedColumnMove !== false) {
-            grid.on('columnmove', me.onColumnMove, me);
+        if (view) {
+            // view.grid is present during View construction, before the view has been
+            // added as a child of the Panel, and an upward link it still needed.
+            grid = view.grid || view.ownerCt;
+
+            if (grid.optimizedColumnMove !== false) {
+                me.gridListeners = grid.on({
+                    columnmove: me.onColumnMove,
+                    scope: me,
+                    destroyable: true
+                });
+            }
         }
     },
 
     getViewListeners: function() {
-        var me = this;
-        
-        return {
-            refresh: me.onViewRefresh,
-            scope: me
-        };
+        var result = this.callParent();
+        result.refresh = this.onViewRefresh;
+        return result;
     },
 
     getHeaderCt: function() {
@@ -188,7 +203,7 @@ Ext.define('Ext.selection.CellModel', {
      * @return {Ext.grid.CellContext} A CellContext object describing the current cell.
      */
     getPosition: function() {
-        return this.selecting ? this.nextSelection : this.selection;
+        return (this.selecting ? this.nextSelection : this.selection) || null;
     },
 
     /**
@@ -272,6 +287,10 @@ Ext.define('Ext.selection.CellModel', {
             pos = me.getPosition();
 
         me.callParent(arguments);
+        if (pos && store.isMoving(pos.record)) {
+            return;
+        }
+        
         if (pos && store.getCount() && store.indexOf(pos.record) !== -1) {
             pos.setRow(pos.record);
         } else {
@@ -348,14 +367,6 @@ Ext.define('Ext.selection.CellModel', {
                 commitFn() !== false) {
 
             if (isSelected) {
-                // Focus the cell unless we are configured not to do so, or the NavigationModel reports
-                // that that position is already focused.
-                if (!me.preventFocus) {
-                    nm = view.getNavigationModel();
-                    if (!pos.isEqual(nm.getPosition())) {
-                        nm.setPosition(pos, null, null, null, true);
-                    }
-                }
                 view.onCellSelect(pos);
             } else {
                 view.onCellDeselect(pos);

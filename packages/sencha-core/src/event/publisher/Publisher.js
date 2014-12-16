@@ -1,69 +1,101 @@
 /**
+ * Abstract base class for event publishers
  * @private
  */
 Ext.define('Ext.event.publisher.Publisher', {
-    targetType: '',
 
-    idSelectorRegex: /^#([\w\-]+)$/i,
+    /**
+     * @property {Array} handledEvents
+     * An array of events that this publisher handles.
+     */
+    handledEvents: [],
+
+    statics: {
+        /**
+         * @property {Object} publishers
+         * A map of all publisher singleton instances.  Publishers register themselves
+         * in this map as soon as they are constructed.
+         */
+        publishers: {},
+
+        /**
+         * @property publishersByEvent
+         * A map of handled event names to the publisher that handles each event.
+         * Provides a convenient way for looking up the publisher that handles any given
+         * event, for example:
+         *
+         *     // get the publisher that  handles click:
+         *     var publisher = Ext.event.publisher.Publisher.publishersByEvent.click;
+         */
+        publishersByEvent: {}
+    },
 
     constructor: function() {
-        var handledEvents = this.handledEvents || [],
-            handledEventsMap,
-            i, ln, event;
+        var me = this,
+            type = me.type;
 
-        handledEventsMap = this.handledEventsMap = {};
+        /**
+         * @property {Object} handles
+         * @private
+         * A map for conveniently checking if this publisher handles a given event
+         */
+        me.handles = {};
 
-        for (i = 0,ln = handledEvents.length; i < ln; i++) {
-            event = handledEvents[i];
-
-            handledEventsMap[event] = true;
+        //<debug>
+        if (!type) {
+            Ext.Error.raise("Event publisher '" + me.$className + "' defined without a 'type' property.");
         }
+        if (me.self.instance) {
+            Ext.Error.raise("Cannot create multiple instances of '" + me.$className + "'. " +
+                "Use '" + me.$className + ".instance' to retrieve the singleton instance.");
+        }
+        //</debug>
 
-        this.subscribers = {};
+        me.registerEvents();
 
-        return this;
+        Ext.event.publisher.Publisher.publishers[type] = me;
     },
 
-    handles: function(eventName) {
-        var map = this.handledEventsMap;
+    /**
+     * Registers all {@link #handledEvents} in the {@link #publishersByEvent} map.
+     * @param {String[]} [events] optional events to register instead of handledEvents.
+     * @protected
+     */
+    registerEvents: function(events) {
+       var me = this,
+           publishersByEvent = Ext.event.publisher.Publisher.publishersByEvent,
+           handledEvents = events || me.handledEvents,
+           ln = handledEvents.length,
+           eventName, i;
 
-        return !!map[eventName] || !!map['*'] || eventName === '*';
+        for (i = 0; i < ln; i++) {
+            eventName = handledEvents[i];
+            me.handles[eventName] = 1;
+            publishersByEvent[eventName] = me;
+        }
     },
 
-    getHandledEvents: function() {
-        return this.handledEvents;
+    fire: function(element, eventName, args) {
+        var event;
+
+        if (element.hasListeners[eventName]) {
+            event = element.events[eventName];
+
+            if (event) {
+                event.fire.apply(event, args);
+            }
+        }
     },
 
-    setDispatcher: function(dispatcher) {
-        this.dispatcher = dispatcher;
-    },
-
+    //<debug>
     subscribe: function() {
-        return false;
+        Ext.Error.raise("Ext.event.publisher.Publisher subclass '" + this.$className + '" has no subscribe method.');
     },
 
     unsubscribe: function() {
-        return false;
+        Ext.Error.raise("Ext.event.publisher.Publisher subclass '" + this.$className + '" has no unsubscribe method.');
     },
-
-    unsubscribeAll: function() {
-        delete this.subscribers;
-        this.subscribers = {};
-
-        return this;
-    },
-
-    notify: function() {
-        return false;
-    },
-
-    getTargetType: function() {
-        return this.targetType;
-    },
-
-    dispatch: function(target, eventName, args, capture) {
-        this.dispatcher.doDispatchEvent(this.targetType, target, eventName, args, null, null, capture);
-    },
+    //</debug>
 
     destroy: Ext.emptyFn
 });

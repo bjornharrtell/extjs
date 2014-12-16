@@ -24,6 +24,11 @@ Ext.define('Ext.slider.Single', {
         'Ext.slider.Slider'
     ],
 
+    /**
+     * @inheritdoc
+     */
+    defaultBindProperty: 'value',
+
     initComponent: function() {
         if (this.publishOnComplete) {
             this.valuePublishEvent = 'changecomplete';
@@ -54,7 +59,9 @@ Ext.define('Ext.slider.Single', {
      * Programmatically sets the value of the Slider. Ensures that the value is constrained within the minValue and
      * maxValue.
      * @param {Number} value The value to set the slider to. (This will be constrained within minValue and maxValue)
-     * @param {Boolean} [animate] Turn on or off animation
+     * @param {Object/Boolean} [animate] `false` to not animate. `true` to use the default animation. This may also be an
+     * animate configuration object, see {@link #animate}. If this configuration is omitted, the {@link #animate} configuration
+     * will be used.
      */
     setValue: function(value, animate) {
         var args = arguments,

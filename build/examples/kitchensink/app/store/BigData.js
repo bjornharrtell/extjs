@@ -1,5 +1,6 @@
 Ext.define('KitchenSink.store.BigData', {
     extend: 'Ext.data.Store',
+    alias: 'store.big-data',
 
     model: 'KitchenSink.model.grid.Employee',
 

@@ -205,7 +205,7 @@ Ext.env.Browser = function (userAgent, publish) {
      * @property {Boolean}
      * `true` if page is running over SSL.
      */
-    this.isSecure = /^https/i.test(window.location.protocol);
+    this.isSecure = Ext.isSecure;
 
     // IE10Quirks, Chrome26Strict, etc.
     this.identity = browserName + majorVer + (this.isStrict ? 'Strict' : 'Quirks');
@@ -401,12 +401,7 @@ Ext.env.Browser.prototype = {
         if (typeof config == 'object' && 'translationMethod' in config && config.translationMethod !== 'auto') {
             return config.translationMethod;
         } else {
-            if (this.is.AndroidStock2 || this.is.IE) {
-                return 'scrollposition';
-            }
-            else {
-                return 'csstransform';
-            }
+            return 'csstransform';
         }
     }
 
@@ -432,10 +427,17 @@ Ext.env.Browser.prototype = {
  *
  * For a full list of supported values, refer to {@link #is} property/method.
  *
- * @aside guide environment_package
  */
 (function (userAgent) {
     Ext.browser = new Ext.env.Browser(userAgent, true);
     Ext.userAgent = userAgent.toLowerCase();
 
+    /**
+     * @property {String} SSL_SECURE_URL
+     * URL to a blank file used by Ext when in secure mode for iframe src and onReady src
+     * to prevent the IE insecure content warning (`'about:blank'`, except for IE
+     * in secure mode, which is `'javascript:""'`).
+     * @member Ext
+     */
+    Ext.SSL_SECURE_URL = Ext.isSecure && Ext.isIE ? 'javascript:\'\'' : 'about:blank'
 }(Ext.global.navigator.userAgent));

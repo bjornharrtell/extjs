@@ -328,6 +328,11 @@ Ext.define('Ext.util.Collection', {
      */
     filtered: false,
 
+    // private priority that is used for endupdate listeners on the filters and sorters.
+    // set to a very high priority so that our processing of these events takes place prior
+    // to user code - data must already be filtered/sorted when the user's handler runs
+    $endUpdatePriority: 1001,
+
     /**
      * @event add
      * Fires after items have been added to the collection.
@@ -671,7 +676,9 @@ Ext.define('Ext.util.Collection', {
             ret = items;
 
         if (items.length) {
+            me.requestedIndex = me.length;
             me.splice(me.length, 0, items);
+            delete me.requestedIndex;
             ret = (items.length === 1) ? items[0] : items;
         }
 
@@ -922,7 +929,9 @@ Ext.define('Ext.util.Collection', {
     clear: function () {
         var me = this,
             generation = me.generation,
-            ret = generation ? me.items : [];
+            ret = generation ? me.items : [],
+            extraKeys,
+            indexName;
 
         if (generation) {
             me.items = [];
@@ -930,6 +939,14 @@ Ext.define('Ext.util.Collection', {
             me.map = {};
             me.indices = {};
             me.generation++;
+
+            // Clear any extraKey indices associated with this Collection
+            extraKeys = me.getExtraKeys();
+            if (extraKeys) {
+                for (indexName in extraKeys) {
+                    extraKeys[indexName].clear();
+                }
+            }
         }
 
         return ret;
@@ -1526,7 +1543,9 @@ Ext.define('Ext.util.Collection', {
             ret = items;
 
         if (items.length) {
+            me.requestedIndex = index;
             me.splice(index, 0, items);
+            delete me.requestedIndex;
             ret = (items.length === 1) ? items[0] : items;
         }
 
@@ -1787,6 +1806,22 @@ Ext.define('Ext.util.Collection', {
         }
 
         return item;
+    },
+
+    /*
+     * @private
+     * Replace an old entry with a new entry of the same key if the entry existed.
+     * @param {type} item The item to insert.
+     * @return {Object} The item inserted.
+     */
+    replace: function(item) {
+        var index = this.indexOf(item);
+
+        if (index === -1) {
+            this.add(item);
+        } else {
+            this.insert(index, item);
+        }
     },
 
     /**
@@ -2071,7 +2106,7 @@ Ext.define('Ext.util.Collection', {
 
         if (adds) {
             if (autoSort && newCount > 1 && length) {
-                me.spliceMerge(addItems);
+                me.spliceMerge(addItems, newKeys);
             } else {
                 if (autoSort) {
                     if (newCount > 1) {
@@ -2251,23 +2286,31 @@ Ext.define('Ext.util.Collection', {
         var me = this,
             atItem = details.atItem,
             items = details.items,
+            requestedIndex = me.requestedIndex,
             filtered, index,
             copy, i, item, n;
 
-        if (atItem) {
-            index = me.indexOf(atItem);
-            if (index === -1) {
-                // We can't find the reference item in our collection, which means it's probably
-                // filtered out, so we need to search for an appropriate index. Pass the first item
-                // and work back to find
-                index = me.findInsertIndex(items[0]);
+        // No point determining the index if we're sorted
+        if (!me.sorted) {
+            // If we have a requestedIndex, it means the add/insert was on our collection, so try
+            // use that specified index to do the insertion.
+            if (requestedIndex !== undefined) {
+                index = requestedIndex;
+            } else if (atItem) {
+                index = me.indexOf(atItem);
+                if (index === -1) {
+                    // We can't find the reference item in our collection, which means it's probably
+                    // filtered out, so we need to search for an appropriate index. Pass the first item
+                    // and work back to find
+                    index = me.findInsertIndex(items[0]);
+                } else {
+                    // We also have that item in our collection, we need to insert after it, so increment
+                    ++index;
+                }
             } else {
-                // We also have that item in our collection, we need to insert after it, so increment
-                ++index;
+                // If there was no atItem, must be at the front of the collection
+                index = 0;
             }
-        } else {
-            // If there was no atItem, must be at the front of the collection
-            index = 0;
         }
 
         if (me.getAutoFilter() && me.filtered) {
@@ -2759,9 +2802,11 @@ Ext.define('Ext.util.Collection', {
             observers.push(observer);
             observerMap[observerId] = observer;
 
-            // Allow observers to be inserted with a priority.
-            // For example GroupCollections must react to Collection mutation before views.
-            Ext.Array.sort(observers, this.prioritySortFn);
+            if (observers.length > 1) {
+                // Allow observers to be inserted with a priority.
+                // For example GroupCollections must react to Collection mutation before views.
+                Ext.Array.sort(observers, this.prioritySortFn);
+            }
         }
     },
 
@@ -2772,24 +2817,30 @@ Ext.define('Ext.util.Collection', {
         return a - b;
     },
 
-    applyExtraKeys: function (extraKeys) {
+    applyExtraKeys: function (extraKeys, oldExtraKeys) {
         var me = this,
-            ret = {},
-            config, key, name, value;
+            ret = oldExtraKeys || {},
+            config,
+            name,
+            value;
 
         for (name in extraKeys) {
-            config = {
-                collection: me
-            };
+            value = extraKeys[name];
+            if (!value.isCollectionKey) {
+                config = {
+                    collection: me
+                };
 
-            if (Ext.isString(value = extraKeys[name])) {
-                config.property = value;
-            } else {
-                Ext.apply(config, value);
+                if (Ext.isString(value)) {
+                    config.property = value;
+                } else {
+                    Ext.apply(config, value);
+                }
+                value = new Ext.util.CollectionKey(config);
             }
 
-            ret[name] = me[name] = key = new Ext.util.CollectionKey(config);
-            key.name = name;
+            ret[name] = me[name] = value;
+            value.name = name;
         }
 
         return ret;
@@ -3046,8 +3097,11 @@ Ext.define('Ext.util.Collection', {
         }
 
         if (newFilters) {
-            // The Collection itself must have priority over user code, so use listener prepend option
-            newFilters.on('endupdate', 'onEndUpdateFilters', me, {prepend: true});
+            newFilters.on({
+                endupdate: 'onEndUpdateFilters',
+                scope: me,
+                priority: me.$endUpdatePriority
+            });
             newFilters.$filterable = me;
         }
 
@@ -3270,7 +3324,7 @@ Ext.define('Ext.util.Collection', {
         var me = this,
             groups = me.getGroups(),
             sorters = me.getSorters(),
-            populate, groupSorters;
+            populate;
 
         me.onSorterChange();
         me.grouped = !!grouper;
@@ -3284,13 +3338,7 @@ Ext.define('Ext.util.Collection', {
                 me.addObserver(groups);
                 me.setGroups(groups);
             }
-
-            groupSorters = groups.getSorters();
-
-            groupSorters.splice(0, groupSorters.length, {
-                property: '_groupKey',
-                direction: grouper.getDirection()
-            });
+            groups.setGrouper(grouper);
 
             populate = true;
         } else {
@@ -3322,8 +3370,11 @@ Ext.define('Ext.util.Collection', {
         }
 
         if (newSorters) {
-            // The Collection itself must have priority over user code, so use listener prepend option
-            newSorters.on('endupdate', 'onEndUpdateSorters', me, {prepend: true});
+            newSorters.on({
+                endupdate: 'onEndUpdateSorters',
+                scope: me,
+                priority: me.$endUpdatePriority
+            });
             newSorters.$sortable = me;
         }
 
@@ -3376,9 +3427,9 @@ Ext.define('Ext.util.Collection', {
      * @private
      * @since 5.0.0
      */
-    spliceMerge: function (newItems) {
+    spliceMerge: function (newItems, newKeys) {
         var me = this,
-            newIndex,
+            map = me.map,
             newLength = newItems.length,
             oldIndex = 0,
             oldItems = me.items,
@@ -3387,7 +3438,7 @@ Ext.define('Ext.util.Collection', {
             count = 0,
             items = [],
             sorters = me.getSorters(),
-            addItems, end, i, newItem, oldItem;
+            addItems, end, i, newItem, oldItem, newIndex;
 
         me.items = items;
 
@@ -3478,8 +3529,14 @@ Ext.define('Ext.util.Collection', {
             items.push(oldItems[oldIndex]);
         }
 
+        for (i = 0; i < newLength; ++i) {
+            map[newKeys[i]] = newItems[i];
+        }
+
         me.length = items.length;
         ++me.generation;
+
+        me.indices = null;
 
         // Tell users of the adds in increasing index order.
         for (i = 0; i < count; ++i) {

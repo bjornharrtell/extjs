@@ -23,7 +23,7 @@ Ext.define('Aria.view.Form', {
     
     width: 320,
     bodyPadding: 12,
-    autoScroll: true,
+    scrollable: true,
     
     ariaAttributes: {
         'aria-atomic': true

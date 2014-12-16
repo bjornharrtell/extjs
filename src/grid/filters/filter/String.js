@@ -77,29 +77,13 @@ Ext.define('Ext.grid.filters.filter.String', {
 
         me.inputItem.on({
             scope: me,
-            keyup: {
-                fn: me.onInputKeyUp,
-                buffer: 200
-            },
+            keyup: me.onValueChange,
             el: {
                 click: function(e) {
                     e.stopPropagation();
                 }
             }
         });
-    },
-
-    /**
-     * @private
-     * Handler method called when there is a keyup event on this.inputItem
-     */
-    onInputKeyUp: function (field, e) {
-        if (e.getKey() === e.RETURN && field.isValid()) {
-            this.menu.hide();
-            return;
-        }
-
-        this.setValue(field.getValue());
     },
 
     /**
@@ -117,7 +101,8 @@ Ext.define('Ext.grid.filters.filter.String', {
         me.filter.setValue(value);
 
         if (value && me.active) {
-            me.updateStoreFilter(me.filter);
+            me.value = value;
+            me.updateStoreFilter();
         } else {
             me.setActive(!!value);
         }

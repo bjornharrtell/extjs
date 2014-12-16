@@ -4,6 +4,8 @@
 Ext.define('Ext.event.gesture.Rotate', {
     extend: 'Ext.event.gesture.MultiTouch',
 
+    priority: 700,
+
     handledEvents: ['rotatestart', 'rotate', 'rotateend', 'rotatecancel'],
 
     /**
@@ -116,5 +118,16 @@ Ext.define('Ext.event.gesture.Rotate', {
     fireCancel: function(e) {
         this.lastAngle = null;
         this.fire('rotatecancel', e);
+    },
+
+    reset: function() {
+        var me = this;
+
+        me.lastTouches = me.lastAngle = me.startAngle = null;
+
+        this.callParent();
     }
+}, function(Rotate) {
+    var gestures = Ext.manifest.gestures;
+    Rotate.instance = new Rotate(gestures && gestures.rotate);
 });

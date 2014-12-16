@@ -14,7 +14,7 @@ the target provided here. Doing that can create problems for upgrading to newer
 versions of Cmd so it is not recommended but it will be easier to manage than editing
 this file in most cases.
 -->
-<project name="pkg-build-impl">
+<project name="x-pkg-build-impl">
     
     <!--
     ===============================================================

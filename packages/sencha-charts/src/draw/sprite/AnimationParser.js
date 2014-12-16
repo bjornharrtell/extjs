@@ -1,15 +1,19 @@
-(function () {
+/**
+ * @private
+ * @class Ext.draw.sprite.AnimationParser
+ *
+ * Computes an intermidiate value between two values of the same type for use in animations.
+ * Can have pre- and post- processor functions if the values need to be processed
+ * before an intermidiate value can be computed (parseInitial), or the computed value
+ * needs to be processed before it can be used as a valid attribute value (serve).
+ */
+Ext.define('Ext.draw.sprite.AnimationParser', function () {
+
     function compute(from, to, delta) {
         return from + (to - from) * delta;
     }
 
-    /**
-     * @private
-     * @class Ext.draw.sprite.AnimationParser
-     *
-     * Parsers for sprite attributes used in animations.
-     */
-    Ext.define('Ext.draw.sprite.AnimationParser', {
+    return {
         singleton: true,
         attributeRe: /^url\(#([a-zA-Z\-]+)\)$/,
         requires: ['Ext.draw.Color'],
@@ -105,7 +109,7 @@
                     toStripe = toStripes[i];
                     fromLength = fromStripe.length;
                     toLength = toStripe.length;
-                    toStripes.temp.types.push('M');
+                    toStripes.temp.commands.push('M');
                     for (j = toLength; j < fromLength; j += 6) {
                         toStripe.push(endPoint[0], endPoint[1], endPoint[0], endPoint[1], endPoint[0], endPoint[1]);
                     }
@@ -119,7 +123,7 @@
                         toStripe[i] -= fromStripe[i];
                     }
                     for (i = 2; i < toStripe.length; i += 6) {
-                        toStripes.temp.types.push('C');
+                        toStripes.temp.commands.push('C');
                     }
                 }
 
@@ -132,7 +136,7 @@
                 }
                 var i = 0, ln = fromStripes.length,
                     j = 0, ln2, from, to,
-                    temp = toStripes.temp.coords, pos = 0;
+                    temp = toStripes.temp.params, pos = 0;
                 for (; i < ln; i++) {
                     from = fromStripes[i];
                     to = toStripes[i];
@@ -176,5 +180,5 @@
 
         limited: 'number',
         limited01: 'number'
-    });
-})();
+    };
+});

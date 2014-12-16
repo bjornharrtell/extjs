@@ -42,7 +42,6 @@ Ext.define('KitchenSink.view.charts.line.CrossZoom', {
         height: 500,
         store: 'USD2EUR',
         id: 'usd2eur-chart',
-        background: 'white',
         interactions: {
             type: 'crosszoom',
             zoomOnPanGesture: false
@@ -54,8 +53,8 @@ Ext.define('KitchenSink.view.charts.line.CrossZoom', {
             yField: 'value',
             style: {
                 lineWidth: 2,
-                fill: "#115fa6",
-                stroke: "#115fa6",
+                fillStyle: '#115fa6',
+                strokeStyle: '#115fa6',
                 fillOpacity: 0.6,
                 miterLimit: 3,
                 lineCap: 'miter'

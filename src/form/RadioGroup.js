@@ -142,19 +142,20 @@ Ext.define('Ext.form.RadioGroup', {
             i, len, name;
 
         if (Ext.isObject(value)) {
-            for (name in value) {
-                if (value.hasOwnProperty(name)) {
-                    cbValue = value[name];
-                    first = this.items.first();
-                    formId = first ? first.getFormId() : null;
-                    radios = Ext.form.RadioManager.getWithValue(name, cbValue, formId).items;
-                    len = radios.length;
+            Ext.suspendLayouts();
+            first = this.items.first();
+            formId = first ? first.getFormId() : null;
 
-                    for (i = 0; i < len; ++i) {
-                        radios[i].setValue(true);
-                    }
+            for (name in value) {
+                cbValue = value[name];
+                radios = Ext.form.RadioManager.getWithValue(name, cbValue, formId).items;
+                len = radios.length;
+
+                for (i = 0; i < len; ++i) {
+                    radios[i].setValue(true);
                 }
             }
+            Ext.resumeLayouts(true);
         }
         return this;
     },

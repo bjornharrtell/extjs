@@ -175,7 +175,7 @@ Ext.define('ChartsKitchenSink.controller.Main', {
             title: 'Code Preview',
             plain: true,
             cls: 'preview-container',
-            autoScroll: true,
+            scrollable: true,
             bodyStyle: 'background-color:white',
             html: '<pre class="prettyprint">' + code + '</pre>',
             closable: false,

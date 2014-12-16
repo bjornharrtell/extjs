@@ -19,127 +19,107 @@ Ext.define('KitchenSink.view.charts.bar.Basic', {
 
     width: 650,
 
-    initComponent: function() {
-        var me = this;
-
-        me.myDataStore = Ext.create('Ext.data.JsonStore', {
-            fields: ['month', 'data1' ],
-            data: [
-                { month: 'Jan', data1: 20 },
-                { month: 'Feb', data1: 20 },
-                { month: 'Mar', data1: 19 },
-                { month: 'Apr', data1: 18 },
-                { month: 'May', data1: 18 },
-                { month: 'Jun', data1: 17 },
-                { month: 'Jul', data1: 16 },
-                { month: 'Aug', data1: 16 },
-                { month: 'Sep', data1: 16 },
-                { month: 'Oct', data1: 16 },
-                { month: 'Nov', data1: 15 },
-                { month: 'Dec', data1: 15 }
-            ]
-        });
-
-        //<example>
-        me.tbar = [
-            '->',
-            {
-                text: 'Preview',
-                handler: function() {
-                    me.down('cartesian').preview();
+    items: [{
+        xtype: 'cartesian',
+        width: '100%',
+        height: 500,
+        insetPadding: 40,
+        flipXY: true,
+        animation: {
+            easing: 'easeOut',
+            duration: 500
+        },
+        store: {
+            type: 'economy-sectors'
+        },
+        axes: [{
+            type: 'numeric',
+            position: 'bottom',
+            fields: 'ind',
+            grid: true,
+            maximum: 4000000,
+            majorTickSteps: 10,
+            title: 'Billions of USD',
+            renderer: function (v, layoutContext) {
+                return Ext.util.Format.number(layoutContext.renderer(v) / 1000, '0,000');
+            }
+        }, {
+            type: 'category',
+            position: 'left',
+            fields: 'country',
+            grid: true
+        }],
+        series: [{
+            type: 'bar',
+            xField: 'country',
+            yField: 'ind',
+            style: {
+                opacity: 0.80,
+                minGapWidth: 10
+            },
+            highlightCfg: {
+                strokeStyle: 'black',
+                radius: 10
+            },
+            label: {
+                field: 'ind',
+                display: 'insideEnd',
+                renderer: function (v) {
+                    return Ext.util.Format.number(v / 1000, '0,000');
+                }
+            },
+            tooltip: {
+                trackMouse: true,
+                style: 'background: #fff',
+                renderer: function(storeItem, item) {
+                    this.setHtml(storeItem.get('country') + ': ' +
+                        Ext.util.Format.number(storeItem.get('ind'), '0,000 (millions of USD)'));
                 }
             }
-        ];
-        //</example>
-
-        me.items = [{
-            xtype: 'cartesian',
-            width: '100%',
-            height: 500,
-            animation: {
-                easing: 'easeOut',
-                duration: 500
-            },
-            flipXY: true,
-            store: this.myDataStore,
-            insetPadding: 40,
-            sprites: [{
-                type: 'text',
-                text: 'Bar Charts - Basic Bar',
-                fontSize: 22,
-                width: 100,
-                height: 30,
-                x: 40, // the sprite x position
-                y: 20  // the sprite y position
-            }, {
-                type: 'text',
-                text: 'Data: Browser Stats 2012 - Internet Explorer',
-                fontSize: 10,
-                x: 12,
-                y: 480
-            }, {
-                type: 'text',
-                text: 'Source: http://www.w3schools.com/',
-                fontSize: 10,
-                x: 12,
-                y: 495
-            }],
-            axes: [{
-                type: 'numeric',
-                position: 'bottom',
-                fields: 'data1',
-                renderer: function (v) { return v.toFixed(0) + '%'; },
-                grid: true
-            }, {
-                type: 'category',
-                position: 'left',
-                fields: 'month',
-                grid: true
-            }],
-            series: [{
-                type: 'bar',
-                xField: 'month',
-                yField: 'data1',
-                style: {
-                    opacity: 0.80,
-                    minGapWidth: 10
-                },
-                highlight: {
-                    fillStyle: 'rgba(249, 204, 157, 1.0)',
-                    strokeStyle: 'black',
-                    radius: 10
-                },
-                label: {
-                    field: 'data1',
-                    display: 'insideEnd'
-                },
-                tooltip: {
-                    trackMouse: true,
-                    style: 'background: #fff',
-                    renderer: function(storeItem, item) {
-                        this.setHtml(storeItem.get('month') + ': ' + storeItem.get('data1') + '%');
-                    }
-                }
-            }]
-        //<example>
+        }],
+        sprites: [{
+            type: 'text',
+            text: 'Industry size in major economies (2011)',
+            fontSize: 22,
+            width: 100,
+            height: 30,
+            x: 40, // the sprite x position
+            y: 20  // the sprite y position
         }, {
-            style: 'padding-top: 10px;',
-            xtype: 'gridpanel',
-            columns : {
-                defaults: {
-                    sortable: false,
-                    menuDisabled: true
-                },
-                items: [
-                    { text: '2012', dataIndex: 'month' },
-                    { text: 'IE', dataIndex: 'data1', renderer: function(v) { return v + '%'; } }
-                ]
+            type: 'text',
+            text: 'Source: http://en.wikipedia.org/wiki/List_of_countries_by_GDP_sector_composition',
+            fontSize: 10,
+            x: 12,
+            y: 490
+        }]
+        //<example>
+    }, {
+        style: 'padding-top: 10px;',
+        xtype: 'gridpanel',
+        columns : {
+            defaults: {
+                sortable: false,
+                menuDisabled: true
             },
-            store: this.myDataStore,
-            width: '100%'
+            items: [
+                { text: 'Country', dataIndex: 'country' },
+                { text: 'IE', dataIndex: 'ind', renderer: function(v) { return v + '%'; } }
+            ]
+        },
+        store: {
+            type: 'economy-sectors'
+        },
+        width: '100%'
         //</example>
-        }];
+    }],
 
-        this.callParent();
-    }
+    tbar: [
+        '->',
+        {
+            text: 'Preview',
+            handler: function() {
+                this.up('panel').down('cartesian').preview();
+            }
+        }
+    ]
 });

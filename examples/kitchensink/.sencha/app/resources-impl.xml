@@ -1,18 +1,20 @@
-<project name="resources-impl">
+<project name="x-resources-impl">
     <target name="-before-resources"/>
     <target name="-after-resources"/>
     
     <!--'-init-compiler' defined in init-impl.xml-->
     <target name="-resources" depends="-init-compiler">
+        <property name="target.json.resources.dir" value="${build.out.base.path}"/>
+        <property name="target.config.resources.dir" value="${build.resources.dir}"/>
         <x-compile refid="${compiler.ref.id}">
             <![CDATA[
                 resources
                     -excludes=-all*.css
-                    -out=${build.resources.dir}
+                    -out=${target.config.resources.dir}
                 and
                 resources
                     -model=true
-                    -out=${build.out.resources.dir}
+                    -out=${target.json.resources.dir}
             ]]>
         </x-compile>
     </target>

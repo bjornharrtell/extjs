@@ -105,10 +105,12 @@ Ext.define('Ext.app.bind.RootStub', {
                 if (!(stub = children[key])) {
                     stub = new Ext.app.bind.Stub(owner, key, me);
                 } else if (stub.isLinkStub) {
-                    // Pass parent=null since we will graft in this new stub to replace us:
-                    linkStub = stub;
-                    stub = new Ext.app.bind.Stub(owner, key);
-                    linkStub.graft(stub);
+                    if (!stub.getLinkFormulaStub()) {
+                        // Pass parent=null since we will graft in this new stub to replace us:
+                        linkStub = stub;
+                        stub = new Ext.app.bind.Stub(owner, key);
+                        linkStub.graft(stub);
+                    }
                 }
 
                 stub.set(v);

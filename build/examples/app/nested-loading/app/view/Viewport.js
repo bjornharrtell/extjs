@@ -12,10 +12,10 @@ Ext.define('Books.view.Viewport', {
         'Books.view.book.SideBar',
         'Books.view.review.List'
     ],
-    
+
     initComponent: function() {
         var me = this;
-        
+
         Ext.apply(me, {
             items: [
                 {
@@ -26,12 +26,12 @@ Ext.define('Books.view.Viewport', {
                         type: 'vbox',
                         align: 'stretch'
                     },
-                    
+
                     dockedItems: [
                         Ext.create('Books.view.Header'),
                         Ext.create('Books.view.book.SideBar')
                     ],
-                    
+
                     items: [
                         Ext.create('Books.view.book.View'),
                         Ext.create('Books.view.review.List')
@@ -39,7 +39,7 @@ Ext.define('Books.view.Viewport', {
                 }
             ]
         });
-                
+
         me.callParent(arguments);
     }
 });

@@ -63,6 +63,10 @@ Ext.define('Ext.grid.column.Date', {
      * @hide
      */
 
+    /**
+     * @cfg {Boolean} producesHTML
+     * @inheritdoc
+     */
     producesHTML: false,
 
     initComponent: function(){

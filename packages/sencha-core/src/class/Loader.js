@@ -547,11 +547,7 @@ Ext.Loader = new function() {
                 Ext.Array.push(Loader.classesLoading, missingClassNames);
                 //</debug>
 
-                // We check for existence here (onExists vs onCreated) because overrides
-                // can come into existence but pause before being created until the target
-                // of the override has been created, which may not happen. For normal
-                // classes, this timing of this will be equivalent to onCreated.
-                Manager.onExists(function () {
+                Manager.onCreated(function () {
                     //<debug>
                     Ext.Array.remove(Loader.classesLoading, missingClassNames);
                     Ext.each(missingClassNames, function(name){
@@ -767,7 +763,7 @@ Ext.Loader = new function() {
          * @param {String} className
          */
         historyPush: function(className) {
-            if (className && !isInHistory[className]) {
+            if (className && !isInHistory[className] && !Manager.overrideMap[className]) {
                 isInHistory[className] = true;
                 history.push(className);
             }

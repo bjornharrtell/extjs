@@ -24,7 +24,7 @@ Ext.define('KitchenSink.view.tab.ReorderableTabs', {
 
     defaults: {
         bodyPadding: 10,
-        autoScroll: true,
+        scrollable: true,
         closable: true
     },
 

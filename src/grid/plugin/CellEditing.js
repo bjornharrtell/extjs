@@ -46,7 +46,7 @@
  *             },
  *             {header: 'Phone', dataIndex: 'phone'}
  *         ],
- *         selType: 'cellmodel',
+ *         selModel: 'cellmodel',
  *         plugins: {
  *             ptype: 'cellediting',
  *             clicksToEdit: 1
@@ -63,7 +63,7 @@
  * will provide inline validation.
  *
  * To support cell editing, we also specified that the grid should use the 'cellmodel'
- * {@link Ext.grid.Panel#selType selType}, and created an instance of the CellEditing plugin,
+ * {@link Ext.grid.Panel#selModel selModel}, and created an instance of the CellEditing plugin,
  * which we configured to activate each editor after a single click.
  *
  */
@@ -282,8 +282,6 @@ Ext.define('Ext.grid.plugin.CellEditing', {
             record = context.record;
             columnHeader = context.column;
 
-            context.originalValue = context.value = record.get(columnHeader.dataIndex);
-
             // If there is an editor for this column,
             // allow vetoing, or setting a new editor *before* we call getEditor
             isFieldEditable = (columnHeader && columnHeader.getEditor(record)) && !(me.beforeEdit(context) === false || me.fireEvent('beforeedit', me, context) === false || context.cancel);
@@ -297,6 +295,13 @@ Ext.define('Ext.grid.plugin.CellEditing', {
                 if (currentActiveEditor) {
                     useCurrentActiveEditor = newEditor === currentActiveEditor;
                     me.completeEdit(!!newEditor);
+
+                    // We'll know if the edit has been aborted (such as in a beforecomplete listener on the editor) by the fact that `editing` is still true.
+                    // In this case, we need to exit early before the current context is swapped out for the next context.
+                    // See EXTJS-10378.
+                    if (me.editing) {
+                        return false;
+                    }
                 }
             } else {
                 return false;
@@ -342,8 +347,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
             view = context.view,
             columnHeader = context.column,
             sm = view.getSelectionModel(),
-            selectMode,
-            preventFocus = sm.preventFocus;
+            selectMode;
 
         // Context is for another view.
         // This can happen in a lockable grid where there are two grids, each with a separate Editing plugin
@@ -356,36 +360,34 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         me.setActiveRecord(record);
         me.setActiveColumn(columnHeader);
 
-        // Select cell on edit only if it's not the currently selected cell.
-        // For row selection models, the column header is just ignored here
-        if (!sm.isCellSelected(view, record, columnHeader)) {
-            selectMode = sm.getSelectionMode();
-            
-            // We ask that the SelectionModel DOES focus the cell before beginning the edit.
-            // In 99% of cases, this will be a no-op because editing will have been triggered
-            // by ENTER when a cell is focused, or by clicking a cell which will focus it.
-            // But programmatic startEdit calls MUST first focus the Panel, otherwise,
-            // the focusenter event caused by focusing the editor field will attempt
-            // to delegate focus to a descendant cell, and that will terminate editing.
-            // Keep existing records (see EXTJSIV-7897)!
-            if (selectMode !== 'MULTI' || !sm.getSelection().length || (sm.getSelection().length === 1 && sm.isSelected(record))) {
-                sm.preventFocus = false;
-                sm.selectByPosition({
-                    row: record,
-                    column: columnHeader,
-                    view: view
-                }, selectMode === 'MULTI');
-                sm.preventFocus = preventFocus;
-            } 
-            // If we are not selecting (leaving multiple existing selections undisturbed)
-            // we must ensure the lastFocused is consistent in the View.
-            else if (!context.grid.containsFocus) {
-                view.getNavigationModel().setPosition(100, context, null, null, null, true);
-            }
+        selectMode = sm.getSelectionMode();
+
+        // We focus the cell before beginning the edit.
+        // In 99% of cases, this will be a no-op because editing will have been triggered
+        // by ENTER when a cell is focused, or by clicking a cell which will focus it.
+        // But programmatic startEdit calls MUST first focus the Panel, otherwise,
+        // the focusenter event caused by focusing the editor field will attempt
+        // to delegate focus to a descendant cell, and that will terminate editing.
+        // Keep existing records (see EXTJSIV-7897)!
+        if (!sm.isCellSelected(view, record, columnHeader) && (selectMode !== 'MULTI' || !sm.getSelection().length || (sm.getSelection().length === 1 && sm.isSelected(record)))) {
+            sm.selectByPosition({
+                row: record,
+                column: columnHeader,
+                view: view
+            }, selectMode === 'MULTI');
         }
 
+        // We must ensure the lastFocused is consistent in the View.
+        if (!view.cellFocused) {
+            view.getNavigationModel().setPosition(context, null, null, null, true);
+        }
+
+        // The lastFocused position will be set above,
+        // Now we must temporairily clear the current focus position during the edit.
+        // Otherwise a refresh during edit will kill the editor by restorinhg focus.
         view.getNavigationModel().setPosition();
         ed.startEdit(view.getCell(record, columnHeader), value, context);
+
         me.editing = true;
         me.scroll = view.el.getScroll();
     },
@@ -394,7 +396,6 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         var activeEd = this.getActiveEditor();
         if (activeEd) {
             activeEd.completeEdit(remainVisible);
-            this.editing = false;
         }
     },
 
@@ -561,10 +562,8 @@ Ext.define('Ext.grid.plugin.CellEditing', {
                 ed.onEditorTab(e);
             }
 
-            sm = ed.up('tablepanel').getSelectionModel();
-            if (sm.onEditorTab) {
-                return sm.onEditorTab(ed.editingPlugin, e);
-            }
+            sm = ed.getRefOwner().getSelectionModel();
+            return sm.onEditorTab(ed.editingPlugin, e);
         }
     },
 
@@ -572,21 +571,16 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         var me = this,
             activeColumn = me.getActiveColumn(),
             context = me.context,
-            view,
-            sm,
-            record,
-            preserveCurrentSelection;
+            view, record;
 
         if (activeColumn) {
             view = context.view;
-            sm = view.getSelectionModel();
-            preserveCurrentSelection = sm.getSelectionMode() === 'MULTI' && (sm.getSelection().length > 1 || !sm.isSelected(record));
             record = context.record;
 
             me.setActiveEditor(null);
             me.setActiveColumn(null);
             me.setActiveRecord(null);
-    
+
             context.value = value;
             if (!me.validateEdit()) {
                 me.editing = false;
@@ -601,10 +595,6 @@ Ext.define('Ext.grid.plugin.CellEditing', {
                 context.rowIdx = view.indexOf(record);
             }
 
-            // Restore focus back to the view.
-            // Use delay so that if we are completing due to tabbing, we can cancel the focus task.
-            // deferSetPosition uses the Component's singleton focusTask so is cancelable by any other focus request.
-            view.getNavigationModel().deferSetPosition(100, context, null, null, null, preserveCurrentSelection);
             me.fireEvent('edit', me, context);
             me.editing = false;
         }

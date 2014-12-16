@@ -173,7 +173,7 @@ describe("Ext.data.writer.Xml", function(){
                 operation: makeOperation(buildRecords([simpleData]))
             }));
             
-            var expectedXml = "<xmlData><record><id>10</id><title>Article 10</title><body>content10</body></record></xmlData>"
+            var expectedXml = "<xmlData><record><id>10</id><title>Article 10</title><body>content10</body></record></xmlData>";
             expect(request.getXmlData()).not.toBe(simpleXml);
             expect(request.getXmlData()).toEqual(expectedXml);
         });
@@ -200,9 +200,86 @@ describe("Ext.data.writer.Xml", function(){
                 operation: makeOperation(buildRecords([simpleData]))
             }));
             
-            var expectedXml = "<xmlData><record><id>10</id><title>Article 10</title><body>content10</body></record></xmlData>"
+            var expectedXml = "<xmlData><record><id>10</id><title>Article 10</title><body>content10</body></record></xmlData>";
             expect(request.getXmlData()).not.toBe(simpleXml);
             expect(request.getXmlData()).toEqual(expectedXml);
+        });
+    });
+
+    describe('Nested XML', function() {
+        it('should rebuild fully nested XML from mappings if nameProperty: "mapping" is used', function() {
+            var Model = Ext.define('', {
+                extend: 'Ext.data.Model',
+                fields: [{
+                    name: 'systemNumber', mapping: '@SystemNumber'
+                }, {
+                    name: 'systemName', mapping: 'SystemName'
+                }, {
+                    name: 'assetId', mapping: 'SystemMaster>AssetId'
+                }, {
+                    name: 'agilentModel', mapping: 'SystemMaster>AgilentModel'
+                }, {
+                    name: 'serialNumber', mapping: 'SystemMaster>SerialNumber'
+                }, {
+                    name: 'OCN', mapping: 'SystemMaster>OCN'
+                }]
+            }),
+            
+            // The compound record path means that a <SystemCatalog> element will wrap
+            // the sequence of <SystemInfo> elements, so we do not need a documentRoot
+            // so that must be false.
+            writer = new Ext.data.writer.Xml({
+                record: 'SystemCatalog>SystemInfo',
+                writeRecordId: false,
+                documentRoot: false,
+                writeAllFields: true,
+                nameProperty: 'mapping'
+            }),
+            records = [
+                new Model({
+                    systemNumber: '10118795',
+                    systemName: 'Phase Noise Measurement System',
+                    assetId: 'DE3208',
+                    agilentModel : 'E5505A',
+                    serialNumber: 'US44101357',
+                    OCN: 'DES-0653'
+                }),
+                new Model({
+                    systemNumber: '73645514',
+                    systemName: 'Positronic Discombobulator',
+                    assetId: 'PD123456',
+                    agilentModel : 'X1234Z',
+                    serialNumber: 'US12345678',
+                    OCN: 'FOO-1234'
+                })
+            ],
+            request = writer.write(new Ext.data.Request({
+                operation: makeOperation(records)
+            }));
+
+            // Should recreate nested XML as per field mappings
+            expect(request.getXmlData()).toBe(
+                '<SystemCatalog>' +
+                    '<SystemInfo SystemNumber="10118795">' +
+                        '<SystemName>Phase Noise Measurement System</SystemName>' +
+                        '<SystemMaster>' +
+                            '<AssetId>DE3208</AssetId>' +
+                            '<AgilentModel>E5505A</AgilentModel>' +
+                            '<SerialNumber>US44101357</SerialNumber>' +
+                            '<OCN>DES-0653</OCN>' +
+                        '</SystemMaster>' +
+                    '</SystemInfo>' +
+                    '<SystemInfo SystemNumber="73645514">' +
+                        '<SystemName>Positronic Discombobulator</SystemName>' +
+                        '<SystemMaster>' +
+                            '<AssetId>PD123456</AssetId>' +
+                            '<AgilentModel>X1234Z</AgilentModel>' +
+                            '<SerialNumber>US12345678</SerialNumber>' +
+                            '<OCN>FOO-1234</OCN>' +
+                        '</SystemMaster>' +
+                    '</SystemInfo>' +
+                '</SystemCatalog>'
+            );
         });
     });
 });

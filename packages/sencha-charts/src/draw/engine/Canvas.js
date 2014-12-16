@@ -3,27 +3,32 @@
  */
 Ext.define('Ext.draw.engine.Canvas', {
     extend: 'Ext.draw.Surface',
-    config: {
-        /**
-         * @cfg {Boolean} highPrecision
-         * True to have the canvas use JavaScript Number instead of single precision floating point for transforms.
-         *
-         * For example, when using huge data to plot line series, the transform matrix of the canvas will have
-         * a big element. Due to the implementation of SVGMatrix, the elements are restored by 32-bits floats, which
-         * will work incorrectly. To compensate that, we enable the canvas context to perform all the transform by
-         * JavaScript. Do not use it if you are not encountering 32-bits floating point errors problem since it will
-         * have a performance penalty.
-         */
-        highPrecision: false
-    },
-    requires: [
 
+    requires: [
         //<feature legacyBrowser>
         'Ext.draw.engine.excanvas',
         //</feature>
 
-        'Ext.draw.Animator'
+        'Ext.draw.Animator',
+        'Ext.draw.Color'
     ],
+
+    config: {
+        /**
+         * @cfg {Boolean} highPrecision
+         * True to have the Canvas use JavaScript Number instead of single precision floating point for transforms.
+         *
+         * For example, when using data with big numbers to plot line series, the transformation
+         * matrix of the canvas will have big elements. Due to the implementation of the SVGMatrix,
+         * the elements are represented by 32-bits floats, which will work incorrectly.
+         * To compensate for that, we enable the canvas context to perform all the transformations
+         * in JavaScript.
+         *
+         * Do not use this if you are not encountering 32-bit floating point errors problem,
+         * since this will result in a performance penalty.
+         */
+        highPrecision: false
+    },
 
     statics: {
         contextOverrides: {
@@ -127,6 +132,17 @@ Ext.define('Ext.draw.engine.Canvas', {
             },
 
             /**
+             * 2D Canvas context in IE (up to IE10, inclusive) doesn't support
+             * the setLineDash method and the lineDashOffset property.
+             * @param dashList An even number of non-negative numbers specifying a dash list.
+             */
+            setLineDash: function (dashList) {
+                if (this.$setLineDash) {
+                    this.$setLineDash(dashList);
+                }
+            },
+
+            /**
              * Adds points to the subpath such that the arc described by the circumference of the
              * ellipse described by the arguments, starting at the given start angle and ending at
              * the given end angle, going in the given direction (defaulting to clockwise), is added
@@ -151,29 +167,29 @@ Ext.define('Ext.draw.engine.Canvas', {
             appendPath: function (path) {
                 var me = this,
                     i = 0, j = 0,
-                    types = path.types,
-                    coords = path.coords,
-                    ln = path.types.length;
+                    commands = path.commands,
+                    params = path.params,
+                    ln = commands.length;
                 me.beginPath();
                 for (; i < ln; i++) {
-                    switch (types[i]) {
-                        case "M":
-                            me.moveTo(coords[j], coords[j + 1]);
+                    switch (commands[i]) {
+                        case 'M':
+                            me.moveTo(params[j], params[j + 1]);
                             j += 2;
                             break;
-                        case "L":
-                            me.lineTo(coords[j], coords[j + 1]);
+                        case 'L':
+                            me.lineTo(params[j], params[j + 1]);
                             j += 2;
                             break;
-                        case "C":
+                        case 'C':
                             me.bezierCurveTo(
-                                coords[j], coords[j + 1],
-                                coords[j + 2], coords[j + 3],
-                                coords[j + 4], coords[j + 5]
+                                params[j], params[j + 1],
+                                params[j + 2], params[j + 3],
+                                params[j + 4], params[j + 5]
                             );
                             j += 6;
                             break;
-                        case "Z":
+                        case 'Z':
                             me.closePath();
                             break;
                     }
@@ -217,24 +233,19 @@ Ext.define('Ext.draw.engine.Canvas', {
      */
     toSave: ['fillGradient', 'strokeGradient'],
 
-    getElementConfig: function () {
-        //TODO:ps In the Ext world, use renderTpl to create the children
-        return {
-            reference: 'element',
+    element: {
+        reference: 'element',
+        style: {
+            position: 'absolute'
+        },
+        children: [{
+            reference: 'innerElement',
             style: {
-                position: 'absolute'
-            },
-            children: [
-                {
-                    reference: 'innerElement',
-                    style: {
-                        width: '100%',
-                        height: '100%',
-                        position: 'relative'
-                    }
-                }
-            ]
-        };
+                width: '100%',
+                height: '100%',
+                position: 'relative'
+            }
+        }]
     },
 
     /**
@@ -248,6 +259,7 @@ Ext.define('Ext.draw.engine.Canvas', {
                 cls: Ext.baseCSSPrefix + 'surface-canvas'
             });
 
+        // Emulate Canvas in IE8 with VML.
         window['G_vmlCanvasManager'] && G_vmlCanvasManager.initElement(canvas.dom);
 
         var overrides = Ext.draw.engine.Canvas.contextOverrides,
@@ -269,6 +281,7 @@ Ext.define('Ext.draw.engine.Canvas', {
         ctx.state = [];
         ctx.toSave = this.toSave;
 
+        // Saving references to the native Canvas context methods that we'll be overriding.
         for (name in overrides) {
             ctx['$' + name] = ctx[name];
         }
@@ -285,13 +298,6 @@ Ext.define('Ext.draw.engine.Canvas', {
         this.contexts.push(ctx);
     },
 
-    initElement: function () {
-        this.callParent();
-        this.canvases = [];
-        this.contexts = [];
-        this.activeCanvases = 0;
-    },
-
     // Have to create canvas element here, instead of in the initElement,
     // because otherwise the created canvas will be cached along with the
     // surface's markup and used as a template for future surface
@@ -301,14 +307,14 @@ Ext.define('Ext.draw.engine.Canvas', {
         this.createCanvas();
     },
 
-    updateHighPrecision: function (pc) {
+    updateHighPrecision: function (highPrecision) {
         var contexts = this.contexts,
             ln = contexts.length,
             i, context;
 
         for (i = 0; i < ln; i++) {
             context = contexts[i];
-            if (pc) {
+            if (highPrecision) {
                 this.enablePrecisionCompensation(context);
             } else {
                 this.disablePrecisionCompensation(context);
@@ -786,7 +792,7 @@ Ext.define('Ext.draw.engine.Canvas', {
         var me = this,
             rect = me.getRect(),
             surfaceMatrix = me.matrix,
-            parent = sprite._parent,
+            parent = sprite.getParent(),
             matrix = Ext.draw.Matrix.fly([1, 0, 0, 1, 0, 0]),
             bbox, i, offsetX, ctx, width, left = 0, top, right = rect[2], bottom;
 
@@ -898,6 +904,15 @@ Ext.define('Ext.draw.engine.Canvas', {
         delete me.contexts;
         delete me.canvases;
         me.callParent(arguments);
+    },
+
+    privates: {
+        initElement: function () {
+            this.callParent();
+            this.canvases = [];
+            this.contexts = [];
+            this.activeCanvases = 0;
+        }
     }
 }, function () {
     if (Ext.os.is.Android4 && Ext.browser.is.Chrome) {

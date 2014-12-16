@@ -135,7 +135,7 @@ Ext.define('Ext.layout.container.Auto', {
      *             type: 'anchor',
      *             reserveScrollbar: true // There will be a gap even when there's no scrollbar
      *         },
-     *         autoScroll: true,
+     *         scrollable: true,
      *         items: grid,
      *         tbar: {
      *             defaults: {
@@ -559,8 +559,8 @@ Ext.define('Ext.layout.container.Auto', {
      * Returns the overflow-x style of the render target.
      * Note: If overflow is configured on a container using style or css class this method
      * will read the dom the first time it is called. It is therefore preferable for
-     * performance reasons to use the autoScroll or overflowX config when horizontal
-     * overflow is desired.
+     * performance reasons to use the {@link Ext.Component#scrollable scrollable config when
+     * horizontal overflow is desired.
      * @protected
      * @param {Ext.layout.ContextItem} ownerContext
      * @return {String}
@@ -574,8 +574,8 @@ Ext.define('Ext.layout.container.Auto', {
      * Returns the overflow-y style of the render target.
      * Note: If overflow is configured on a container using style or css class this method
      * will read the dom the first time it is called. It is therefore preferable for
-     * performance reasons to use the autoScroll or overflowY config when vertical
-     * overflow is desired.
+     * performance reasons to use the {@link Ext.Component#scrollable scrollable config when
+     * vertical overflow is desired.
      * @protected
      * @param {Ext.layout.ContextItem} ownerContext
      * @return {String}
@@ -588,17 +588,13 @@ Ext.define('Ext.layout.container.Auto', {
     initContextItems: function(ownerContext) {
         var me = this,
             target = ownerContext.target,
-            customOverflowEl = me.owner.customOverflowEl;
+            overflowEl = me.owner.getOverflowEl();
 
         ownerContext.outerCtContext = ownerContext.getEl('outerCt', me);
         ownerContext.innerCtContext = ownerContext.getEl('innerCt', me);
-        
-        if (customOverflowEl) {
-            ownerContext.overflowContext = ownerContext.getEl(customOverflowEl);    
-        } else {
-            ownerContext.overflowContext = ownerContext.targetContext;
-        }
-        
+        ownerContext.overflowContext = (overflowEl === ownerContext.el) ? ownerContext :
+            ownerContext.getEl(overflowEl);
+
         if (target[target.contentPaddingProperty] !== undefined) {
             // If padding was defined using the contentPaddingProperty, we render the
             // the padding to the innerCt or outerCt (depending on the template that is
@@ -620,7 +616,7 @@ Ext.define('Ext.layout.container.Auto', {
         // If the Container is to overflow, or we *always* reserve space for a scrollbar
         // then reserve space for a vertical scrollbar
         if (scrollbarWidth && me.manageOverflow && !me.hasOwnProperty('lastOverflowAdjust')) {
-            if (owner.autoScroll || me.reserveScrollbar) {
+            if (owner.scrollable || me.reserveScrollbar) {
                 me.lastOverflowAdjust = {
                     width: scrollbarWidth,
                     height: 0

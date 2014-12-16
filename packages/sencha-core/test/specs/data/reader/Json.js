@@ -575,6 +575,20 @@ describe("Ext.data.reader.Json", function() {
                 expect(result2.field).toBe('T');
             });
 
+            it("should not include a mapping where the value doesn't exist", function() {
+                createReader([{
+                    name: 'field',
+                    mapping: 'foo'
+                }]);
+                var result = reader.readRecords([{
+                    notFoo: 'x'
+                }], rawOptions).getRecords()[0];
+                expect(result).toEqual({
+                    notFoo: 'x'
+                });
+                expect(result.hasOwnProperty('field')).toBe(false);
+            });
+
             describe("JSON", function(){
                 it("should read dot notation", function(){
                     createReader([{

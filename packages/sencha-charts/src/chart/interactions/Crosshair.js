@@ -221,22 +221,23 @@ Ext.define('Ext.chart.interactions.Crosshair', {
             axisLabel, axisLabelConfig, crosshairLabelConfig, tickPadding,
             axisSprite, attr, axisThickness, lineWidth, halfLineWidth,
             title, titleBBox, titlePadding,
+            horizontalLineCfg, verticalLineCfg,
             i;
 
         if (x > 0 && x < chartWidth && y > 0 && y < chartHeight) {
             me.lockEvents(me.getGesture());
-            me.horizontalLine = surface.add(Ext.apply({
+            horizontalLineCfg = Ext.apply({
                 xclass: 'Ext.chart.grid.HorizontalGrid',
                 x: 0,
                 y: y,
                 width: chartWidth
-            }, linesConfig.horizontal));
-            me.verticalLine = surface.add(Ext.apply({
+            }, linesConfig.horizontal);
+            verticalLineCfg = Ext.apply({
                 xclass: 'Ext.chart.grid.VerticalGrid',
                 x: x,
                 y: 0,
                 height: chartHeight
-            }, linesConfig.vertical));
+            }, linesConfig.vertical);
             me.axesLabels = me.axesLabels || {};
             for (i = 0; i < axes.length; i++) {
                 axis = axes[i];
@@ -267,6 +268,13 @@ Ext.define('Ext.chart.interactions.Crosshair', {
                     translationX: axisPosition === 'left' && titleBBox ? titleBBox.width : 0,
                     translationY: axisPosition === 'top' && titleBBox ? titleBBox.height : 0
                 }, axesConfig.rect || axesConfig[axisPosition].rect));
+
+                if (axisAlignment === 'vertical' && !verticalLineCfg.strokeStyle) {
+                    verticalLineCfg.strokeStyle = attr.strokeStyle;
+                }
+                if (axisAlignment === 'horizontal' && !horizontalLineCfg.strokeStyle) {
+                    horizontalLineCfg.strokeStyle = attr.strokeStyle;
+                }
 
                 axisTheme = Ext.merge({}, axesTheme.defaults, axesTheme[axisPosition]);
                 axisLabelConfig = Ext.apply({}, axis.config.label, axisTheme.label);
@@ -299,6 +307,8 @@ Ext.define('Ext.chart.interactions.Crosshair', {
                     })()
                 }));
             }
+            me.horizontalLine = surface.add(horizontalLineCfg);
+            me.verticalLine = surface.add(verticalLineCfg);
             return false;
         }
 
@@ -400,8 +410,8 @@ Ext.define('Ext.chart.interactions.Crosshair', {
                 }
             }
         }
-        me.horizontalLine.setAttributes({y: y});
-        me.verticalLine.setAttributes({x: x});
+        me.horizontalLine.setAttributes({y: y, strokeStyle: axisSprite.attr.strokeStyle});
+        me.verticalLine.setAttributes({x: x, strokeStyle: axisSprite.attr.strokeStyle});
         surface.renderFrame();
         return false;
     },

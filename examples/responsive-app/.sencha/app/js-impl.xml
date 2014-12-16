@@ -1,4 +1,4 @@
-<project name="js-impl">
+<project name="x-js-impl">
     <!--
     this target extracts split mode information from the compiler's app
     processor to determine various pieces of information
@@ -8,7 +8,9 @@
         <x-load-app-builder-properties
             refid="${compiler.ref.id}"
             splitModePropName="enable.split.mode"
-            pageModePropName="app.page.mode"/>
+            pageModePropName="app.page.mode"
+            hasJsSdkPropName="app.has.js.sdk"
+            hasCssSdkPropName="app.has.css.sdk"/>
     </target>
 
     <!--    

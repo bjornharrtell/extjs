@@ -278,7 +278,7 @@ Ext.define('Ext.layout.container.Accordion', {
             multi = me.multi,
             moveToTop = !multi && !me.animate && me.activeOnTop,
             expanded,
-            previousValue;
+            previousValue, anim;
 
         if (!me.processing) {
             me.processing = true;
@@ -288,6 +288,11 @@ Ext.define('Ext.layout.container.Accordion', {
             if (!multi) {
                 expanded = me.getExpanded()[0];
                 if (expanded && expanded !== toExpand) {
+                    anim = expanded.$layoutAnim;
+                    // If the item is animating, finish it.
+                    if (anim) {
+                        anim.jumpToEnd();
+                    }
                     expanded.collapse();
                 }
             }
@@ -406,5 +411,11 @@ Ext.define('Ext.layout.container.Accordion', {
         }
         return out;
 
-    }
+    },
+
+    // No need to run an extra layout since everything has already achieved the
+    // desired size when using an accordion.
+    afterCollapse: Ext.emptyFn,
+
+    afterExpand: Ext.emptyFn
 });

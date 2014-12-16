@@ -1,3 +1,6 @@
+/**
+ * A sprite that represents a square.
+ */
 Ext.define('Ext.draw.sprite.Square', {
     extend: 'Ext.draw.sprite.Rect',
     alias: 'sprite.square',
@@ -14,7 +17,7 @@ Ext.define('Ext.draw.sprite.Square', {
             defaults: {
                 size: 4
             },
-            dirtyTriggers: {
+            triggers: {
                 size: 'size'
             },
             updaters: {

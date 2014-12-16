@@ -6,30 +6,24 @@
  * Here is a simple example of how you use it:
  *
  *     @example preview
- *     Ext.Viewport.add({
+ *     var container = Ext.create('Ext.Container', {
  *         layout: 'fit',
- *         items: [
- *             {
- *                 docked: 'top',
- *                 xtype: 'toolbar',
- *                 title: 'Ext.event.Event example!'
- *             },
- *             {
- *                 id: 'logger',
- *                 styleHtmlContent: true,
- *                 html: 'Tap somewhere!',
- *                 padding: 5
- *             }
- *         ]
+ *         renderTo: Ext.getBody(),
+ *         items: [{
+ *             id: 'logger',
+ *             styleHtmlContent: true,
+ *             html: 'Click somewhere!',
+ *             padding: 5
+ *         }]
  *     });
  *
- *     Ext.Viewport.element.on({
- *         tap: function(e, node) {
+ *     container.getEl().on({
+ *         click: function(e, node) {
  *             var string = '';
  *
- *             string += 'You tapped at: <strong>{ x: ' + e.pageX + ', y: ' + e.pageY + ' }</strong> <i>(e.pageX & e.pageY)</i>';
+ *             string += 'You clicked at: <strong>{ x: ' + e.pageX + ', y: ' + e.pageY + ' }</strong> <i>(e.pageX & e.pageY)</i>';
  *             string += '<hr />';
- *             string += 'The HTMLElement you tapped has the className of: <strong>' + e.target.className + '</strong> <i>(e.target)</i>';
+ *             string += 'The HTMLElement you clicked has the className of: <strong>' + e.target.className + '</strong> <i>(e.target)</i>';
  *             string += '<hr />';
  *             string += 'The HTMLElement which has the listener has a className of: <strong>' + e.currentTarget.className + '</strong> <i>(e.currentTarget)</i>';
  *
@@ -39,7 +33,7 @@
  *
  * ## Recognizers
  *
- * Sencha Touch includes a bunch of default event recognizers to know when a user taps, swipes, etc.
+ * Ext JS includes many default event recognizers to know when a user interacts with the application.
  *
  * For a full list of default recognizers, and more information, please view the {@link Ext.event.gesture.Recognizer} documentation.
  * 
@@ -89,6 +83,17 @@ Ext.define('Ext.event.Event', {
      * @property {HTMLElement} delegatedTarget
      * Same as `currentTarget`
      * @deprecated 5.0.0 use {@link #currentTarget} instead.
+     */
+    
+    /**
+     * @property {Number} button
+     * Indicates which mouse button caused the event for mouse events, for example
+     * `mousedown`, `click`, `mouseup`:
+     * - `0` for left button.
+     * - `1` for middle button.
+     * - `2` for right button.
+     *
+     * *Note*: In IE8 & IE9, the `click` event does not provide the button.
      */
 
     /**
@@ -164,6 +169,16 @@ Ext.define('Ext.event.Event', {
             mouseleave: 1
         },
 
+        // private.
+        // These are tracked separately from mouseEvents because the mouseEvents map
+        // is used by Dom publisher to eliminate duplicate events on devices that fire
+        // multiple kinds of events (mouse, touch, pointer).  Adding click events to the
+        // mouse events map can cause click events to be blocked from firing in some cases.
+        clickEvents: {
+            click: 1,
+            dblclick: 1
+        },
+
         // private
         touchEvents: {
             touchstart: 1,
@@ -233,7 +248,7 @@ Ext.define('Ext.event.Event', {
             me.forwardTab = self.forwardTab;
         }
 
-        if (self.mouseEvents[type]) {
+        if (self.mouseEvents[type] || self.clickEvents[type]) {
             pointerType = 'mouse';
         } else if (self.pointerEvents[type]) {
             pointerType = self.pointerTypes[event.pointerType];
@@ -475,16 +490,20 @@ Ext.define('Ext.event.Event', {
      *  - Tab
      *  - Esc
      *
+     * @param {Boolean} [scrollableOnly] Only check navigation keys that can cause
+     * element scrolling by their default action.
+     *
      * @return {Boolean} `true` if the press is a navigation keypress
      */
-    isNavKeyPress: function(){
+    isNavKeyPress: function(scrollableOnly) {
         var me = this,
             k = me.keyCode;
 
        return (k >= 33 && k <= 40) ||  // Page Up/Down, End, Home, Left, Up, Right, Down
-       k === me.RETURN ||
-       k === me.TAB ||
-       k === me.ESC;
+              (!scrollableOnly &&
+               (k === me.RETURN ||
+                k === me.TAB ||
+                k === me.ESC));
     },
 
     /**
@@ -617,8 +636,9 @@ Ext.define('Ext.event.Event', {
      * @return {Boolean}
      */
     within: function(el, related, allowEl){
+        var t;
         if (el) {
-            var t = related ? this.getRelatedTarget() : this.getTarget();
+            t = related ? this.getRelatedTarget() : this.getTarget();
         }
 
         return t ? Ext.fly(el).contains(t) || !!(allowEl && t === Ext.getDom(el)) : false;

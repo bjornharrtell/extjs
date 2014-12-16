@@ -279,7 +279,7 @@ Ext.define('ItemLoader', {
     initComponent: function(){
         Ext.apply(this, {
             border: false,
-            autoScroll: true,
+            scrollable: true,
             dockedItems: [{
                 xtype: 'toolbar',
                 items: [{
@@ -391,7 +391,7 @@ Ext.onReady(function(){
             tplWriteMode: 'append',
             tpl: '<div class="{cls}">[{now:date("H:i:s")}] - {msg}</div>',
             bodyPadding: 5,
-            autoScroll: true,
+            scrollable: true,
             listeners: {
                 render: Logger.init
             }

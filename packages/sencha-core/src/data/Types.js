@@ -24,7 +24,7 @@
  *         Depending on the Reader type, this could be an Array
  *         ({@link Ext.data.reader.Array ArrayReader}), an object
  *         ({@link Ext.data.reader.Json JsonReader}), or an XML element.
- * 
+ *
  *   - `sortType` : Function<br>
  *     A function to convert the stored data into comparable form, as
  *     defined by {@link Ext.data.SortTypes}.
@@ -112,8 +112,8 @@ Ext.define('Ext.data.Types', {
                 // Handle values which are already numbers.
                 // Value truncation behaviour of parseInt is historic and must be maintained.
                 // parseInt(35.9)  and parseInt("35.9") returns 35
-                if (typeof v == 'number') {
-                    return parseInt(v);
+                if (typeof v === 'number') {
+                    return parseInt(v, 10);
                 }
                 return v !== undefined && v !== null && v !== '' ?
                     parseInt(String(v).replace(Types.stripRe, ''), 10) : (this.getAllowNull() ? null : 0);

@@ -193,8 +193,8 @@ Ext.define('Ext.ux.CellDragDrop', {
                         selectionModel.select(record, true);
                     }
 
-                    self.ddel.update(el.textContent || el.innerText);
-                    self.proxy.update(self.ddel.dom);
+                    Ext.fly(self.ddel).update(el.textContent || el.innerText);
+                    self.proxy.update(self.ddel);
                     self.onStartDrag(x, y);
                     return true;
                 }

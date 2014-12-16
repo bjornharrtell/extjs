@@ -82,8 +82,8 @@ Ext.define('Ext.util.TaskRunner', {
      */
 
     /**
-     * @cfg interval
-     * The timer resolution.
+     * @cfg {Number} interval
+     * How often to run the task in milliseconds. Defaults to every 10ms.
      */
     interval: 10,
 

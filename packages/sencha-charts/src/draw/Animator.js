@@ -28,9 +28,10 @@ Ext.define('Ext.draw.Animator', {
      * @param {Object} animation The animation descriptor to add to the pool.
      */
     add: function (animation) {
-        if (!this.contains(animation)) {
-            this.animations.push(animation);
-            Ext.draw.Animator.ignite();
+        var me = this;
+        if (!me.contains(animation)) {
+            me.animations.push(animation);
+            me.ignite();
             if ('fireEvent' in animation) {
                 animation.fireEvent('animationstart', animation);
             }
@@ -104,7 +105,7 @@ Ext.define('Ext.draw.Animator', {
     },
 
     /**
-     * Register an one-time callback that will be called at the next frame.
+     * Register a one-time callback that will be called at the next frame.
      * @param {Function} callback
      * @param {Object} scope
      * @return {String}

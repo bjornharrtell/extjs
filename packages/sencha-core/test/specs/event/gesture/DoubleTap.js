@@ -4,9 +4,9 @@
 // Double Tap doesn't currently work in IE8 because 2 clicks in rapid succession will
 // fire a single mousedown, and 2 mouseups.
 // These specs also fail in FF, although double tap seems to work fine when triggered manually
-((Ext.isIE8 || Ext.isFirefox) ? xdescribe : describe)("Ext.event.gesture.DoubleTap", function() {
+((Ext.isIE9m || Ext.isFirefox) ? xdescribe : describe)("Ext.event.gesture.DoubleTap", function() {
     var helper = Ext.testHelper,
-        recognizer = Ext.event.Dispatcher.getInstance().getPublisher('gesture').getRecognizers().doubleTap,
+        recognizer = Ext.event.gesture.DoubleTap.instance,
         moveDistance = recognizer.getMoveDistance(),
         tapDistance = recognizer.getTapDistance(),
         maxDuration = 60,

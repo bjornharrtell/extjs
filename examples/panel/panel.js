@@ -49,7 +49,7 @@ Ext.onReady(function() {
         html: html,
         collapsible: true,
         frame: true,
-        autoScroll: true,
+        scrollable: true,
         width: 280,
         height: 180
     },{

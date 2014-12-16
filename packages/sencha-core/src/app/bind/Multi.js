@@ -14,8 +14,42 @@ Ext.define('Ext.app.bind.Multi', {
     // bindings have changed.
     deep: true,
 
+    /**
+     * @cfg {Boolean} trackStatics
+     * This option tracks for static branches of the root object which can be pruned using
+     * {@link #pruneStaticKeys}. This can be useful to only get the dynamic parts of a multi bind:
+     *
+     *      {
+     *          a: 1,
+     *          b: '{someBind}',
+     *          c: ['a', 'b', 'c'],
+     *          d: ['a', 'b', '{someBind}'],
+     *          e: {
+     *              y: 1,
+     *              z: 2
+     *          },
+     *          f: {
+     *              y: 1,
+     *              z: '{someBind}'
+     *          }
+     *      }
+     *
+     *      // Will produce
+     *      {
+     *          b: value,
+     *          d: ['a', 'b', value],
+     *          f: {
+     *              y: 1,
+     *              z: value
+     *          }
+     *      }
+     * @private
+     * @since 5.1.0
+     */
+
     constructor: function (descriptor, owner, callback, scope, options) {
-        var me = this;
+        var me = this,
+            trackStatics = options && options.trackStatics;
 
         me.callParent([ owner, callback, scope, options ]);
 
@@ -23,7 +57,10 @@ Ext.define('Ext.app.bind.Multi', {
         me.literal = descriptor.$literal;
 
         if (descriptor.constructor === Object) {
-            me.addObject(descriptor, me.lastValue = {});
+            if (trackStatics) {
+                me.staticKeys = [];
+            }
+            me.addObject(descriptor, me.lastValue = {}, me.staticKeys);
         } else {
             me.addArray(descriptor, me.lastValue = []);
         }
@@ -75,45 +112,57 @@ Ext.define('Ext.app.bind.Multi', {
         }
 
         bindings.push(binding);
+        return !this.isBindingStatic(binding);
     },
 
     addArray: function (multiBindDescr, array) {
         var me = this,
             n = multiBindDescr.length,
-            b, i;
+            hasDynamic = false,
+            dynamic, b, i;
 
         for (i = 0; i < n; ++i) {
             b = multiBindDescr[i];
 
             if (b && (b.reference || Ext.isString(b))) {
-                me.add(b, array, i);
+                dynamic = me.add(b, array, i);
             } else if (Ext.isArray(b)) {
-                me.addArray(b, array[i] = []);
+                dynamic = me.addArray(b, array[i] = []);
             } else if (b && b.constructor === Object) {
-                me.addObject(b, array[i] = {});
+                dynamic = me.addObject(b, array[i] = {});
             } else {
                 array[i] = b;
+                dynamic = false;
             }
+            hasDynamic = hasDynamic || dynamic;
         }
+        return hasDynamic;
     },
 
-    addObject: function (multiBindDescr, object) {
+    addObject: function (multiBindDescr, object, staticKeys) {
         var me = this,
-            b, name;
+            hasDynamic = false,
+            dynamic, b, name;
 
         for (name in multiBindDescr) {
             b = multiBindDescr[name];
 
             if (b && (b.reference || Ext.isString(b))) {
-                me.add(b, object, name);
+                dynamic = me.add(b, object, name);
             } else if (Ext.isArray(b)) {
-                me.addArray(b, object[name] = []);
+                dynamic = me.addArray(b, object[name] = []);
             } else if (b && b.constructor === Object) {
-                me.addObject(b, object[name] = {});
+                dynamic = me.addObject(b, object[name] = {});
             } else {
                 object[name] = b;
+                dynamic = false;
             }
+            if (staticKeys && !dynamic) {
+                staticKeys.push(name);
+            }
+            hasDynamic = hasDynamic || dynamic;
         }
+        return hasDynamic;
     },
 
     getFullName: function () {
@@ -157,6 +206,10 @@ Ext.define('Ext.app.bind.Multi', {
         return false;
     },
 
+    isBindingStatic: function(binding) {
+        return binding.isTemplateBinding && binding.isStatic;
+    },
+
     isStatic: function() {
         var bindings = this.bindings,
             len = bindings.length,
@@ -164,11 +217,23 @@ Ext.define('Ext.app.bind.Multi', {
 
         for (i = 0; i < len; ++i) {
             binding = bindings[i];
-            if (!(binding.isTemplateBinding && binding.isStatic)) {
+            if (!this.isBindingStatic(binding)) {
                 return false;
             }
         }
         return true;
+    },
+
+    pruneStaticKeys: function() {
+        var value = Ext.apply({}, this.lastValue),
+            keys = this.staticKeys,
+            len = keys.length,
+            i;
+
+        for (i = 0; i < len; ++i) {
+            delete value[keys[i]];
+        }
+        return value;
     },
 
     react: function () {

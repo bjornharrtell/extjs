@@ -12,9 +12,16 @@ Ext.define('Ext.chart.Markers', {
 
     constructor: function () {
         this.callParent(arguments);
-        // 'categories' maps category names to a map that maps instance index in category to its global index:
+        // `categories` maps category names to a map that maps instance index in category to its global index:
         // categoryName: {instanceIndexInCategory: globalInstanceIndex}
         this.categories = {};
+        // The `revisions` map keeps revision numbers of instance categories.
+        // When a marker (instance) is put (created or updated), it gets the revision
+        // of the category. When a category is cleared, its revision is incremented,
+        // but its instances are not removed.
+        // An instance is only rendered if its revision matches category revision.
+        // In other words, a marker has to be put again after its category has been cleared
+        // or it won't render.
         this.revisions = {};
     },
 
@@ -36,23 +43,27 @@ Ext.define('Ext.chart.Markers', {
      * @param {String} category
      * @param {Object} attr
      * @param {String|Number} index
-     * @param {Boolean} [canonical]
+     * @param {Boolean} [bypassNormalization]
      * @param {Boolean} [keepRevision]
      */
-    putMarkerFor: function (category, attr, index, canonical, keepRevision) {
+    putMarkerFor: function (category, attr, index, bypassNormalization, keepRevision) {
         category = category || this.defaultCategory;
 
         var me = this,
-            categoryInstances = me.categories[category] || (me.categories[category] = {});
+            categoryInstances = me.categories[category] || (me.categories[category] = {}),
+            instance;
         if (index in categoryInstances) {
-            me.setAttributesFor(categoryInstances[index], attr, canonical);
+            me.setAttributesFor(categoryInstances[index], attr, bypassNormalization);
         } else {
-            categoryInstances[index] = me.instances.length; // the newly created instance will go into me.instances
-            me.createInstance(attr, null, canonical);
+            categoryInstances[index] = me.getCount(); // the newly created instance will go into me.instances
+            me.createInstance(attr, bypassNormalization);
         }
-        me.instances[categoryInstances[index]].category = category;
-        if (!keepRevision) {
-            me.instances[categoryInstances[index]].revision = me.revisions[category] || (me.revisions[category] = 1);
+        instance = me.get(categoryInstances[index]);
+        if (instance) {
+            instance.category = category;
+            if (!keepRevision) {
+                instance.revision = me.revisions[category] || (me.revisions[category] = 1);
+            }
         }
     },
 
@@ -78,22 +89,24 @@ Ext.define('Ext.chart.Markers', {
             revisions = me.revisions,
             mat = me.attr.matrix,
             template = me.getTemplate(),
-            originalAttr = template.attr,
-            instances = me.instances,
-            i, ln = me.instances.length;
+            templateAttr = template.attr,
+            instance, i, ln;
+
         mat.toContext(ctx);
         template.preRender(surface, ctx, clipRect);
         template.useAttributes(ctx, clipRect);
-        for (i = 0; i < ln; i++) {
-            if (instances[i].hidden || instances[i].revision !== revisions[instances[i].category]) {
+
+        for (i = 0, ln = me.instances.length; i < ln; i++) {
+            instance = me.get(i);
+            if (instance.hidden || instance.revision !== revisions[instance.category]) {
                 continue;
             }
             ctx.save();
-            template.attr = instances[i];
+            template.attr = instance;
             template.useAttributes(ctx, clipRect);
             template.render(surface, ctx, clipRect);
             ctx.restore();
         }
-        template.attr = originalAttr;
+        template.attr = templateAttr;
     }
 });

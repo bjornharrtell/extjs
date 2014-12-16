@@ -40,7 +40,8 @@ Ext.define('KitchenSink.view.charts.column.MultiAxis', {
             yField: 'highF',
             yAxis: 'fahrenheit-axis',
             style: {
-                minGapWidth: 10
+                minGapWidth: 10,
+                strokeStyle: 'rgb(52, 52, 53)'
             },
             subStyle: {
                 fillStyle: 'url(#rainbow)'
@@ -75,7 +76,7 @@ Ext.define('KitchenSink.view.charts.column.MultiAxis', {
                         text: 'Temperature in °F'
                     },
                     listeners: {
-                        rangechange: function (range) {
+                        rangechange: function (axis, range) {
                             var cAxis = this.getChart().getAxis('celsius-axis');
                             if (cAxis) {
                                 cAxis.setMinimum((range[0] - 32) / 1.8);

@@ -10,69 +10,55 @@ Ext.define('Ext.grid.ColumnComponentLayout', {
 
     setWidthInDom: true,
 
+    _paddingReset: {
+        paddingTop: '',  // reset back to default padding of the style
+        paddingBottom: ''
+    },
+
     beginLayout: function(ownerContext) {
         this.callParent(arguments);
         ownerContext.titleContext = ownerContext.getEl('titleEl');
-        ownerContext.triggerContext = ownerContext.getEl('triggerEl');
     },
 
     beginLayoutCycle: function(ownerContext) {
-        var owner = this.owner;
+        var me = this,
+            owner = me.owner;
 
-        this.callParent(arguments);
+        me.callParent(arguments);
 
         // If shrinkwrapping, allow content width to stretch the element
         if (ownerContext.widthModel.shrinkWrap) {
             owner.el.setWidth('');
         }
 
-        owner.titleEl.setStyle({
-            paddingTop: '',  // reset back to default padding of the style
-            paddingBottom: ''
-        });
+        owner.titleEl.setStyle(me._paddingReset);
     },
 
     // If not shrink wrapping, push height info down into child items
     publishInnerHeight: function(ownerContext, outerHeight) {
         var me = this,
             owner = me.owner,
-            innerHeight, availableHeight,
-            textHeight, titleHeight, paddingTop, paddingBottom;
+            innerHeight;
             
         // TreePanels (and grids with hideHeaders: true) set their column container height to zero to hide them.
         // This is because they need to lay out in order to calculate widths for the columns (eg flexes).
         // If there is no height to lay out, bail out early.
-        if (owner.getOwnerHeaderCt().hiddenHeaders) {
+        if (owner.getRootHeaderCt().hiddenHeaders) {
             ownerContext.setProp('innerHeight', 0);
             return;
         }
         
-        innerHeight = outerHeight - ownerContext.getBorderInfo().height;
-        availableHeight = innerHeight;
 
-        // We do not have enough information to get the height of the titleEl
-        if (owner.headerWrap && !ownerContext.hasDomProp('width')) {
-            me.done = false;
-            return;
-        }
-
-        // If we are not a container, but just have HTML content...
-        if (ownerContext.hasRawContent) {
-            // Vertically center the header text and ensure titleContext occupies availableHeight
-            textHeight = owner.textEl.getHeight();
-            if (textHeight) {
-                availableHeight -= textHeight;
-                if (availableHeight > 0) {
-                    paddingTop = Math.floor(availableHeight / 2);
-                    paddingBottom = availableHeight - paddingTop;
-                    ownerContext.titleContext.setProp('padding-top', paddingTop);
-                    ownerContext.titleContext.setProp('padding-bottom', paddingBottom);
-                }
+        // If this ia a group header; that is, it contains subheaders...
+        // hasRawContent = !(target.isContainer && target.items.items.length > 0)
+        if (!ownerContext.hasRawContent) {
+            // We do not have enough information to get the height of the titleEl
+            if (owner.headerWrap && !ownerContext.hasDomProp('width')) {
+                me.done = false;
+                return;
             }
-        }
 
-        // There are child items
-        else {
+            innerHeight = outerHeight - ownerContext.getBorderInfo().height;
             ownerContext.setProp('innerHeight', innerHeight - owner.titleEl.getHeight(), false);
         }
     },

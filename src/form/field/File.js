@@ -65,7 +65,14 @@ Ext.define('Ext.form.field.File', {
     triggers: {
         filebutton: {
             type: 'component',
-            hideOnReadOnly : false
+            hideOnReadOnly: false,
+            // Most form fields prevent the default browser action on mousedown of the trigger.
+            // This is intended to prevent the field's input element from losing focus when
+            // the trigger is clicked.  File fields disable this behavior because:
+            // 1. The input element does not receive focus when the field is focused. The button does.
+            // 2. Preventing the default action of touchstart (translated from mousedown
+            // on mobile browsers) prevents the browser's file dialog from opening.
+            preventMouseDown: false
         }
     },
 
@@ -319,8 +326,7 @@ Ext.define('Ext.form.field.File', {
     },
 
     onDestroy: function(){
-        Ext.destroyMembers(this, 'button');
-        delete this.fileInputEl;
+        this.fileInputEl = this.button = null;
         this.callParent();
     },
 

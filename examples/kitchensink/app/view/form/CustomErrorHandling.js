@@ -77,7 +77,7 @@ Ext.define('KitchenSink.view.form.CustomErrorHandling', {
             invalidText: 'Form has errors',
             
             tipTpl: [
-                '<ul class="' + Ext.plainListCls + '">',
+                '<ul class="' + Ext.baseCSSPrefix + 'list-plain">',
                     '<tpl for=".">',
                         '<li><span class="field-name">{name}</span>: ',
                             '<span class="error">{error}</span>',
@@ -221,8 +221,8 @@ Ext.define('KitchenSink.view.form.CustomErrorHandling', {
         width: 700,
         height: 400,
         bodyPadding: '10 20',
-        autoScroll: true,
-        
+        scrollable: true,
+
         // Wall of text
         loader: {
             url: 'resources/data/form/terms-of-use.html',

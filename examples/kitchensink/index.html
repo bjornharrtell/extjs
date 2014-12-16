@@ -15,7 +15,6 @@
     <!-- The line below must be kept intact for Sencha Command to build your application -->
     <script type="text/javascript">
         var Ext = Ext || {};
-        Ext.repoDevMode = true;
         Ext.beforeLoad = function(tags){
             var theme = location.href.match(/theme=([\w-]+)/),
                 locale = location.href.match(/locale=([\w-]+)/);
@@ -24,6 +23,7 @@
             locale = (locale && locale[1]) || 'en';
 
             Ext.manifest = theme + "-" + locale;
+            tags.test = /testMode=true/.test(location.search);
             Ext.microloaderTags = tags;
         };
     </script>

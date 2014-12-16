@@ -16,6 +16,7 @@
  *         x: 100,
  *         y: 100
  *     });
+ *     drawContainer.renderFrame();
  *
  * The configuration object passed in the `add` method is the same as described in the {@link Ext.draw.sprite.Sprite}
  * class documentation.
@@ -63,6 +64,7 @@
  *             y: 100
  *         }
  *     ]);
+ *     drawContainer.renderFrame();
  *
  */
 Ext.define('Ext.draw.Surface', {
@@ -86,32 +88,23 @@ Ext.define('Ext.draw.Surface', {
      */
     devicePixelRatio: window.devicePixelRatio || 1,
 
-    statics: {
-        /**
-         * Stably sort the list of sprites by their zIndex.
-         * TODO: Improve the performance. Reduce gc impact.
-         * @param {Array} list
-         */
-        stableSort: function (list) {
-            if (list.length < 2) {
-                return;
-            }
-            var keys = {}, sortedKeys, result = [], i, ln, zIndex;
-
-            for (i = 0, ln = list.length; i < ln; i++) {
-                zIndex = list[i].attr.zIndex;
-                if (!keys[zIndex]) {
-                    keys[zIndex] = [list[i]];
-                } else {
-                    keys[zIndex].push(list[i]);
+    deprecated: {
+        '5.1.0': {
+            statics: {
+                methods: {
+                    /**
+                     * @deprecated 5.1.0
+                     * Stably sort the list of sprites by their zIndex.
+                     * Deprecated, use the {@link Ext.Array#sort} method instead.
+                     * @param {Array} list
+                     * @returns {Array} Sorted array.
+                     */
+                    stableSort: function (list) {
+                        return Ext.Array.sort(list, function (a, b) {
+                            return a.attr.zIndex - b.attr.zIndex;
+                        });
+                    }
                 }
-            }
-            sortedKeys = Ext.Object.getKeys(keys).sort(function (a, b) {return a - b;});
-            for (i = 0, ln = sortedKeys.length; i < ln; i++) {
-                result.push.apply(result, keys[sortedKeys[i]]);
-            }
-            for (i = 0, ln = list.length; i < ln; i++) {
-                list[i] = result[i];
             }
         }
     },
@@ -120,7 +113,7 @@ Ext.define('Ext.draw.Surface', {
         cls: Ext.baseCSSPrefix + 'surface',
         /**
          * @cfg {Array}
-         * The rect of the surface related to its container.
+         * The [x, y, width, height] rect of the surface related to its container.
          */
         rect: null,
 
@@ -138,7 +131,7 @@ Ext.define('Ext.draw.Surface', {
 
         /**
          * @cfg {Boolean}
-         * Indicates whether the surface needs redraw.
+         * Indicates whether the surface needs to redraw.
          */
         dirty: false,
 
@@ -301,13 +294,14 @@ Ext.define('Ext.draw.Surface', {
      *
      * For example:
      *
-     *     drawContainer.surface.add({
+     *     drawContainer.getSurface().add({
      *         type: 'circle',
      *         fill: '#ffc',
      *         radius: 100,
      *         x: 100,
      *         y: 100
      *     });
+     *     drawContainer.renderFrame();
      *
      */
     add: function () {
@@ -541,7 +535,9 @@ Ext.define('Ext.draw.Surface', {
             }
             if (dirtyZIndex) {
                 // sort by zIndex
-                Ext.draw.Surface.stableSort(items);
+                Ext.Array.sort(items, function (a, b) {
+                    return a.attr.zIndex - b.attr.zIndex;
+                });
                 this.setDirty(true);
             }
 

@@ -10,70 +10,50 @@ Ext.define('Ext.event.publisher.ElementPaint', {
         'Ext.TaskQueue'
     ],
 
-    targetType: 'element',
+    type: 'paint',
 
     handledEvents: ['painted'],
 
     constructor: function() {
         this.monitors = {};
+        this.subscribers = {};
 
-        this.callSuper(arguments);
+        this.callParent(arguments);
     },
 
-    subscribe: function(target) {
-        var match = target.match(this.idSelectorRegex),
+    subscribe: function(element) {
+        var id = element.id,
+            subscribers = this.subscribers;
+
+        if (subscribers[id]) {
+            ++subscribers[id];
+        } else {
+            subscribers[id] = 1;
+
+            this.monitors[id] = new Ext.util.PaintMonitor({
+                element: element,
+                callback: this.onElementPainted,
+                scope: this,
+                args: [element]
+            });
+        }
+    },
+
+    unsubscribe: function(element) {
+        var id = element.id,
             subscribers = this.subscribers,
-            id, element;
+            monitors = this.monitors;
 
-        if (!match) {
-            return false;
+        if (subscribers[id] && !--subscribers[id]) {
+            delete subscribers[id];
+            monitors[id].destroy();
+            delete monitors[id];
         }
-
-        id = match[1];
-
-        if (subscribers.hasOwnProperty(id)) {
-            subscribers[id]++;
-            return true;
-        }
-
-        subscribers[id] = 1;
-
-        element = Ext.get(id);
-
-        this.monitors[id] = new Ext.util.PaintMonitor({
-            element: element,
-            callback: this.onElementPainted,
-            scope: this,
-            args: [target, element]
-        });
-
-        return true;
     },
 
-    unsubscribe: function(target, eventName, all) {
-        var match = target.match(this.idSelectorRegex),
-            subscribers = this.subscribers,
-            id;
-
-        if (!match) {
-            return false;
-        }
-
-        id = match[1];
-
-        if (!subscribers.hasOwnProperty(id) || (!all && --subscribers[id] > 0)) {
-            return true;
-        }
-
-        delete subscribers[id];
-
-        this.monitors[id].destroy();
-        delete this.monitors[id];
-
-        return true;
-    },
-
-    onElementPainted: function(target, element) {
-        Ext.TaskQueue.requestRead('dispatch', this, [target, 'painted', [element]]);
+    onElementPainted: function(element) {
+        Ext.TaskQueue.requestRead('fire', this, [element, 'painted', [element]]);
     }
+}, function(ElementPaint) {
+    ElementPaint.instance = new ElementPaint();
 });

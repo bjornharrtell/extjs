@@ -20,6 +20,6 @@ Ext.define('Ext.util.translatable.CssTransform', {
             element.dom.style.webkitTransform = null;
         }
 
-        this.callSuper();
+        this.callParent();
     }
 });

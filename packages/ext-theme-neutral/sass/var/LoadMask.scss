@@ -21,6 +21,24 @@ $loadmask-background-color: #ccc !default;
 $loadmask-cursor: default !default;
 
 /**
+ * @var {string}
+ * The border-style of the LoadMask focus border
+ */
+$loadmask-border-style-focus: solid !default;
+
+/**
+ * @var {string}
+ * The border-color of the LoadMask focus border
+ */
+$loadmask-border-color-focus: $base-color !default;
+
+/**
+ * @var {string}
+ * The border-width of the LoadMask focus border
+ */
+$loadmask-border-width-focus: 1px !default;
+
+/**
  * @var {number/list}
  * The padding to apply to the LoadMask's message element
  */

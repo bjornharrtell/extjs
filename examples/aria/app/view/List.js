@@ -60,16 +60,6 @@ Ext.define('Aria.view.List', {
                     itemclick: me.onItemClick,
                     viewready: function() {
                         store.loadData(me.curData);
-                    },
-                    focus: function(view) {
-                        var selModel, sel;
-                        
-                        selModel = view.getSelectionModel();
-                        sel      = selModel.getSelection();
-                        
-                        if (sel.length === 0) {
-                            selModel.select(0);
-                        }
                     }
                 }
             }],

@@ -30,7 +30,7 @@ Ext.define('KitchenSink.view.form.CustomFields', {
     width: 600,
     layout: 'fit',
     items: [{
-        overflowY: 'auto',
+        scrollable: 'y',
         xtype: 'dataview',
         tpl: [
             '<tpl for=".">',

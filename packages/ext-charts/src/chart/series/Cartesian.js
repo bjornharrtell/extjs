@@ -93,27 +93,6 @@ Ext.define('Ext.chart.series.Cartesian', {
         return this.getYValueAccessors().length;
     },
 
-    combine: function(index1, index2) {
-        var me = this,
-            accessors = me.getYValueAccessors(),
-            accessor1 = accessors[index1],
-            accessor2 = accessors[index2];
-
-        // Combine the yValue accessors for the two indexes into a single accessor that returns their sum
-        accessors[index2] = function(record) {
-            return accessor1(record) + accessor2(record);
-        };
-        accessors.splice(index1, 1);
-
-        me.callParent([index1, index2]);
-    },
-
-    clearCombinations: function() {
-        // Clear combined accessors, they'll get regenerated on next call to getYValueAccessors
-        delete this.yValueAccessors;
-        this.callParent();
-    },
-
     /**
      * @protected Returns an array of functions, each of which returns the value of the yField
      * corresponding to function's index in the array, for a given record (each function takes the

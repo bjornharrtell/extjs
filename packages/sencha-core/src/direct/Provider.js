@@ -16,9 +16,13 @@
 Ext.define('Ext.direct.Provider', {
    alias: 'direct.provider',
 
-    mixins: {
-        observable: 'Ext.util.Observable'
-    },
+    mixins: [
+        'Ext.util.Observable'
+    ],
+    
+    requires: [
+        'Ext.direct.Manager'
+    ],
     
     isProvider: true,
 
@@ -70,6 +74,8 @@ Ext.define('Ext.direct.Provider', {
      * @event exception
      * Fires when the Provider receives an exception from the server-side
      */
+    
+    subscribers: 0,
 
     constructor: function(config) {
         var me = this;
@@ -82,25 +88,87 @@ Ext.define('Ext.direct.Provider', {
 
         me.mixins.observable.constructor.call(me, config);
     },
-
+    
+    destroy: function() {
+        var me = this;
+        
+        me.disconnect(true);
+        me.mixins.observable.destroy.call(me);
+    },
+    
     /**
      * Returns whether or not the server-side is currently connected.
-     * Abstract method for subclasses to implement.
-     * @template
      */
     isConnected: function() {
-        return false;
+        return this.subscribers > 0;
     },
 
     /**
-     * Abstract method for subclasses to implement.
-     * @template
+     * Connect the provider and start its service.
+     * Provider will fire `connect` event upon successful connection.
      */
-    connect: Ext.emptyFn,
+    connect: function() {
+        var me = this;
+        
+        if (me.subscribers === 0) {
+            me.doConnect();
+            me.fireEventArgs('connect', [me]);
+        }
+        
+        me.subscribers++;
+    },
+    
+    /**
+     * Do connection setup. This is a template method.
+     * @template
+     * @protected
+     */
+    doConnect: Ext.emptyFn,
 
     /**
-     * Abstract method for subclasses to implement.
-     * @template
+     * Disconnect the provider and stop its service.
+     * Provider will fire `disconnect` event upon successful disconnect.
      */
-    disconnect: Ext.emptyFn
+    disconnect: function(/* */ force) {
+        var me = this;
+        
+        if (me.subscribers > 0) {
+            if (force) {
+                me.subscribers = 0;
+            }
+            else {
+                me.subscribers--;
+            }
+            
+            if (me.subscribers === 0) {
+                me.doDisconnect();
+                me.fireEventArgs('disconnect', [me]);
+            }
+        }
+    },
+    
+    /**
+     * Do connection teardown. This is a template method.
+     * @template
+     * @protected
+     */
+    doDisconnect: Ext.emptyFn,
+    
+    inheritableStatics: {
+        /**
+         * Check if the passed configuration object contains enough
+         * information to construct a Provider.
+         *
+         * @param {Object} config
+         *
+         * @return {Boolean} `true` if config is sufficient, `false` otherwise.
+         */
+        checkConfig: Ext.returnFalse
+    },
+    
+    onClassExtended: function(cls, data, hooks) {
+        if (data.type) {
+            Ext.direct.Manager.addProviderClass(data.type, cls);
+        }
+    }
 });

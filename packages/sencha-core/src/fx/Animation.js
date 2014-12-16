@@ -54,7 +54,7 @@ Ext.define('Ext.fx.Animation', {
             }
             defaultClass = Ext.ClassManager.getByAlias('animation.' + type);
 
-            //<debug error>
+            //<debug>
             if (!defaultClass) {
                 Ext.Logger.error("Invalid animation type of: '" + type + "'");
             }

@@ -40,5 +40,7 @@ Ext.define('Ext.form.trigger.Component', {
         if (component.isComponent || component.isWidget) {
             component.destroy();
         }
+
+        this.callParent();
     }
 });

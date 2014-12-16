@@ -18,6 +18,50 @@
  *          }
  *      });
  *
+ * For a config to participate as a responsiveConfig it must have a "setter" method. In
+ * the below example, a "setRegion" method must exist.
+ *
+ *      Ext.create({
+ *          xtype: 'viewport',
+ *          layout: 'border',
+ *
+ *          items: [{
+ *              title: 'Some Title',
+ *              plugins: 'responsive',
+ *
+ *              responsiveConfig: {
+ *                  'width < 800': {
+ *                      region: 'north'
+ *                  },
+ *                  'width >= 800': {
+ *                      region: 'west'
+ *                  }
+ *              }
+ *          }]
+ *      });
+ *
+ * To use responsiveConfig the class must be defined using the Ext.mixin.Responsive mixin.
+ *
+ *      Ext.define('App.view.Foo', {
+ *          extend: 'Ext.panel.Panel',
+ *          xtype: 'foo',
+ *          mixins: [
+ *               'Ext.mixin.Responsive'
+ *          ],
+ *          ...
+ *      });
+ *
+ * Otherwise, you will need to use the responsive plugin if the class is not one you authored.
+ *
+ *      Ext.create('Ext.panel.Panel', {
+ *          renderTo: document.body,
+ *          plugins: 'responsive',
+ *          ...
+ *      });
+ * 
+ *  _Note:_ There is the exception of `Ext.container.Viewport` or other classes using `Ext.plugin.Viewport`.
+ *  In those cases, the viewport plugin inherits from `Ext.plugin.Responsive`.
+ *
  * For details see `{@link #responsiveConfig}`.
  * @since 5.0.0
  */
@@ -65,15 +109,22 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
          *  * `wide` - True if `width` > `height` regardless of device type.
          *  * `width` - The width of the viewport
          *  * `height` - The height of the viewport.
-         *  * `platform` - An object containing various booleans describing the platform.
+         *  * `platform` - An object containing various booleans describing the platform
+         *  (see `{@link Ext#platformTags Ext.platformTags}`). The properties of this
+         *  object are also available implicitly (without "platform." prefix) but this
+         *  sub-object may be useful to resolve ambiguity (for example, if one of the
+         *  `{@link #responsiveFormulas}` overlaps and hides any of these properties).
+         *  Previous to Ext JS 5.1, the `platformTags` were only available using this
+         *  prefix.
          *
          * A more complex example:
          *
          *      responsiveConfig: {
-         *          'width > 800': {
+         *          'desktop || width > 800': {
          *              region: 'west'
          *          },
-         *          'width <= 800': {
+         *
+         *          '!(desktop || width > 800)': {
          *              region: 'north'
          *          }
          *      }
@@ -202,7 +253,7 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
              * @static
              * @private
              */
-            context: {},
+            context: Ext.Object.chain(Ext.platformTags),
 
             /**
              * @property {Number} count
@@ -230,10 +281,6 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
                 Responsive.active = true;
                 Responsive.updateContext();
                 Ext.on('resize', Responsive.onResize, Responsive);
-            },
-
-            createRuleFn: function (code) {
-                return new Function('$c', 'with($c) { return (' + code + '); }');
             },
 
             /**
@@ -367,7 +414,6 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
                 var El = Ext.Element,
                     width = El.getViewportWidth(),
                     height = El.getViewportHeight(),
-                    microloader = Ext.Microloader,
                     context = Responsive.context;
 
                 context.width = width;
@@ -377,17 +423,10 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
 
                 context.landscape = context.portrait = false;
                 if (!context.platform) {
-                    context.platform = (microloader && microloader.platformTags) || {
-                        // see EXTJS-13771
-                        desktop: true
-                    };
+                    context.platform = Ext.platformTags;
                 }
 
-                if (!context.platform.desktop || Ext.supports.OrientationChange) {
-                    context[Ext.dom.Element.getOrientation()] = true;
-                } else {
-                    context.landscape = true;
-                }
+                context[Ext.dom.Element.getOrientation()] = true;
             }
         }, // private static
 
@@ -430,7 +469,7 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
 
         applyResponsiveConfig: function (rules) {
             for (var rule in rules) {
-                rules[rule].fn = Responsive.createRuleFn(rule);
+                rules[rule].fn = Ext.createRuleFn(rule);
             }
             return rules;
         },
@@ -442,7 +481,7 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
             if (formulas) {
                 for (name in formulas) {
                     if (Ext.isString(fn = formulas[name])) {
-                        fn = Responsive.createRuleFn(fn);
+                        fn = Ext.createRuleFn(fn);
                     }
                     ret[name] = fn;
                 }

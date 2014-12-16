@@ -35,6 +35,9 @@ Ext.define('Ext.data.ChainedStore', {
         this.getData().addObserver(this);
     },
 
+    blockLoad: Ext.emptyFn,
+    unblockLoad: Ext.emptyFn,
+
     //<debug>
     updateRemoteFilter: function(value) {
         if (value) {
@@ -48,11 +51,6 @@ Ext.define('Ext.data.ChainedStore', {
         }
     },
     //</debug>
-
-    add: function() {
-        var source = this.getSource();
-        return source.add.apply(source, arguments);
-    },
     
     remove: function() {
         var source = this.getSource();
@@ -69,9 +67,24 @@ Ext.define('Ext.data.ChainedStore', {
         return data;
     },
 
+    getSession: function() {
+        return this.getSource().getSession();
+    },
+
     applySource: function(source) {
         if (source) {
+            //<debug>
+            var original = source,
+                s;
+            //</debug>
             source = Ext.data.StoreManager.lookup(source);
+            //<debug>
+            if (!source) {
+                s = 'Invalid source {0}specified for Ext.data.ChainedStore';
+                s = Ext.String.format(s, typeof original === 'string' ? '"' + original + '" ' : '')
+                Ext.Error.raise(s);
+            }
+            //</debug>
         }
         return source;
     },
@@ -158,18 +171,31 @@ Ext.define('Ext.data.ChainedStore', {
             me.fireEvent('datachanged', me);
         }
     },
-    
-    onSourceBeforeLoad: function() {
-        this.ignoreCollectionAdd = true;
-        this.callObservers('BeforeLoad');
+
+    onSourceBeforeLoad: function(source, operation) {
+        this.fireEvent('beforeload', this, operation);
+    },
+
+    onSourceAfterLoad: function(source, records, successful, operation) {
+        this.fireEvent('load', this, records, successful, operation);
+    },
+
+    onFilterEndUpdate: function() {
+        this.callParent(arguments);
+        this.callObservers('Filter');
     },
     
-    onSourceAfterLoad: function() {
+    onSourceBeforePopulate: function() {
+        this.ignoreCollectionAdd = true;
+        this.callObservers('BeforePopulate');
+    },
+    
+    onSourceAfterPopulate: function() {
         var me = this;
         me.ignoreCollectionAdd = false;
         me.fireEvent('datachanged', me);
         me.fireEvent('refresh', me);
-        this.callObservers('AfterLoad');
+        this.callObservers('AfterPopulate');
     },
     
     onSourceBeforeClear: function() {
@@ -203,17 +229,18 @@ Ext.define('Ext.data.ChainedStore', {
         me.fireEvent('datachanged', me);
     },
     
-    // inherit docs
     hasPendingLoad: function() {
-        return false;
+        return this.getSource().hasPendingLoad();
     },
     
-    // inherit docs
+    isLoaded: function() {
+        return this.getSource().isLoaded();
+    },
+
     isLoading: function() {
-        return false;
+        return this.getSource().isLoading();
     },
-    
-    // inherit docs
+
     onDestroy: function() {
         var me = this;
 
@@ -221,9 +248,26 @@ Ext.define('Ext.data.ChainedStore', {
         me.setSource(null);
         me.getData().destroy(true);
         me.data = null;
+    },
+
+    privates: {
+        isMoving: function () {
+            var source = this.getSource();
+            return source.isMoving ? source.isMoving.apply(source, arguments) : false;
+        },
+
+        loadsSynchronously: function() {
+            return this.getSource().loadsSynchronously();
+        }
     }
 
     // Provides docs from the mixin
+    
+    /**
+     * @method add
+     * @inheritdoc Ext.data.LocalStore#add
+     */
+
     /**
      * @method each
      * @inheritdoc Ext.data.LocalStore#each
@@ -252,6 +296,11 @@ Ext.define('Ext.data.ChainedStore', {
     /**
      * @method indexOfId
      * @inheritdoc Ext.data.LocalStore#indexOfId
+     */
+    
+    /**
+     * @method insert
+     * @inheritdoc Ext.data.LocalStore#insert
      */
 
     /**

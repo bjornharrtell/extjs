@@ -9,6 +9,19 @@ Ext.define('KitchenSink.view.binding.Selection', {
     width: 600,
     height: 270,
 
+    //<example>
+    otherContent: [{
+        type: 'Model',
+        path: 'app/model/Customer.js'
+    },{
+        type: 'Model',
+        path: 'app/model/field/PhoneNumber.js'
+    },{
+        type: 'Data',
+        path: 'app/data/Customer.js'
+    }],
+    //</example>
+
     viewModel: {
         stores: {
             customers: {

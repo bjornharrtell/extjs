@@ -188,7 +188,7 @@ Ext.define('Ext.form.CheckboxGroup', {
 
     /**
      * Runs CheckboxGroup's validations and returns an array of any errors. The only error by default is if allowBlank
-     * is set to true and no items are checked.
+     * is set to false and no items are checked.
      * @return {String[]} Array of all validation errors
      */
     getErrors: function() {
@@ -352,12 +352,13 @@ Ext.define('Ext.form.CheckboxGroup', {
             cbValue;
 
         me.batchChanges(function() {
+            Ext.suspendLayouts();
             for (b = 0; b < bLen; b++) {
                 box = boxes[b];
                 name = box.getName();
                 cbValue = false;
 
-                if (value && value.hasOwnProperty(name)) {
+                if (value) {
                     if (Ext.isArray(value[name])) {
                         cbValue = Ext.Array.contains(value[name], box.inputValue);
                     } else {
@@ -368,6 +369,7 @@ Ext.define('Ext.form.CheckboxGroup', {
 
                 box.setValue(cbValue);
             }
+            Ext.resumeLayouts(true);
         });
         return me;
     },

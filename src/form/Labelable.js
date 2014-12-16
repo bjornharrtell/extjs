@@ -189,6 +189,8 @@ Ext.define("Ext.form.Labelable", {
 
     invalidUnderCls: Ext.baseCSSPrefix + 'form-invalid-under',
 
+    noLabelCls: Ext.baseCSSPrefix + 'form-item-no-label',
+
     /**
      * @cfg {String} fieldBodyCls
      * An extra CSS class to be applied to the body content element in addition to {@link #baseBodyCls}.
@@ -253,7 +255,7 @@ Ext.define("Ext.form.Labelable", {
      * @cfg {String} labelStyle
      * A CSS style specification string to apply directly to this field's label.
      */
-
+    
     /**
      * @cfg {Boolean} hideLabel
      * Set to true to completely hide the label element ({@link #fieldLabel} and {@link #labelSeparator}). Also see
@@ -527,12 +529,13 @@ Ext.define("Ext.form.Labelable", {
             labelEl = me.labelEl,
             errorWrapEl = me.errorWrapEl,
             sideLabel = (me.labelAlign !== 'top'),
+            noLabelCls = me.noLabelCls,
             errorWrapUnderSideLabelCls = me.errorWrapUnderSideLabelCls;
 
         me.fieldLabel = label;
         if (me.rendered) {
             if (Ext.isEmpty(label) && me.hideEmptyLabel) {
-                labelEl.setDisplayed('none');
+                me.addCls(noLabelCls);
                 if (sideLabel && errorWrapEl) {
                     errorWrapEl.removeCls(errorWrapUnderSideLabelCls);
                 }
@@ -540,13 +543,39 @@ Ext.define("Ext.form.Labelable", {
                 if (separator) {
                     label = me.trimLabelSeparator() + separator;
                 }
-                labelEl.first().setHtml(label);
-                labelEl.setDisplayed('');
+                labelEl.dom.firstChild.innerHTML = label;
+                me.removeCls(noLabelCls);
                 if (sideLabel && errorWrapEl) {
                     errorWrapEl.addCls(errorWrapUnderSideLabelCls);
                 }
             }
             me.updateLayout();
+        }
+    },
+
+    setHideLabel: function(hideLabel) {
+        var me = this;
+
+        if (hideLabel !== me.hideLabel) {
+            me.hideLabel = hideLabel;
+            if (me.rendered) {
+                me[hideLabel ? 'addCls' : 'removeCls'](me.noLabelCls);
+                me.updateLayout();
+            }
+        }
+    },
+
+    setHideEmptyLabel: function(hideEmptyLabel) {
+        var me = this,
+            hide;
+
+        if (hideEmptyLabel !== me.hideEmptyLabel) {
+            me.hideEmptyLabel = hideEmptyLabel;
+            if (me.rendered && !me.hideLabel) {
+                hide = hideEmptyLabel && !me.getFieldLabel();
+                me[hide ? 'addCls' : 'removeCls'](me.noLabelCls);
+                me.updateLayout();
+            }
         }
     },
 
@@ -626,8 +655,6 @@ Ext.define("Ext.form.Labelable", {
             if (!topLabel && underError) {
                 errorWrapExtraCls += ' ' + me.errorWrapUnderSideLabelCls;
             }
-        } else {
-            labelStyle += 'display:none;';
         }
 
         if (defaultBodyWidth) {
@@ -676,6 +703,9 @@ Ext.define("Ext.form.Labelable", {
         me.setFieldDefaults(me.getInherited().fieldDefaults);
         if (me.ownerLayout) {
             me.addCls(Ext.baseCSSPrefix + me.ownerLayout.type + '-form-item');
+        }
+        if (!me.hasVisibleLabel()) {
+            me.addCls(me.noLabelCls);
         }
     },
 
@@ -795,7 +825,7 @@ Ext.define("Ext.form.Labelable", {
         activeError = me.activeError = tpl.apply({
             fieldLabel: me.fieldLabel,
             errors: errors,
-            listCls: Ext.plainListCls
+            listCls: Ext.baseCSSPrefix + 'list-plain'
         });
 
         me.renderActiveError();

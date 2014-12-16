@@ -8,16 +8,4 @@ Ext.define('Ext.aria.window.MessageBox', {
         'Ext.aria.form.field.Display',
         'Ext.aria.button.Button'
     ]
-},
-function() {
-    Ext.MessageBox.destroy();
-
-    /**
-     * @class Ext.MessageBox
-     * @alternateClassName Ext.Msg
-     * @extends Ext.window.MessageBox
-     * @singleton
-     * Singleton instance of {@link Ext.window.MessageBox}.
-     */
-    Ext.MessageBox = Ext.Msg = new this();
 });

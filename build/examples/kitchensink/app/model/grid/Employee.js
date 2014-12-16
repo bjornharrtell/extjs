@@ -41,18 +41,23 @@ Ext.define('KitchenSink.model.grid.Employee', {
         type: 'int'
     }, {
         name: 'avatar'
+    }, {
+        name: 'ratingLastYear',
+        type: 'int'
+    }, {
+        name: 'ratingThisYear',
+        type: 'int'
     }],
     idField: 'employeeNo',
 
     // Override set to update dependent fields
-    set: function(data, value) {
-        var dataObj;
+    set: function (name, value) {
+        var data = name;
 
         // Convert 2 arg form to object form
-        if (Ext.isString(data)) {
-            dataObj = {};
-            dataObj[data] = value;
-            data = dataObj;
+        if (Ext.isString(name)) {
+            data = {};
+            data[name] = value;
         }
 
         // "name" is a calculated field, so update it on edit of "forename" or "surname".
@@ -65,6 +70,7 @@ Ext.define('KitchenSink.model.grid.Employee', {
             data.forename = names[0];
             data.surname = names[1];
         }
+
         return this.callParent([data]);
     },
     

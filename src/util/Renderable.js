@@ -139,6 +139,9 @@ Ext.define('Ext.util.Renderable', {
      */
     _renderState: 0,
 
+    _layerCls: Ext.baseCSSPrefix + 'layer',
+    _fixedLayerCls: Ext.baseCSSPrefix + 'fixed-layer',
+
     statics: {
         makeRenderSetter: function (cfg, renderState) {
             var name = cfg.name;
@@ -238,7 +241,7 @@ Ext.define('Ext.util.Renderable', {
             data = {},
             protoEl = me.protoEl,
             target = me.el,
-            item, pre, hidden, contentEl;
+            controller, item, pre, hidden, contentEl;
 
         me.finishRenderChildren();
         me._renderState = 4;
@@ -248,7 +251,7 @@ Ext.define('Ext.util.Renderable', {
         if (me.contentEl) {
             pre = Ext.baseCSSPrefix;
             hidden = pre + 'hidden-';
-            contentEl = Ext.get(me.contentEl);
+            contentEl = me.contentEl = Ext.get(me.contentEl);
             contentEl.component = me;
             contentEl.removeCls([ pre + 'hidden', hidden + 'display', hidden + 'offsets' ]);
             me.getContentTarget().appendChild(contentEl.dom);
@@ -294,17 +297,20 @@ Ext.define('Ext.util.Renderable', {
         if (Ext.enableAria) {
             me.ariaApplyAfterRenderAttributes();
         }
+
+        controller = me.controller;
+        if (controller && controller.afterRender) {
+            controller.afterRender(me);
+        }
     },
 
     afterFirstLayout: function(width, height) {
         var me = this,
             x = me.x,
             y = me.y,
-            hasX,
-            hasY,
-            pos, xy,
             alignSpec = me.defaultAlign,
-            alignOffset = me.alignOffset;
+            alignOffset = me.alignOffset,
+            controller, hasX, hasY, pos, xy;
 
         // We only have to set absolute position here if there is no ownerlayout which should take responsibility.
         // Consider the example of rendered components outside of a viewport - these might need their positions setting.
@@ -315,7 +321,7 @@ Ext.define('Ext.util.Renderable', {
 
         // For floaters, calculate x and y if they aren't defined by aligning
         // the sized element to the center of either the container or the ownerCt
-        if (me.floating && (!hasX || !hasY)) {
+        if (me.floating && !me.preventDefaultAlign && (!hasX || !hasY)) {
             if (me.floatParent) {
                 pos = me.floatParent.getTargetEl().getViewRegion();
                 xy = me.el.getAlignToXY(me.alignTarget || me.floatParent.getTargetEl(), alignSpec, alignOffset);
@@ -335,15 +341,25 @@ Ext.define('Ext.util.Renderable', {
         }
 
         me.onBoxReady(width, height);
+
+        controller = me.controller;
+        if (controller && controller.boxReady) {
+            controller.boxReady(me);
+        }
     },
 
     beforeRender: function () {
         var me = this,
             floating = me.floating,
             layout = me.getComponentLayout(),
-            cls;
+            cls, controller;
 
         me._renderState = 1;
+
+        controller = me.controller;
+        if (controller && controller.beforeRender) {
+            controller.beforeRender(me);
+        }
 
         // Force bindings to be created
         me.initBindable();
@@ -360,7 +376,7 @@ Ext.define('Ext.util.Renderable', {
         }
 
         if (floating) {
-            me.addCls(Ext.baseCSSPrefix + 'layer');
+            me.addCls(me.fixed ? me._fixedLayerCls : me._layerCls);
 
             cls = floating.cls;
             if (cls) {
@@ -627,7 +643,8 @@ Ext.define('Ext.util.Renderable', {
             vetoed, tree, nextSibling;
 
         if (el && !el.isElement) {
-            me.el = el = me.wrapPrimaryEl(el); // ensure me.el is wrapped
+            me.wrapPrimaryEl(el); // ensure me.el is wrapped
+            el = me.el;
         }
 
         Ext.suspendLayouts();
@@ -1113,7 +1130,7 @@ Ext.define('Ext.util.Renderable', {
                     frameInfo = false;
                 }
 
-                //<debug error>
+                //<debug>
                 // This happens when you set frame: true explicitly without using the x-frame mixin in sass.
                 // This way IE can't figure out what sizes to use and thus framing can't work.
                 if (me.frame === true && !frameInfo) {
@@ -1183,15 +1200,15 @@ Ext.define('Ext.util.Renderable', {
 
         initOverflow: function() {
             var me = this,
-                // Call the style calculation early which sets the public scrollFlags property
+                // Call the style calculation early which sets the scrollFlags property
                 overflowStyle = me.getOverflowStyle(),
                 scrollFlags = me.scrollFlags,
                 overflowEl = me.getOverflowEl(),
-                touchScroll = me.touchScroll =
-                    (scrollFlags.y || scrollFlags.x) && Ext.supports.touchScroll;
+                hasOverflow = (scrollFlags.y || scrollFlags.x),
+                touchScroll = me.touchScroll = (hasOverflow && Ext.supports.touchScroll);
 
             // Not rendered, or the targetEl has been configured as a string, wait until the call from finishRender
-            if (!overflowEl || !overflowEl.isElement) {
+            if (!hasOverflow || !overflowEl || !overflowEl.isElement) {
                 return;
             }
 

@@ -27,6 +27,8 @@ Ext.define('Ext.grid.filters.filter.Boolean', {
      */
     noText: 'No',
 
+    updateBuffer: 0,
+
     /**
      * @private
      * Template method that is to initialize the filter and install required menu items.
@@ -75,7 +77,8 @@ Ext.define('Ext.grid.filters.filter.Boolean', {
         me.filter.setValue(value);
 
         if (value !== undefined && me.active) {
-            me.updateStoreFilter(me.filter);
+            me.value = value;
+            me.updateStoreFilter();
         } else {
             me.setActive(true);
         }

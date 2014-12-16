@@ -31,8 +31,8 @@
  *
  * # Loading Nested Data
  *
- * Readers have the ability to automatically load deeply-nested data objects based on the {@link Ext.data.association.Association
- * associations} configured on each Model. Below is an example demonstrating the flexibility of these associations in a
+ * Readers have the ability to automatically load deeply-nested data objects based on the {@link Ext.data.schema.Association associations}
+ * configured on each Model. Below is an example demonstrating the flexibility of these associations in a
  * fictional CRM system which manages a User, their Orders, OrderItems and Products. First we'll define the models:
  *
  *     Ext.define("User", {
@@ -141,7 +141,7 @@
  *                 //iterate over the OrderItems for each Order
  *                 order.orderItems().each(function(orderItem) {
  *                     //we know that the Product data is already loaded, so we can use the synchronous getProduct
- *                     //usually, we would use the asynchronous version (see {@link Ext.data.association.BelongsTo})
+ *                     //usually, we would use the asynchronous version (see {@link Ext.data.Model#BelongsTo})
  *                     var product = orderItem.getProduct();
  *
  *                     console.log(orderItem.get('quantity') + ' orders of ' + product.get('name'));
@@ -377,10 +377,10 @@ Ext.define('Ext.data.reader.Reader', {
         }
 
         var me = this;
-        me.duringInit = true;
+        me.duringInit = 1;
         // Will call initConfig
         me.mixins.observable.constructor.call(me, config);
-        delete me.duringInit;
+        --me.duringInit;
         me.buildExtractors();
     },
     
@@ -690,7 +690,7 @@ Ext.define('Ext.data.reader.Reader', {
             if (extractor) {
                 name = field.name;
                 // Use [] property access since we may have non-JS looking field names
-                buffer.push('data[\'' + name + '\'] = extractors[' + cnt + '](raw);');
+                buffer.push('val = extractors[' + cnt + '](raw); if (val !== undefined) { data[\'' + name + '\'] = val; }');
                 extractors.push(extractor);
                 ++cnt;
             }
@@ -699,7 +699,7 @@ Ext.define('Ext.data.reader.Reader', {
         if (buffer.length) {
             out = {
                 extractors: extractors,
-                fn: new Function('raw', 'data', 'extractors', buffer.join(''))  
+                fn: new Function('raw', 'data', 'extractors', 'var val;' + buffer.join(''))  
             };
         }
         return out;
@@ -797,7 +797,7 @@ Ext.define('Ext.data.reader.Reader', {
      */
     onMetaChange : function(meta) {
         var me = this,
-            fields = meta.fields || me.getFields(),
+            fields = meta.fields,
             model,
             newModel,
             clientIdProperty,
@@ -822,20 +822,25 @@ Ext.define('Ext.data.reader.Reader', {
         if (meta.messageProperty) {
             me.setMessageProperty(meta.messageProperty);
         }
-        
-        clientIdProperty = meta.clientIdProperty;
 
-        newModel = Ext.define(null, {
-            extend: 'Ext.data.Model',
-            fields: fields,
-            clientIdProperty: clientIdProperty
-        });
-        me.setModel(newModel);
-        proxy = me.getProxy();
-        if (proxy) {
-            proxy.setModel(newModel);
+        clientIdProperty = meta.clientIdProperty;
+        if (fields) {
+            newModel = Ext.define(null, {
+                extend: 'Ext.data.Model',
+                fields: fields,
+                clientIdProperty: clientIdProperty
+            });
+            me.setModel(newModel);
+            proxy = me.getProxy();
+            if (proxy) {
+                proxy.setModel(newModel);
+            }
+        } else if (clientIdProperty) {
+            model = me.getModel();
+            if (model) {
+                model.self.prototype.clientIdProperty = clientIdProperty;
+            }
         }
-        me.buildExtractors(true);
     },
 
     /**
@@ -878,6 +883,24 @@ Ext.define('Ext.data.reader.Reader', {
         delete me.getTotal;
         delete me.getSuccess;
         delete me.getMessage;
+    },
+
+    privates: {
+        copyFrom: function(reader) {
+            var me = this;
+
+            reader.buildExtractors();
+            me.setModel(reader.getModel());
+            me.getTotal = reader.getTotal;
+            me.getSuccess = reader.getSuccess;
+            me.getMessage = reader.getMessage;
+            ++me.duringInit;
+            me.setTotalProperty(reader.getTotalProperty());
+            me.setSuccessProperty(reader.getSuccessProperty());
+            me.setMessageProperty(reader.getMessageProperty());
+            --me.duringInit;
+
+        }
     }
 }, function() {
     var proto = this.prototype;

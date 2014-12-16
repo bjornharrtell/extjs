@@ -3,7 +3,7 @@ Ext.define('ChartsKitchenSink.view.DescriptionPanel', {
     xtype: 'descriptionPanel',
     id: 'description-panel',
     autoHeight: true,
-    autoScroll: true,
+    scrollable: true,
     rtl: false,
     bodyStyle: 'padding: 12px',
 

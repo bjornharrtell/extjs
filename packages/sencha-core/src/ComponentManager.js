@@ -88,6 +88,10 @@ Ext.define('Ext.ComponentManager', {
         }
 
         ++me.count;
+        
+        if (me.count === 1) {
+            me.initFocusListener();
+        }
 
         onAvailableCallbacks = onAvailableCallbacks && onAvailableCallbacks[key];
         if (onAvailableCallbacks && onAvailableCallbacks.length) {
@@ -188,6 +192,114 @@ Ext.define('Ext.ComponentManager', {
      */
     getAll: function() {
         return Ext.Object.getValues(this.all);
+    },
+
+    /**
+     * Find a Component that the given Element belongs to.
+     *
+     * @param {Ext.dom.Element/HTMLElement} el
+     * @return {Ext.Component/null} Component, or null
+     * @private
+     */
+    byElement: function(node) {
+        var topmost = document.body,
+            cmpIdAttr = Ext.Component.componentIdAttribute,
+            cmpId,
+            target = Ext.getDom(node),
+            cmp;
+
+        while (target && target.nodeType === 1 && target !== topmost) {
+            cmpId = target.getAttribute(cmpIdAttr) || target.id;
+            if (cmpId) {
+                cmp = this.all[cmpId];
+                if (cmp) {
+                    return cmp;
+                }
+            }
+            target = target.parentNode;
+        }
+        return null;
+    },
+
+    /**
+     * Return the currently active (focused) Component
+     *
+     * @return {Ext.Component/null} Active Component, or null
+     * @private
+     */
+    getActiveComponent: function() {
+        return this.byElement(Ext.dom.Element.getActiveElement());
+    },
+
+    initFocusListener: function() {
+        Ext.on('focus', this.onGlobalFocus, this);
+    },
+
+    // Deliver focus events to Component
+    onGlobalFocus: function(e) {
+        var me = this,
+            toElement = e.toElement,
+            fromElement = e.fromElement,
+            toComponent = me.byElement(toElement),
+            fromComponent = me.byElement(fromElement),
+            commonAncestor = me.getCommonAncestor(fromComponent, toComponent),
+            event,
+            targetComponent;
+
+        if (fromComponent && !fromComponent.isDestroyed) {
+            // Call the Blurred Component's blur event handler directly with a synthesized blur event.
+            if (fromComponent.focusable && fromElement === fromComponent.getFocusEl().dom) {
+                event = new Ext.event.Event(e.event);
+                event.type = 'blur';
+                event.target = fromElement;
+                event.relatedTarget = toElement;
+                fromComponent.onBlur(event);
+            }
+
+            // Call onFocusLeave on the component axis from which focus is exiting
+            for (targetComponent = fromComponent; targetComponent && targetComponent !== commonAncestor; targetComponent = targetComponent.getRefOwner()) {
+                targetComponent.onFocusLeave({
+                    event: e.event,
+                    type: 'focusleave',
+                    target: fromElement,
+                    relatedTarget: toElement,
+                    fromComponent: fromComponent,
+                    toComponent: toComponent
+                });
+            }
+        }
+        if (toComponent && !toComponent.isDestroyed) {
+            // Call the Focused Component's focus event handler directly with a synthesized focus event.
+            if (toComponent.focusable && toElement === toComponent.getFocusEl().dom) {
+                event = new Ext.event.Event(e.event);
+                event.type = 'focus';
+                event.relatedTarget = fromElement;
+                event.target = toElement;
+                toComponent.onFocus(event);
+            }
+
+            // Call onFocusEnter on the component axis to which focus is entering
+            for (targetComponent = toComponent; targetComponent && targetComponent !== commonAncestor; targetComponent = targetComponent.getRefOwner()) {
+                targetComponent.onFocusEnter({
+                    event: e.event,
+                    type: 'focusenter',
+                    relatedTarget: fromElement,
+                    target: toElement,
+                    fromComponent: fromComponent,
+                    toComponent: toComponent
+                });
+            }
+        }
+    },
+
+    getCommonAncestor: function(compA, compB) {
+        if (compA === compB) {
+            return compA;
+        }
+        while (compA && !(compA.isAncestor(compB) || compA === compB)) {
+            compA = compA.getRefOwner();
+        }
+        return compA;
     },
 
     deprecated: {

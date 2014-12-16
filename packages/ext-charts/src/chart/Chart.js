@@ -1067,6 +1067,7 @@ Ext.define('Ext.chart.Chart', {
             series.fireEvent('afterrender', series);
         }
     },
+    
     /**
      * Saves the chart by either triggering a download or returning a string containing the chart data
      * as SVG.  The action depends on the export type specified in the passed configuration. The chart
@@ -1103,6 +1104,7 @@ Ext.define('Ext.chart.Chart', {
     save: function(config){
         return Ext.draw.Surface.save(this.surface, config);
     },
+    
     // @private remove gently.
     destroy: function() {
         var me = this,
@@ -1113,8 +1115,10 @@ Ext.define('Ext.chart.Chart', {
             me.refreshTask = null;
         }
         
-        Ext.destroy(me.surface);
+        // We don't have to destroy the surface here because
+        // parent Draw component will do that
         me.bindStore(null);
+        
         me.callParent(arguments);
     }
 });

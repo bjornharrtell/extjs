@@ -1,4 +1,4 @@
-<project name="sass-impl">
+<project name="x-sass-impl">
 
     <target name="-init-sass-compiler" depends="-init-compiler">
         <x-normalize-path path="${build.out.resources.dir}"

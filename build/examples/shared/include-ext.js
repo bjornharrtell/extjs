@@ -37,6 +37,14 @@
         return value;
     }
 
+    Ext = window.Ext || {};
+    Ext.setRepoDevModeCookie = function() {
+        document.cookie = 'ExtRepoDevMode=true; expires=Wed, 01 Jan 3000 07:00:00 GMT;';
+    };
+    Ext.clearRepoDevModeCookie = function() {
+        document.cookie = 'ExtRepoDevMode=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    };
+
     var scriptEls = document.getElementsByTagName('script'),
         path = scriptEls[scriptEls.length - 1].src,
         rtl = getQueryParam('rtl'),
@@ -52,9 +60,11 @@
             crisp: 1,
             'crisp-touch': 1
         }[theme],
-        repoDevMode = getCookieValue('ExtRepoDevMode'),
+        repoDevMode = Ext.repoDevMode = getCookieValue('ExtRepoDevMode'),
         packagePath,
         themePath,
+        chartsCSS,
+        sdkRoot,
         i = 3,
         overridePath, extPrefix;
 
@@ -64,7 +74,11 @@
         path = path.substring(0, path.lastIndexOf('/'));
     }
     // path == root of ext
-        
+
+    sdkRoot = repoDevMode ? path.substring(0, path.lastIndexOf('/')) : path;
+    chartsCSS = sdkRoot + '/packages/sencha-charts/build/' + theme +
+                          '/resources/sencha-charts-all-debug.css';
+
     theme = 'ext-theme-' + theme;
     packagePath = path + '/packages/' + theme + '/build/';
     themePath = packagePath + 'resources/' + theme + (rtl ? '-all-rtl' : '-all');
@@ -72,6 +86,7 @@
     if (includeCSS) {
         document.write('<link rel="stylesheet" type="text/css" href="' +
                             themePath + '-debug.css"/>');
+        document.write('<link rel="stylesheet" type="text/css" href="' + chartsCSS + '"/>');
     }
 
     extPrefix = useDebug ? '/ext' : '/ext-all';
@@ -90,7 +105,7 @@
         // overrides dynamically after Ext has been defined.
         overridePath = packagePath + theme + (repoDevMode ? '-debug' : '') + '.js';
 
-        if (repoDevMode &&  window.ActiveXObject) {
+        if (repoDevMode && window.ActiveXObject) {
             Ext = {
                 _beforereadyhandler: function() {
                     Ext.Loader.loadScript({ url: overridePath });

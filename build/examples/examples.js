@@ -327,41 +327,6 @@ Ext.samples = {
             ]
         },
         {
-            "title": "Direct",
-            "items": [
-                {
-                    "text": "Direct",
-                    "url": "direct/direct.html",
-                    "icon": "direct",
-                    "desc": "An example demonstrating Remoting and Polling the server"
-                },
-                {
-                    "text": "Direct Form",
-                    "url": "direct/direct-form.html",
-                    "icon": "direct-form",
-                    "desc": "Ext.Direct Remoting with a Form"
-                },
-                {
-                    "text": "Direct Grid",
-                    "url": "direct/direct-grid.html",
-                    "icon": "direct-grid",
-                    "desc": "Ext.Direct Remoting with a Grid"
-                },
-                {
-                    "text": "Direct TreeLoader",
-                    "url": "direct/direct-tree.html",
-                    "icon": "direct-tree-loader",
-                    "desc": "Ext.Direct Remoting with a Tree"
-                },
-                {
-                    "text": "Direct Named Arguments",
-                    "url": "direct/named-arguments.html",
-                    "icon": "direct-arg",
-                    "desc": "Ext.Direct Named Arguments"
-                }
-            ]
-        },
-        {
             "title": "MVC",
             "items": [
                 {

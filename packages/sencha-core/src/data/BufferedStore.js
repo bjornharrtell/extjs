@@ -138,7 +138,7 @@ Ext.define('Ext.data.BufferedStore', {
 
         // This store asks for pages.
         // If used with a MemoryProxy, it must work
-        if (proxy.setEnablePaging) {
+        if (proxy && proxy.setEnablePaging) {
             proxy.setEnablePaging(true);
         }
         return proxy;
@@ -169,12 +169,13 @@ Ext.define('Ext.data.BufferedStore', {
     //</debug>
 
     updateGroupField: function(field) {
-        if (this.isInitializing) {
-            this.blockLoad();
+        var me = this;
+        if (me.isInitializing) {
+            me.blockLoad();
         }
-        this.group(field);
-        if (this.isInitializing) {
-            this.unblockLoad();
+        me.group(field);
+        if (me.isInitializing) {
+            me.unblockLoad();
         }
     },
 
@@ -201,6 +202,8 @@ Ext.define('Ext.data.BufferedStore', {
                 }
             });
 
+        // Allow view to veto prune if the old page is still in use by the view
+        me.relayEvents(result, ['beforepageremove', 'pageadd', 'pageremove']);
         me.pageRequests = {};
         return result;
     },
@@ -259,6 +262,11 @@ Ext.define('Ext.data.BufferedStore', {
             records,
             data = me.getData();
 
+        // Prevent re-emtering the load process if we are already in a wait state for a batch of pages.
+        if (me.loading) {
+            return;
+        }
+
         if (!options) {
             options = {};
         }
@@ -270,11 +278,12 @@ Ext.define('Ext.data.BufferedStore', {
         data.clear(true);
 
         waitForReload = function() {
-            if (me.rangeCached(startIdx, endIdx)) {
+            if (me.rangeCached(startIdx, Math.min(endIdx, me.getTotalCount()))) {
                 me.loading = false;
-                data.un('pageadded', waitForReload);
+                data.un('pageadd', waitForReload);
                 records = data.getRange(startIdx, endIdx + 1);
                 me.fireEvent('load', me, records, true);
+                me.fireEvent('refresh', me);
             }
         };
         bufferZone = Math.ceil((me.getLeadingBufferZone() + me.getTrailingBufferZone()) / 2);
@@ -289,15 +298,17 @@ Ext.define('Ext.data.BufferedStore', {
         }
 
         // Calculate a page range which encompasses the Store's loaded range plus both buffer zones
-        startPage = me.getPageFromRecordIndex(Math.max(startIdx - bufferZone, 0));
-        endPage = me.getPageFromRecordIndex(endIdx + bufferZone);
+        startIdx = Math.max(startIdx - bufferZone, 0);
+        endIdx += bufferZone;
+        startPage = me.getPageFromRecordIndex(startIdx);
+        endPage = me.getPageFromRecordIndex(endIdx);
 
         if (me.fireEvent('beforeload', me, options) !== false) {
             me.loading = true;
 
             // Wait for the requested range to become available in the page map
             // Load the range as soon as the whole range is available
-            data.on('pageadded', waitForReload);
+            data.on('pageadd', waitForReload);
 
             // Recache the page range which encapsulates our visible records
             for (i = startPage; i <= endPage; i++) {
@@ -380,7 +391,9 @@ Ext.define('Ext.data.BufferedStore', {
             lastRequestStart = me.lastRequestStart,
             result = [],
             data = me.getData(),
-            pageAddHandler, requiredStart, requiredEnd;
+            pageAddHandler,
+            requiredStart, requiredEnd,
+            requiredStartPage, requiredEndPage;
 
         options = Ext.apply({
             prefetchStart: start,
@@ -411,16 +424,19 @@ Ext.define('Ext.data.BufferedStore', {
             // Private event used by the LoadMask class to perform masking when the range required for rendering is not found in the cache
             me.fireEvent('cachemiss', me, start, end);
 
-            // Add a pageadded listener, and as soon as the requested range is loaded, call onRangeAvailable to call the callback.
-            pageAddHandler = function(page, records) {
-                if (me.rangeCached(requiredStart, requiredEnd)) {
+            requiredStartPage = me.getPageFromRecordIndex(requiredStart);
+            requiredEndPage = me.getPageFromRecordIndex(requiredEnd);
+
+            // Add a pageadd listener, and as soon as the requested range is loaded, call onRangeAvailable to call the callback.
+            pageAddHandler = function(pageMap, page, records) {
+                if (page >= requiredStartPage && page <= requiredEndPage && me.rangeCached(requiredStart, requiredEnd)) {
                     // Private event used by the LoadMask class to unmask when the range required for rendering has been loaded into the cache
                     me.fireEvent('cachefilled', me, start, end);
-                    data.un('pageadded', pageAddHandler);
+                    data.un('pageadd', pageAddHandler);
                     me.onRangeAvailable(options);
                 }
             };
-            data.on('pageadded', pageAddHandler);
+            data.on('pageadd', pageAddHandler);
 
             // Prioritize the request for the *exact range that the UI is asking for*.
             // When a page request is in flight, it will not be requested again by checking the me.pageRequests hash,
@@ -437,7 +453,7 @@ Ext.define('Ext.data.BufferedStore', {
     /**
      * Get the Record with the specified id.
      *
-     * This method is not effected by filtering, lookup will be performed from all records
+     * This method is not affected by filtering, lookup will be performed from all records
      * inside the store, filtered or not.
      *
      * @param {Mixed} id The id of the Record to find.
@@ -447,12 +463,18 @@ Ext.define('Ext.data.BufferedStore', {
         var result = this.data.findBy(function(record) {
             return record.getId() === id;
         });
-        //<debug>
-        if (!result) {
-            Ext.Error.raise('getById called for ID that is not present in local cache');
-        }
-        //</debug>
         return result;
+    },
+
+    /**
+     * @inheritdoc
+     */
+    getAt: function(index) {
+        var data = this.getData();
+
+        if (data.hasRange(index, index)) {
+            return data.getAt(index);
+        }
     },
 
     /**
@@ -466,12 +488,7 @@ Ext.define('Ext.data.BufferedStore', {
      * @return {Ext.data.Model} The Record with the passed internalId. Returns null if not found.
      */
     getByInternalId: function(internalId) {
-        var result;
-
-        result = this.data.findBy(function(record) {
-            return record.internalId === internalId;
-        });
-        return result;
+        return this.data.getByInternalId(internalId);
     },
 
     /**
@@ -567,7 +584,7 @@ Ext.define('Ext.data.BufferedStore', {
                 if (me.rangeCached(startIdx, loadEndIdx)) {
                     me.loading = false;
                     records = data.getRange(startIdx, loadEndIdx + 1);
-                    data.un('pageadded', waitForRequestedRange);
+                    data.un('pageadd', waitForRequestedRange);
 
                     // If there is a listener for guaranteedrange then fire that event
                     if (me.hasListeners.guaranteedrange) {
@@ -597,7 +614,7 @@ Ext.define('Ext.data.BufferedStore', {
         // Ensure that the purgePageCount allows enough pages to be kept cached to cover the
         // requested range. If the pageSize is very small we might need a lot of pages.
         if (purgePageCount) {
-            data.setMaxSize(purgePageCount = Math.max(purgePageCount, endPage - startPage + 1));
+            data.setMaxSize(purgePageCount ? (endPage - startPage + 1) + purgePageCount : 0);
         }
 
         if (me.fireEvent('beforeload', me, options) !== false) {
@@ -622,12 +639,12 @@ Ext.define('Ext.data.BufferedStore', {
                 if (successful) {
                     // Capture operation here so it can be used in the loadCallback above
                     operation = op;
-                    // If there is data in the dataset, we can go ahead and add the pageadded listener which waits for the visible range
+                    // If there is data in the dataset, we can go ahead and add the pageadd listener which waits for the visible range
                     // and we can also issue the requests to fill the surrounding buffer zones.
                     if ((dataSetSize = me.getTotalCount())) {
 
                         // Wait for the requested range to become available in the page map
-                        data.on('pageadded', waitForRequestedRange);
+                        data.on('pageadd', waitForRequestedRange);
 
                         // As soon as we have the size of the dataset, ensure we are not waiting for more than can ever arrive,
                         loadEndIdx = Math.min(loadEndIdx, dataSetSize - 1);
@@ -672,7 +689,7 @@ Ext.define('Ext.data.BufferedStore', {
             if (me.lastPageSize && pageSize != me.lastPageSize) {
                 Ext.Error.raise("pageSize cannot be dynamically altered");
             }
-            if (!data.pageSize) {
+            if (!data.getPageSize()) {
                 data.setPageSize(pageSize);
             }
         }
@@ -741,7 +758,10 @@ Ext.define('Ext.data.BufferedStore', {
 
         // If any requests return, we no longer respond to them.
         data.clearListeners();
+
+        // replace the listeners we need.
         data.on('clear', me.onPageMapClear, me);
+        me.relayEvents(data, ['beforepageremove', 'pageadd', 'pageremove']);
 
         // If the page cache gets cleared it's because a full reload is in progress.
         // Setting the loading flag prevents linked Views from displaying the empty text
@@ -825,7 +845,7 @@ Ext.define('Ext.data.BufferedStore', {
             me.fireEvent('prefetch', me, records, successful, operation);
 
             // Add the page into the page map.
-            // pageadded event may trigger the onRangeAvailable
+            // pageadd event may trigger the onRangeAvailable
             if (successful) {
                 me.cachePage(records, operation.getPage());
             }
@@ -1027,5 +1047,11 @@ Ext.define('Ext.data.BufferedStore', {
     clearAndLoad: function(options) {
         this.getData().clear();
         this.loadPage(1, options);
+    },
+    
+    privates: {
+        isMoving: function () {
+            return false;
+        }
     }
 });

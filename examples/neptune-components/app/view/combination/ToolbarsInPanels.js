@@ -13,7 +13,7 @@ Ext.define('Neptune.view.combination.ToolbarsInPanels', {
         height: 200,
         bodyPadding: 10,
         html: NeptuneAppData.dummyText,
-        autoScroll: true
+        scrollable: true
     },
     items: [
         {

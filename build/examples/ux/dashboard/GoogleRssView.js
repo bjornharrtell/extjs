@@ -30,7 +30,7 @@ Ext.define('Ext.ux.dashboard.GoogleRssView', {
      */
     feedUrl: null,
 
-    autoScroll: true,
+    scrollable: true,
 
     maxFeedEntries: 10,
 
@@ -134,7 +134,7 @@ Ext.define('Ext.ux.dashboard.GoogleRssView', {
                 maxWidth: 800,
                 showDelay: 750,
                 autoHide: false,
-                autoScroll: true,
+                scrollable: true,
                 anchor: 'top',
                 listeners: {
                     beforeshow: 'onBeforeShowTip',

@@ -1,59 +1,97 @@
-// This is an override because in dev mode it is always loaded and in a compiled app is
-// only loaded if Ext.app.Application is used.
-//
+// Ext
 Ext.define('Ext.overrides.app.Application', {
-    override: 'Ext.app.Application'
-});
+    override: 'Ext.app.Application',
+    uses: [
+        'Ext.tip.QuickTipManager'
+    ],
 
-/**
- * @method application
- * @member Ext
- * Loads Ext.app.Application class and starts it up with given configuration after the
- * page is ready.
- *
- * See `Ext.app.Application` for details.
- *
- * @param {Object/String} config Application config object or name of a class derived
- * from Ext.app.Application.
- */
-Ext.application = function(config) {
-    var createApp = function (App) {
-            // This won't be called until App class has been created.
-            Ext.onReady(function() {
-                Ext.app.Application.instance = new App();
-            });
-        },
-        paths = config.paths,
-        ns;
+    // @cmd-auto-dependency {aliasPrefix: "view.", mvc: true, requires: ["Ext.plugin.Viewport"]}
+    /**
+     * @cfg {Boolean/String} [autoCreateViewport=false]
+     * @deprecated 5.1
+     */
+    autoCreateViewport: false,
 
-    if (typeof config === "string") {
-        Ext.require(config, function() {
-            createApp(Ext.ClassManager.get(config));
-        });
-    }
-    else {
-        config = Ext.apply({
-            extend: 'Ext.app.Application' // can be replaced by config!
-        }, config);
+    config: {
+        /**
+         * @cfg {Boolean} enableQuickTips
+         * True to automatically set up Ext.tip.QuickTip support.
+         */
+        enableQuickTips: true
+    },
 
-        // We have to process `paths` before creating Application class,
-        // or `requires` won't work.
-        Ext.Loader.setPath(config.name, config.appFolder || 'app');
+    applyMainView: function(value) {
+        var view = this.getView(value),
+            proto = view.prototype,
+            config, plugins;
 
-        if (paths) {
-            for (ns in paths) {
-                if (paths.hasOwnProperty(ns)) {
-                    Ext.Loader.setPath(ns, paths[ns]);
-                }
-            }
+        if (!proto.isViewport) {
+            plugins = proto.plugins;
+            // Need to copy over any plugins defined on the prototype.
+            plugins = ['viewport'].concat(plugins ? Ext.Array.from(plugins, true) : []);
+            config = {
+                plugins: plugins
+            };
         }
 
-        config['paths processed'] = true;
+        return view.create(config);
+    },
 
-        // Let Ext.define do the hard work but don't assign a class name.
-        Ext.define(config.name + ".$application", config,
-            function () {
-                createApp(this);
-            });
+    getDependencies: function(cls, data, requires) {
+        var Controller = Ext.app.Controller,
+            proto = cls.prototype,
+            namespace = data.$namespace,
+            viewportClass = data.autoCreateViewport;
+
+        if (viewportClass) {
+            //<debug>
+            if (!namespace) {
+                Ext.Error.raise("[Ext.app.Application] Can't resolve namespace for " +
+                    data.$className + ", did you forget to specify 'name' property?");
+            }
+            //</debug>
+
+            if (viewportClass === true) {
+                viewportClass = 'Viewport';
+            } else {
+                requires.push('Ext.plugin.Viewport');
+            }
+
+            Controller.processDependencies(proto, requires, namespace, 'view', viewportClass);
+        }
+    },
+
+    onBeforeLaunch: function() {
+        var me = this,
+            autoCreateViewport = me.autoCreateViewport;
+
+        if (me.getEnableQuickTips()) {
+            me.initQuickTips();
+        }
+
+        if(autoCreateViewport) {
+            me.initViewport();
+        }
+
+        this.callParent(arguments);
+    },
+
+    getViewportName: function () {
+        var name = null,
+            autoCreate = this.autoCreateViewport;
+
+        if (autoCreate) {
+            name = (autoCreate === true) ? 'Viewport' : autoCreate;
+        }
+
+        return name;
+    },
+
+    initViewport: function() {
+        this.setMainView(this.getViewportName());
+    },
+
+    initQuickTips: function() {
+        Ext.tip.QuickTipManager.init();
     }
-};
+});

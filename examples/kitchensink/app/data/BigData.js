@@ -3,10 +3,19 @@ Ext.define('KitchenSink.data.BigData', {
         'KitchenSink.data.Init'
     ]
 }, function() {
+    function process (data) {
+        for (var i = 0; i < data.length; ++i) {
+            var d = data[i];
+            d.ratingLastYear = Math.round(d.rating[0] / 2);
+            d.ratingThisYear = Math.round(d.rating[d.rating.length - 1] / 2);
+        }
+        return data;
+    }
+
     Ext.ux.ajax.SimManager.register({
         '/KitchenSink/BigData': {
 			type: 'json',
-			data: [{
+			data: process([{
 				employeeNo: "455476",
 				rating: [9,1,2,2,0,3,7,7,7,0],
 				salary: 100,
@@ -13483,7 +13492,7 @@ Ext.define('KitchenSink.data.BigData', {
 				holidayAllowance: 22,
 				noticePeriod: "2 weeks",
 				avatar: "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSdj-gG2gXPkOUJGQ2r-3A5AnIgASv19axozeYMWssSVJyySvBIeQ"
-			}]
+			}])
         }
     });
 });

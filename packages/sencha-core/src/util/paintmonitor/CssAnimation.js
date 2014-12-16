@@ -10,7 +10,7 @@ Ext.define('Ext.util.paintmonitor.CssAnimation', {
     monitorClass: 'cssanimation',
 
     onElementPainted: function(e) {
-        if (e.animationName === 'x-paint-monitor-helper') {
+        if (e.animationName === Ext.baseCSSPrefix + 'paint-monitor-helper') {
             this.getCallback().apply(this.getScope(), this.getArgs());
         }
     }

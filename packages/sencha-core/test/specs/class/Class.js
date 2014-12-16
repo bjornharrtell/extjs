@@ -945,7 +945,7 @@ describe("Ext.Class", function() {
         });
         
         describe("$configStrict", function() {
-            it("should not copy non-configs to the instance when true", function() {
+            it("should copy non-configs to the instance when true", function() {
                 cls = Ext.define(null, {
                     $configStrict: true,
                     config: {
@@ -957,8 +957,27 @@ describe("Ext.Class", function() {
                 o = new cls({
                     baz: 1
                 });
-                expect(o.baz).not.toBeDefined();
-            });  
+                expect(o.baz).toBe(1);
+            });
+
+            it("should not copy non-configs to the instance when true if the class has a method by the same name", function() {
+                Ext.define('spec.MyClass', {
+                    $configStrict: true,
+                    config: {
+                        foo: 'bar'
+                    },
+                    constructor: defaultInitConfig,
+                    baz: Ext.emptyFn
+                });
+
+                expect(function() {
+                    o = new spec.MyClass({
+                        baz: 1
+                    });
+                }).toThrow('Cannot override method baz on spec.MyClass instance.');
+
+                Ext.undefine('spec.MyClass');
+            });
             
             it("should copy non-configs to the instance when false", function() {
                 cls = Ext.define(null, {
@@ -2950,5 +2969,156 @@ describe("Ext.Class", function() {
                 expect(val).toBe(base);
             });
         });
+    });
+
+    describe('platformConfig', function () {
+        var realPlatformTags,
+            log = [],
+            Base, Derived;
+
+        beforeEach(function () {
+            log.length = 0;
+            realPlatformTags = Ext.platformTags;
+            Ext.platformTags = {
+                desktop: true,
+                chrome: true
+            };
+
+            Base = Ext.define(null, {
+                constructor: function (config) {
+                    this.initConfig(config);
+                },
+
+                config: {
+                    foo: 'abc'
+                },
+
+                updateFoo: function (value) {
+                    log.push('updateFoo: ' + value);
+                }
+            });
+
+            Derived = Ext.define(null, {
+                extend: Base,
+
+                config: {
+                    bar: 'xyz'
+                },
+
+                jaz: 13,
+
+                updateBar: function (value) {
+                    this.getFoo();
+                    log.push('updateBar: ' + value);
+                },
+
+                updateJaz: function (value) {
+                    this.getBar();
+                    log.push('updateJaz: ' + value);
+                },
+
+                platformConfig: {
+                    'chrome && desktop': {
+                        bar: 'aaa'
+                    },
+                    desktop: {
+                        foo: 'ABC',
+                        bar: 'XYZ',
+                        jaz: 427
+                    },
+                    '!desktop': {
+                        foo: 'DEF',
+                        bar: 'UVW',
+                        jaz: 42
+                    }
+                }
+            });
+        });
+
+        afterEach(function () {
+            Ext.platformTags = realPlatformTags;
+        });
+
+        describe('derivation', function () {
+            var instance;
+
+            beforeEach(function () {
+                instance = new Derived({
+                    herp: 'derp'
+                });
+            });
+
+            it('should set the old-school config on the prototype', function () {
+                expect(Derived.prototype.jaz).toBe(427);
+            });
+
+            it('should set the old-school config for the instance', function () {
+                expect(instance.jaz).toBe(427);
+            });
+
+            it('should set a new Proper config to longest rules value', function () {
+                var v = instance.getBar();
+                expect(v).toBe('aaa');
+            });
+
+            it('should set an inherited Proper config', function () {
+                var v = instance.getFoo();
+                expect(v).toBe('ABC');
+            });
+
+            it('should apply initial values in one pass', function () {
+                // Since "jaz" is not a proper Config, the updater should not be called
+                expect(log).toEqual([ 'updateFoo: ABC' , 'updateBar: aaa' ]);
+            });
+
+            it('should only call updateJaz manually', function () {
+                instance.updateJaz(10);
+                expect(log).toEqual([ 'updateFoo: ABC' , 'updateBar: aaa', 'updateJaz: 10' ]);
+            });
+        }); // derivation
+
+        describe('instances', function () {
+            var instance;
+
+            beforeEach(function () {
+                instance = new Derived({
+                    platformConfig: {
+                        'chrome && desktop': {
+                            bar: 'bbb'
+                        },
+                        desktop: {
+                            foo: 321
+                        },
+                        '!desktop': {
+                            jaz: 123
+                        }
+                    }
+                });
+            });
+
+            it('should set the old-school config for the instance', function () {
+                expect(instance.jaz).toBe(427); // ensure it wasn't smashed
+            });
+
+            it('should set a new Proper config to longest rules value', function () {
+                var v = instance.getBar();
+                expect(v).toBe('bbb');
+            });
+
+            it('should set an inherited Proper config', function () {
+                var v = instance.getFoo();
+                expect(v).toBe(321);
+            });
+
+            it('should apply initial values in one pass', function () {
+                // Since "jaz" is not a proper Config, the updater should not be called
+                expect(log).toEqual([ 'updateFoo: 321' , 'updateBar: bbb' ]);
+            });
+
+            it('should only call updateJaz manually', function () {
+                instance.updateJaz(10);
+                expect(log).toEqual([ 'updateFoo: 321' , 'updateBar: bbb', 'updateJaz: 10' ]);
+            });
+        }); // instances
     });
 });

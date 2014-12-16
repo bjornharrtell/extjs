@@ -17,7 +17,7 @@ describe("Ext.GlobalEvents", function() {
             Ext.un('idle', onIdle);
         });
 
-        itFiresMouseEvents("should fire after DOM event handler are invoked, but before control is returned to the browser", function() {
+        it("should fire after DOM event handler are invoked, but before control is returned to the browser", function() {
             var element = Ext.getBody().createChild(),
                 handledCount = 0;
 
@@ -26,14 +26,14 @@ describe("Ext.GlobalEvents", function() {
                 handledCount ++;
             }
 
-            // attach a couple click listeners, the idle event should fire after both
+            // attach a couple mousedown listeners, the idle event should fire after both
             // handlers have fired
-            element.on('click', expectFalse);
-            element.on('click', function() {
+            element.on('mousedown', expectFalse);
+            element.on('mousedown', function() {
                 expectFalse();
             });
 
-            jasmine.fireMouseEvent(element, 'click');
+            jasmine.fireMouseEvent(element, 'mousedown');
 
             expect(handledCount).toBe(2);
             expect(idleFired).toBe(true);

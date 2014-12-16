@@ -312,7 +312,8 @@ Ext.define('Ext.chart.Legend', {
         totalHeight = dim.totalHeight;
 
         // Store the collected dimensions for later
-        me.width = mfloor((vertical ? maxWidth : totalWidth) + padding * 2);
+        // Give some extra offset for the width because we bold on hover
+        me.width = mfloor((vertical ? maxWidth : totalWidth) + padding * 2) + 10
         me.height = mfloor((vertical ? totalHeight : maxHeight) + padding * 2);
     },
     

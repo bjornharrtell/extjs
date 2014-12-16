@@ -77,20 +77,23 @@ Ext.define('Ext.form.field.FileButton', {
      * button's clicks.
      */
     createFileInput : function(isTemporary) {
-        var me = this;
-        me.fileInputEl = me.el.createChild({
-            name: me.inputName,
-            id: !isTemporary ? me.id + '-fileInputEl' : undefined,
-            cls: me.inputCls,
-            tag: 'input',
-            type: 'file',
-            size: 1,
-            role: 'button'
-        });
+        var me = this,
+            fileInputEl = me.fileInputEl = me.el.createChild({
+                name: me.inputName,
+                id: !isTemporary ? me.id + '-fileInputEl' : undefined,
+                cls: me.inputCls,
+                tag: 'input',
+                type: 'file',
+                size: 1,
+                role: 'button'
+            });
+
+        // This is our focusEl
+        fileInputEl.dom.setAttribute(Ext.Component.componentIdAttribute, me.id);
         
         // We place focus and blur listeners on fileInputEl to activate Button's
         // focus and blur style treatment
-        me.fileInputEl.on({
+        fileInputEl.on({
             scope: me,
             change: me.fireChange,
             focus: me.onFocus,
@@ -98,18 +101,24 @@ Ext.define('Ext.form.field.FileButton', {
         });
     },
     
-    reset: function(remove){
+    reset: function(remove) {
+        // We do not add listeners to focusEls now.
+        // The Focus event publisher calls into Components on focus and blur
+        var me = this;
         if (remove) {
-            this.fileInputEl.destroy();
+            me.fileInputEl.destroy();
         }
-        this.createFileInput(!remove);
+        me.createFileInput(!remove);
     },
     
-    restoreInput: function(el){
-        this.fileInputEl.destroy();
+    restoreInput: function(el) {
+        // We do not add listeners to focusEls now.
+        // The Focus event publisher calls into Components on focus and blur
+        var me = this;
+        me.fileInputEl.destroy();
         el = Ext.get(el);
-        this.el.appendChild(el);
-        this.fileInputEl = el;
+        me.el.appendChild(el);
+        me.fileInputEl = el;
     },
     
     onDisable: function(){

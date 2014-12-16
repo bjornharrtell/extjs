@@ -27,8 +27,6 @@
  */
 Ext.define('Ext.layout.ContextItem', {
 
-    requires: ['Ext.layout.ClassList'],
-
     heightModel: null,
     widthModel: null,
     sizeModel: null,
@@ -101,8 +99,9 @@ Ext.define('Ext.layout.ContextItem', {
 
         Ext.apply(me, config);
 
+        target = me.target;
         el = me.el;
-        me.id = el.id;
+        me.id = target.id;
 
         // These hold collections of layouts that are either blocked or triggered by sets
         // to our properties (either ASAP or after flushing to the DOM). All of them have
@@ -129,8 +128,6 @@ Ext.define('Ext.layout.ContextItem', {
 
         // the set of cached styles for the element:
         me.styles = {};
-
-        target = me.target;
 
         if (!target.isComponent) {
             lastBox = el.lastBox;
@@ -501,20 +498,6 @@ Ext.define('Ext.layout.ContextItem', {
     },
 
     /**
-     * Queue the addition of a class name (or array of class names) to this ContextItem's target when next flushed.
-     */
-    addCls: function(newCls) {
-        this.getClassList().addMany(newCls);
-    },
-
-    /**
-     * Queue the removal of a class name (or array of class names) from this ContextItem's target when next flushed.
-     */
-    removeCls: function(removeCls) {
-        this.getClassList().removeMany(removeCls);
-    },
-
-    /**
      * Adds a block.
      * 
      * @param {String} name The name of the block list ('blocks' or 'domBlocks').
@@ -622,7 +605,7 @@ Ext.define('Ext.layout.ContextItem', {
             state = me.state,
             count = (state.boxesMeasured = (state.boxesMeasured || 0) + 1);
 
-        if (count == me.boxChildren.length) {
+        if (count === me.boxChildren.length) {
             // all of our children have measured themselves, so we can clear the width
             // and resume layouts for this component...
             state.clearBoxWidth = 1;
@@ -770,11 +753,6 @@ Ext.define('Ext.layout.ContextItem', {
 
         me.dirtyCount = 0;
 
-        // Flush added/removed classes
-        if (me.classList && me.classList.dirty) {
-            me.classList.flush();
-        }
-
         // Set any queued DOM attributes
         if ('attributes' in me) {
             targetEl.set(me.attributes);
@@ -850,9 +828,12 @@ Ext.define('Ext.layout.ContextItem', {
                     me.writeProps(anim.from);
                 }
                 me.el.animate(anim);
+                anim = Ext.fx.Manager.getFxQueue(me.el.id)[0];
+                target.$layoutAnim = anim;
 
-                Ext.fx.Manager.getFxQueue(me.el.id)[0].on({
+                anim.on({
                     afteranimate: function() {
+                        delete target.$layoutAnim;
                         if (me.isCollapsingOrExpanding === 1) {
                             target.componentLayout.redoLayout(me);
                             target.afterCollapse(true);
@@ -880,13 +861,6 @@ Ext.define('Ext.layout.ContextItem', {
         }
 
         return info;
-    },
-
-    /**
-     * Returns a ClassList-like object to buffer access to this item's element's classes.
-     */
-    getClassList: function () {
-        return this.classList || (this.classList = new Ext.layout.ClassList(this));
     },
 
     /**
@@ -1635,7 +1609,7 @@ Ext.define('Ext.layout.ContextItem', {
 
     writeProps: function(dirtyProps, flushing) {
         if (!(dirtyProps && typeof dirtyProps == 'object')) {
-            //<debug warn>
+            //<debug>
             Ext.Logger.warn('writeProps expected dirtyProps to be an object');
             //</debug>
             return;
@@ -1709,7 +1683,7 @@ Ext.define('Ext.layout.ContextItem', {
                     isAbsolute = false;
                     targetEl = me.target.getTargetEl();
                     style = targetEl.getStyle('position');
-                    me.isAbsolute = (style === 'absolute'); // cache it
+                    me.isAbsolute = isAbsolute = (style === 'absolute'); // cache it
                 }
 
                 if (isAbsolute) {
@@ -1924,7 +1898,9 @@ Ext.define('Ext.layout.ContextItem', {
         y:                      faux,
 
         // For Ext.grid.ColumnLayout
-        columnWidthsDone:       faux,
+        columnsChanged:         faux,
+        rowHeights:             faux,
+        viewOverflowY:          faux,
 
         left:                   px,
         top:                    px,

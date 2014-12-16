@@ -42,7 +42,7 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
                     text: 'Temperature in °F'
                 },
                 listeners: {
-                    rangechange: function (range) {
+                    rangechange: function (axis, range) {
                         var store = this.getChart().getStore(),
                             min = Infinity,
                             max = -Infinity,
@@ -80,7 +80,6 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
             },
             series: {
                 type: 'bar',
-                axis: 'left',
                 xField: 'month',
                 yField: 'highF',
                 style: {
@@ -88,7 +87,7 @@ Ext.define('KitchenSink.view.charts.column.Basic', {
                 },
                 highlight: {
                     strokeStyle: 'black',
-                    fillStyle: '#c1e30d',
+                    fillStyle: 'gold',
                     lineDash: [5, 3]
                 },
                 label: {

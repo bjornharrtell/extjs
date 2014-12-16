@@ -294,7 +294,7 @@ Ext.define('Ext.resizer.Resizer', {
 
             box = wrapTarget.getBox();
 
-            if(positioning.position != 'absolute'){
+            if (positioning.position !== 'absolute'){
                 //reset coordinates
                 box.x = 0;
                 box.y = 0;
@@ -351,7 +351,7 @@ Ext.define('Ext.resizer.Resizer', {
             scope: me
         });
 
-        if (me.handles == 'all') {
+        if (me.handles === 'all') {
             me.handles = 'n s e w ne nw se sw';
         }
 

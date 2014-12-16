@@ -11,6 +11,10 @@
     overflow: hidden;
 }
 
+.#{$prefix}form-item.#{$prefix}form-item-no-label > .#{$prefix}form-item-label {
+    display: none;
+}
+
 .#{$prefix}form-item-label,
 .#{$prefix}form-item-body {
     display: table-cell;

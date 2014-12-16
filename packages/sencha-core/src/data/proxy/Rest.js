@@ -177,7 +177,7 @@ Ext.define('Ext.data.proxy.Rest', {
                 url += '/';
             }
 
-            url += id;
+            url += encodeURIComponent(id);
             params = request.getParams();
             if (params) {
                 delete params[me.getIdParam()];

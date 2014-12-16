@@ -4,7 +4,7 @@
 Ext.define('Ext.util.Floating', {
     mixinId: 'floating',
 
-    uses: ['Ext.Layer', 'Ext.ZIndexManager'],
+    uses: ['Ext.ZIndexManager'],
 
     /**
      * @cfg {Boolean} focusOnToFront
@@ -20,6 +20,13 @@ Ext.define('Ext.util.Floating', {
      * disable the shadow.
      */
     shadow: 'sides',
+
+    /**
+     * @cfg {Boolean} [animateShadow=false]
+     * `true` to animate the shadow along with the component while the component is animating.
+     * By default the shadow is hidden while the component is animating
+     */
+    animateShadow: false,
 
     /**
      * @cfg {Boolean} constrain
@@ -38,6 +45,18 @@ Ext.define('Ext.util.Floating', {
     /**
      * @cfg {Number} shadowOffset
      * Number of pixels to offset the shadow.
+     */
+
+    /**
+     * @cfg {Boolean} shim `true` to enable an iframe shim for this Component to keep
+     * windowed objects from showing through.
+     */
+
+    /**
+     * @property {Boolean}
+     * The value `true` indicates that this Component is floating.
+     * @private
+     * @readonly
      */
 
     /**
@@ -83,37 +102,59 @@ Ext.define('Ext.util.Floating', {
      * @readonly
      */
 
-     config: {
-         /**
-          * @private
-          * @cfg {Number} activeCounter An incrementing numeric counter indicating activation index for use by the {@link #zIndexManager}
-          * to sort its stack.
-          */
-         activeCounter: 0,
-         
-         /**
-          * @cfg {Boolean/Number} [alwaysOnTop=false] A flag indicating that this component should be on the top of the z-index stack for use by the {@link #zIndexManager}
-          * to sort its stack.
-          *
-          * This may be a positive number to prioritize the ordering of multiple visible always on top components.
-          *
-          * This may be set to a *negative* number to prioritize a component to the *bottom* of the z-index stack.
-          */
-         alwaysOnTop: false
-     },
+    config: {
+        /**
+         * @private
+         * @cfg {Number} activeCounter An incrementing numeric counter indicating activation index for use by the {@link #zIndexManager}
+         * to sort its stack.
+         */
+        activeCounter: 0,
 
-    constructor: function (dom) {
-        var me = this;
+        /**
+         * @cfg {Boolean/Number} [alwaysOnTop=false] A flag indicating that this component should be on the top of the z-index stack for use by the {@link #zIndexManager}
+         * to sort its stack.
+         *
+         * This may be a positive number to prioritize the ordering of multiple visible always on top components.
+         *
+         * This may be set to a *negative* number to prioritize a component to the *bottom* of the z-index stack.
+         */
+        alwaysOnTop: false
+    },
 
-        me.el = new Ext.dom.Layer(Ext.apply({
-            preventSync  : true,
-            hideMode     : me.hideMode,
-            shadow       : (typeof me.shadow != 'undefined') ? me.shadow : 'sides',
-            shadowOffset : me.shadowOffset,
-            constrain    : false,
-            fixed        : me.fixed,
-            shim         : (me.shim === false) ? false : undefined
-        }, me.floating), dom);
+    preventDefaultAlign: false,
+
+    _visModeMap: {
+        visibility: 1,
+        display: 2,
+        offsets: 3
+    },
+
+    constructor: function () {
+        var me = this,
+            el = me.el,
+            shadow = me.shadow,
+            shadowOffset, shadowConfig;
+
+        if (shadow) {
+            shadowConfig = {
+                mode: (shadow === true) ? 'sides' : shadow
+            };
+            shadowOffset = me.shadowOffset;
+            if (shadowOffset) {
+                shadowConfig.offset = shadowOffset;
+            }
+            shadowConfig.animate = me.animateShadow;
+            shadowConfig.fixed = me.fixed;
+            el.enableShadow(shadowConfig, false);
+        }
+
+        if (me.shim || Ext.useShims) {
+            el.enableShim({
+                fixed: me.fixed
+            }, false);
+        }
+
+        el.setVisibilityMode(me._visModeMap[me.hideMode]);
 
         // If modal, and focus navigation not being handled by the FocusManager,
         // catch tab navigation, and loop back in on tab off first or last item.
@@ -131,9 +172,6 @@ Ext.define('Ext.util.Floating', {
             scope: me,
             capture: true
         });
-
-        // release config object (if it was one)
-        me.floating = true;
 
         // Register with the configured ownerCt.
         // With this we acquire a floatParent for relative positioning, and a zIndexParent which is an
@@ -245,7 +283,7 @@ Ext.define('Ext.util.Floating', {
             // for touch events.
             parentEvent = e.parentEvent,
             preventFocus = parentEvent && parentEvent.type === 'touchstart',
-            target, dom;
+            target, dom, skipFronting;
 
         if (me.floating &&
             // get out of here if there is already a pending focus.  This usually means
@@ -255,6 +293,7 @@ Ext.define('Ext.util.Floating', {
 
             target = e.target;
             dom = me.el.dom;
+            
             // loop the target's ancestors to see if we clicked on a focusable element
             // or a descendant of a focusable element,  If so we don't want to focus
             // this floating component. If we end up with no target, it probably means
@@ -266,17 +305,17 @@ Ext.define('Ext.util.Floating', {
                 }
                 target = target.parentNode;
             }
+            
+            // We can skip toFront() if we're already active and the click was
+            // within our element but not on something focusable.
+            skipFronting = Ext.WindowManager.getActive() === me &&
+                           (target === dom || preventFocus);
 
             // If what was mousedowned upon is going to claim focus anyway, pass
             // preventFocus as true.
-            me.toFront(preventFocus);
-        }
-    },
-
-    // @private
-    syncShadow : function() {
-        if (this.floating) {
-            this.el.sync(true);
+            if (!skipFronting) {
+                me.toFront(preventFocus);
+            }
         }
     },
 
@@ -285,8 +324,16 @@ Ext.define('Ext.util.Floating', {
     },
 
     onAfterFloatLayout: function(){
-        delete this.el.preventSync;
-        this.syncShadow();
+        var el = this.el;
+
+        if (el.shadow || el.shim) {
+            // An element's underlays (shadow and shim) are automatically synced in response
+            // to any calls to Ext.Element APIs that change the element's size or position
+            // (setXY, setWidth, etc).  Since the layout system bypasses these APIs and
+            // sets the element's styles directly, we need to trigger a sync now.
+            el.setUnderlaysVisible(true);
+            el.syncUnderlays();
+        }
     },
 
     /**
@@ -416,34 +463,33 @@ Ext.define('Ext.util.Floating', {
      *
      * @param {Boolean} [active=false] True to activate the Component, false to deactivate it.
      * @param {Ext.Component} [newActive] If deactivating, the newly active Component which is taking over topmost zIndex position.
+     * @param {Boolean} [doFocus] When activating, set to true to focus the component;
+     * when deactivating, set to false to avoid returning focus to previous element.
+     * 
      */
     setActive: function(active, newActive, doFocus) {
         var me = this;
-        
+
         if (active) {
             if (me.el.shadow && !me.maximized) {
-                me.el.enableShadow(true);
+                me.el.enableShadow(null, true);
             }
+
+            // We only do focus processing upon activate, which means theis component
+            // has been brought to the front by its ZIndexManager
             if (doFocus) {
-                me.previousFocus = Ext.Element.getActiveElement();
-                me.focus(false, true);
-            } else {
-                me.previousFocus = null;
-            }
+                // Skip focusing if we already contain focused element
+                if (!me.el.contains(Ext.Element.getActiveElement())) {
+                    me.focus();
+                }
+            }            
             me.fireEvent('activate', me);
-        } else {
-            // Only the *Windows* in a zIndex stack share a shadow. All other types of floaters
-            // can keep their shadows all the time
-            if (me.isWindow && (newActive && newActive.isWindow) && me.hideShadowOnDeactivate) {
-                me.el.disableShadow();
-            }
+        }
+        // Deactivate carries no operations. It may be that this component jas just moved down and another
+        // component has been brout to the top, so that will automatically receive focus.
+        // If we have been hidden, Component#onHide handles reverting focus to the previousExternalFocus element.
+        else {
             me.fireEvent('deactivate', me);
-            
-            // IE8 will throw an exception is the target is not focusable
-            if (me.previousFocus && (!Ext.isIE8 || Ext.fly(me.previousFocus).isFocusable())) {
-                me.previousFocus.focus();
-                me.previousFocus = null;
-            }
         }
     },
 

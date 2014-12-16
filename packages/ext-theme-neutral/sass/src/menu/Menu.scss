@@ -447,7 +447,7 @@
         &.#{$prefix}menu-item-checkbox {
             @if $ui-item-checkbox-size != $ui-item-icon-size {
                 height: $ui-item-checkbox-size;
-                width: $ui-item-checkbox-sze;
+                width: $ui-item-checkbox-size;
             }
             .#{$prefix}menu-item-checked & {
                 background-image: theme-background-image('menu/#{$ui}-checked');

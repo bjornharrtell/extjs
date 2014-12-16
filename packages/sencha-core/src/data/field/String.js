@@ -13,7 +13,7 @@ Ext.define('Ext.data.field.String', {
         var defaultValue = this.allowNull ? null : '';
         return (v === undefined || v === null) ? defaultValue : String(v);
     },
-    
+
     getType: function() {
         return 'string';
     }

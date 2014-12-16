@@ -135,7 +135,10 @@ Ext.define('Ext.ux.form.MultiSelect', {
     initComponent: function(){
         var me = this;
 
+        me.items = me.setupItems();
+
         me.bindStore(me.store, true);
+
         if (me.store.autoCreated) {
             me.valueField = me.displayField = 'field1';
             if (!me.store.expanded) {
@@ -146,13 +149,11 @@ Ext.define('Ext.ux.form.MultiSelect', {
         if (!Ext.isDefined(me.valueField)) {
             me.valueField = me.displayField;
         }
-        me.items = me.setupItems();
-        
-        
+
         me.callParent();
         me.initField();
     },
-    
+
     setupItems: function() {
         var me = this;
 
@@ -164,8 +165,12 @@ Ext.define('Ext.ux.form.MultiSelect', {
             displayField: me.displayField,
             disabled: me.disabled
         }, me.listConfig));
+
         me.boundList.getSelectionModel().on('selectionchange', me.onSelectChange, me);
-        
+
+        // Boundlist expects a reference to its pickerField for when an item is selected (see Boundlist#onItemClick).
+        me.boundList.pickerField = me;
+
         // Only need to wrap the BoundList in a Panel if we have a title.
         if (!me.title) {
             return me.boundList;

@@ -24,7 +24,7 @@ Ext.define('KitchenSink.view.layout.Table', {
         }
     },
 
-    autoScroll: true,
+    scrollable: true,
     
     defaults: {
         bodyPadding: '15 20',

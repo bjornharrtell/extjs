@@ -1,7 +1,8 @@
 /**
- * 100% stacked columns are multi-series column charts where categories are stacked
- * (percentage values) on top of each other, with an additional category 'Others' that is
- * used to sum up the various categories for each series to a perfect 100%.
+ * 100% stacked 3D columns are column charts where categories are stacked
+ * on top of each other. The value of each category is recalculated, so that
+ * it represents a share of the whole, which is the full stack and is equal
+ * to 100 by default.
  */
 Ext.define('KitchenSink.view.charts.column.Stacked100', {
     extend: 'Ext.Panel',

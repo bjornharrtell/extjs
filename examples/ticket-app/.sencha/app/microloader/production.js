@@ -531,7 +531,8 @@
 
             if (asset.type == 'js') {
                 try {
-                    eval(asset.content);
+                    asset.content = asset.content + "\n//# sourceURL=" + asset.uri + "\n";
+                    eval.call(window, asset.content);
                 }
                 catch (e) {
                     log("Error evaluating " + asset.uri + " with message: " + e);
@@ -542,6 +543,7 @@
                     base;
 
                 style.type = 'text/css';
+                asset.content = asset.content + "\n/*# sourceURL=" + asset.uri + " */\n";
                 style.textContent = asset.content;
 
                 if ('id' in asset) {

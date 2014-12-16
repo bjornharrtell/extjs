@@ -450,9 +450,9 @@ Ext.define('Ext.FocusManager', {
             siblings = me.getRootComponents();
         } else {
             // Else if the focused component has a parent, get siblings from there
-            parent = parent || focusedCmp.up();
+            parent = parent || focusedCmp.up('panel') || focusedCmp.up(':root');
             if (parent) {
-                siblings = parent.getRefItems();
+                siblings = parent.getRefItems(true);
             }
         }
 

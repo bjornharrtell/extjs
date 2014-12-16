@@ -1,7 +1,7 @@
 {
   "name": "ext",
   "format": "1",
-  "version": "5.0.1.1255",
+  "version": "5.1.0.107",
   "compatVersion": "4.0",
   "creator": "Sencha",
   "summary": "Ext JS",
@@ -10,5 +10,6 @@
   "requires": [
     "sencha-core"
   ],
-  "local": true
+  "local": true,
+  "output": "${package.dir}/build"
 }

@@ -340,6 +340,30 @@ describe("Ext.data.schema.OneToOne", function() {
             expect(user.get('addressId')).toBe(101);
             expect(user.dirty).toBe(false);
         });
+
+        it("should delete the non-key holder from the data collection", function() {
+            var user = User.load(1);
+            complete({
+                id: 1,
+                address: {
+                    id: 101
+                }
+            });
+            expect(user.get('address')).toBeUndefined();
+            expect(user.getAddress().getId()).toBe(101);
+        });
+
+        it("should delete the key holder from the data collection", function() {
+            var address = Address.load(101);
+            complete({
+                id: 101,
+                user: {
+                    id: 1
+                }
+            });
+            expect(address.get('user')).toBeUndefined();
+            expect(address.getUser().getId()).toBe(1);
+        });
     });
     
     describe("getters/setters", function() {
@@ -978,6 +1002,7 @@ describe("Ext.data.schema.OneToOne", function() {
                             user.setAddress(address);
 
                             user.set('addressId', null);
+                            expect(user.address).toBeFalsy();
                             expect(user.getAddress()).toBeNull();
                         });
 
@@ -990,6 +1015,23 @@ describe("Ext.data.schema.OneToOne", function() {
                             user.set('addressId', 123);
                             expect(user.getAddress().getId()).toBe(123);
                         });
+
+                        if (withSession) {
+                            it("should set the new reference if it exists in the session", function() {
+                                address = new Address({
+                                    id: 3
+                                }, session); 
+                                user.setAddress(address);
+
+                                var other = new Address({
+                                    id: 10
+                                }, session);
+                                user.set('addressId', 10);
+                                var addressName = User.associations.address.getInstanceName();
+                                expect(user[addressName]).toBe(other);
+                                expect(user.getAddress()).toBe(other);
+                            });
+                        }
                     });
                 });
             });
@@ -1010,8 +1052,7 @@ describe("Ext.data.schema.OneToOne", function() {
                 storeData = [{
                     id: 1,
                     address: {
-                        id: 101,
-                        userId: 1
+                        id: 101
                     }
                 }];
             });

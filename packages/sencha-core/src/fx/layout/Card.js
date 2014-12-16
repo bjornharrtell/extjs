@@ -42,7 +42,7 @@ Ext.define('Ext.fx.layout.Card', {
 
             defaultClass = Ext.ClassManager.getByAlias('fx.layout.card.' + type);
 
-            //<debug error>
+            //<debug>
             if (!defaultClass) {
                 Ext.Logger.error("Unknown card animation type: '" + type + "'");
             }

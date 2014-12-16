@@ -297,6 +297,10 @@
  * Stores can be created as part of the `ViewModel` definition. The definitions are processed
  * like bindings which allows for very powerful dynamic functionality.
  *
+ * It is important to ensure that you name viewModel's data keys uniquely. If data is not named  
+ * uniquely, binds and formulas may receive information from an unintended data source.  
+ * This applies to keys in the viewModel's data block, stores, and links configs.
+ *
  *     var viewModel = new Ext.app.ViewModel({
  *         stores: {
  *             users: {
@@ -417,12 +421,12 @@ Ext.define('Ext.app.ViewModel', {
          * id but passing `create: true` as part of the descriptor. This is often useful when
          * creating a new record for a child session.
          *
-         *    links: {
-         *        newUser: {
-         *            type: 'User',
-         *            create: true
-         *        }
-         *    } 
+         *     links: {
+         *         newUser: {
+         *             type: 'User',
+         *             create: true
+         *         }
+         *     } 
          *
          * While that is the typical use, the value of each property in `links` may also be
          * a bind descriptor (see `{@link #method-bind}` for the various forms of bind
@@ -753,21 +757,21 @@ Ext.define('Ext.app.ViewModel', {
      * Set  a value in the data for this viewmodel.
      * @param {Object/String} path The path of the value to set, or an object literal to set
      * at the root of the viewmodel.
-     * @param {Object} The data to set at the value. If the value is an object literal,
+     * @param {Object} value The data to set at the value. If the value is an object literal,
      * any required paths will be created.
      *
-     *    // Set a single property at the root level
-     *    viewModel.set('expiry', Ext.Date.add(new Date(), Ext.Date.DAY, 7));
-     *    console.log(viewModel.get('expiry'));
-     *    // Sets a single property in user.address, does not overwrite any hierarchy.
-     *    viewModel.set('user.address.city', 'London');
-     *    console.log(viewModel.get('user.address.city'));
-     *    // Sets 2 properties of "user". Overwrites any existing hierarchy.
-     *    viewModel.set('user', {firstName: 'Foo', lastName: 'Bar'});
-     *    console.log(viewModel.get('user.firstName'));
-     *    // Sets a single property at the root level. Overwrites any existing hierarchy.
-     *    viewModel.set({rootKey: 1});
-     *    console.log(viewModel.get('rootKey'));
+     *     // Set a single property at the root level
+     *     viewModel.set('expiry', Ext.Date.add(new Date(), Ext.Date.DAY, 7));
+     *     console.log(viewModel.get('expiry'));
+     *     // Sets a single property in user.address, does not overwrite any hierarchy.
+     *     viewModel.set('user.address.city', 'London');
+     *     console.log(viewModel.get('user.address.city'));
+     *     // Sets 2 properties of "user". Overwrites any existing hierarchy.
+     *     viewModel.set('user', {firstName: 'Foo', lastName: 'Bar'});
+     *     console.log(viewModel.get('user.firstName'));
+     *     // Sets a single property at the root level. Overwrites any existing hierarchy.
+     *     viewModel.set({rootKey: 1});
+     *     console.log(viewModel.get('rootKey'));
      */
     set: function (path, value) {
         var me = this,
@@ -1033,7 +1037,7 @@ Ext.define('Ext.app.ViewModel', {
                 // Get rid of listeners so they don't get considered as a bind
                 listeners = cfg.listeners;
                 delete cfg.listeners;
-                storeBind = me.bind(cfg, me.onStoreBind, me);
+                storeBind = me.bind(cfg, me.onStoreBind, me, {trackStatics: true});
                 if (storeBind.isStatic()) {
                     // Everything is static, we don't need to wait, so remove the
                     // binding because it will only fire the first time.
@@ -1057,7 +1061,7 @@ Ext.define('Ext.app.ViewModel', {
             if (!store) {
                 this.createStore(key, cfg, binding.$listeners, binding);
             } else {
-                cfg = Ext.merge({}, cfg);
+                cfg = Ext.merge({}, binding.pruneStaticKeys());
                 proxy = cfg.proxy;
                 delete cfg.type;
                 delete cfg.model;
@@ -1072,7 +1076,9 @@ Ext.define('Ext.app.ViewModel', {
                     delete proxy.writer;
                     store.getProxy().setConfig(proxy);
                 }
+                store.blockLoad();
                 store.setConfig(cfg);
+                store.unblockLoad(true);
             }
         },
 

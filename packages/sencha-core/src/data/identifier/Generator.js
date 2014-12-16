@@ -32,7 +32,7 @@
  *
  * It is often desirable to share Generators to ensure uniqueness or common configuration.
  * This is done by giving Generator instances an id property by which they can be looked
- * up using the {@link #get} method. To configure two {@link Ext.data.Model Model} classes
+ * up using the {@link Ext.Factory#dataIdentifier dataIdentifier} method. To configure two {@link Ext.data.Model Model} classes
  * to share one {@link Ext.data.identifier.Sequential sequential} id generator, you simply
  * assign them the same id:
  *
@@ -215,6 +215,13 @@ function () {
 
     // If there is an id property passed we need to lookup that id in the cache. If that
     // produces a cache miss, call the normal factory.
+    /**
+     * @member Ext.Factory
+     * @method dataIdentifier
+     * Returns an instance of an ID generator based on the ID you pass in.
+     * @param {string} id
+     * @return {Ext.data.identifier}
+     */
     Factory.dataIdentifier = function (config) {
         var id = Ext.isString(config) ? config : (config && config.id),
             existing = id && ((config && config.cache) || Generator.all)[id];

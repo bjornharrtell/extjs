@@ -28,7 +28,14 @@ Ext.define('Ext.grid.filters.filter.Base', {
 
         menuDefaults: {
             xtype: 'menu'
-        }
+        },
+
+        /**
+         * @cfg {Number} updateBuffer
+         * Number of milliseconds to wait after user interaction to fire an update. Only supported
+         * by filters: 'list', 'numeric', and 'string'.
+         */
+        updateBuffer: 500
     },
 
     /**
@@ -60,13 +67,6 @@ Ext.define('Ext.grid.filters.filter.Base', {
      */
     menu: null,
 
-    /**
-     * @cfg {Number} updateBuffer
-     * Number of milliseconds to wait after user interaction to fire an update. Only supported
-     * by filters: 'list', 'numeric', and 'string'.
-     */
-    updateBuffer: 500,
-
     isGridFilter: true,
 
     defaultRoot: 'data',
@@ -75,7 +75,7 @@ Ext.define('Ext.grid.filters.filter.Base', {
      * The prefix for id's used to track stateful Store filters.
      * @private
      */
-    filterIdPrefix: 'x-gridfilter',
+    filterIdPrefix: Ext.baseCSSPrefix + 'gridfilter',
 
     /**
      * @event activate
@@ -100,29 +100,40 @@ Ext.define('Ext.grid.filters.filter.Base', {
      * @param {Object} config
      */
     constructor: function (config) {
-        this.initConfig(config);
+        var me = this,
+            column;
+
+        me.initConfig(config);
+
+        column = me.column;
+        column.on('destroy', me.destroy, me);
+        me.dataIndex = me.dataIndex || column.dataIndex;
+
+        me.task = new Ext.util.DelayedTask(me.setValue, me);
     },
 
     /**
      * Destroys this filter by purging any event listeners, and removing any menus.
      */
     destroy: function() {
-        this.menu = Ext.destroy(this.menu);
-    },
-
-    getStore: function() {
-        return this.grid.getStore();
+        this.grid = this.menu = Ext.destroy(this.menu);
     },
 
     addStoreFilter: function (filter) {
-        this.getStore().getFilters().add(filter);
+        this.getGridStore().getFilters().add(filter);
     },
 
     createFilter: function (config, key) {
+        return new Ext.util.Filter(this.getFilterConfig(config, key));
+    },
+
+    // Note that some derived classes may need to do specific processing and will have its own version of this method
+    // beforing calling parent (see the List filter).
+    getFilterConfig: function(config, key) {
         config.id = this.getBaseIdPrefix();
 
         if (!config.property) {
-            config.property = this.column.dataIndex;
+            config.property = this.dataIndex;
         }
 
         if (!config.root) {
@@ -132,8 +143,7 @@ Ext.define('Ext.grid.filters.filter.Base', {
         if (key) {
             config.id += '-' + key;
         }
-
-        return new Ext.util.Filter(config);
+        return config;
     },
 
     /**
@@ -143,17 +153,19 @@ Ext.define('Ext.grid.filters.filter.Base', {
      * @return {Ext.menu.Menu}
      */
     createMenu: function () {
-        var config = this.getMenuConfig();
-
-        this.menu = Ext.widget(config);
+        this.menu = Ext.widget(this.getMenuConfig());
     },
 
     getBaseIdPrefix: function () {
-        return this.filterIdPrefix + '-' + this.column.dataIndex;
+        return this.filterIdPrefix + '-' + this.dataIndex;
     },
 
     getMenuConfig: function () {
         return Ext.apply({}, this.getMenuDefaults());
+    },
+
+    getGridStore: function() {
+        return this.grid.getStore();
     },
 
     getStoreFilter: function (key) {
@@ -163,11 +175,41 @@ Ext.define('Ext.grid.filters.filter.Base', {
             id += '-' + key;
         }
 
-        return this.getStore().getFilters().get(id);
+        return this.getGridStore().getFilters().get(id);
     },
 
+    /**
+     * @private
+     * Handler method called when there is a significant event on an input item.
+     */
+    onValueChange: function (field, e) {
+        var me = this,
+            updateBuffer = me.updateBuffer;
+
+        // If the change came from a form field (not a menu CheckItem)...
+        if (field.isFormField && e.getKey() === e.RETURN && field.isValid()) {
+            me.menu.hide();
+            return;
+        }
+
+        if (updateBuffer) {
+            me.task.delay(updateBuffer, null, null, [me.getValue(field)]);
+        } else {
+            me.setValue(me.getValue(field));
+        }
+    },
+
+    /**
+     * @private
+     * @method preprocess
+     * Template method to be implemented by all subclasses that need to perform
+     * any operations before the column filter has finished construction.
+     * @template
+     */
+    preprocess: Ext.emptyFn,
+
     removeStoreFilter: function (filter) {
-        this.getStore().getFilters().remove(filter);
+        this.getGridStore().getFilters().remove(filter);
     },
 
     /**
@@ -178,6 +220,7 @@ Ext.define('Ext.grid.filters.filter.Base', {
      * @return {Object} The 'serialized' form of this filter
      * @template
      */
+    getValue: Ext.emptyFn,
 
     /**
      * @private
@@ -203,16 +246,18 @@ Ext.define('Ext.grid.filters.filter.Base', {
      */
     setActive: function (active) {
         var me = this,
-            owner = me.owner,
-            menuItem = owner.activeFilterMenuItem,
+            menuItem = me.owner.activeFilterMenuItem,
             filterCollection;
 
         if (me.active !== active) {
             me.active = active;
 
-            filterCollection = me.getStore().getFilters();
-            filterCollection.beginUpdate();
+            // The store filter will be updated, but we don't want to recreate the list store or the menu items in the
+            // onDataChanged listener so we need to set this flag.
+            me.preventDefault = true;
 
+            filterCollection = me.getGridStore().getFilters();
+            filterCollection.beginUpdate();
             if (active) {
                 me.activate();
             } else {
@@ -221,35 +266,40 @@ Ext.define('Ext.grid.filters.filter.Base', {
 
             filterCollection.endUpdate();
 
+            me.preventDefault = false;
+
             // Make sure we update the 'Filters' menu item.
             if (menuItem && menuItem.activeFilter === me) {
                 menuItem.setChecked(active);
             }
 
-            me.column[active ? 'addCls' : 'removeCls'](owner.filterCls);
-
+            me.setColumnActive(active)
             // TODO: fire activate/deactivate
         }
     },
 
-    showMenu: function (menuItem) {
-        if (!this.menu) {
-            this.createMenu();
-        }
-
-        menuItem.activeFilter = this;
-
-        menuItem.setMenu(this.menu, false);
-        menuItem.setChecked(this.active);
-        // Disable the menu if filter.disabled explicitly set to true.
-        menuItem.setDisabled(this.disabled === true);
-
-        if (this.active) {
-            this.activate(/*showingMenu*/ true);
-        }
+    setColumnActive: function(active) {
+        this.column[active ? 'addCls' : 'removeCls'](this.owner.filterCls);
     },
 
-    updateStoreFilter: function (filter) {
-        this.getStore().getFilters().notify('endupdate');
+    showMenu: function (menuItem) {
+        var me = this;
+
+        if (!me.menu) {
+            me.createMenu();
+        }
+
+        menuItem.activeFilter = me;
+
+        menuItem.setMenu(me.menu, false);
+        menuItem.setChecked(me.active);
+        // Disable the menu if filter.disabled explicitly set to true.
+        menuItem.setDisabled(me.disabled === true);
+
+        me.activate(/*showingMenu*/ true);
+    },
+
+    updateStoreFilter: function () {
+        this.getGridStore().getFilters().notify('endupdate');
     }
 });

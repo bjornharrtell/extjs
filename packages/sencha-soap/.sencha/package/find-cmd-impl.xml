@@ -1,4 +1,4 @@
-<project name="find-cmd-impl">
+<project name="x-find-cmd-impl">
     <!--
     Run "sencha which" to find the Sencha Cmd basedir and get "cmd.dir" setup. We
     need to execute the command with curdir set properly for Cmd to pick up that we

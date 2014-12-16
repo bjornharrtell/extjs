@@ -9,77 +9,58 @@ Ext.define('Ext.event.publisher.ElementSize', {
         'Ext.util.SizeMonitor'
     ],
 
-    targetType: 'element',
+    type: 'size',
 
     handledEvents: ['resize'],
 
     constructor: function() {
         this.monitors = {};
+        this.subscribers = {};
 
-        this.callSuper(arguments);
+        this.callParent(arguments);
     },
 
-    subscribe: function(target) {
-        var match = target.match(this.idSelectorRegex),
+    subscribe: function(element) {
+        var id = element.id,
             subscribers = this.subscribers,
-            id, element, sizeMonitor;
+            monitors = this.monitors;
 
-        if (!match || target === '#ext-window') {
-            return false;
+        if (subscribers[id]) {
+            ++subscribers[id];
+        } else {
+            subscribers[id] = 1;
+
+            monitors[id] = new Ext.util.SizeMonitor({
+                element: element,
+                callback: this.onElementResize,
+                scope: this,
+                args: [element]
+            });
         }
 
-        id = match[1];
-
-        if (subscribers.hasOwnProperty(id)) {
-            subscribers[id]++;
-            return true;
-        }
-
-        subscribers[id] = 1;
-
-        element = Ext.get(id);
-
-        this.monitors[id] = sizeMonitor = new Ext.util.SizeMonitor({
-            element: element,
-            callback: this.onElementResize,
-            scope: this,
-            args: [target, element]
-        });
-
-        this.dispatcher.addListener('element', target, 'painted', 'forceRefresh', sizeMonitor);
+        element.on('painted', 'forceRefresh', monitors[id]);
 
         return true;
     },
 
-    unsubscribe: function(target, eventName, all) {
-        var match = target.match(this.idSelectorRegex),
+    unsubscribe: function(element) {
+        var id = element.id,
             subscribers = this.subscribers,
             monitors = this.monitors,
-            id, sizeMonitor;
+            sizeMonitor;
 
-        if (!match) {
-            return false;
+        if (subscribers[id] && !--subscribers[id]) {
+            delete subscribers[id];
+            sizeMonitor = monitors[id];
+            element.un('painted', 'forceRefresh', sizeMonitor);
+            sizeMonitor.destroy();
+            delete monitors[id];
         }
-
-        id = match[1];
-
-        if (!subscribers.hasOwnProperty(id) || (!all && --subscribers[id] > 0)) {
-            return true;
-        }
-
-        delete subscribers[id];
-
-        sizeMonitor = monitors[id];
-
-        this.dispatcher.removeListener('element', target, 'painted', 'forceRefresh', sizeMonitor);
-
-        sizeMonitor.destroy();
-        delete monitors[id];
-
-        return true;
     },
 
-    onElementResize: function(target, element, info) {
-        Ext.TaskQueue.requestRead('dispatch', this, [target, 'resize', [element, info]]);
+    onElementResize: function(element, info) {
+        Ext.TaskQueue.requestRead('fire', this, [element, 'resize', [element, info]]);
     }
+}, function(ElementSize) {
+    ElementSize.instance = new ElementSize();
 });

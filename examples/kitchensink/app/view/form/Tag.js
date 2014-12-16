@@ -26,7 +26,6 @@ Ext.define('KitchenSink.view.form.Tag', {
     width: 600,
     layout: 'form',
     viewModel: {},
-
     items: [{
         xtype: 'displayfield',
         fieldLabel: 'Selected States',
@@ -37,9 +36,29 @@ Ext.define('KitchenSink.view.form.Tag', {
         store: {
             type: 'states'
         },
+        value: ['CA'],
         reference: 'states',
         displayField: 'state',
         valueField: 'abbr',
+        filterPickList: true,
+        queryMode: 'local',
+        publishes: 'value'
+    }, {
+        xtype: 'displayfield',
+        fieldLabel: 'Selected Locations',
+        bind: '{locations.value}'
+    }, {
+        xtype: 'tagfield',
+        fieldLabel: 'Select/add location',
+        store: {
+            type: 'states'
+        },
+        value: ['KS'],
+        reference: 'locations',
+        displayField: 'state',
+        valueField: 'abbr',
+        createNewOnEnter: true,
+        createNewOnBlur: true,
         filterPickList: true,
         queryMode: 'local',
         publishes: 'value'

@@ -122,7 +122,7 @@ Ext.define('KitchenSink.view.tab.AdvancedTabs', {
                 border: false,
                 defaults: {
                     bodyPadding: 10,
-                    autoScroll: true,
+                    scrollable: true,
                     closable: true,
                     border: false
                 },

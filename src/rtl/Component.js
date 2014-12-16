@@ -10,6 +10,16 @@ Ext.define('Ext.rtl.Component', {
      * Can be explicitly set to false to override a true value inherited from an ancestor.
      */
 
+    applyScrollable: function(scrollable, oldScrollable) {
+        var scrollable = this.callParent([scrollable, oldScrollable]);
+
+        if (scrollable && this.getInherited().rtl) {
+            scrollable.setRtl(true);
+        }
+
+        return scrollable;
+    },
+
     convertPositionSpec: function(posSpec) {
         // Since anchoring is done based on page level coordinates, we need to invert
         // left and right in the position spec when the direction of the compoent being
@@ -163,37 +173,6 @@ Ext.define('Ext.rtl.Component', {
     },
 
     privates: {
-        doScrollTo: function(x, y, animate) {
-            var me = this,
-                overflowEl = me.getOverflowEl();
-
-            overflowEl[me.getInherited().rtl ? 'rtlScrollTo' : 'scrollTo']('left', x, animate);
-            overflowEl.scrollTo('top', y, animate);
-        },
-
-        doScrollBy: function(deltaX, deltaY, animate) {
-            var me = this,
-                overflowEl = me.getOverflowEl();
-
-            if (overflowEl) {
-                overflowEl[me.getInherited().rtl ? 'rtlScrollBy' : 'scrollBy'](deltaX, deltaY, animate);
-            }
-        },
-
-        getScrollLeft: function() {
-            var me = this,
-                rtl = me.getInherited().rtl;
-
-            return me.getOverflowEl()[rtl ? 'rtlGetScrollLeft' : 'getScrollLeft']();
-        },
-
-        setScrollLeft: function(left) {
-            var me = this,
-                rtl = me.getInherited().rtl;
-
-            me.getOverflowEl()[rtl ? 'rtlSetScrollLeft' : 'setScrollLeft'](left);
-        },
-
         initStyles: function(){
             if (this.getInherited().rtl) {
                 this.horizontalPosProp = 'right';

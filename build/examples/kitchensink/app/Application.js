@@ -12,7 +12,8 @@ Ext.define('KitchenSink.Application', {
     ],
 
     controllers: [
-        'Global'
+        'Global',
+        'Direct'
     ],
 
     init: function() {
@@ -21,19 +22,18 @@ Ext.define('KitchenSink.Application', {
             Ext.getBody().addCls('x-nbr x-nlg');
         }
 
-        var me = this,
-            map = Ext.Object.fromQueryString(location.search),
-            charts = ('charts' in map) && !/0|false|no/i.test(map.charts);
-
         Ext.create('KitchenSink.store.Navigation', {
             storeId: 'navigation'
         });
 
         // Set the default route to start the application.
-        me.setDefaultToken('all');
+        this.setDefaultToken('all');
 
         Ext.setGlyphFontFamily('Pictos');
         Ext.tip.QuickTipManager.init();
-        Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
+        
+        if (!Ext.microloaderTags.test) {
+            Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
+        }
     }
 });

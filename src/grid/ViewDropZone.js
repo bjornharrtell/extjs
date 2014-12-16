@@ -43,6 +43,10 @@ Ext.define('Ext.grid.ViewDropZone', {
             store.add(data.records);
         }
 
+        // Select the dropped nodes
         view.getSelectionModel().select(data.records);
+
+        // Focus the first dropped node.
+        view.getNavigationModel().setPosition(data.records[0]);
     }
 });

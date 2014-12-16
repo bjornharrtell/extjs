@@ -103,7 +103,6 @@ img {
 @if $include-ie {
     .#{$prefix}ie-shadow {
         background-color: #777;
-        display: none;
         position: absolute;
         overflow: hidden;
     }

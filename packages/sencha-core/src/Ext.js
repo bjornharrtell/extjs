@@ -291,6 +291,13 @@ Ext._startTime = Date.now ? Date.now() : (+ new Date());
         validIdRe: /^[a-z_][a-z0-9\-_]*$/i,
 
         /**
+         * @property {String} BLANK_IMAGE_URL
+         * URL to a 1x1 transparent gif image used by Ext to create inline icons with
+         * CSS background images.
+         */
+        BLANK_IMAGE_URL: 'data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
+
+        /**
          * Converts an id (`'foo'`) into an id selector (`'#foo'`).  This method is used
          * internally by the framework whenever an id needs to be converted into a selector
          * and is provided as a hook for those that need to escape IDs selectors since,
@@ -374,6 +381,16 @@ Ext._startTime = Date.now ? Date.now() : (+ new Date());
          * @private
          */
         $eventNameMap: {},
+
+        $vendorEventRe: /^(Moz.+|MS.+)/,
+
+        // TODO: inlinable function - SDKTOOLS-686
+        // @inline
+        // @private
+        canonicalEventName: function(name) {
+            return Ext.$eventNameMap[name] || (Ext.$eventNameMap[name] =
+                (Ext.$vendorEventRe.test(name) ? name : name.toLowerCase()));
+        },
 
         /**
          * Copies all the properties of config to object if they don't already exist.
@@ -502,7 +519,7 @@ Ext._startTime = Date.now ? Date.now() : (+ new Date());
                             if (typeof value === 'function') {
                                 //<debug>
                                 if (owner.$className) {
-                                    value.displayName = owner.$className + '#' + name;
+                                    value.name = owner.$className + '#' + name;
                                 }
                                 //</debug>
 

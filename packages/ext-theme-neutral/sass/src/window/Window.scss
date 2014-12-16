@@ -317,6 +317,24 @@
                         }
                     }
                 }
+                @if $ext-beta-trial {
+                    &:after {
+                        content: 'Ext JS Beta';
+                        position: absolute;
+                        top: 0;
+                        right: 0;
+                        // since IE8 does not support opacity on pseudo elements we simulate it by
+                        // mixing the text color with the background color
+                        color: mix($ui-header-color, $ui-header-background-color, 40%);
+                    }
+
+                    @if $include-rtl {
+                        &.#{$prefix}rtl:after {
+                            right: auto;
+                            left: 0;
+                        }
+                    }
+                }
             }
 
             .#{$prefix}title-icon-wrap-#{$ui} {

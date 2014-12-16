@@ -559,7 +559,7 @@ Ext.onReady(function() {
             xtype:'panel',
             region:'center',
             layout:'auto',
-            autoScroll:true,
+            scrollable:true,
             title:'Employee Performance Manager',
             tbar:[{
                 text:'Add Employee',

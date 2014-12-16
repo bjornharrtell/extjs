@@ -86,7 +86,6 @@ Ext.define('Ext.ux.TreePicker', {
                 maxHeight: me.maxPickerHeight,
                 manageHeight: false,
                 shadow: false,
-                focusable: false,
                 listeners: {
                     scope: me,
                     itemclick: me.onItemClick
@@ -95,8 +94,7 @@ Ext.define('Ext.ux.TreePicker', {
                     listeners: {
                         scope: me,
                         render: me.onViewRender
-                    },
-                    navigationModel: 'boundlist'
+                    }
                 }
             }),
             view = picker.getView();
@@ -127,25 +125,6 @@ Ext.define('Ext.ux.TreePicker', {
 
         // can't use Element.repaint because it contains a setTimeout, which results in a flicker effect
         style.display = style.display;
-    },
-
-    /**
-     * Aligns the picker to the input element
-     */
-    alignPicker: function() {
-        var me = this,
-            picker;
-
-        if (me.isExpanded) {
-            picker = me.getPicker();
-            if (me.matchFieldWidth) {
-                // Auto the height (it will be constrained by max height)
-                picker.setWidth(me.bodyEl.getWidth());
-            }
-            if (picker.isFloating()) {
-                me.doAlign();
-            }
-        }
     },
 
     /**
@@ -182,9 +161,9 @@ Ext.define('Ext.ux.TreePicker', {
      */
     selectItem: function(record) {
         var me = this;
-        me.collapse();
         me.setValue(record.getId());
         me.fireEvent('select', me, record);
+        me.collapse();
     },
 
     /**

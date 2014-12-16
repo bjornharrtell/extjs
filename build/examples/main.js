@@ -24,7 +24,7 @@ window.onload = function() {
                 '<div class="wrap">' +
                     '<div class="group-title">' + group.title + '</div>' +
                     '<div class="group-action">' +
-                        '<div class="group-action-icon icon-' + (expanded ? 'minus' : 'plus') + '"></div>' +
+                        '<a href="#" class="group-action-icon icon-' + (expanded ? 'minus' : 'plus') + '"></a>' +
                     '</div>' +
                 '</div>' +
             '</div>' +
@@ -62,7 +62,7 @@ window.onload = function() {
         var target = e.target || e.srcElement,
             groupHeaderClicked = false,
             expander, className, expanderClassName;
-        
+
         while (target) {
             if (target.className && target.className.indexOf('group-header') !== -1) {
                 groupHeaderClicked = true;
@@ -72,6 +72,11 @@ window.onload = function() {
         }
         
         if (groupHeaderClicked) {
+            // Prevent click handling when fired from <a>
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+
             className = target.className;
             expander = target.querySelector('.group-action-icon');
             expanderClassName = expander.className;
@@ -89,6 +94,8 @@ window.onload = function() {
             // IE8 needs a repaint of the body el to trigger the stylesheet rules that hide
             // and show the group
             bodyEl.className = bodyEl.className;
+            
+            return false;
         }
     });
 };

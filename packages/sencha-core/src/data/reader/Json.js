@@ -68,7 +68,7 @@
  *         ]
  *     }
  *
- * To parse this we just pass in a {@link #root} configuration that matches the 'users' above:
+ * To parse this we just pass in a {@link #rootProperty} configuration that matches the 'users' above:
  *
  *     reader: {
  *         type: 'json',
@@ -151,8 +151,8 @@
  *
  * You can also place any other arbitrary data you need into the `metaData` attribute which will be ignored by the Reader,
  * but will be accessible via the Reader's {@link #metaData} property (which is also passed to listeners via the Proxy's
- * {@link Ext.data.proxy.Proxy#metachange metachange} event (also relayed by the {@link Ext.data.AbstractStore#metachange
- * store}). Application code can then process the passed metadata in any way it chooses.
+ * {@link Ext.data.proxy.Proxy#metachange metachange} event (also relayed by the store). Application code can then
+ * process the passed metadata in any way it chooses.
  * 
  * A simple example for how this can be used would be customizing the fields for a Model that is bound to a grid. By passing
  * the `fields` property the Model will be automatically updated by the Reader internally, but that change will not be
@@ -463,6 +463,19 @@ Ext.define('Ext.data.reader.Json', {
             } else {
                 return me.createAccessor(map);
             }    
+        }
+    },
+
+    privates: {
+        copyFrom: function(reader) {
+            var me = this,
+                result;
+
+            me.duringInit++;
+            result = this.callParent([reader]);
+            me.getRoot = reader.getRoot;
+            me.setRootProperty(reader.getRootProperty());
+            --me.duringInit;
         }
     }
 });

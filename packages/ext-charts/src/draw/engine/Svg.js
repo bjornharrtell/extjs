@@ -30,6 +30,8 @@ Ext.define('Ext.draw.engine.Svg', {
 
     parsers: {},
 
+    fontRe: /^font-?/,
+
     minDefaults: {
         circle: {
             cx: 0,
@@ -458,7 +460,8 @@ Ext.define('Ext.draw.engine.Svg', {
             //ref: EXTJSIV-1472
             gradientsMap = me.gradientsMap || {},
             safariFix = Ext.isSafari && !Ext.isStrict,
-            groups, i, ln, attrs, font, key, style, name, rect;
+            fontRe = me.fontRe,
+            groups, i, ln, attrs, font, key, style, name, rect, fontProps, val;
 
         if (group) {
             groups = [].concat(group);
@@ -507,23 +510,29 @@ Ext.define('Ext.draw.engine.Svg', {
             sprite.dirtyHidden = false;
         }
         for (key in attrs) {
-            if (attrs.hasOwnProperty(key) && attrs[key] != null) {
+            val = attrs[key];
+            if (attrs.hasOwnProperty(key) && val != null) {
                 //Safari does not handle linear gradients correctly in quirksmode
                 //ref: https://bugs.webkit.org/show_bug.cgi?id=41952
                 //ref: EXTJSIV-1472
                 //if we're Safari in QuirksMode and we're applying some color attribute and the value of that
                 //attribute is a reference to a gradient then assign a plain color to that value instead of the gradient.
-                if (safariFix && ('color|stroke|fill'.indexOf(key) > -1) && (attrs[key] in gradientsMap)) {
-                    attrs[key] = gradientsMap[attrs[key]];
+                if (safariFix && ('color|stroke|fill'.indexOf(key) > -1) && (val in gradientsMap)) {
+                    val = gradientsMap[val];
                 }
                 //hidden is not a proper SVG attribute.
                 if (key == 'hidden' && sprite.type == 'text') {
                     continue;
                 }
                 if (key in parsers) {
-                    el.dom.setAttribute(key, parsers[key](attrs[key], sprite, me));
+                    el.dom.setAttribute(key, parsers[key](val, sprite, me));
                 } else {
-                    el.dom.setAttribute(key, attrs[key]);
+                    el.dom.setAttribute(key, val);
+                    if (fontRe.test(key)) {
+                        fontProps = fontProps || {};
+                        fontProps[key] = val;
+                        el.setStyle(key, val);
+                    }
                 }
             }
         }

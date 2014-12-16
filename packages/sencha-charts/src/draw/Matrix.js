@@ -14,6 +14,8 @@
  */
 Ext.define('Ext.draw.Matrix', {
 
+    isMatrix: true,
+
     statics: {
         /**
          * @static
@@ -741,7 +743,7 @@ Ext.define('Ext.draw.Matrix', {
     },
 
     /**
-     * Split matrix into Translate, Scale, Shear, and Rotate.
+     * Split a transformation matrix into Scale, Rotate, Translate components.
      * @return {Object}
      */
     split: function () {
@@ -754,14 +756,10 @@ Ext.define('Ext.draw.Matrix', {
                 translateX: el[4],
                 translateY: el[5]
             };
-        out.scaleX = Math.sqrt(xx * xx + yx * yx);
-        out.shear = (xx * xy + yx * yy) / out.scaleX;
-        xy -= out.shear * xx;
-        yy -= out.shear * yx;
-        out.scaleY = Math.sqrt(xy * xy + yy * yy);
-        out.shear /= out.scaleY;
-        out.rotation = -Math.atan2(yx / out.scaleX, xy / out.scaleY);
-        out.isSimple = Math.abs(out.shear) < 1e-9 && (!out.rotation || Math.abs(out.scaleX - out.scaleY) < 1e-9);
+        out.scaleX = Ext.Number.sign(xx) * Math.sqrt(xx * xx + yx * yx);
+        out.scaleY = Ext.Number.sign(yy) * Math.sqrt(xy * xy + yy * yy);
+        out.rotation = Math.atan2(xy, yy);
+
         return out;
     }
 }, function () {

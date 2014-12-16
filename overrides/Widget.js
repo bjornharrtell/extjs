@@ -1,7 +1,7 @@
 Ext.define('Ext.overrides.Widget', {
     override: 'Ext.Widget',
 
-    requires: ['Ext.Component'],
+    uses: ['Ext.Component'],
 
     $configStrict: false,
 
@@ -136,7 +136,7 @@ Ext.define('Ext.overrides.Widget', {
             nextSibling;
 
         if (position) {
-            nextSibiling = container.childNodes[position];
+            nextSibling = container.childNodes[position];
             if (nextSibling) {
                 container.insertBefore(element, nextSibling);
                 return;
@@ -148,6 +148,22 @@ Ext.define('Ext.overrides.Widget', {
 
     setPosition: function(x, y) {
         this.el.setLocalXY(x, y);
+    },
+
+    up: function() {
+        return Ext.Component.prototype.up.apply(this, arguments);
+    },
+    
+    isAncestor: function() {
+        return Ext.Component.prototype.isAncestor.apply(this, arguments);
+    },
+    
+    onFocusEnter: function() {
+        return Ext.Component.prototype.onFocusEnter.apply(this, arguments);
+    },
+    
+    onFocusLeave: function() {
+        return Ext.Component.prototype.onFocusLeave.apply(this, arguments);
     }
 
 }, function() {
@@ -159,6 +175,4 @@ Ext.define('Ext.overrides.Widget', {
         // node on demand, so we just fall back to adding all references up front.
         prototype.addElementReferenceOnDemand = prototype.addElementReference;
     }
-
-    this.borrow(Ext.Component, ['up']);
 });

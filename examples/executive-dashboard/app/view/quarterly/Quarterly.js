@@ -33,7 +33,7 @@ Ext.define('ExecDashboard.view.quarterly.Quarterly', {
         align: 'stretch'
     },
 
-    overflowY: 'auto',
+    scrollable: 'y',
 
     items: [{
         xtype: 'chart',

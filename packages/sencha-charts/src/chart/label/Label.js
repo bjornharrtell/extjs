@@ -3,6 +3,9 @@
  * @extends Ext.draw.sprite.Text
  *
  * Sprite used to represent labels in series.
+ *
+ * Important: the actual default values are determined by the theme used.
+ * Please see the `label` config of the {@link Ext.chart.theme.Base#axis}.
  */
 Ext.define('Ext.chart.label.Label', {
     extend: 'Ext.draw.sprite.Text',
@@ -45,7 +48,7 @@ Ext.define('Ext.chart.label.Label', {
                 renderer: null
             },
 
-            dirtyTriggers: {
+            triggers: {
                 callout: 'transform',
                 calloutPlaceX: 'transform',
                 calloutPlaceY: 'transform',

@@ -22,25 +22,29 @@ Ext.define('Ext.draw.TextMeasurer', {
 
     measureDivTpl: {
         tag: 'div',
-        overflow: 'hidden',
-        position: 'relative',
+        style: {
+            overflow: 'hidden',
+            position: 'relative',
+            'float': 'left', // 'float' is a reserved word. Don't unquote, or it will break the CMD build.
+            width: 0,
+            height: 0
+        },
         //<debug>
-        // tell the spec runner to ignore this element when checking if the dom is clean
+        // Tell the spec runner to ignore this element when checking if the dom is clean.
         'data-sticky': true,
         //</debug>
-        'float': 'left', // 'float' is a reserved word. Don't unquote, or it will break the CMD build.
-        width: 0,
-        height: 0,
         children: {
             tag: 'div',
-            display: 'block',
-            position: 'absolute',
-            x: -100000,
-            y: -100000,
-            padding: 0,
-            margin: 0,
-            'z-index': -100000,
-            'white-space': 'nowrap'
+            style: {
+                display: 'block',
+                position: 'absolute',
+                x: -100000,
+                y: -100000,
+                padding: 0,
+                margin: 0,
+                'z-index': -100000,
+                'white-space': 'nowrap'
+            }
         }
     },
 
@@ -61,6 +65,10 @@ Ext.define('Ext.draw.TextMeasurer', {
 
         if (!measureDiv) {
             var parent = Ext.Element.create({
+                //<debug>
+                // Tell the spec runner to ignore this element when checking if the dom is clean.
+                'data-sticky': true,
+                //</debug>
                 style: {
                     "overflow": "hidden",
                     "position": "relative",
@@ -69,16 +77,17 @@ Ext.define('Ext.draw.TextMeasurer', {
                     "height": 0
                 }
             });
-            me.measureDiv = measureDiv = Ext.Element.create({});
-            measureDiv.setStyle({
-                "position": 'absolute',
-                "x": FARAWAY,
-                "y": FARAWAY,
-                "z-index": -FARAWAY,
-                "white-space": "nowrap",
-                "display": 'block',
-                "padding": 0,
-                "margin": 0
+            me.measureDiv = measureDiv = Ext.Element.create({
+                style: {
+                    "position": 'absolute',
+                    "x": FARAWAY,
+                    "y": FARAWAY,
+                    "z-index": -FARAWAY,
+                    "white-space": "nowrap",
+                    "display": 'block',
+                    "padding": 0,
+                    "margin": 0
+                }
             });
             Ext.getBody().appendChild(parent);
             parent.appendChild(measureDiv);

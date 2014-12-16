@@ -46,7 +46,7 @@ Ext.define('Ticket.view.dashboard.Dashboard', {
         },
         flex: 1,
         items: [{
-            xtpe: 'container',
+            xtype: 'container',
             flex: 1,
             layout: {
                 type: 'vbox',

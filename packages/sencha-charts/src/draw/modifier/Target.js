@@ -22,8 +22,9 @@ Ext.define('Ext.draw.modifier.Target', {
      * @inheritdoc
      */
     prepareAttributes: function (attr) {
-        if (this._previous) {
-            this._previous.prepareAttributes(attr);
+        var previous = this.getPrevious();
+        if (previous) {
+            previous.prepareAttributes(attr);
         }
         attr.attributeId = 'attribute-' + Ext.draw.modifier.Target.uniqueId++;
         if (!attr.hasOwnProperty('canvasAttributes')) {
@@ -32,14 +33,22 @@ Ext.define('Ext.draw.modifier.Target', {
                 transform: {dirty: true}
             };
             attr.dirty = true;
-            // Maps updaters that have to be called to the attributes that triggered the update.
-            // It is basically a reversed dirtyTriggers map (see Ext.draw.sprite.AttributeDefinition),
-            // but only for those attributes that have changed.
-            // dirtyFlags updaters are called by the sprite.updateDirtyFlags method.
-            attr.dirtyFlags = {};
-            // Holds the attributes (dirty flags) that triggered the canvas update.
-            // Canvas attributes are applied directly to a canvas context
-            // by the sprite.useAttributes method.
+            /*
+            Maps updaters that have to be called to the attributes that triggered the update.
+            It is basically a reversed `triggers` map (see Ext.draw.sprite.AttributeDefinition),
+            but only for those attributes that have changed.
+            Pending updaters are called by the Ext.draw.sprite.Sprite.callUpdaters method.
+
+            The 'canvas' updater is a special kind of updater that is not actually a function
+            but a flag indicating that the attribute should be applied directly to a canvas
+            context.
+            */
+            attr.pendingUpdaters = {};
+            /*
+            Holds the attributes that triggered the canvas update (attr.pendingUpdaters.canvas).
+            Canvas attributes are applied directly to a canvas context
+            by the sprite.useAttributes method.
+            */
             attr.canvasAttributes = {};
             attr.matrix = new Ext.draw.Matrix();
             attr.inverseMatrix = new Ext.draw.Matrix();
@@ -48,79 +57,83 @@ Ext.define('Ext.draw.modifier.Target', {
 
     /**
      * @private
-     * Applies the appropriate dirty flags from the modifier changes.
+     * Applies changes to sprite/instance attributes and determines which updaters
+     * have to be called as a result of attributes change.
      * @param {Object} attr The source attributes.
      * @param {Object} changes The modifier changes.
      */
-    setDirtyFlags: function (attr, changes) {
-        Ext.apply(attr, changes);
-        var sprite = this._sprite,
-            dirtyTriggers = sprite.self.def._dirtyTriggers,
-            name, dirtyFlags = attr.dirtyFlags, flags, any,
-            triggers, trigger, i, ln, canvasNames;
+    applyChanges: function (attr, changes) {
 
-        // TODO: Potential for optimization here?
-        // TODO: Do we really need to build the dirtyFlags map every time?
+        Ext.apply(attr, changes);
+
+        var sprite = this.getSprite(),
+            pendingUpdaters = attr.pendingUpdaters,
+            triggers = sprite.self.def.getTriggers(),
+            updaters, instances, instance,
+            name, hasChanges, canvasAttributes,
+            i, j, ln;
+
         for (name in changes) {
-            if ((triggers = dirtyTriggers[name])) {
-                i = 0;
-                while ((trigger = triggers[i++])) {
-                    if (!(flags = dirtyFlags[trigger])) {
-                        flags = dirtyFlags[trigger] = [];
-                    }
-                    flags.push(name);
-                }
+            hasChanges = true;
+            if ((updaters = triggers[name])) {
+                sprite.scheduleUpdaters(attr, updaters, [name]);
+            }
+            if (attr.template && changes.removeFromInstance && changes.removeFromInstance[name]) {
+                delete attr[name];
             }
         }
 
-        for (name in changes) {
-            any = true;
-            break;
-        }
-
-        if (!any) {
+        if (!hasChanges) {
             return;
         }
 
         // This can prevent sub objects to set duplicated attributes to context.
-        if (dirtyFlags.canvas) {
-            canvasNames = dirtyFlags.canvas;
-            delete dirtyFlags.canvas;
-            for (i = 0, ln = canvasNames.length; i < ln; i++) {
-                name = canvasNames[i];
+        if (pendingUpdaters.canvas) {
+            canvasAttributes = pendingUpdaters.canvas;
+            delete pendingUpdaters.canvas;
+            for (i = 0, ln = canvasAttributes.length; i < ln; i++) {
+                name = canvasAttributes[i];
                 attr.canvasAttributes[name] = attr[name];
             }
         }
 
         // If the attributes of an instancing sprite template are being modified here,
-        // then spread the dirty flags to the instances (children).
+        // then spread the pending updaters to the instances (template's children).
         if (attr.hasOwnProperty('children')) {
-            for (i = 0, ln = attr.children.length; i < ln; i++) {
-                Ext.apply(attr.children[i].dirtyFlags, dirtyFlags);
-                sprite.updateDirtyFlags(attr.children[i]);
+            instances = attr.children;
+            for (i = 0, ln = instances.length; i < ln; i++) {
+                instance = instances[i];
+                Ext.apply(instance.pendingUpdaters, pendingUpdaters);
+                if (canvasAttributes) {
+                    for (j = 0; j < canvasAttributes.length; j++) {
+                        name = canvasAttributes[j];
+                        instance.canvasAttributes[name] = instance[name];
+                    }
+                }
+                sprite.callUpdaters(instance);
             }
         }
 
         sprite.setDirty(true);
+        sprite.callUpdaters(attr);
     },
 
     /**
      * @inheritdoc
      */
-    popUp: function (attributes, changes) {
-        this.setDirtyFlags(attributes, changes);
-        this._sprite.updateDirtyFlags(attributes);
+    popUp: function (attr, changes) {
+        this.applyChanges(attr, changes);
     },
 
     /**
      * @inheritdoc
      */
     pushDown: function (attr, changes) {
-        if (this._previous) {
-            changes = this._previous.pushDown(attr, changes);
+        var previous = this.getPrevious();
+        if (previous) {
+            changes = previous.pushDown(attr, changes);
         }
-        this.setDirtyFlags(attr, changes);
-        this._sprite.updateDirtyFlags(attr);
+        this.applyChanges(attr, changes);
         return changes;
     }
 });

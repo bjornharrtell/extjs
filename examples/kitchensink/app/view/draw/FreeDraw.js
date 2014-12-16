@@ -37,14 +37,12 @@ Ext.define('KitchenSink.view.draw.FreeDraw', {
     constructor: function(config) {
         var contentPanel = Ext.getCmp('content-panel');
         this.callParent(arguments);
-        contentPanel.setAutoScroll(false);
-        contentPanel.setOverflowXY('hidden','hidden');
+        contentPanel.setScrollable(false);
     },
 
     destroy: function() {
         var contentPanel = Ext.getCmp('content-panel');
-        contentPanel.setAutoScroll(true);
-        contentPanel.setOverflowXY('auto','auto');
+        contentPanel.setScrollable(true);
         this.callParent(arguments);
     }
 

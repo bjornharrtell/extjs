@@ -24,7 +24,7 @@ Ext.onReady(function(){
         width: 500,
         bodyStyle: 'padding:10px',
         contentEl: 'content',
-        autoScroll: true,
+        scrollable: true,
         tbar: Ext.create('Ext.toolbar.Toolbar', {
             layout: {
                 overflowHandler: 'Menu'

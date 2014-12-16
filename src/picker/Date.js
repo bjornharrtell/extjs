@@ -58,6 +58,9 @@ Ext.define('Ext.picker.Date', {
             '</div>',
             '<table role="grid" id="{id}-eventEl" data-ref="eventEl" class="{baseCls}-inner" {%',
                 // If the DatePicker is focusable, make its eventEl tabbable.
+                // Note that we're looking at the `focusable` property because
+                // calling `isFocusable()` will always return false at that point
+                // as the picker is not yet rendered.
                 'if (values.$comp.focusable) {out.push("tabindex=\\\"0\\\"");}',
             '%} cellspacing="0">',
                 '<thead><tr role="row">',
@@ -70,7 +73,7 @@ Ext.define('Ext.picker.Date', {
                 '<tbody><tr role="row">',
                     '<tpl for="days">',
                         '{#:this.isEndOfWeek}',
-                        '<td role="gridcell" id="{[Ext.id()]}">',
+                        '<td role="gridcell">',
                             '<div hidefocus="on" class="{parent.baseCls}-date"></div>',
                         '</td>',
                     '</tpl>',
@@ -637,17 +640,15 @@ Ext.define('Ext.picker.Date', {
             cells = me.cells,
             cls = me.selectedCls,
             cellItems = cells.elements,
-            c,
             cLen = cellItems.length,
-            cell;
+            cell, c;
 
         cells.removeCls(cls);
 
         for (c = 0; c < cLen; c++) {
-            cell = Ext.fly(cellItems[c]);
-
-            if (cell.dom.firstChild.dateValue == t) {
-                return cell.dom.firstChild;
+            cell = cellItems[c].firstChild;
+            if (cell.dateValue == t) {
+                return cell;
             }
         }
         return null;
@@ -875,6 +876,9 @@ Ext.define('Ext.picker.Date', {
             if (!picker.isVisible()) {
                 picker.setValue(me.getActive());
                 picker.setSize(el.getSize());
+
+                // Null out floatParent so that the [-1, -1] position is not made relative to this
+                picker.floatParent = null;
                 picker.setPosition(-el.getBorderWidth('l'), -el.getBorderWidth('t'));
                 if (me.shouldAnimate(animate)) {
                     me.runAnimation(false);
@@ -908,6 +912,10 @@ Ext.define('Ext.picker.Date', {
         if (!picker) {
             me.monthPicker = picker = new Ext.picker.Month({
                 renderTo: me.el,
+                // We need to set the ownerCmp so that owns() can correctly
+                // match up the component hierarchy so that focus does not leave
+                // an owning picker field if/when this gets focus.
+                ownerCmp: me,
                 floating: true,
                 padding: me.padding,
                 shadow: false,
@@ -1248,7 +1256,8 @@ Ext.define('Ext.picker.Date', {
                 me.monthBtn,
                 me.nextRepeater,
                 me.prevRepeater,
-                me.todayBtn
+                me.todayBtn,
+                me.todayElSpan
             );
             delete me.textNodes;
             delete me.cells.elements;

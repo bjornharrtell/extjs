@@ -99,7 +99,7 @@ Ext.define('Ticket.view.ticket.Detail', {
         bind: '{theTicket.comments}',
         disableSelection: true,
         cls: 'comments',
-        autoScroll: true,
+        scrollable: true,
         emptyText: 'There are no comments',
         itemTpl: [
             '<div class="header"><span class="created">{created:date("Y-m-d H:i")}</span> - <span class="user">{user.name}</span></div>',

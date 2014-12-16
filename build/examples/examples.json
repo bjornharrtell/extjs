@@ -753,41 +753,6 @@
         ]
     },
     {
-        "title": "Direct",
-        "items": [
-            {
-                "text": "Direct",
-                "url": "direct/direct.html",
-                "icon": "shared/screens/direct.gif",
-                "desc": "An example demonstrating Remoting and Polling the server"
-            },
-            {
-                "text": "Direct Form",
-                "url": "direct/direct-form.html",
-                "icon": "shared/screens/direct.gif",
-                "desc": "Ext.Direct Remoting with a Form"
-            },
-            {
-                "text": "Direct Grid",
-                "url": "direct/direct-grid.html",
-                "icon": "shared/screens/direct.gif",
-                "desc": "Ext.Direct Remoting with a Grid"
-            },
-            {
-                "text": "Direct TreeLoader",
-                "url": "direct/direct-tree.html",
-                "icon": "shared/screens/direct.gif",
-                "desc": "Ext.Direct Remoting with a Tree"
-            },
-            {
-                "text": "Direct Named Arguments",
-                "url": "direct/named-arguments.html",
-                "icon": "shared/screens/direct.gif",
-                "desc": "Ext.Direct Named Arguments"
-            }
-        ]
-    },
-    {
         "title": "MVC",
         "items": [
             {

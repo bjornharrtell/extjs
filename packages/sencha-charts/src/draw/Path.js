@@ -4,7 +4,7 @@
  * and will hopefully be replaced by the browsers' implementation of the Path object.
  */
 Ext.define('Ext.draw.Path', {
-    requires: ['Ext.draw.Draw', 'Ext.draw.Solver'],
+    requires: ['Ext.draw.Draw'],
     statics: {
         pathRe: /,?([achlmqrstvxz]),?/gi,
         pathRe2: /-/gi,
@@ -13,18 +13,21 @@ Ext.define('Ext.draw.Path', {
     svgString: '',
 
     /**
-     * Create a path from pathString
+     * Create a path from pathString.
      * @constructor
      * @param {String} pathString
      */
     constructor: function (pathString) {
         var me = this;
-        me.coords = [];
-        me.types = [];
+        me.commands = []; // Stores command letters from the SVG path data ('d' attribute).
+        me.params = [];   // Stores command parameters from the SVG path data.
+        // All command parameters are actually point coordinates as the only commands used
+        // are the M, L, C, Z. This makes path transformations and hit testing easier.
+        // Arcs are approximated using cubic Bezier curves, H and S commands are translated
+        // to L commands and relative commands are translated to their absolute versions.
         me.cursor = null;
         me.startX = 0;
         me.startY = 0;
-        me.solvers = {};
         if (pathString) {
             me.fromSvgString(pathString);
         }
@@ -35,12 +38,11 @@ Ext.define('Ext.draw.Path', {
      */
     clear: function () {
         var me = this;
-        me.coords.length = 0;
-        me.types.length = 0;
+        me.params.length = 0;
+        me.commands.length = 0;
         me.cursor = null;
         me.startX = 0;
         me.startY = 0;
-        me.solvers = {};
         me.dirt();
     },
 
@@ -61,8 +63,8 @@ Ext.define('Ext.draw.Path', {
         if (!me.cursor) {
             me.cursor = [x, y];
         }
-        me.coords.push(x, y);
-        me.types.push('M');
+        me.params.push(x, y);
+        me.commands.push('M');
         me.startX = x;
         me.startY = y;
         me.cursor[0] = x;
@@ -79,11 +81,11 @@ Ext.define('Ext.draw.Path', {
         var me = this;
         if (!me.cursor) {
             me.cursor = [x, y];
-            me.coords.push(x, y);
-            me.types.push('M');
+            me.params.push(x, y);
+            me.commands.push('M');
         } else {
-            me.coords.push(x, y);
-            me.types.push('L');
+            me.params.push(x, y);
+            me.commands.push('L');
         }
         me.cursor[0] = x;
         me.cursor[1] = y;
@@ -104,8 +106,8 @@ Ext.define('Ext.draw.Path', {
         if (!me.cursor) {
             me.moveTo(cx1, cy1);
         }
-        me.coords.push(cx1, cy1, cx2, cy2, x, y);
-        me.types.push('C');
+        me.params.push(cx1, cy1, cx2, cy2, x, y);
+        me.commands.push('C');
         me.cursor[0] = x;
         me.cursor[1] = y;
         me.dirt();
@@ -124,8 +126,8 @@ Ext.define('Ext.draw.Path', {
             me.moveTo(cx, cy);
         }
         me.bezierCurveTo(
-            (me.cursor[0] * 2 + cx) / 3, (me.cursor[1] * 2 + cy) / 3,
-            (x * 2 + cx) / 3, (y * 2 + cy) / 3,
+            (2 * cx + me.cursor[0]) / 3, (2 * cy + me.cursor[1]) / 3,
+            (2 * cx + x) / 3, (2 * cy + y) / 3,
             x, y
         );
     },
@@ -136,7 +138,7 @@ Ext.define('Ext.draw.Path', {
     closePath: function () {
         var me = this;
         if (me.cursor) {
-            me.types.push('Z');
+            me.commands.push('Z');
             me.dirt();
         }
     },
@@ -264,8 +266,8 @@ Ext.define('Ext.draw.Path', {
      */
     ellipse: function (cx, cy, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise) {
         var me = this,
-            coords = me.coords,
-            start = coords.length, count,
+            params = me.params,
+            start = params.length, count,
             i, j;
         if (endAngle - startAngle >= Math.PI * 2) {
             me.ellipse(cx, cy, radiusX, radiusY, rotation, startAngle, startAngle + Math.PI, anticlockwise);
@@ -276,33 +278,33 @@ Ext.define('Ext.draw.Path', {
             if (endAngle < startAngle) {
                 endAngle += Math.PI * 2;
             }
-            count = me.approximateArc(coords, cx, cy, radiusX, radiusY, rotation, startAngle, endAngle);
+            count = me.approximateArc(params, cx, cy, radiusX, radiusY, rotation, startAngle, endAngle);
         } else {
             if (startAngle < endAngle) {
                 startAngle += Math.PI * 2;
             }
-            count = me.approximateArc(coords, cx, cy, radiusX, radiusY, rotation, endAngle, startAngle);
-            for (i = start, j = coords.length - 2; i < j; i += 2, j -= 2) {
-                var temp = coords[i];
-                coords[i] = coords[j];
-                coords[j] = temp;
-                temp = coords[i + 1];
-                coords[i + 1] = coords[j + 1];
-                coords[j + 1] = temp;
+            count = me.approximateArc(params, cx, cy, radiusX, radiusY, rotation, endAngle, startAngle);
+            for (i = start, j = params.length - 2; i < j; i += 2, j -= 2) {
+                var temp = params[i];
+                params[i] = params[j];
+                params[j] = temp;
+                temp = params[i + 1];
+                params[i + 1] = params[j + 1];
+                params[j + 1] = temp;
             }
         }
 
         if (!me.cursor) {
-            me.cursor = [coords[coords.length - 2], coords[coords.length - 1]];
-            me.types.push('M');
+            me.cursor = [params[params.length - 2], params[params.length - 1]];
+            me.commands.push('M');
         } else {
-            me.cursor[0] = coords[coords.length - 2];
-            me.cursor[1] = coords[coords.length - 1];
-            me.types.push('L');
+            me.cursor[0] = params[params.length - 2];
+            me.cursor[1] = params[params.length - 1];
+            me.commands.push('L');
         }
 
         for (i = 2; i < count; i += 6) {
-            me.types.push('C');
+            me.commands.push('C');
         }
         me.dirt();
     },
@@ -681,137 +683,14 @@ Ext.define('Ext.draw.Path', {
     },
 
     /**
-     * @private
-     * @param {Number} x1
-     * @param {Number} y1
-     * @param {Number} x2
-     * @param {Number} y2
-     * @param {Number} x
-     * @param {Number} y
-     * @return {Number}
-     */
-    rayTestLine: function (x1, y1, x2, y2, x, y) {
-        var cx;
-        if (y1 === y2) {
-            if (y === y1) {
-                if (Math.min(x1, x2) <= x && x <= Math.max(x1, x2)) {
-                    return -1;
-                }
-            } else {
-                return 0;
-            }
-        }
-        if (y1 < y && y < y2 || y2 < y && y < y1) {
-            cx = (y - y1) * (x2 - x1) / (y2 - y1) + x1;
-            if (cx === x) {
-                return -1;
-            } else if (cx < x) {
-                return 0;
-            } else {
-                return 1;
-            }
-        } else {
-            return 0;
-        }
-    },
-
-    /**
-     * @private
-     * @param {Number} x1
-     * @param {Number} y1
-     * @param {Number} x2
-     * @param {Number} y2
-     * @param {Number} x3
-     * @param {Number} y3
-     * @param {Number} x4
-     * @param {Number} y4
-     * @param {Number} x
-     * @param {Number} y
-     * @param {Number} idx
-     * @return {*}
-     */
-    rayTestCubicBezier: function (x1, y1, x2, y2, x3, y3, x4, y4, x, y, idx) {
-        if (Math.min(x1, x2, x3, x4) <= x && x <= Math.max(x1, x2, x3, x4)) {
-            if (Math.min(y1, y2, y3, y4) <= y && y <= Math.max(y1, y2, y3, y4)) {
-                var me = this,
-                    solver = me.solvers[idx] || (me.solvers[idx] = Ext.draw.Solver.createBezierSolver(x1, x2, x3, x4)),
-                    result = solver.solve(y);
-                return (+(x <= result[0] && 0 <= result[0] && result[0] <= 1)) +
-                    (+(x <= result[1] && 0 <= result[1] && result[1] <= 1)) +
-                    (+(x <= result[2] && 0 <= result[2] && result[2] <= 1));
-            }
-        }
-        return 0;
-    },
-
-    /**
-     * Test whether the given point is on or inside the path.
-     * @param {Number} x
-     * @param {Number} y
-     * @return {Boolean}
-     */
-    isPointInPath: function (x, y) {
-        var me = this,
-            i, j, count = 0, test = 0,
-            types = me.types,
-            coords = me.coords,
-            ln = types.length, firstX = null, firstY = null, lastX = 0, lastY = 0;
-        for (i = 0, j = 0; i < ln; i++) {
-            switch (types[i]) {
-                case 'M':
-                    if (firstX !== null) {
-                        test = me.rayTestLine(firstX, firstY, lastX, lastY, x, y);
-                        if (test < 0) {
-                            count += 1;
-                        } else {
-                            count += test;
-                        }
-                    }
-                    firstX = lastX = coords[j];
-                    firstY = lastY = coords[j + 1];
-                    j += 2;
-                    break;
-                case 'L':
-                    test = me.rayTestLine(lastX, lastY, coords[j], coords[j + 1], x, y);
-                    if (test < 0) {
-                        return true;
-                    }
-                    count += test;
-                    lastX = coords[j];
-                    lastY = coords[j + 1];
-                    j += 2;
-                    break;
-                case 'C':
-                    test = me.rayTestCubicBezier(
-                        lastX, lastY,
-                        coords[j], coords[j + 1],
-                        coords[j + 2], coords[j + 3],
-                        coords[j + 4], coords[j + 5],
-                        x, y, i);
-                    if (test < 0) {
-                        return true;
-                    }
-                    count += test;
-                    lastX = coords[j + 4];
-                    lastY = coords[j + 5];
-                    j += 6;
-                    break;
-                case 'Z':
-                    break;
-            }
-        }
-        return count % 2 === 1;
-    },
-
-    /**
      * Clone this path.
      * @return {Ext.draw.Path}
      */
     clone: function () {
         var me = this,
             path = new Ext.draw.Path();
-        path.coords = me.coords.slice(0);
-        path.types = me.types.slice(0);
+        path.params = me.params.slice(0);
+        path.commands = me.commands.slice(0);
         path.cursor = me.cursor ? me.cursor.slice(0) : null;
         path.startX = me.startX;
         path.startY = me.startY;
@@ -829,15 +708,15 @@ Ext.define('Ext.draw.Path', {
         }
         var xx = matrix.getXX(), yx = matrix.getYX(), dx = matrix.getDX(),
             xy = matrix.getXY(), yy = matrix.getYY(), dy = matrix.getDY(),
-            coords = this.coords,
-            i = 0, ln = coords.length,
+            params = this.params,
+            i = 0, ln = params.length,
             x, y;
 
         for (; i < ln; i += 2) {
-            x = coords[i];
-            y = coords[i + 1];
-            coords[i] = x * xx + y * yx + dx;
-            coords[i + 1] = x * xy + y * yy + dy;
+            x = params[i];
+            y = params[i + 1];
+            params[i] = x * xx + y * yx + dx;
+            params[i + 1] = x * xy + y * yy + dy;
         }
         this.dirt();
     },
@@ -853,7 +732,7 @@ Ext.define('Ext.draw.Path', {
             target = {};
         }
 
-        if (!this.types || !this.types.length) {
+        if (!this.commands || !this.commands.length) {
             target.x = 0;
             target.y = 0;
             target.width = 0;
@@ -866,15 +745,15 @@ Ext.define('Ext.draw.Path', {
         target.right = -Infinity;
         target.bottom = -Infinity;
         var i = 0, j = 0,
-            types = this.types,
-            coords = this.coords,
-            ln = types.length, x, y;
+            commands = this.commands,
+            params = this.params,
+            ln = commands.length, x, y;
         for (; i < ln; i++) {
-            switch (types[i]) {
+            switch (commands[i]) {
                 case 'M':
                 case 'L':
-                    x = coords[j];
-                    y = coords[j + 1];
+                    x = params[j];
+                    y = params[j + 1];
                     target.left = Math.min(x, target.left);
                     target.top = Math.min(y, target.top);
                     target.right = Math.max(x, target.right);
@@ -883,9 +762,9 @@ Ext.define('Ext.draw.Path', {
                     break;
                 case 'C':
                     this.expandDimension(target, x, y,
-                        coords[j], coords[j + 1],
-                        coords[j + 2], coords[j + 3],
-                        x = coords[j + 4], y = coords[j + 5]);
+                        params[j], params[j + 1],
+                        params[j + 2], params[j + 3],
+                        x = params[j + 4], y = params[j + 5]);
                     j += 6;
                     break;
             }
@@ -907,7 +786,7 @@ Ext.define('Ext.draw.Path', {
      * @return {Object} An object with x, y, width and height.
      */
     getDimensionWithTransform: function (matrix, target) {
-        if (!this.types || !this.types.length) {
+        if (!this.commands || !this.commands.length) {
             if (!target) {
                 target = {};
             }
@@ -926,15 +805,15 @@ Ext.define('Ext.draw.Path', {
         var xx = matrix.getXX(), yx = matrix.getYX(), dx = matrix.getDX(),
             xy = matrix.getXY(), yy = matrix.getYY(), dy = matrix.getDY(),
             i = 0, j = 0,
-            types = this.types,
-            coords = this.coords,
-            ln = types.length, x, y;
+            commands = this.commands,
+            params = this.params,
+            ln = commands.length, x, y;
         for (; i < ln; i++) {
-            switch (types[i]) {
+            switch (commands[i]) {
                 case 'M':
                 case 'L':
-                    x = coords[j] * xx + coords[j + 1] * yx + dx;
-                    y = coords[j] * xy + coords[j + 1] * yy + dy;
+                    x = params[j] * xx + params[j + 1] * yx + dx;
+                    y = params[j] * xy + params[j + 1] * yy + dy;
                     target.left = Math.min(x, target.left);
                     target.top = Math.min(y, target.top);
                     target.right = Math.max(x, target.right);
@@ -944,12 +823,12 @@ Ext.define('Ext.draw.Path', {
                 case 'C':
                     this.expandDimension(target,
                         x, y,
-                        coords[j] * xx + coords[j + 1] * yx + dx,
-                        coords[j] * xy + coords[j + 1] * yy + dy,
-                        coords[j + 2] * xx + coords[j + 3] * yx + dx,
-                        coords[j + 2] * xy + coords[j + 3] * yy + dy,
-                        x = coords[j + 4] * xx + coords[j + 5] * yx + dx,
-                        y = coords[j + 4] * xy + coords[j + 5] * yy + dy);
+                        params[j] * xx + params[j + 1] * yx + dx,
+                        params[j] * xy + params[j + 1] * yy + dy,
+                        params[j + 2] * xx + params[j + 3] * yx + dx,
+                        params[j + 2] * xy + params[j + 3] * yy + dy,
+                        x = params[j + 4] * xx + params[j + 5] * yx + dx,
+                        y = params[j + 4] * xy + params[j + 5] * yy + dy);
                     j += 6;
                     break;
             }
@@ -1084,17 +963,17 @@ Ext.define('Ext.draw.Path', {
         me.clear();
         for (; i < ln; i++) {
             stripe = stripes[i];
-            me.coords.push.apply(me.coords, stripe);
-            me.types.push('M');
+            me.params.push.apply(me.params, stripe);
+            me.commands.push('M');
             for (j = 2, ln2 = stripe.length; j < ln2; j += 6) {
-                me.types.push('C');
+                me.commands.push('C');
             }
         }
         if (!me.cursor) {
             me.cursor = [];
         }
-        me.cursor[0] = me.coords[me.coords.length - 2];
-        me.cursor[1] = me.coords[me.coords.length - 1];
+        me.cursor[0] = me.params[me.params.length - 2];
+        me.cursor[1] = me.params[me.params.length - 1];
         me.dirt();
     },
 
@@ -1107,22 +986,22 @@ Ext.define('Ext.draw.Path', {
         var stripes = target || [], curr,
             x, y, lastX, lastY, startX, startY,
             i, j,
-            types = this.types,
-            coords = this.coords,
-            ln = types.length;
+            commands = this.commands,
+            params = this.params,
+            ln = commands.length;
         for (i = 0, j = 0; i < ln; i++) {
-            switch (types[i]) {
+            switch (commands[i]) {
                 case 'M':
-                    curr = [startX = lastX = coords[j++], startY = lastY = coords[j++]];
+                    curr = [startX = lastX = params[j++], startY = lastY = params[j++]];
                     stripes.push(curr);
                     break;
                 case 'L':
-                    x = coords[j++];
-                    y = coords[j++];
+                    x = params[j++];
+                    y = params[j++];
                     curr.push((lastX + lastX + x) / 3, (lastY + lastY + y) / 3, (lastX + x + x) / 3, (lastY + y + y) / 3, lastX = x, lastY = y);
                     break;
                 case 'C':
-                    curr.push(coords[j++], coords[j++], coords[j++], coords[j++], lastX = coords[j++], lastY = coords[j++]);
+                    curr.push(params[j++], params[j++], params[j++], params[j++], lastX = params[j++], lastY = params[j++]);
                     break;
                 case 'Z':
                     x = startX;
@@ -1140,24 +1019,24 @@ Ext.define('Ext.draw.Path', {
      */
     updateSvgString: function () {
         var result = [],
-            types = this.types,
-            coords = this.coords,
-            ln = types.length,
+            commands = this.commands,
+            params = this.params,
+            ln = commands.length,
             i = 0, j = 0;
         for (; i < ln; i++) {
-            switch (types[i]) {
+            switch (commands[i]) {
                 case 'M':
-                    result.push('M' + coords[j] + ',' + coords[j + 1]);
+                    result.push('M' + params[j] + ',' + params[j + 1]);
                     j += 2;
                     break;
                 case 'L':
-                    result.push('L' + coords[j] + ',' + coords[j + 1]);
+                    result.push('L' + params[j] + ',' + params[j + 1]);
                     j += 2;
                     break;
                 case 'C':
-                    result.push('C' + coords[j] + ',' + coords[j + 1] + ' ' +
-                        coords[j + 2] + ',' + coords[j + 3] + ' ' +
-                        coords[j + 4] + ',' + coords[j + 5]);
+                    result.push('C' + params[j] + ',' + params[j + 1] + ' ' +
+                        params[j + 2] + ',' + params[j + 3] + ' ' +
+                        params[j + 4] + ',' + params[j + 5]);
                     j += 6;
                     break;
                 case 'Z':

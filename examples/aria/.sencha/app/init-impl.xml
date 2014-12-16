@@ -59,6 +59,14 @@
         <property name="build.environment" value="production"/>
         <property name="CR" value="&#10;"/>
 
+        <tstamp>
+            <!-- sets DSTAMP=yyyyMMdd, TSTAMP=hhmm -->
+            <format property="build.year" pattern="yyyy"/>
+            <format property="build.datetime" pattern="yyyy-MM-dd HH:mm:ss"/>
+            <format property="build.date" pattern="MMMM d, yyyy"/>
+            <format property="build.timestamp" pattern="yyyyMMddHHmmss"/>
+        </tstamp>
+
         <x-load-properties>
             <!-- If available, load user-defined properties for this build identifier -->
             <file path="${app.config.dir}/${build.id}.properties" required="false"/>
@@ -80,20 +88,27 @@
         calculate the appropriate build.compression value
         -->
         <condition property="build.compression" value="-yui">
-            <x-is-true value="${build.compression.yui}"/>
+            <or>
+                <x-is-true value="${build.compression.yui}"/>
+                <equals arg1="yui" arg2="${app.compressor.type}"/>
+            </or>
         </condition>
 
         <condition property="build.compression" value="-closure">
-            <x-is-true value="${build.compression.closure}"/>
+            <or>
+                <x-is-true value="${build.compression.closure}"/>
+                <equals arg1="closure" arg2="${app.compressor.type}"/>
+            </or>
         </condition>
 
         <condition property="build.compression" value="-uglify">
-            <x-is-true value="${build.compression.uglify}"/>
+            <or>
+                <x-is-true value="${build.compression.uglify}"/>
+                <equals arg1="uglify" arg2="${app.compressor.type}"/>
+            </or>
         </condition>
 
         <property name="build.compression" value=""/>
-
-        <x-verify-app-cmd-ver/>
 
         <!--
         this id string is used to share a common compiler instance
@@ -115,7 +130,7 @@
         application's root directory to the root of the build directory
         -->
         <x-get-relative-path from="${app.dir}"
-                             to="${build.dir}"
+                             to="${build.out.base.path}"
                              property="build.dir.relative"/>
     </target>
     <target name="-after-init"/>
@@ -176,6 +191,19 @@
         <dirname property="build.bootstrap.manifest.dir" file="${build.bootstrap.manifest.path}"/>
         <dirname property="build.bootstrap.metadata.dir" file="${build.bootstrap.metadata.path}"/>
 
+        <x-get-relative-path from="${build.out.base.path}" to="${build.out.js.path}" property="build.classes.name"/>
+        <x-get-relative-path from="${build.out.page.dir}" to="${build.out.microloader.path}" property="build.microloader.name"/>
+        <x-get-relative-path from="${build.out.page.dir}" to="${build.out.manifest.path}" property="app.manifest.name"/>
+
+        <if>
+            <x-is-true value="${app.output.microloader.enable}"/>
+            <then>
+                <property name="build.output.markuponly" value="false"/>
+            </then>
+            <else>
+                <property name="build.output.markuponly" value="true"/>
+            </else>
+        </if>
     </target>
     <target name="-after-init-defaults"/>
 
@@ -212,11 +240,27 @@
             ]]>
         </property>
 
+        <property name="exclude.boot.command">
+            <![CDATA[
+                exclude
+                    -class=Ext.Boot
+                and
+            ]]>
+        </property>
+
         <condition property="include.versions.file" value="${include.versions.file.command}">
             <x-is-false value="${build.skip.versions.file}"/>
         </condition>
 
         <property name="include.versions.file" value="#skip"/>
+
+        <condition property="exclude.boot" value="${exclude.boot.command}">
+            <not>
+                <x-is-true value="${build.output.markuponly}"/>
+            </not>
+        </condition>
+
+        <property name="exclude.boot" value="#skip"/>
 
         <x-compile refid="${compiler.ref.id}"
                    dir="${app.dir}"
@@ -248,6 +292,7 @@
                 and
                 ${build.operations}
                 and
+                ${exclude.boot}
                 save
                     page
             ]]>
@@ -266,6 +311,7 @@
                 and
                 ${build.operations}
                 and
+                ${exclude.boot}
                 save
                     page
             ]]>

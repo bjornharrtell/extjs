@@ -11,6 +11,10 @@
  * to avoid the overhead of copying the styles to the element repeatedly.
  */
 Ext.define('Ext.util.TextMetrics', {
+    requires: [
+        'Ext.dom.Element'
+    ],
+
     statics: {
         shared: null,
         /**

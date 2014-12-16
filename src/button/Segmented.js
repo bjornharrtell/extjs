@@ -1,5 +1,32 @@
 /**
- * SegmentedButton is a container for a group of {@link Ext.button.Button Button}s.
+ * SegmentedButton is a container for a group of {@link Ext.button.Button Button}s.  You 
+ * may populate the segmented button's children by adding buttons to the items config.  The segmented 
+ * button's children enjoy the same customizations as regular buttons, such as 
+ * menu, tooltip, etc.  You can see usages of the various configuration
+ * possibilities in the example below.
+ *
+ *     @example @preview 
+ *     Ext.create('Ext.button.Segmented', {            
+ *          renderTo: Ext.getBody(),
+ *          allowMultiple: true,
+ *          items: [{
+ *               text: 'Segment Item 1',
+ *               menu: [{
+ *                   text: 'Menu Item 1'
+ *               }]
+ *          },{
+ *               text: 'Segment Item 2',
+ *               tooltip: 'My custom tooltip'
+ *          },{
+ *               text: 'Segment Item 3'
+ *          }],
+ *          listeners: {
+ *               toggle: function(container, button, pressed) {
+ *                    console.log("User toggled the '" + button.text + "' button: " + (pressed ? 'on' : 'off'));
+ *               }
+ *          }
+ *     });
+ * 
  */
 Ext.define('Ext.button.Segmented', {
     extend: 'Ext.container.Container',
@@ -99,6 +126,11 @@ Ext.define('Ext.button.Segmented', {
          */
         value: undefined
     },
+
+    /**
+     * @inheritdoc
+     */
+    defaultBindProperty: 'value',
 
     publishes: ['value'],
     twoWayBindable: ['value'],

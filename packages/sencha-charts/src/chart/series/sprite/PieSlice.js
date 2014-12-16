@@ -61,6 +61,38 @@ Ext.define('Ext.chart.series.sprite.PieSlice', {
         rendererIndex: 0
     },
 
+    setGradientBBox: function (ctx, rect) {
+        var me = this,
+            attr = me.attr;
+        if (attr.fillStyle.isGradient || attr.strokeStyle.isGradient) {
+            if (attr.constrainGradients) {
+                ctx.setGradientBBox({x: rect[0], y: rect[1], width: rect[2], height: rect[3]});
+            } else {
+                var midAngle = me.getMidAngle(),
+                    margin = attr.margin,
+                    cx = attr.centerX,
+                    cy = attr.centerY,
+                    r = attr.endRho,
+                    matrix = attr.matrix,
+                    scaleX = matrix.getScaleX(),
+                    scaleY = matrix.getScaleY(),
+                    w = scaleX * r,
+                    h = scaleY * r,
+                    bbox = {
+                        width: w + w,
+                        height: h + h
+                    };
+                if (margin) {
+                    cx += margin * Math.cos(midAngle);
+                    cy += margin * Math.sin(midAngle);
+                }
+                bbox.x = matrix.x(cx, cy) - w;
+                bbox.y = matrix.y(cx, cy) - h;
+                ctx.setGradientBBox(bbox);
+            }
+        }
+    },
+
     render: function (surface, ctx, clip, rect) {
         var me = this,
             attr = me.attr,

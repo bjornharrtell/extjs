@@ -47,9 +47,12 @@ Ext.define('Ext.menu.Menu', {
         'Ext.layout.container.VBox',
         'Ext.menu.CheckItem',
         'Ext.menu.Item',
-        'Ext.menu.KeyNav',
         'Ext.menu.Manager',
         'Ext.menu.Separator'
+    ],
+
+    mixins: [
+        'Ext.util.FocusableContainer'
     ],
 
     /**
@@ -59,9 +62,7 @@ Ext.define('Ext.menu.Menu', {
     
     /**
      * @cfg {Boolean} [enableKeyNav=true]
-     * True to enable keyboard navigation for controlling the menu.
-     * This option should generally be disabled when form fields are
-     * being used inside the menu.
+     * @deprecated 5.1.0 Intra-menu key navigation is always enabled.
      */
     enableKeyNav: true,
 
@@ -99,7 +100,7 @@ Ext.define('Ext.menu.Menu', {
     constrain: true,
 
     /**
-     * @cfg {Boolean} [hidden=undefined]
+     * @cfg {Boolean} [hidden]
      * True to initially render the Menu as hidden, requiring to be shown manually.
      *
      * Defaults to `true` when `floating: true`, and defaults to `false` when `floating: false`.
@@ -160,7 +161,10 @@ Ext.define('Ext.menu.Menu', {
      * See also the {@link #showSeparator} config.
      */
     
-    focusable: true,
+    focusOnToFront: false,
+    bringParentToFront: false,
+
+    defaultFocus: ':focusable',
 
     // private
     baseCls: Ext.baseCSSPrefix + 'menu',
@@ -209,8 +213,6 @@ Ext.define('Ext.menu.Menu', {
             bodyCls = me.bodyCls ? [me.bodyCls] : [],
             isFloating = me.floating !== false;
 
-        Ext.menu.Manager.register(me);
-
         // Menu classes
         if (me.plain) {
             cls.push(Ext.baseCSSPrefix + 'menu-plain');
@@ -246,10 +248,6 @@ Ext.define('Ext.menu.Menu', {
     // See EXTJS-13596.
     initFloatConstrain: Ext.emptyFn,
 
-    // Menus do not have owning containers on which they depend for visibility. They stand outside
-    // any container hierarchy.
-    initHierarchyEvents: Ext.emptyFn,
-
     // As menus are never contained, a Menu's visibility only ever depends upon its own hidden state.
     // Ignore hiddenness from the ancestor hierarchy, override it with local hidden state.
     getInherited: function() {
@@ -279,8 +277,21 @@ Ext.define('Ext.menu.Menu', {
 
         if (Ext.supports.Touch) {
             listeners.pointerdown = me.onMouseOver;
-            me.mon(Ext.GlobalEvents, 'mousedown', me.onDocMouseDown, me);
         }
+
+        // Handle character shotrcuts
+        me.focusableKeyNav.map.addBinding([{
+            key: 27,
+            handler: me.onEscapeKey,
+            scope: me
+        }, {
+            key: /[\w]/,
+            handler: me.onShortcutKey,
+            scope: me,
+            shift: false,
+            ctrl: false,
+            alt: false
+        }]);
 
         me.callParent(arguments);
 
@@ -294,15 +305,26 @@ Ext.define('Ext.menu.Menu', {
         }
 
         me.mon(me.el, listeners);
-        me.mouseMonitor = me.el.monitorMouseLeave(100, me.onMouseLeave, me);
 
-        // A Menu is a Panel. The KeyNav can use the Panel's KeyMap
-        if (me.enableKeyNav) {
-            me.keyNav = new Ext.menu.KeyNav({
-                target: me,
-                keyMap: me.getKeyMap()
+        // Modern IE browsers have click events translated to PointerEvents, and b/c of this the
+        // event isn't being canceled like it needs to be. So, we need to add an extra listener.
+        if (Ext.supports.MSPointerEvents || Ext.supports.PointerEvents) {
+            me.mon(me.el, {
+                scope: me,
+                click: me.preventClick,
+                translate: false
             });
         }
+
+        me.mouseMonitor = me.el.monitorMouseLeave(100, me.onMouseLeave, me);
+    },
+
+    onFocusLeave: function(e) {
+        var me = this;
+
+        me.callParent([e]);
+        me.mixins.focusablecontainer.onFocusLeave.call(me, e);
+        me.hide();
     },
 
     /**
@@ -310,36 +332,19 @@ Ext.define('Ext.menu.Menu', {
      * @return {Boolean}
      */
     canActivateItem: function(item) {
-        return item && !item.isDisabled() && item.isVisible() && (item.canActivate || !item.isMenuItem);
+        return item && item.isFocusable();
     },
 
     /**
      * Deactivates the current active item on the menu, if one exists.
      */
-    deactivateActiveItem: function(andBlurFocusedItem) {
+    deactivateActiveItem: function() {
         var me = this,
-            activeItem = me.activeItem,
-            focusedItem = me.focusedItem;
+            activeItem = me.lastFocusedChild;
 
         if (activeItem) {
-            activeItem.deactivate();
-            if (!activeItem.activated) {
-                delete me.activeItem;
-            }
+            activeItem.blur();
         }
-
-        // Blur the focused item if we are being asked to do that too
-        // Only needed if we are being hidden - mouseout does not blur.
-        if (focusedItem && andBlurFocusedItem) {
-            focusedItem.blur();
-            delete me.focusedItem;
-        }
-    },
-
-    // @inheritdoc
-    hide: function() {
-        this.deactivateActiveItem(true);
-        this.callParent(arguments);
     },
 
     // @private
@@ -361,15 +366,17 @@ Ext.define('Ext.menu.Menu', {
     lookupComponent: function(cmp) {
         var me = this;
 
-        if (typeof cmp == 'string') {
+        if (typeof cmp === 'string') {
             cmp = me.lookupItemFromString(cmp);
         } else if (Ext.isObject(cmp)) {
             cmp = me.lookupItemFromObject(cmp);
         }
 
-        // Apply our minWidth to all of our child components so it's accounted
-        // for in our VBox layout
-        cmp.minWidth = cmp.minWidth || me.minWidth;
+        // Apply our minWidth to all of our non-docked child components (Menu extends Panel)
+        // so it's accounted for in our VBox layout
+        if (!cmp.dock) {
+            cmp.minWidth = cmp.minWidth || me.minWidth;
+        }
 
         return cmp;
     },
@@ -395,7 +402,7 @@ Ext.define('Ext.menu.Menu', {
 
     // @private
     lookupItemFromString: function(cmp) {
-        return (cmp == 'separator' || cmp == '-') ?
+        return (cmp === 'separator' || cmp === '-') ?
             new Ext.menu.Separator()
             : new Ext.menu.Item({
                 canActivate: false,
@@ -433,29 +440,46 @@ Ext.define('Ext.menu.Menu', {
             } else {
                 cmp.cls = (cmp.cls || '') + ' ' + cls.join(' ');
             }
+            // So we can clean the item if it gets removed.
+            cmp.$extraMenuCls = cls;
         }
 
         // @noOptimize.callParent
         this.callParent(arguments);
     },
 
+    onRemove: function(cmp) {
+        this.callParent([cmp]);
+        
+        // Remove any extra classes we added to non-MenuItem child items
+        if (!cmp.isDestroyed && cmp.$extraMenuCls) {
+            cmp.el.removeCls(cmp.$extraMenuCls);
+        }
+    },
+
     onClick: function(e) {
         var me = this,
             type = e.type,
-            item;
+            item,
+            clickResult,
+            iskeyEvent = type === 'keydown';
 
         if (me.disabled) {
             e.stopEvent();
             return;
         }
 
-        // if e.type !== 'keydown', then we're dealing with a click or tap event
-        item = (type !== 'keydown') ? me.getItemFromEvent(e) : me.activeItem;
+        item = me.getItemFromEvent(e);
         if (item && item.isMenuItem) {
             if (!item.menu || !me.ignoreParentClicks) {
-                item.onClick(e);
+                clickResult = item.onClick(e);
             } else {
                 e.stopEvent();
+            }
+
+            // SPACE and ENTER invokes the menu
+            if (item.menu && clickResult !== false && iskeyEvent) {
+                item.expandMenu(e, 0);
             }
         }
         // Click event may be fired without an item, so we need a second check
@@ -468,32 +492,19 @@ Ext.define('Ext.menu.Menu', {
     onDestroy: function() {
         var me = this;
 
-        Ext.menu.Manager.unregister(me);
         me.parentMenu = me.ownerCmp = null;
         if (me.rendered) {
             me.el.un(me.mouseMonitor);
-            Ext.destroy(me.keyNav);
-            me.keyNav = null;
+            Ext.destroy(me.iconSepEl);
         }
         me.callParent(arguments);
     },
 
-    onDocMouseDown: function(e) {
-        if (!this.owns(e.target)) {
-            this.deactivateActiveItem();
-        }
-    },
-
     onMouseLeave: function(e) {
-        var me = this;
-
-        me.deactivateActiveItem();
-
-        if (me.disabled) {
+        if (this.disabled) {
             return;
         }
-
-        me.fireEvent('mouseleave', me, e);
+        this.fireEvent('mouseleave', this, e);
     },
 
     onMouseOver: function(e) {
@@ -515,10 +526,12 @@ Ext.define('Ext.menu.Menu', {
         }
 
         // Do not activate the item if the mouseover was within the item, and it's already active
-        if (item && !item.activated) {
-            me.setActiveItem(item);
-            if (item.activated && item.expandMenu) {
-                item.expandMenu();
+        if (item) {
+            if (!item.containsFocus) {
+                item.focus();
+            }
+            if (item.expandMenu) {
+                item.expandMenu(e);
             }
         }
         if (mouseEnter) {
@@ -530,37 +543,117 @@ Ext.define('Ext.menu.Menu', {
     setActiveItem: function(item) {
         var me = this;
 
-        if (item && (item != me.activeItem)) {
-            me.deactivateActiveItem();
-            if (me.canActivateItem(item)) {
-                if (item.activate) {
-                    // Activate passing skipCheck flag. We checked using me.canActivate()
-                    item.activate(true);
-                    if (item.activated) {
-                        me.activeItem = item;
-                        me.focusedItem = item;
-                    }
-                } else {
-                    item.focus();
-                    me.focusedItem = item;
-                }
+        if (item && (item !== me.lastFocusedChild)) {
+            me.focusChild(item, 1);
+            // Focusing will scroll the item into view.
+        }
+    },
+
+    onEscapeKey: function() {
+        if (this.floating) {
+            this.hide();
+        }
+    },
+
+    onShortcutKey: function(keyCode, e) {
+        var shortcutChar = String.fromCharCode(e.getCharCode()),
+            items = this.query('>[text]'),
+            len = items.length,
+            item = this.lastFocusedChild,
+            focusIndex = Ext.Array.indexOf(items, item),
+            i = focusIndex;
+
+        // Loop through all items which have a text property starting at the one after the current focus.
+        for (;;) {
+            if (++i === len) {
+                i = 0;
             }
-            // Activating will focus, focusing will scroll the item into view.
+            item = items[i];
+
+            // Looped back to start - no matches
+            if (i === focusIndex) {
+                return;
+            }
+            
+            // Found a text match
+            if (item.text && item.text[0].toUpperCase() === shortcutChar) {
+                item.focus();
+                return;
+            }
+        }
+    },
+
+    // Tabbing in a floating menu must hide, but not move focus.
+    // onHide takes care of moving focus back to an owner Component.
+    onFocusableContainerTabKey: function(e) {
+        if (this.floating) {
+            this.hide();
+        }
+    },
+
+    onFocusableContainerEnterKey: function(e) {
+        this.onClick(e);
+    },
+
+    onFocusableContainerSpaceKey: function(e) {
+        this.onClick(e);
+    },
+
+    onFocusableContainerLeftKey: function(e) {
+        // If we are a submenu, then left arrow focuses the owning MenuItem
+        if (this.parentMenu) {
+            this.ownerCmp.focus();
+            this.hide();
+        }
+    },
+
+    onFocusableContainerRightKey: function(e) {
+        var me = this,
+            focusItem = me.lastFocusedChild;
+
+        if (focusItem && focusItem.expandMenu) {
+            focusItem.expandMenu(e, 0);
         }
     },
 
     beforeShow: function() {
         var me = this,
+            activeEl,
             viewHeight;
 
         // Constrain the height to the containing element's viewable area
         if (me.floating) {
+
+            // Only register a focusAnchor to return to on hide if the active element is not the document
+            // If there's no focusAnchor, we return to the ownerCmp, or first focusable ancestor.
+            activeEl = Ext.Element.getActiveElement();
+            me.focusAnchor = activeEl === document.body ? null : activeEl;
+
             me.savedMaxHeight = me.maxHeight;
             viewHeight = me.container.getViewSize().height;
             me.maxHeight = Math.min(me.maxHeight || viewHeight, viewHeight);
         }
 
         me.callParent(arguments);
+
+        // Add a touch start listener to check for taps outside the menu.
+        // iOS in particular does not trigger blur on document tap, so
+        // we have to check for taps outside this menu.
+        if (Ext.supports.Touch) {
+            me.tapListener = Ext.getBody().on({
+                touchstart: me.onBodyTap,
+                scope: me,
+                destroyable: true
+            });
+        }
+    },
+
+    onBodyTap: function(e) {
+        // Tap outside of this menu tree - hide.
+        if (!this.owns(e)) {
+            this.tapListener.destroy();
+            this.hide();
+        }
     },
 
     afterShow: function() {
@@ -569,14 +662,32 @@ Ext.define('Ext.menu.Menu', {
         me.callParent(arguments);
 
         // Restore configured maxHeight
-        if (me.floating) {
+        if (me.floating && me.autoFocus) {
             me.maxHeight = me.savedMaxHeight;
+            me.focus();
         }
     },
 
-    privates: {
-        getFocusEl: function() {
-            return this.el;
+    onHide: function(animateTarget, cb, scope) {
+        var me = this,
+            focusTarget;
+
+         // If we contain focus just before element hide, move it elsewhere before hiding
+        if (me.el.contains(Ext.Element.getActiveElement())) {
+            // focusAnchor was the active element before this menu was shown.
+            focusTarget = me.focusAnchor || me.ownerCmp || me.up(':focusable');
+
+            // Component hide processing will focus the "previousFocus" element.
+            if (focusTarget) {
+                me.previousFocus = focusTarget;
+            }
+        }
+        this.callParent([animateTarget, cb, scope]);
+    },
+
+    preventClick: function (e) {
+        if (!this.getItemFromEvent(e).href) {
+            e.preventDefault();
         }
     }
 });

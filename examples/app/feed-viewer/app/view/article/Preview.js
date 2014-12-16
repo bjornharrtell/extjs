@@ -5,7 +5,7 @@ Ext.define('FV.view.article.Preview', {
     requires: ['Ext.toolbar.Toolbar'],
 
     cls: 'preview',
-    autoScroll: true,
+    scrollable: true,
     border: false,
     
     initComponent: function() {

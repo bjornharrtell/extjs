@@ -60,7 +60,6 @@ Ext.define('KitchenSink.view.charts.scatter.CustomIcons', {
             type: 'pie'
         },
         id: 'scatter-chart-custom-icons',
-        background: 'white',
         interactions: 'itemhighlight',
         series: [
             {

@@ -35,7 +35,6 @@ Ext.define('KitchenSink.view.charts.line.Plot', {
             padding: 10,
             insetPadding: 0,
             id: 'plot-chart',
-            background: 'white',
             interactions: {
                 type: 'panzoom',
                 zoomOnPanGesture: true
@@ -135,7 +134,7 @@ Ext.define('KitchenSink.view.charts.line.Plot', {
         me.tbar = [
             '->',
             {
-                text: 'Refresh',
+                text: 'Next function',
                 handler: refreshChart
             },
             {

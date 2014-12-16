@@ -49,7 +49,7 @@ Ext.define('Ext.chart.series.sprite.CandleStick', {
                 ohlcType: 'candlestick'
             },
 
-            dirtyTriggers: {
+            triggers: {
                 raiseStyle: 'raiseStyle',
                 dropStyle: 'dropStyle'
             },

@@ -68,7 +68,7 @@
  * Components can be searched by their object property values (attributes). To do that,
  * use attribute matching expression in square brackets:
  *
- * - `component[autoScroll]` - matches any Component that has `autoScroll` property with
+ * - `component[disabled]` - matches any Component that has `disabled` property with
  * any truthy (non-empty, not `false`) value.
  * - `panel[title="Test"]` - matches any Component that has `title` property set to
  * "Test". Note that if the value does not contain spaces, the quotes are optional.
@@ -477,7 +477,8 @@ Ext.define('Ext.ComponentQuery', {
                 mustBeOwnProperty,
                 presenceOnly,
                 candidate, propValue,
-                j, propLen;
+                j, propLen,
+                config;
 
             // Prefixing property name with an @ means that the property must be in the candidate, not in its prototype
             if (property.charAt(0) === '@') {
@@ -493,38 +494,40 @@ Ext.define('Ext.ComponentQuery', {
             for (; i < length; i++) {
                 candidate = items[i];
 
-                // Check candidate hasOwnProperty is propName prefixed with a bang.
-                if (!mustBeOwnProperty || candidate.hasOwnProperty(property)) {
-
-                    // pull out property value to test
+                config = candidate.self.$config.configs[property];
+                if (config) {
+                    propValue = candidate[config.names.get]();
+                } else if (mustBeOwnProperty && !candidate.hasOwnProperty(property)) {
+                    continue;
+                } else {
                     propValue = candidate[property];
+                }
 
-                    if (presenceOnly) {
-                        result.push(candidate);
-                    }
-                    // implies property is an array, and we must compare value against each element.
-                    else if (operator === '~=') {
-                        if (propValue) {
-                            //We need an array
-                            if (!Ext.isArray(propValue)) {
-                                propValue = propValue.split(' ');
-                            }
+                if (presenceOnly) {
+                    result.push(candidate);
+                }
+                // implies property is an array, and we must compare value against each element.
+                else if (operator === '~=') {
+                    if (propValue) {
+                        //We need an array
+                        if (!Ext.isArray(propValue)) {
+                            propValue = propValue.split(' ');
+                        }
 
-                            for (j = 0, propLen = propValue.length; j < propLen; j++) {
-                                if (queryOperators[operator](Ext.coerce(propValue[j], compareTo), compareTo)) {
-                                    result.push(candidate);
-                                    break;
-                                }
+                        for (j = 0, propLen = propValue.length; j < propLen; j++) {
+                            if (queryOperators[operator](Ext.coerce(propValue[j], compareTo), compareTo)) {
+                                result.push(candidate);
+                                break;
                             }
                         }
                     }
-                    else if (operator === '/=') {
-                        if (candidate[property] !== undefined && compareTo.test(candidate[property])) {
-                            result.push(candidate);
-                        }
-                    } else if (!compareTo ? !!candidate[property] : queryOperators[operator](Ext.coerce(propValue, compareTo), compareTo)) {
+                }
+                else if (operator === '/=') {
+                    if (propValue != null && compareTo.test(propValue)) {
                         result.push(candidate);
                     }
+                } else if (!compareTo ? !!candidate[property] : queryOperators[operator](Ext.coerce(propValue, compareTo), compareTo)) {
+                    result.push(candidate);
                 }
             }
             return result;

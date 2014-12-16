@@ -50,14 +50,16 @@ Ext.define('Ext.grid.property.HeaderContainer', {
                 width: grid.nameColumnWidth || me.nameWidth,
                 sortable: grid.sortableColumns,
                 dataIndex: grid.nameField,
-                renderer: me.renderProp.bind(me),
+                scope: me,
+                renderer: me.renderProp,
                 itemId: grid.nameField,
                 menuDisabled: true,
                 tdCls: me.nameColumnCls,
                 innerCls: me.nameColumnInnerCls
             }, {
                 header: me.valueText,
-                renderer: me.renderCell.bind(me),
+                scope: me,
+                renderer: me.renderCell,
                 getEditor: me.getCellEditor.bind(me),
                 sortable: grid.sortableColumns,
                 flex: 1,
@@ -69,7 +71,7 @@ Ext.define('Ext.grid.property.HeaderContainer', {
         }]);
 
         // PropertyGrid needs to know which column is the editable "value" column.
-        me.grid.valueColumn = me.items.items[1];
+        me.grid.valueColumn = me.items.getAt(1);
     },
 
     getCellEditor: function(record){
@@ -87,7 +89,7 @@ Ext.define('Ext.grid.property.HeaderContainer', {
     renderCell : function(val, meta, rec) {
         var me = this,
             grid = me.grid,
-            renderer = grid.getConfig(rec.get(grid.nameField), 'renderer'),
+            renderer = grid.getConfigProp(rec.get(grid.nameField), 'renderer'),
             result = val;
 
         if (renderer) {
@@ -112,6 +114,6 @@ Ext.define('Ext.grid.property.HeaderContainer', {
     // @private
     // Renders custom property names instead of raw names if defined in the Grid
     getPropertyName : function(name) {
-        return this.grid.getConfig(name, 'displayName', name);
+        return this.grid.getConfigProp(name, 'displayName', name);
     }
 });

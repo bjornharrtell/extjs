@@ -75,14 +75,8 @@ Ext.onReady(function(){
                 text: 'Toggle Summary',
                 enableToggle: true,
                 pressed: true,
-                handler: function(){
-                    showSummary = !showSummary;
-                    var view = grid.lockedGrid.getView();
-                    view.getFeature('group').toggleSummaryRow(showSummary);
-                    view.refresh();
-                    view = grid.normalGrid.getView();
-                    view.getFeature('group').toggleSummaryRow(showSummary);
-                    view.refresh();
+                handler: function() {
+                    grid.lockedGrid.getView().getFeature('group').toggleSummaryRow(showSummary);
                 }
             }]
         }],

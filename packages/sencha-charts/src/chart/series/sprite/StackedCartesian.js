@@ -33,7 +33,7 @@ Ext.define('Ext.chart.series.sprite.StackedCartesian', {
                 groupOffset: 0,
                 dataStartY: null
             },
-            dirtyTriggers: {
+            triggers: {
                 dataStartY: 'dataY,bbox'
             }
         }
@@ -52,9 +52,9 @@ Ext.define('Ext.chart.series.sprite.StackedCartesian', {
             center = imat.transformPoint([x, y]),
             positionLB = imat.transformPoint([x - selectionTolerance, y - selectionTolerance]),
             positionTR = imat.transformPoint([x + selectionTolerance, y + selectionTolerance]),
-            dx, dy,
             top = Math.min(positionLB[1], positionTR[1]),
-            bottom = Math.max(positionLB[1], positionTR[1]);
+            bottom = Math.max(positionLB[1], positionTR[1]),
+            dx, dy;
 
         for (var i = 0; i < dataX.length; i++) {
             if (Math.min(dataStartY[i], dataY[i]) <= bottom && top <= Math.max(dataStartY[i], dataY[i])) {

@@ -65,11 +65,8 @@ Ext.define('KitchenSink.view.tree.FilteredTree', {
         fieldLabel: 'Filter on thread title',
         triggerCls: 'x-form-clear-trigger',
         onTriggerClick: function() {
-            var store = this.up('treepanel').store;
-
+            // Will trigger the change listener
             this.reset();
-            store.clearFilter();
-            this.focus();
         },
         listeners: {
             change: function() {
@@ -79,6 +76,7 @@ Ext.define('KitchenSink.view.tree.FilteredTree', {
 
                 try {
                     v = new RegExp(this.getValue(), 'i');
+                    Ext.suspendLayouts();
                     tree.store.filter({
                         filterFn: function(node) {
                             var children = node.childNodes,
@@ -103,6 +101,7 @@ Ext.define('KitchenSink.view.tree.FilteredTree', {
                         id: 'titleFilter'
                     });
                     tree.down('#matches').setValue(matches);
+                    Ext.resumeLayouts(true);
                 } catch (e) {
                     this.markInvalid('Invalid regular expression');
                 }

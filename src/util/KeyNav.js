@@ -45,6 +45,67 @@ Ext.define('Ext.util.KeyNav', {
     requires: ['Ext.util.KeyMap'],
 
     /**
+     * @cfg {Boolean} disabled
+     * True to disable this KeyNav instance.
+     */
+    disabled: false,
+
+    /**
+     * @cfg {String} [defaultEventAction=false]
+     * The method to call on the {@link Ext.event.Event} after this KeyNav intercepts a key.
+     * Valid values are {@link Ext.event.Event#stopEvent}, {@link Ext.event.Event#preventDefault}
+     * and {@link Ext.event.Event#stopPropagation}.
+     *
+     * If a falsy value is specified, no method is called on the key event.
+     */
+    defaultEventAction: false,
+
+    /**
+     * @cfg {Boolean} forceKeyDown
+     * Handle the keydown event instead of keypress. KeyNav automatically does this for IE since IE does not propagate
+     * special keys on keypress, but setting this to true will force other browsers to also handle keydown instead of
+     * keypress.
+     */
+    forceKeyDown: false,
+
+    /**
+     * @cfg {Ext.Component/Ext.dom.Element/HTMLElement/String} target
+     * The object on which to listen for the event specified by the {@link #eventName} config option.
+     */
+
+    /**
+     * @cfg {String} eventName
+     * The event to listen for to pick up key events.
+     */
+    eventName: 'keypress',
+
+    /**
+     * @cfg {Function} processEvent
+     * An optional event processor function which accepts the argument list provided by the {@link #eventName configured
+     * event} of the {@link #target}, and returns a keyEvent for processing by the KeyMap.
+     *
+     * This may be useful when the {@link #target} is a Component with s complex event signature. Extra information from
+     * the event arguments may be injected into the event for use by the handler functions before returning it.
+     */
+
+    /**
+     * @cfg {Object} [processEventScope=this]
+     * The scope (`this` context) in which the {@link #processEvent} method is executed.
+     */
+
+    /**
+     * @cfg {Boolean} [ignoreInputFields=false]
+     * Configure this as `true` if there are any input fields within the {@link #target}, and this KeyNav
+     * should not process events from input fields, (`&lt;input>, &lt;textarea> and elements with `contentEditable="true"`)
+     */
+
+    /**
+     * @cfg {Ext.util.KeyMap} [keyMap]
+     * An optional pre-existing {@link Ext.util.KeyMap KeyMap} to use to listen for key events. If not specified,
+     * one is created.
+     */
+
+    /**
      * @property {Ext.event.Event} lastKeyEvent
      * The last key event that this KeyMap handled.
      */
@@ -74,7 +135,7 @@ Ext.define('Ext.util.KeyNav', {
             me.legacyConstructor.apply(me, arguments);
             return;
         }
-        me.setConfig(config);
+        me.doConstruction(config);
     },
 
     /**
@@ -84,7 +145,7 @@ Ext.define('Ext.util.KeyNav', {
      * @param {Object} config The config
      */
     legacyConstructor: function(el, config) {
-        this.setConfig(Ext.apply({
+        this.doConstruction(Ext.apply({
             target: el
         }, config));
     },
@@ -94,7 +155,7 @@ Ext.define('Ext.util.KeyNav', {
      * @private
      * @param {Object} config A configuration object as specified in the constructor.
      */
-    setConfig: function(config) {
+    doConstruction: function(config) {
         var me = this,
             keymapCfg = {
                 target: config.target,
@@ -107,6 +168,9 @@ Ext.define('Ext.util.KeyNav', {
         if (me.map) {
             me.map.destroy();
         }
+
+        // Ensure config system configs are set
+        me.initConfig(config);
 
         if (config.processEvent) {
             keymapCfg.processEvent = config.processEvent;
@@ -176,66 +240,6 @@ Ext.define('Ext.util.KeyNav', {
         keyNav.lastKeyEvent = event;
         return handler.call(this, event);
     },
-
-    /**
-     * @cfg {Boolean} disabled
-     * True to disable this KeyNav instance.
-     */
-    disabled: false,
-
-    /**
-     * @cfg {String} defaultEventAction
-     * The method to call on the {@link Ext.event.Event} after this KeyNav intercepts a key. Valid values are {@link
-     * Ext.event.Event#stopEvent}, {@link Ext.event.Event#preventDefault} and {@link Ext.event.Event#stopPropagation}.
-     *
-     * If a falsy value is specified, no method is called on the key event.
-     */
-    defaultEventAction: "stopEvent",
-
-    /**
-     * @cfg {Boolean} forceKeyDown
-     * Handle the keydown event instead of keypress. KeyNav automatically does this for IE since IE does not propagate
-     * special keys on keypress, but setting this to true will force other browsers to also handle keydown instead of
-     * keypress.
-     */
-    forceKeyDown: false,
-
-    /**
-     * @cfg {Ext.Component/Ext.dom.Element/HTMLElement/String} target
-     * The object on which to listen for the event specified by the {@link #eventName} config option.
-     */
-
-    /**
-     * @cfg {String} eventName
-     * The event to listen for to pick up key events.
-     */
-    eventName: 'keypress',
-
-    /**
-     * @cfg {Function} processEvent
-     * An optional event processor function which accepts the argument list provided by the {@link #eventName configured
-     * event} of the {@link #target}, and returns a keyEvent for processing by the KeyMap.
-     *
-     * This may be useful when the {@link #target} is a Component with s complex event signature. Extra information from
-     * the event arguments may be injected into the event for use by the handler functions before returning it.
-     */
-
-    /**
-     * @cfg {Object} [processEventScope=this]
-     * The scope (`this` context) in which the {@link #processEvent} method is executed.
-     */
-
-    /**
-     * @cfg {Boolean} [ignoreInputFields=false]
-     * Configure this as `true` if there are any input fields within the {@link #target}, and this KeyNav
-     * should not process events from input fields, (`&lt;input>, &lt;textarea> and elements with `contentEditable="true"`)
-     */
-
-    /**
-     * @cfg {Ext.util.KeyMap} [keyMap]
-     * An optional pre-existing {@link Ext.util.KeyMap KeyMap} to use to listen for key events. If not specified,
-     * one is created.
-     */
 
     /**
      * Destroy this KeyNav.

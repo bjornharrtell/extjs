@@ -1,4 +1,4 @@
-<project name="refresh-impl">
+<project name="x-refresh-impl">
     <import file="bootstrap-impl.xml"/>
    
     <target name="-refresh-pkg" depends="init"/>

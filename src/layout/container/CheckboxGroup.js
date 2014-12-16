@@ -25,7 +25,7 @@ Ext.define('Ext.layout.container.CheckboxGroup', {
     ],
 
     renderTpl: [
-        '<table id="{ownerId}-innerCt" data-ref="innerCt" class="' + Ext.plainTableCls + '" cellpadding="0"',
+        '<table id="{ownerId}-innerCt" data-ref="innerCt" class="' + Ext.baseCSSPrefix + 'table-plain" cellpadding="0"',
             'role="presentation" style="{tableStyle}"><tr role="presentation">',
             '<tpl for="columns">',
                 '<td class="{parent.colCls}" valign="top" style="{style}" role="presentation">',

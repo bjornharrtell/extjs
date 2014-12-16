@@ -21,7 +21,7 @@ Ext.define("Ext.util.Sortable", {
         /**
          * @cfg {Ext.util.Sorter[]/Object[]} sorters
          * The initial set of {@link Ext.util.Sorter Sorters}.
-         * 
+         *
          *     sorters: [{
          *         property: 'age',
          *         direction: 'DESC'
@@ -138,19 +138,19 @@ Ext.define("Ext.util.Sortable", {
      * This may take the following values:
      *
      * * `replace` : This means that the new sorter(s) becomes the sole sorter set for this Sortable. This is the most useful call mode
-     *           to programatically sort by multiple fields.  
-     *       
-     * * `prepend` : This means that the new sorters are inserted as the primary sorters, unchanged, and the sorter list length must be controlled by the developer.  
-     *       
+     *           to programatically sort by multiple fields.
+     *
+     * * `prepend` : This means that the new sorters are inserted as the primary sorters, unchanged, and the sorter list length must be controlled by the developer.
+     *
      * * `multi` :  This is mainly useful for implementing intuitive "Sort by this" user interfaces such as the {@link Ext.grid.Panel GridPanel}'s column sorting UI.
      *
      *     This mode is only supported when passing a property name and a direction.
      *
      *     This means that the new sorter is becomes the primary sorter. If the sorter was **already** the primary sorter, the direction
      *     of sort is toggled if no direction parameter is specified.
-     *     
-     *     The number of sorters maintained is limited by the {@link #multiSortLimit} configuration.  
-     *       
+     *
+     *     The number of sorters maintained is limited by the {@link #multiSortLimit} configuration.
+     *
      * * `append` : This means that the new sorter becomes the last sorter.
      * @return {Ext.util.Sorter[]} The new sorters.
      */
@@ -329,7 +329,7 @@ Ext.define("Ext.util.Sortable", {
 
         return sorters;
     },
-    
+
     /**
      * Gets the first sorter from the sorters collection, excluding
      * any groupers that may be in place
@@ -341,11 +341,11 @@ Ext.define("Ext.util.Sortable", {
             len = sorters.length,
             i = 0,
             sorter;
-            
+
         for (; i < len; ++i) {
             sorter = sorters[i];
             if (!sorter.isGrouper) {
-                return sorter;    
+                return sorter;
             }
         }
         return null;

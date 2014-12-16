@@ -54,7 +54,7 @@ Ext.onReady(function(){
     var cellEditing = Ext.create('Ext.grid.plugin.CellEditing', {
         clicksToEdit: 1
     });
-    var showSummary = true;
+
     var grid = Ext.create('Ext.grid.Panel', {
         width: 840,
         height: 450,
@@ -72,11 +72,8 @@ Ext.onReady(function(){
                 text: 'Toggle Summary',
                 enableToggle: true,
                 pressed: true,
-                handler: function(){
-                    var view = grid.getView();
-                    showSummary = !showSummary;
-                    view.getFeature('group').toggleSummaryRow(showSummary);
-                    view.refresh();
+                handler: function() {
+                    grid.getView().getFeature('group').toggleSummaryRow();
                 }
             }]
         }],

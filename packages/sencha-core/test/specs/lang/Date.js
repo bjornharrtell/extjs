@@ -89,32 +89,35 @@ describe("Ext.Date", function() {
 
     describe("getMonthNumber", function() {
         it("should return the month number [0-11] for the corresponding short month name", function() {
-           expect(Ext.Date.getMonthNumber("jan")).toBe(0);
-           expect(Ext.Date.getMonthNumber("feb")).toBe(1);
-           expect(Ext.Date.getMonthNumber("mar")).toBe(2);
-           expect(Ext.Date.getMonthNumber("apr")).toBe(3);
-           expect(Ext.Date.getMonthNumber("MAY")).toBe(4);
-           expect(Ext.Date.getMonthNumber("JUN")).toBe(5);
-           expect(Ext.Date.getMonthNumber("JUL")).toBe(6);
-           expect(Ext.Date.getMonthNumber("AUG")).toBe(7);
-           expect(Ext.Date.getMonthNumber("Sep")).toBe(8);
-           expect(Ext.Date.getMonthNumber("Oct")).toBe(9);
-           expect(Ext.Date.getMonthNumber("Nov")).toBe(10);
-           expect(Ext.Date.getMonthNumber("Dec")).toBe(11);
+            var names = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 
+                         'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+            Ext.Array.forEach(names, function(name, idx) {
+                expect(Ext.Date.getMonthNumber(name)).toBe(idx);
+                expect(Ext.Date.getMonthNumber(name.toUpperCase())).toBe(idx);
+                expect(Ext.Date.getMonthNumber(Ext.String.capitalize(name))).toBe(idx);
+            });
         });
+
         it("should return the month number [0-11] for the corresponding full month name", function() {
-            expect(Ext.Date.getMonthNumber("january")).toBe(0);
-            expect(Ext.Date.getMonthNumber("february")).toBe(1);
-            expect(Ext.Date.getMonthNumber("march")).toBe(2);
-            expect(Ext.Date.getMonthNumber("april")).toBe(3);
-            expect(Ext.Date.getMonthNumber("MAY")).toBe(4);
-            expect(Ext.Date.getMonthNumber("JUNE")).toBe(5);
-            expect(Ext.Date.getMonthNumber("JULY")).toBe(6);
-            expect(Ext.Date.getMonthNumber("AUGUST")).toBe(7);
-            expect(Ext.Date.getMonthNumber("September")).toBe(8);
-            expect(Ext.Date.getMonthNumber("October")).toBe(9);
-            expect(Ext.Date.getMonthNumber("November")).toBe(10);
-            expect(Ext.Date.getMonthNumber("December")).toBe(11);
+            var names = ['january', 
+                         'february', 
+                         'march', 
+                         'april', 
+                         'may', 
+                         'june', 
+                         'july', 
+                         'august', 
+                         'september', 
+                         'october', 
+                         'november', 
+                         'december'];
+
+            Ext.Array.forEach(names, function(name, idx) {
+                expect(Ext.Date.getMonthNumber(name)).toBe(idx);
+                expect(Ext.Date.getMonthNumber(name.toUpperCase())).toBe(idx);
+                expect(Ext.Date.getMonthNumber(Ext.String.capitalize(name))).toBe(idx);
+            });
         });
     });
 
@@ -573,10 +576,20 @@ describe("Ext.Date", function() {
     });
 
     describe("formatting", function(){
-        var date = new Date(2010, 0, 1, 13, 45, 32, 4),
+        // Set the reference date to be an absolute time value so that tests will
+        // run in any time zone.
+        // This is Friday, January 1, 2010, 21:45:32.004 UTC
+        // In the below code we'll retrieve the local TZ offset so that no matter in
+        // which TZ this runs, the date/time will always be the same
+        // Around the world where tests may be run, the default toString
+        // rendition of this may change, so testers beware.
+        var baseline = 1262382332004,
+            tzOffset = (new Date()).getTimezoneOffset(),
+            ms = baseline + (tzOffset * 60000), // ms in 1 minute
+            date = new Date(ms),
             format = Ext.Date.format;
 
-        it("should format with the d option", function(){
+        it("should format with the d option", function() {
             expect(format(date, 'd')).toBe('01');
         });
 
@@ -657,19 +670,19 @@ describe("Ext.Date", function() {
         });
 
         it("should format with the g option", function(){
-            expect(format(date, 'g')).toBe('1');
+            expect(format(date, 'g')).toBe('9');
         });
 
         it("should format with the G option", function(){
-            expect(format(date, 'G')).toBe('13');
+            expect(format(date, 'G')).toBe('21');
         });
 
         it("should format with the h option", function(){
-            expect(format(date, 'h')).toBe('01');
+            expect(format(date, 'h')).toBe('09');
         });
 
         it("should format with the H option", function(){
-            expect(format(date, 'H')).toBe('13');
+            expect(format(date, 'H')).toBe('21');
         });
 
         it("should format with the i option", function(){
@@ -685,7 +698,7 @@ describe("Ext.Date", function() {
         });
 
         // can't be static, relies on TZ
-        it("should format with the O option", function(){
+        it("should format with the O option", function() {
             var value = Ext.Date.getGMTOffset(date, false);
             expect(format(date, 'O')).toBe(value);
         });
@@ -710,8 +723,13 @@ describe("Ext.Date", function() {
 
         // can't be static, relies on TZ
         it("should format with the c option", function(){
-            var value = '2010-01-01T13:45:32' + Ext.Date.getGMTOffset(date, true);
+            var value = '2010-01-01T21:45:32' + Ext.Date.getGMTOffset(date, true);
             expect(format(date, 'c')).toBe(value);
+        });
+
+        it("should format with the C option", function(){
+            // Use the baseline date here because we want a UTC string
+            expect(format(new Date(baseline), 'C')).toBe('2010-01-01T21:45:32.004Z');
         });
 
         it("should format with the U option", function(){

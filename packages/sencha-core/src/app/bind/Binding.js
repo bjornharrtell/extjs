@@ -141,16 +141,11 @@ Ext.define('Ext.app.bind.Binding', {
      */
     isReadOnly: function () {
         var stub = this.stub,
-            options = this.options,
-            formula;
+            options = this.options;
 
-        // Not all Stubs can be set
-        if (stub && stub.set && !(options && options.twoWay === false)) {
-            formula = stub.formula;
-            // Having a normal formula means readOnly, but if that formula defines a
-            // "set" method than we are good.
-            if (!formula || formula.set) {
-                return false; // not readOnly so can be two-way
+        if (!(options && options.twoWay === false)) {
+            if (stub) {
+                return stub.isReadOnly();
             }
         }
 
@@ -179,16 +174,7 @@ Ext.define('Ext.app.bind.Binding', {
             Ext.Error.raise('Cannot setValue on a readonly binding');
         }
         //</debug>
-
-        var stub = this.stub,
-            formula = stub.formula;
-
-        if (formula) {
-            // Formulas receive the ViewModel as their this pointer
-            formula.set.call(stub.owner, value);
-        } else {
-            stub.set(value);
-        }
+        this.stub.set(value);
     },
 
     privates: {

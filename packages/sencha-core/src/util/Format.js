@@ -447,7 +447,7 @@ Ext.define('Ext.util.Format', function () {
          * @param {Object} value The text from which to strip tags
          * @return {String} The stripped text
          */
-        stripTags : function(v) {
+        stripTags: function(v) {
             return !v ? v : String(v).replace(me.stripTagsRe, "");
         },
 
@@ -681,16 +681,16 @@ Ext.define('Ext.util.Format', function () {
                     '}';
                 }
 
-                if (trimTrailingZeroes) {
-                    code[code.length] = 'fnum=fnum.replace(trailingZeroes,"");';
-                }
-
                 /*
                  * Edge case. If we have a very small negative number it will get rounded to 0,
                  * however the initial check at the top will still report as negative. Replace
                  * everything but 1-9 and check if the string is empty to determine a 0 value.
                  */
-                code[code.length] = 'if(neg&&fnum!=="' + (precision ? '0.' + Ext.String.repeat('0', precision) : '0') + '")fnum="-"+fnum;';
+                code[code.length] = 'if(neg&&fnum!=="' + (precision ? '0.' + Ext.String.repeat('0', precision) : '0') + '") { fnum="-"+fnum; }';
+
+                if (trimTrailingZeroes) {
+                    code[code.length] = 'fnum=fnum.replace(trailingZeroes,"");';
+                }
 
                 code[code.length] = 'return ';
 

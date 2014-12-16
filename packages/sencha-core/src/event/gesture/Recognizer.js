@@ -20,7 +20,24 @@
  * @private
  */
 Ext.define('Ext.event.gesture.Recognizer', {
+    requires: ['Ext.event.publisher.Gesture'],
     mixins: ['Ext.mixin.Identifiable'],
+
+    /**
+     * @property {Number}
+     * The priority of the recognizer. Determines the order in which it recognizes gestures
+     * relative to other recognizers.  The default recognizers use the following priorities:
+     *
+     * - Ext.event.gesture.Drag: 100
+     * - Ext.event.gesture.Tap: 200
+     * - Ext.event.gesture.DoubleTap: 300
+     * - Ext.event.gesture.LongPress: 400
+     * - Ext.event.gesture.Swipe: 500
+     * - Ext.event.gesture.Pinch: 600
+     * - Ext.event.gesture.Rotate: 700
+     * - Ext.event.gesture.EdgeSwipe: 800
+     */
+    priority: 0,
 
     handledEvents: [],
 
@@ -31,12 +48,7 @@ Ext.define('Ext.event.gesture.Recognizer', {
 
     constructor: function(config) {
         this.initConfig(config);
-
-        return this;
-    },
-
-    getHandledEvents: function() {
-        return this.handledEvents;
+        Ext.event.publisher.Gesture.instance.registerRecognizer(this);
     },
 
     onStart: Ext.emptyFn,
@@ -58,6 +70,8 @@ Ext.define('Ext.event.gesture.Recognizer', {
     fire: function() {
         this.getOnRecognized().apply(this.getCallbackScope(), arguments);
     },
+
+    reset: Ext.emptyFn,
 
     debugHooks: {
         $enabled: false,  // Disable by default

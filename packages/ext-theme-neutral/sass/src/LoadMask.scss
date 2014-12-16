@@ -1,8 +1,21 @@
 .#{$prefix}mask {
-    @include opacity($loadmask-opacity);
-    background: $loadmask-background-color;
+    @include background-opacity($loadmask-background-color, $loadmask-opacity);
     @if not is-null($loadmask-cursor) {
         cursor: $loadmask-cursor;
+    }
+    
+    @if $loadmask-border-width-focus != 0 {
+        border-style: $loadmask-border-style-focus;
+        border-width: $loadmask-border-width-focus;
+        border-color: transparent;
+    }
+}
+
+@if $loadmask-border-width-focus != 0 {
+    .#{$prefix}mask.#{$prefix}focus {
+        border-style: $loadmask-border-style-focus;
+        border-width: $loadmask-border-width-focus;
+        border-color: $loadmask-border-color-focus;
     }
 }
 

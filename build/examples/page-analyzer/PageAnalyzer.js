@@ -15,6 +15,7 @@ Ext.require([
     'Ext.tree.*',
     'Ext.container.Viewport',
     'Ext.layout.container.Border',
+    'Ext.window.Window',
     'Ext.History',
     'Ext.tab.Panel',
     'Ext.grid.column.Action',

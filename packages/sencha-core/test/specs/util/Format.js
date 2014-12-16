@@ -116,13 +116,13 @@ describe("Ext.util.Format", function() {
 
     describe("usMoney", function(){
         it("should format with 2 decimals, prefixed by a dollar sign", function() {
-            expect(Ext.util.Format.usMoney(1234.567)).toEqual("$1,234.57");
+            expect(Ext.util.Format.usMoney(1234.567)).toBe("$1,234.57");
         });
         it("should format with 2 decimals, prefixed by a negative sign, and a dollar sign", function() {
-            expect(Ext.util.Format.usMoney(-1234.567)).toEqual("-$1,234.57");
+            expect(Ext.util.Format.usMoney(-1234.567)).toBe("-$1,234.57");
         });
         it("should format with a comma as a thousand separator", function() {
-            expect(Ext.util.Format.usMoney(1234567.89)).toEqual("$1,234,567.89");
+            expect(Ext.util.Format.usMoney(1234567.89)).toBe("$1,234,567.89");
         });
     });
 
@@ -151,10 +151,10 @@ describe("Ext.util.Format", function() {
             });
     
             it("should format with 2 decimals, prefixed by a euro sign", function() {
-                expect(Ext.util.Format.currency(1234.567)).toEqual("\u20ac1.234,57");
+                expect(Ext.util.Format.currency(1234.567)).toBe("\u20ac1.234,57");
             });
             it("should format with 2 decimals, prefixed by a negative sign, and a euro sign", function() {
-                expect(Ext.util.Format.currency(-1234.567)).toEqual("-\u20ac1.234,57");
+                expect(Ext.util.Format.currency(-1234.567)).toBe("-\u20ac1.234,57");
             });
         });
     });
@@ -163,19 +163,19 @@ describe("Ext.util.Format", function() {
 
         describe("number in default (US) locale", function() {
             it("should format with no decimals", function() {
-                expect(Ext.util.Format.number(1, "0")).toEqual("1");
+                expect(Ext.util.Format.number(1, "0")).toBe("1");
             });
             it("should format with two decimals", function() {
-                expect(Ext.util.Format.number(1, "0.00")).toEqual("1.00");
+                expect(Ext.util.Format.number(1, "0.00")).toBe("1.00");
             });
             it("should format+round with two decimals, and no thousand separators", function() {
-                expect(Ext.util.Format.number(1234.567, "0.00")).toEqual("1234.57");
+                expect(Ext.util.Format.number(1234.567, "0.00")).toBe("1234.57");
             });
             it("should format+round with two decimals, and ',' as the thousand separator", function() {
-                expect(Ext.util.Format.number(1234.567, ",0.00")).toEqual("1,234.57");
+                expect(Ext.util.Format.number(1234.567, ",0.00")).toBe("1,234.57");
             });
             it("should format+round with no decimals, and ',' as the thousand separator", function() {
-                expect(Ext.util.Format.number(1234.567, ",0")).toEqual("1,235");
+                expect(Ext.util.Format.number(1234.567, ",0")).toBe("1,235");
             });
         });
 
@@ -200,19 +200,19 @@ describe("Ext.util.Format", function() {
             });
     
             it("should format with no decimals", function() {
-                expect(Ext.util.Format.number(1, "0")).toEqual("1");
+                expect(Ext.util.Format.number(1, "0")).toBe("1");
             });
             it("should format with two decimals", function() {
-                expect(Ext.util.Format.number(1, "0.00")).toEqual("1,00");
+                expect(Ext.util.Format.number(1, "0.00")).toBe("1,00");
             });
             it("should format+round with two decimals, and no thousand separators", function() {
-                expect(Ext.util.Format.number(1234.567, "0.00")).toEqual("1234,57");
+                expect(Ext.util.Format.number(1234.567, "0.00")).toBe("1234,57");
             });
             it("should format+round with two decimals after a ',', and '.' as the thousand separator", function() {
-                expect(Ext.util.Format.number(1234.567, ",0.00")).toEqual("1.234,57");
+                expect(Ext.util.Format.number(1234.567, ",0.00")).toBe("1.234,57");
             });
             it("should format+round with no decimals, and '.' as the thousand separator", function() {
-                expect(Ext.util.Format.number(1234.567, ",0")).toEqual("1.235");
+                expect(Ext.util.Format.number(1234.567, ",0")).toBe("1.235");
             });
             
             it("should use custom separator with thousands specified where num < 1000", function(){
@@ -248,30 +248,30 @@ describe("Ext.util.Format", function() {
             // Read carefully. In the formatting strings below, '.' is taken to mean thousand separator, and
             // ',' is taken to mean decimal separator
             it("should format with no decimals", function() {
-                expect(Ext.util.Format.number(1, "0.00/i")).toEqual("1");
+                expect(Ext.util.Format.number(1, "0.00/i")).toBe("1");
             });
             it("should format+round with no decimals, and '.' as thousand separator", function() {
-                expect(Ext.util.Format.number(1234.567, "0.00/i")).toEqual("1.235");
+                expect(Ext.util.Format.number(1234.567, "0.00/i")).toBe("1.235");
             });
             it("should format+round with three decimals after a ',', and '.' as the thousand separator", function() {
-                expect(Ext.util.Format.number(1234.567, ",0.00/i")).toEqual("1.234,567");
+                expect(Ext.util.Format.number(1234.567, ",0.00/i")).toBe("1.234,567");
             });
             it("should format+round with one decimal, and no thousand separator", function() {
-                expect(Ext.util.Format.number(1234.567, ",0/i")).toEqual("1234,6");
+                expect(Ext.util.Format.number(1234.567, ",0/i")).toBe("1234,6");
             });
     
             // Correct usage
             it("should format with two decimals", function() {
-                expect(Ext.util.Format.number(1, "0,00/i")).toEqual("1,00");
+                expect(Ext.util.Format.number(1, "0,00/i")).toBe("1,00");
             });
             it("should format+round with two decimals, and no thousand separators", function() {
-                expect(Ext.util.Format.number(1234.567, "0,00/i")).toEqual("1234,57");
+                expect(Ext.util.Format.number(1234.567, "0,00/i")).toBe("1234,57");
             });
             it("should format+round with two decimals after a ',', and '.' as the thousand separator", function() {
-                expect(Ext.util.Format.number(1234.567, ".0,00/i")).toEqual("1.234,57");
+                expect(Ext.util.Format.number(1234.567, ".0,00/i")).toBe("1.234,57");
             });
             it("should format+round with no decimals, and '.' as the thousand separator", function() {
-                expect(Ext.util.Format.number(1234.567, ".0/i")).toEqual("1.235");
+                expect(Ext.util.Format.number(1234.567, ".0/i")).toBe("1.235");
             });
     
         });
@@ -399,11 +399,15 @@ describe("Ext.util.Format", function() {
 
         describe("negative", function() {
             it("should check for a 0 value before appending negative", function(){
-                expect(Ext.util.Format.number(-2.842170943040401e-14, "0,000.00")).toEqual('0.00');
+                expect(Ext.util.Format.number(-2.842170943040401e-14, "0,000.00")).toBe('0.00');
             });
             
             it("should apply the thousandSep with a large negative number", function(){
                 expect(Ext.util.Format.number(-22002, '0,000')).toBe('-22,002');
+            });
+
+            it("should not put the negative when a small negative number trims trailing zeroes and rounds to 0", function() {
+                expect(Ext.util.Format.number(-0.00000001, '0,0.######')).toBe('0');
             });
         });
 

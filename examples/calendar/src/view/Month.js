@@ -217,7 +217,7 @@ Ext.define('Ext.calendar.view.Month', {
             var tpl,
             body = this.getEventBodyMarkup();
 
-            tpl = !(Ext.isIE || this.operaLT11) ?
+            tpl = !(Ext.isIE7m || this.operaLT11) ?
             new Ext.XTemplate(
                 '<div id="{_elId}" class="{_selectorCls} {_colorCls} {spanCls} ext-cal-evt ext-cal-evr">',
                     body,

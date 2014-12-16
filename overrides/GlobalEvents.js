@@ -34,7 +34,7 @@ Ext.define('Ext.overrides.GlobalEvents', {
     deprecated: {
         5: {
             methods: {
-                addListener: function(ename, fn, scope, options) {
+                addListener: function(ename, fn, scope, options, order, caller, eventOptions) {
                     var name,
                         readyFn;
 
@@ -58,7 +58,7 @@ Ext.define('Ext.overrides.GlobalEvents', {
                         Ext.onReady(readyFn);
                     }
 
-                    this.callParent([ename, fn, scope, options]);
+                    this.callParent([ename, fn, scope, options, order, caller, eventOptions]);
                 }
             }
         }

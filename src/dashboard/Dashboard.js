@@ -23,7 +23,7 @@ Ext.define('Ext.dashboard.Dashboard', {
 
     defaultType: 'dashboard-column',
 
-    autoScroll: true,
+    scrollable: true,
 
     layout: null,
 
@@ -172,7 +172,7 @@ Ext.define('Ext.dashboard.Dashboard', {
         var cycle = this.cycleLayout;
         return Ext.apply({
             items : [],
-            bubbleEvents : ['add','remove','move', 'resize'],
+            bubbleEvents : ['add', 'remove', 'childmove', 'resize'],
             listeners: {
                 remove: this.onRemoveItem,
                 expand  : cycle,

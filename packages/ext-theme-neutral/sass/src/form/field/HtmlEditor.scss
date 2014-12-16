@@ -39,14 +39,14 @@
     background-image: theme-background-image('editor/tb-sprite');
 }
 
-.#{$prefix}html-editor-tb .#{$prefix}edit-justifyright,
-.#{$prefix}menu-item div.#{$prefix}edit-justifyright {
+.#{$prefix}html-editor-tb .#{$prefix}edit-justifycenter,
+.#{$prefix}menu-item div.#{$prefix}edit-justifycenter {
     background-position: (-$html-editor-toolbar-icon-size * 8) 0;
     background-image: theme-background-image('editor/tb-sprite');
 }
 
-.#{$prefix}html-editor-tb .#{$prefix}edit-justifycenter,
-.#{$prefix}menu-item div.#{$prefix}edit-justifycenter {
+.#{$prefix}html-editor-tb .#{$prefix}edit-justifyright,
+.#{$prefix}menu-item div.#{$prefix}edit-justifyright {
     background-position: (-$html-editor-toolbar-icon-size * 9) 0;
     background-image: theme-background-image('editor/tb-sprite');
 }

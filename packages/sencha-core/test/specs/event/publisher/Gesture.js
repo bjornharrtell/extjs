@@ -57,4 +57,44 @@ describe("Ext.event.publisher.Gesture", function() {
             })
         });
     });
+
+    describe("order of recognizers", function() {
+        it("should invoke the recognizers in priority order when an event is fired", function() {
+            var gesture = Ext.event.gesture,
+                Drag = gesture.Drag.instance,
+                Tap = gesture.Tap.instance,
+                DoubleTap = gesture.DoubleTap.instance,
+                LongPress = gesture.LongPress.instance,
+                Swipe = gesture.Swipe.instance,
+                Pinch = gesture.Pinch.instance,
+                Rotate = gesture.Rotate.instance,
+                EdgeSwipe = gesture.EdgeSwipe.instance,
+                result = [];
+
+            Drag.onStart = Tap.onStart = DoubleTap.onStart = LongPress.onStart = Swipe.onStart =
+                Pinch.onStart = Rotate.onStart = EdgeSwipe.onStart = function() {
+                    result.push([this.$className, this.priority]);
+                };
+
+            Ext.testHelper.touchStart(document.body, {id: 1, x: 100, y: 100});
+
+            expect(result[0]).toEqual(['Ext.event.gesture.Drag', 100]);
+            expect(result[1]).toEqual(['Ext.event.gesture.Tap', 200]);
+            expect(result[2]).toEqual(['Ext.event.gesture.DoubleTap', 300]);
+            expect(result[3]).toEqual(['Ext.event.gesture.LongPress', 400]);
+            expect(result[4]).toEqual(['Ext.event.gesture.Swipe', 500]);
+            expect(result[5]).toEqual(['Ext.event.gesture.Pinch', 600]);
+            expect(result[6]).toEqual(['Ext.event.gesture.Rotate', 700]);
+            expect(result[7]).toEqual(['Ext.event.gesture.EdgeSwipe', 800]);
+
+            delete Drag.onStart;
+            delete Tap.onStart;
+            delete DoubleTap.onStart;
+            delete LongPress.onStart;
+            delete Swipe.onStart;
+            delete Pinch.onStart;
+            delete Rotate.onStart;
+            delete EdgeSwipe.onStart;
+        });
+    });
 });

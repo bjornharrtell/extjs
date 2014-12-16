@@ -9,15 +9,22 @@
 
 .#{$prefix}scroll-indicator-x {
     bottom: 0;
+    left: 0;
     height: $scroll-indicator-size;
 }
 
 .#{$prefix}scroll-indicator-y {
     right: 0;
+    top: 0;
     width: $scroll-indicator-size;
 }
 
 @if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}scroll-indicator-x {
+        left: auto;
+        right: 0;
+    }
+
     .#{$prefix}rtl.#{$prefix}scroll-indicator-y {
         right: auto;
         left: 0;

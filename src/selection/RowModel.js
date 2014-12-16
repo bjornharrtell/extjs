@@ -85,6 +85,11 @@ Ext.define('Ext.selection.RowModel', {
 
     isRowModel: true,
 
+    /**
+     * @inheritdoc
+     */
+    deselectOnContainerClick: false,
+
     onUpdate: function(record) {
         var me = this,
             view = me.view,
@@ -123,57 +128,31 @@ Ext.define('Ext.selection.RowModel', {
         var me      = this,
             views   = me.views || [me.view],
             viewsLn = views.length,
-            rowIdx,
+            recordIndex = me.store.indexOf(record),
             eventName = isSelected ? 'select' : 'deselect',
             i, view;
 
-        if ((suppressEvent || me.fireEvent('before' + eventName, me, record, rowIdx)) !== false &&
+        if ((suppressEvent || me.fireEvent('before' + eventName, me, record, recordIndex)) !== false &&
                 commitFn() !== false) {
 
+            // Selection models can handle more than one view
             for (i = 0; i < viewsLn; i++) {
                 view = views[i];
-                rowIdx  = view.indexOf(record);
+                recordIndex  = view.indexOf(record);
 
                 // The record might not be rendered due to either buffered rendering,
                 // or removal/hiding of all columns (eg empty locked side).
-                if (rowIdx !== -1) {
+                if (view.indexOf(record) !== -1) {
                     if (isSelected) {
-                        view.onRowSelect(rowIdx, suppressEvent);
+                        view.onRowSelect(recordIndex, suppressEvent);
                     } else {
-                        view.onRowDeselect(rowIdx, suppressEvent);
+                        view.onRowDeselect(recordIndex, suppressEvent);
                     }
                 }
             }
 
             if (!suppressEvent) {
-                me.fireEvent(eventName, me, record, rowIdx);
-            }
-        }
-    },
-
-    // Provide indication of what row was last focused via
-    // the gridview.
-    onLastFocusChanged: function(oldFocused, newFocused, supressFocus) {
-        var views   = this.views || [this.view],
-            viewsLn = views.length,
-            rowIdx,
-            i = 0;
-
-        if (oldFocused && viewsLn) {
-            rowIdx = views[0].indexOf(oldFocused);
-            if (rowIdx !== -1) {
-                for (; i < viewsLn; i++) {
-                    views[i].onRowFocus(rowIdx, false, true);
-                }
-            }
-        }
-
-        if (newFocused && viewsLn) {
-            rowIdx = views[0].indexOf(newFocused);
-            if (rowIdx !== -1) {
-                for (i = 0; i < viewsLn; i++) {
-                    views[i].onRowFocus(rowIdx, true, supressFocus);
-                }
+                me.fireEvent(eventName, me, record, recordIndex);
             }
         }
     },
@@ -215,10 +194,10 @@ Ext.define('Ext.selection.RowModel', {
     },
 
     selectByPosition: function (position, keepExisting) {
-        var context = new Ext.grid.CellContext(this.view);
-            
-        context.setPosition(position.row, position.column);
-        this.select(context.record, keepExisting);
+        if (!position.isCellContext) {
+            position = new Ext.grid.CellContext(this.view).setPosition(position.row, position.column);
+        }
+        this.select(position.record, keepExisting);
     },
 
     /**

@@ -237,6 +237,23 @@ Ext.Number = new function() {
         },
 
         /**
+         * Returns the sign of the given number. See also MDN for Math.sign documentation
+         * for the standard method this method emulates.
+         * @param {Number} x The number.
+         * @return {Number} The sign of the number `x`, indicating whether the number is
+         * positive (1), negative (-1) or zero (0).
+         */
+        sign: function (x) {
+            x = +x; // force to a Number
+
+            if (x === 0 || isNaN(x)) {
+                return x;
+            }
+
+            return (x > 0) ? 1 : -1;
+        },
+
+        /**
          * Formats a number using fixed-point notation
          * @param {Number} value The number to format
          * @param {Number} precision The number of digits to show after the decimal point

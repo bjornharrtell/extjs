@@ -35,8 +35,8 @@ Ext.define('Ext.util.translatable.ScrollPosition', {
                 wrapper = container;
             }
 
-            element.addCls('x-translatable');
-            wrapper.addCls('x-translatable-container');
+            element.addCls(Ext.baseCSSPrefix + 'translatable');
+            wrapper.addCls(Ext.baseCSSPrefix + 'translatable-container');
 
             this.wrapper = wrapper;
 
@@ -78,10 +78,10 @@ Ext.define('Ext.util.translatable.ScrollPosition', {
                 if (this.getUseWrapper()) {
                     wrapper.doReplaceWith(element);
                 }
-                element.removeCls('x-translatable');
+                element.removeCls(Ext.baseCSSPrefix + 'translatable');
             }
             if (!wrapper.isDestroyed) {
-                wrapper.removeCls('x-translatable-container');
+                wrapper.removeCls(Ext.baseCSSPrefix + 'translatable-container');
                 wrapper.un('painted', 'refresh', this);
             }
 
@@ -89,7 +89,7 @@ Ext.define('Ext.util.translatable.ScrollPosition', {
             delete this._element;
         }
 
-        this.callSuper();
+        this.callParent();
     }
 
 });

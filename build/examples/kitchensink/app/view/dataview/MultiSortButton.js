@@ -12,13 +12,6 @@ Ext.define('KitchenSink.view.dataview.MultiSortButton', {
      * Fired whenever the user clicks this button to change its direction
      * @param {String} direction The new direction (ASC or DESC)
      */
-
-    constructor: function(config) {
-        this.initConfig(config);
-
-        this.callParent(arguments);
-    },
-
     handler: function() {
         this.toggleDirection();
     },

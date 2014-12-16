@@ -12,7 +12,10 @@
  *         }
  *     });
  *
- * A theme will not override the values provided in an instance config.
+ * Theme provided values will not override the values provided in an instance config.
+ * Except if a theme provided value is an object, in that case it will be merged with
+ * the value from the instance config, unless the theme provided value (object)
+ * has a '$default' key set to 'true'.
  *
  * Certain chart theme configs (e.g. 'fontSize') may use the 'default' value to indicate
  * that they should inherit a value from the corresponding CSS style provided by
@@ -35,19 +38,23 @@ Ext.define('Ext.chart.theme.Base', {
 
     config: {
         /**
-         * @cfg {String/Ext.draw.Color}
-         * The base color used to generate the {@link #colors} of the theme.
+         * @cfg {String/Ext.draw.Color} baseColor
+         * The base color used to generate the {@link Ext.chart.AbstractChart#colors} of the theme.
          */
         baseColor: null,
 
         /**
-         * @cfg {Array} Array of colors/gradients to be used by the theme.
+         * @cfg {Array} colors
+         *
+         * Array of colors/gradients to be used by the theme.
          * Defaults to {@link #colorDefaults}.
          */
         colors: undefined,
 
         /**
-         * @cfg {Object} The gradient config to be used by series' sprites. E.g.:
+         * @cfg {Object} gradients
+         *
+         * The gradient config to be used by series' sprites. E.g.:
          *
          *     {
          *       type: 'linear',
@@ -120,12 +127,20 @@ Ext.define('Ext.chart.theme.Base', {
                     textAlign: 'center',
                     fontSize: 'default',
                     fontFamily: 'default',
-                    fontWeight: 'default'
+                    fontWeight: 'default',
+                    fillStyle: 'black'
                 },
                 title: {
+                    fillStyle: 'black',
                     fontSize: 'default*1.23',
                     fontFamily: 'default',
                     fontWeight: 'default'
+                },
+                style: {
+                    strokeStyle: 'black'
+                },
+                grid: {
+                    strokeStyle: 'rgb(221, 221, 221)'
                 }
             },
             top: {
@@ -200,7 +215,8 @@ Ext.define('Ext.chart.theme.Base', {
             text: {
                 fontSize: 'default',
                 fontWeight: 'default',
-                fontFamily: 'default'
+                fontFamily: 'default',
+                fillStyle: 'black'
             }
         },
 
@@ -211,13 +227,13 @@ Ext.define('Ext.chart.theme.Base', {
         },
 
         /**
-         * @deprecated Use the {@link #gradients} config instead.
+         * @deprecated Use the {@link Ext.draw.Container#gradients} config instead.
          * @since 5.0.1
          */
         useGradients: false,
 
         /**
-         * @deprecated Use the {@link #chart.background} config instead.
+         * @deprecated Use the {@link Ext.draw.Container#background} config instead.
          * @since 5.0.1
          */
         background: null
@@ -261,6 +277,7 @@ Ext.define('Ext.chart.theme.Base', {
                     fontVariant: div.getStyle('fontVariant'),
                     fontStyle: div.getStyle('fontStyle')
                 };
+                div.destroy();
             }
 
             me.replaceDefaults(sprites.text);

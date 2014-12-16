@@ -283,5 +283,43 @@ describe("Ext.Util", function() {
                 });
             });
         });
+    }); // Ext.callback
+
+    describe('copyToIf String[]', function () {
+        var dest;
+        var source = { a: 1, b: 'x', c: 42 };
+
+        beforeEach(function () {
+            dest = { a: 427 };
+        });
+
+        it('should leave existing properties alone', function () {
+            Ext.copyToIf(dest, source, ['a']);
+            expect(dest).toEqual({ a: 427 });
+        });
+
+        it('should add new properties', function () {
+            Ext.copyToIf(dest, source, ['a','b']);
+            expect(dest).toEqual({ a: 427, b: 'x' });
+        });
     });
+
+    describe('copyToIf String', function () {
+        var dest;
+        var source = { a: 1, b: 'x', c: 42 };
+
+        beforeEach(function () {
+            dest = { a: 427 };
+        });
+
+        it('should leave existing properties alone', function () {
+            Ext.copyToIf(dest, source, 'a');
+            expect(dest).toEqual({ a: 427 });
+        });
+
+        it('should add new properties', function () {
+            Ext.copyToIf(dest, source, 'a,b');
+            expect(dest).toEqual({ a: 427, b: 'x' });
+        });
+    })
 });

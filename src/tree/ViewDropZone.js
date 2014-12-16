@@ -290,6 +290,9 @@ Ext.define('Ext.tree.ViewDropZone', {
                 }
                 argList[0] = record;
                 insertionMethod.apply(targetNode, argList);
+
+                // Focus the dropped node.
+                targetView.getNavigationModel().setPosition(record);
             }
 
             // If configured to sort on drop, do it according to the TreeStore's comparator

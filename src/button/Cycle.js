@@ -108,38 +108,33 @@ Ext.define('Ext.button.Cycle', {
     /**
      * Sets the button's active menu item.
      * @param {Ext.menu.CheckItem} item The item to activate
-     * @param {Boolean} [suppressEvent=false] True to prevent the button's change event from firing.
+     * @param {Boolean} [suppressEvent=false] True to prevent the {@link #change} event and {@link #changeHandler} from firing.
      */
     setActiveItem: function(item, suppressEvent) {
-        var me = this;
+        var me = this,
+            changeHandler = me.changeHandler,
+            forceIcon = me.forceIcon,
+            forceGlyph = me.forceGlyph;
 
+        me.settingActive = true;
         if (!Ext.isObject(item)) {
             item = me.menu.getComponent(item);
         }
         if (item) {
-            if (!me.rendered) {
-                me.text = me.getButtonText(item);
-                me.iconCls = item.iconCls;
-                me.glyph = item.glyph;
-            } else {
-                me.setText(me.getButtonText(item));
-                me.setIconCls(item.iconCls);
-                me.setGlyph(item.glyph);
-            }
+            me.setText(me.getButtonText(item));
+            me.setIconCls(forceIcon ? forceIcon : item.iconCls);
+            me.setGlyph(forceGlyph ? forceGlyph : item.glyph);
+
             me.activeItem = item;
             if (!item.checked) {
                 item.setChecked(true, false);
             }
-            if (me.forceIcon) {
-                me.setIconCls(me.forceIcon);
-            }
-            if (me.forceGlyph) {
-                me.setGlyph(me.forceGlyph);
-            }
             if (!suppressEvent) {
+                Ext.callback(me.changeHandler, me.scope, [me, item], 0, me);
                 me.fireEvent('change', me, item);
             }
         }
+        me.settingActive = false;
     },
 
     /**
@@ -156,11 +151,6 @@ Ext.define('Ext.button.Cycle', {
             checked = 0,
             items,
             i, iLen, item;
-
-        if (me.changeHandler) {
-            me.on('change', me.changeHandler, me.scope || me);
-            delete me.changeHandler;
-        }
 
         // Allow them to specify a menu config which is a standard Button config.
         // Remove direct use of "items" in 5.0.
@@ -194,12 +184,12 @@ Ext.define('Ext.button.Cycle', {
         me.itemCount = me.menu.items.length;
         me.callParent(arguments);
         me.on('click', me.toggleSelected, me);
-        me.setActiveItem(checked, me);
+        me.setActiveItem(checked, true);
     },
 
     // @private
     checkHandler: function(item, pressed) {
-        if (pressed) {
+        if (pressed && !this.settingActive) {
             this.setActiveItem(item);
         }
     },

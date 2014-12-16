@@ -382,7 +382,7 @@ Ext.define('Ext.layout.Context', {
                     for (k = 0; k < klen; ++k) {
                         entry = oldQueue[k];
                         temp = entry.item.target;
-                        if (temp != comp && !temp.isDescendantOf(comp)) {
+                        if (temp != comp && !temp.up(comp)) {
                             newQueue.push(entry);
                         }
                     }
@@ -744,6 +744,18 @@ Ext.define('Ext.layout.Context', {
         me.currentLayout = null;
     },
 
+    // Returns true is descendant is a descendant of ancestor
+    isDescendant: function(ancestor, descendant) {
+        if (ancestor.isContainer) {
+            for (var c = descendant.ownerCt; c; c = c.ownerCt) {
+                if (c === ancestor) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    },
+    
     layoutDone: function (layout) {
         var ownerContext = layout.ownerContext;
 
@@ -861,13 +873,12 @@ Ext.define('Ext.layout.Context', {
                 newEntry = newQueue[newIndex];
                 newComp = newEntry.item.target;
                 
-                if (oldComp.isDescendant(newComp)) {
+                if (oldComp.isLayoutChild(newComp)) {
                     keep = false;
-                    
                     break;
                 }
                 
-                if (newComp.isDescendant(oldComp)) {
+                if (newComp.isLayoutChild(oldComp)) {
                     Ext.Array.erase(newQueue, newIndex, 1);
                 }
             }
@@ -879,7 +890,7 @@ Ext.define('Ext.layout.Context', {
         
         me.invalidQueue = newQueue;
     },
-    
+
     /**
      * Queue a component (and its tree) to be invalidated on the next cycle.
      *
@@ -910,7 +921,7 @@ Ext.define('Ext.layout.Context', {
             old = oldQueue[index];
             oldComp = old.item.target;
 
-            if (comp.isDescendantOf(oldComp)) {
+            if (!comp.isFloating && comp.up(oldComp)) {
                 return; // oldComp contains comp, so this invalidate is redundant
             }
 
@@ -943,7 +954,7 @@ Ext.define('Ext.layout.Context', {
                 return;
             }
 
-            if (!oldComp.isDescendantOf(comp)) {
+            if (!oldComp.isLayoutChild(comp)) {
                 newQueue.push(old); // comp does not contain oldComp
             }
             // else if (oldComp isDescendant of comp) skip
@@ -966,7 +977,7 @@ Ext.define('Ext.layout.Context', {
         }
 
         layout = comp.layout;
-        if (layout && !layout.pending && !layout.invalid && !layout.done) {
+        if (layout && !layout.pending && !layout.invalid && !layout.done && !comp.collapsed) {
             this.queueLayout(layout);
         }
     },

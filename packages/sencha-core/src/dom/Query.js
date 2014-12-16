@@ -776,8 +776,6 @@ Ext.define('Ext.dom.Query', function() {
          * Uses [document.querySelectorAll][0] if browser supports that, otherwise falls back to
          * {@link Ext.dom.Query#jsSelect} to do the work.
          *
-         * Aliased as {@link Ext#query}.
-         *
          * [0]: https://developer.mozilla.org/en/DOM/document.querySelectorAll
          *
          * @param {String} path The selector/xpath query

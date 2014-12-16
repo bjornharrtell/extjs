@@ -60,9 +60,7 @@ Ext.define('Ticket.view.main.MainController', {
     onViewTicket: function (view, rec) {
         this.createTab('ticket', rec, {
             xtype: 'ticketdetail',
-            session: new Ext.data.Session({
-                data: [rec]
-            }),
+            session: true,
             viewModel: {
                 data: {
                     theTicket: rec

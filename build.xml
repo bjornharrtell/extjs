@@ -42,15 +42,21 @@
                          attic/**/*,
                          deployment_workspace/**/*,
                          docs/**/*,
-                         release-notes-*,
-						 all-licenses/**/*
-						 build/temp/**/*"/>
+                         release-notes-*,         
+						 all-licenses/**/*,
+						 build/temp/**/*,
+						 ext-all*.js,
+						 ext-debug.js,
+						 ext.js,
+						 bootstrap*.js"/>
 
         <condition property="repo.dev.mode" value="true">
             <available file="${basedir}/../packages/sencha-core" type="dir"/>
         </condition>
 
     </target>
+    
+    <target name="-after-init" depends="-apply-version-stamp"/> 
 
     <macrodef name="x-set-license">
         <attribute name="license" default="${ext.license.name}"/>
@@ -68,6 +74,12 @@
 
             <local name="watermark.setting"/>
 
+            <condition property="watermark.beta.setting" value="$ext-beta-trial: true !default;">
+                <equals arg1="@{license}" arg2="beta-trial"/>
+            </condition>
+
+            <property name="watermark.beta.setting" value="$ext-beta-trial: false !default;"/>
+
             <condition property="watermark.setting" value="$ext-trial: true !default;">
                 <equals arg1="@{license}" arg2="trial"/>
             </condition>
@@ -77,6 +89,10 @@
             <replaceregexp replace="${watermark.setting}"
                            file="${basedir}/packages/ext-theme-base/sass/etc/all.scss">
                 <regexp pattern="\$ext-trial: (.*) !default;"/>
+            </replaceregexp>
+            <replaceregexp replace="${watermark.beta.setting}"
+                           file="${basedir}/packages/ext-theme-base/sass/etc/all.scss">
+                <regexp pattern="\$ext-beta-trial: (.*) !default;"/>
             </replaceregexp>
 
             <if>
@@ -107,16 +123,20 @@
         <x-set-license license="trial"/>
     </target>
 
+    <target name="beta-trial" depends="init">
+        <x-set-license license="beta-trial"/>
+    </target>
+
     <target name="init-version-properties" if="repo.dev.mode">
-        <property name="ext.version.number" value="12345"/>
-        <property name="build.number" value="${ext.version.number}"/>
-        <property name="ext.license.name" value="beta"/>
+        <property name="build.number" value="12345"/>
         <property name="version.major" value="5"/>
         <property name="version.minor" value="0"/>
         <property name="version.patch" value="1"/>
         <property name="version.build" value="${build.number}"/>
-        <property name="version.release" value="${version.major}.${version.minor}.${version.build}"/>
-        <property name="version.full" value="${version.release}.${version.revision}"/>
+        <property name="version.release" value="${version.major}.${version.minor}.${version.patch}"/>
+        <property name="version.full" value="${version.release}.${version.build}"/>
+        <property name="ext.version.number" value="${version.full}"/>
+        <property name="ext.license.name" value="beta"/>
     </target>
 
     <target name="detect-git-hash" if="repo.dev.mode">
@@ -155,11 +175,7 @@
         <property file="${package.dir}/version.properties"/>
     </target>
 
-    <target name="-after-apply-version">
-        <property name="apply.version.stamp" value="1"/>
-    </target>
-    
-    <target name="-apply-version-stamp" if="apply.version.stamp">
+    <target name="-apply-version-stamp" if="build.version">
         <x-property-file file="${package.dir}/cmd/sencha.cfg">
             <entry type="string" key="framework.version" operation="="
                    value="${build.version}"/>
@@ -288,13 +304,14 @@ var Ext = Ext || {};
 
         <property name="build.optimize"><![CDATA[
             optimize
+                --css-prefix=true
                 --call-parent=true
                 --define-rewrite=true
                 --include-metadata=false
         ]]></property>
 
         <property name="build.compress"><![CDATA[
-             #+yui
+             #+closure
         ]]></property>
 
         <!--
@@ -309,8 +326,11 @@ var Ext = Ext || {};
                 -prefix
                     ${package.licenses.dir}/file-header.js
 
-                    include
+                    exclude
                         -all
+                    and
+                    include
+                        -tag=package-sencha-core,package-ext
                     and
                     save
                         allfiles
@@ -320,6 +340,7 @@ var Ext = Ext || {};
                     and
                     include
                         +recursive
+                        -includeUses=false
                         -class=Ext.Loader
                     and
                     include
@@ -327,7 +348,6 @@ var Ext = Ext || {};
                     and
                     save
                         corefiles
-                        
                     and
 
                 # Build *-debug.js files - these have all "debug" conditional code active
@@ -363,6 +383,7 @@ var Ext = Ext || {};
                         -basePath=${build.dir}
                         +append
                         +bootRelative
+                        -excludeDisabled=true
                         -output-file=${build.dir}/ext-debug.js
                     and
                     metadata
@@ -371,6 +392,7 @@ var Ext = Ext || {};
                         -basePath=${build.dir}
                         +append
                         +bootRelative
+                        -excludeDisabled=true
                         -output-file=${build.dir}/ext.js
                     and
                     
@@ -423,8 +445,6 @@ var Ext = Ext || {};
         This target allows the package build to be leveraged while swapping out the files
         with license information.
         -->
-        <x-git-current-hash property="git.current.hash"/>
-
         <property name="ext.license"  value="${package.licenses.dir}/beta"/>
 
         <!-- Load the appropriate license file header -->
@@ -449,8 +469,8 @@ var Ext = Ext || {};
     <macrodef name="x-sandbox">
         <attribute name="file"/>
         <attribute name="outfile" default="@{file}"/>
-        <attribute name="jsPrefix" default="Ext4"/>
-        <attribute name="cssPrefix" default="x4-"/>
+        <attribute name="jsPrefix"/>
+        <attribute name="cssPrefix"/>
         <sequential>
             <concat destfile="@{outfile}">
                 <header trimleading="yes" filtering="no">
@@ -514,7 +534,7 @@ var Ext = Ext || {};
                 </for>
             </sequential>
         </for>
-
+        
         <copy file="${basedir}/ext-bootstrap.js"
               tofile="${build.dir}/bootstrap.js">
             <filterchain>
@@ -625,6 +645,8 @@ var Ext = Ext || {};
         <![CDATA[
             -classpath=${basedir}/../packages/sencha-charts/src-ext,${basedir}/../packages/sencha-charts/src
             -classpath=${basedir}/../packages/sencha-charts/overrides-ext,${basedir}/../packages/sencha-charts/overrides@overrides
+            include
+                -all
         ]]>
         </x-compile>
     </target>
@@ -633,6 +655,8 @@ var Ext = Ext || {};
         <x-compile refid="${compiler.ref.id}">
         <![CDATA[
             -classpath=${basedir}/packages/ext-charts/src
+            include
+                -all
         ]]>
         </x-compile>
     </target>
@@ -678,7 +702,6 @@ var Ext = Ext || {};
                      overrideTplType="jsonp"
                      overrideExcludeTags="">
 <![CDATA[
-Ext.repoDevMode = true;
 Ext.Boot.loadSyncBasePrefix([
     "bootstrap-manifest.js",
     "bootstrap-files.js"
@@ -823,11 +846,10 @@ Ext.Boot.loadSyncBasePrefix([
 
     <target name="normalize-workspace" depends="init" if="repo.dev.mode">
         <echo message="Injecting static packages"/>
-        <property name="packages.dir" value="packages"/>
         <for list="${static.packages}" delimiter="," param="static.package">
             <sequential>
-                <echo message="Moving @{static.package} from ${workspace.dir}/${packages.dir} to ${package.dir}/${packages.dir}"/>
-                <move file="${workspace.dir}/${packages.dir}/@{static.package}" todir="${package.dir}/${packages.dir}" verbose="true"/>
+                <echo message="Moving @{static.package} from ${workspace.dir}/packages to ${package.dir}/packages"/>
+                <move file="${workspace.dir}/packages/@{static.package}" todir="${package.dir}/packages" verbose="true"/>
             </sequential>
         </for>
 
@@ -844,11 +866,10 @@ Ext.Boot.loadSyncBasePrefix([
     
     <target name="restore-workspace" depends="init" if="repo.dev.mode">
         <echo message="Restoring static packages"/>
-        <property name="packages.dir" value="packages"/>
         <for list="${static.packages}" delimiter="," param="static.package">
             <sequential>
-                <echo message="Moving @{static.package} from ${package.dir}/${packages.dir} to ${workspace.dir}/${packages.dir}"/>
-                <move file="${package.dir}/${packages.dir}/@{static.package}" todir="${workspace.dir}/${packages.dir}" verbose="true"/>
+                <echo message="Moving @{static.package} from ${package.dir}/packages to ${workspace.dir}/packages"/>
+                <move file="${package.dir}/packages/@{static.package}" todir="${workspace.dir}/packages" verbose="true"/>
             </sequential>
         </for>
 
@@ -887,6 +908,24 @@ Ext.Boot.loadSyncBasePrefix([
             package
             build
         </x-sencha-command>
+
+        <for param="extra.subpkg.dir">
+            <dirset dir="${package.dir}/packages" includes="*"/>
+            <sequential>
+                <local name="extra.subpkg.name"/>
+                <basename file="@{extra.subpkg.dir}" property="extra.subpkg.name"/>
+                <if>
+                    <available file="@{extra.subpkg.dir}/build" type="dir"/>
+                    <then>
+                        <echo>Copying @{extra.subpkg.dir}/build to ${build.dir}/packages/${extra.subpkg.name}/build</echo>
+                        <copy todir="${build.dir}/packages/${extra.subpkg.name}/build">
+                            <fileset dir="@{extra.subpkg.dir}/build"
+                                     includes="**/*"/>
+                        </copy>
+                    </then>
+                </if>
+            </sequential>
+        </for>
     </target>
 
     <target name="zip" depends="normalize-workspace,-build-extra-subpkgs,build,restore-workspace,zip-impl"

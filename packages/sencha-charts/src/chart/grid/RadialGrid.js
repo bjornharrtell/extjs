@@ -24,7 +24,7 @@ Ext.define('Ext.chart.grid.RadialGrid', {
                 strokeStyle: '#DDD'
             },
 
-            dirtyTriggers: {
+            triggers: {
                 startRadius: 'path,bbox',
                 endRadius: 'path,bbox'
             }

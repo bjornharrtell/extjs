@@ -43,8 +43,22 @@
      *          //
      *          "bootstrap": false   // OPTIONAL
      *      }
+     *
+     * To use ext-all-debug.js instead of explicitly loading all framework files at
+     * dev time, add the following entry to this js list :
+     *
+     *      {
+     *          "path": "${ext.dir}/build/ext-all-debug.js"
+     *      }
+     *
+     * Note: when using ext-all-debug.js, you also need to disable the loadOrder portion
+     * of the bootstrap manifest.  See the "bootstrap" property for details.
+     *
      */
     "js": [
+        {
+            "path": "${ext.dir}/build/ext-all-rtl-debug.js"
+        },
         {
             "path": "app.js",
             "bundle": true
@@ -84,22 +98,45 @@
     ],
 
     /**
-     * Additional resources used during theme slicing operations
+     * This option is used to configure the dynamic loader. At present these options
+     * are supported.
+     *
+     *      "loader": {
+     *          // This property controls how the loader manages caching for requests:
+     *          //
+     *          //   - true: allows requests to receive cached responses
+     *          //   - false: disable cached responses by adding a random "cache buster"
+     *          //   - other: a string (such as the build.timestamp shown here) to allow
+     *          //     requests to be cached for this build.
+     *          //
+     *          "cache": "${build.timestamp}",
+     *
+     *          // When "cache" is not true, this value is the request parameter used
+     *          // to control caching.
+     *          //
+     *          "cacheParam": "_dc"
+     *      },
+     *
      */
-    "slicer": {
-        "js": [
-            {
-                "path": "${app.dir}/sass/example/custom.js",
-                "isWidgetManifest": true
-            }
-        ]
-    },
+
+
+    /**
+     *  "compressor": {
+     *      "type": "closure",
+     *      "languageIn": "ECMASCRIPT5"
+     *  }
+     *
+     */
+    "compressor": null,
 
     /**
      * override objects for setting build environment specific
      * settings.
      */
     "production": {
+        "compressor": {
+            "type": "yui"
+        }
     },
 
     "testing": {
@@ -114,6 +151,36 @@
     },
 
     "development": {
+    },
+
+
+    /**
+     *  Controls the output structure of bootstrap artifacts.  May be specified by a string:
+     *
+     *      "bootstrap": "${app.dir}"
+     *
+     *  to adjust the base path for all bootstrap objects, or expanded into object form:
+     *
+     *      "bootstrap": {
+     *          "base": "${app.dir},
+     *          "manifest": "bootstrap.json",
+     *          "microloader": "bootstrap.js",
+     *          "css": "bootstrap.css"
+     *      }
+     *
+     *  To disable "loadOrder" metadata when using a framwork build file such as
+     *  ext-all-debug.js, use the expanded form of the manifest property:
+     *
+     *      "bootstrap": {
+     *          "manifest": {
+     *              "path": "bootstrap.json",
+     *              "exclude": "loadOrder"
+     *          }
+     *      }
+     *
+     */
+    "bootstrap":{
+        "base": "${app.dir}"
     },
 
     /**
@@ -160,7 +227,16 @@
      *
      */
     "output": {
-        "base": "${workspace.build.dir}/${build.environment}/${app.name}"
+        "base": "${workspace.build.dir}/${build.environment}/${app.name}",
+        "deltas": {
+            "enable": false
+        },
+        "cache": {
+            "enable": false
+        },
+        "microloader": {
+            "enable": true
+        }
     },
 
     /**
@@ -210,7 +286,8 @@
         "js": [
             {
                 "path": "cordova.js",
-                "remote": true
+                "remote": true,
+                "priority": 1000
             }
         ],
         "microloader": "${app.config.dir}/Microloader.js",
@@ -270,7 +347,8 @@
         "js": [
             {
                 "path": "phonegap.js",
-                "remote": true
+                "remote": true,
+                "priority": 1000
             }
         ],
         "microloader": "${app.config.dir}/Microloader.js",
@@ -286,22 +364,14 @@
     },
 
     /**
-     *  Controls the output structure of bootstrap artifacts.  May be specified by a string:
-     *
-     *  "bootstrap": "${app.dir}"
-     *
-     *  to adjust the base path for all bootstrap objects, or expanded into object form:
-     *
-     *  "bootstrap": {
-     *      "base": "${app.dir},
-     *      "manifest": "bootstrap.json",
-     *      "microloader": "bootstrap.js",
-     *      "css": "bootstrap.css"
-     *  }
-     *
-     *
+     * Additional resources used during theme slicing operations
      */
-    "bootstrap":{
-        "base": "${app.dir}"
+    "slicer": {
+        "js": [
+            {
+                "path": "${app.dir}/sass/example/custom.js",
+                "isWidgetManifest": true
+            }
+        ]
     }
 }

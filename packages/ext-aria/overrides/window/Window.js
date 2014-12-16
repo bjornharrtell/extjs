@@ -20,26 +20,27 @@ Ext.define('Ext.aria.window.Window', {
         var me = this,
             tools = me.tools;
         
-        // Add buttons to move and resize the window
+        // Add buttons to move and resize the window,
+        // unless it's a Toast
         if (!tools) {
             me.tools = tools = [];
         }
         
         //TODO: Create new tools
-        tools.unshift(
-            {
-                type: 'resize',
-                tooltip: me.resizeText
-            },
-            {
-                type: 'move',
-                tooltip: me.moveText
-            }
-        );
+        if (!me.isToast) {
+            tools.unshift(
+                {
+                    type: 'resize',
+                    tooltip: me.resizeText
+                },
+                {
+                    type: 'move',
+                    tooltip: me.moveText
+                }
+            );
+        }
         
-        me.callParent(arguments);
-        
-        me.on('move', me.onMove, me);
+        me.callParent();
     },
     
     onBoxReady: function() {
@@ -48,6 +49,10 @@ Ext.define('Ext.aria.window.Window', {
             toolBtn;
         
         me.callParent();
+        
+        if (me.isToast) {
+            return;
+        }
         
         if (me.draggable) {
             toolBtn = me.down('tool[type=move]');
@@ -68,7 +73,7 @@ Ext.define('Ext.aria.window.Window', {
             toolBtn = me.down('tool[type=resize]');
             
             if (toolBtn) {
-                me.ariaUpdate(toolBtn.getEl(), {'aria-label': me.resizeText });
+                me.ariaUpdate(toolBtn.getEl(), { 'aria-label': me.resizeText });
             
                 toolBtn.keyMap = new Ext.util.KeyMap({
                     target: toolBtn.el,
@@ -94,7 +99,7 @@ Ext.define('Ext.aria.window.Window', {
         
         me.callParent(arguments);
         
-        Ext.aria.FocusManager.addWindow(me, me.getDefaultFocus());
+        Ext.aria.FocusManager.addWindow(me);
     },
     
     afterHide: function() {
@@ -102,7 +107,7 @@ Ext.define('Ext.aria.window.Window', {
         
         Ext.aria.FocusManager.removeWindow(me);
         
-        me.callParent();
+        me.callParent(arguments);
     },
         
     moveWindow: function(keyCode, e) {
@@ -154,11 +159,5 @@ Ext.define('Ext.aria.window.Window', {
         
         me.setSize(width, height);
         e.stopEvent();
-    },
-    
-    privates: {
-        getFocusEl: function() {
-            return this.el;
-        }
     }
 });

@@ -88,11 +88,10 @@ Ext.define('Ext.layout.container.Column', {
 
     manageOverflow: true,
 
-    // Column layout does not read the size of individual items in the shrink-wrapping
-    // dimension(s) because, as a subclass of autocontainer, it measures them as a whole
-    // using an outer element.  However, column layout may set the size of its items in
-    // non-shrink-wrapping dimension(s).
+    // Column layout needs to set the size of items configured with columnWidth, and it
+    // needs to read the size of items with a configured width.
     setsItemSize: true,
+    needsItemSize: true,
     
     isItemShrinkWrap: function(ownerContext){
         return true;

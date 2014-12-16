@@ -23,7 +23,7 @@ Ext.define('Ext.grid.NavigationModel', {
      * @param {HtmlElement} event.item the newly focused grid cell.
      * @param {Ext.grid.Column} event.column The newly focused grid column.
      */
-    
+
     focusCls: Ext.baseCSSPrefix + 'grid-item-focused',
 
     getViewListeners: function() {
@@ -40,7 +40,6 @@ Ext.define('Ext.grid.NavigationModel', {
             // We focus on click if the mousedown handler did not focus because it was a translated "touchstart" event.
             itemclick: me.onItemClick,
             itemcontextmenu: me.onItemClick,
-            refresh: me.onViewRefresh,
             scope: me
         };
     },
@@ -56,10 +55,11 @@ Ext.define('Ext.grid.NavigationModel', {
         me.keyNav = new Ext.util.KeyNav({
             target: view,
             ignoreInputFields: true,
-            eventName: 'cellkeydown',
+            eventName: 'itemkeydown',
+            defaultEventAction: 'stopEvent',
 
-            // Every key event is tagged wit hthe source view, so the NavigationModel is independent.
-            processEvent: function(view, cell, cellIndex, record, row, recordIndex, event) {
+            // Every key event is tagged with the source view, so the NavigationModel is independent.
+            processEvent: function(view, record, row, recordIndex, event) {
                 return event;
             },
             up: me.onKeyUp,
@@ -136,16 +136,36 @@ Ext.define('Ext.grid.NavigationModel', {
         }
     },
 
-    deferSetPosition: function(delay, recordIndex, columnIndex, keyEvent, suppressEvent, fromSelectionModel) {
+    beforeViewRefresh: function() {
+    // Override at TableView level because NavigationModel is shared between two sides of a lockable
+    // So we have to check that the focus position applies to us before cacheing
+        var position = this.getPosition();
+
+        if (position && position.view === this) {
+            this.focusRestorePosition = position;
+        } else {
+            this.focusRestorePosition = null;
+        }
+    },
+
+    // On record remove, it might have bumped the selection upwards.
+    // Pass the "preventSelection" flag.
+    onStoreRemove: function() {
+        if (this.position) {
+            this.setPosition(this.getPosition(), null, null, null, true);
+        }
+    },
+
+    deferSetPosition: function(delay, recordIndex, columnIndex, keyEvent, suppressEvent, preventNavigation) {
         var setPositionTask = this.view.getFocusTask();
 
         // This is essentially a focus operation. Use the singleton focus task used by Focusable Components
         // to schedule a setPosition call. This way it can be superceded programatically by regular Component focus calls.
-        setPositionTask.delay(delay, this.setPosition, this, [recordIndex, columnIndex, keyEvent, suppressEvent, fromSelectionModel]);
+        setPositionTask.delay(delay, this.setPosition, this, [recordIndex, columnIndex, keyEvent, suppressEvent, preventNavigation]);
         return setPositionTask;
     },
 
-    setPosition: function(recordIndex, columnIndex, keyEvent, suppressEvent, fromSelectionModel) {
+    setPosition: function(recordIndex, columnIndex, keyEvent, suppressEvent, preventNavigation) {
         var me = this,
             view,
             selModel,
@@ -180,8 +200,9 @@ Ext.define('Ext.grid.NavigationModel', {
         // In case any async focus was requested before this call.
         view.getFocusTask().cancel();
 
-        // Return if the view was destroyed between the deferSetPosition call and now, or if the call is a no-op.
-        if (view.isDestroyed || !view.refreshCounter || clearing && isClear) {
+        // Return if the view was destroyed between the deferSetPosition call and now, or if the call is a no-op
+        // or if there are no items which could be focused.
+        if (view.isDestroyed || !view.refreshCounter || clearing && isClear || !view.all.getCount()) {
             return;
         }
 
@@ -192,6 +213,21 @@ Ext.define('Ext.grid.NavigationModel', {
             newRecordIndex = recordIndex.rowIdx;
             newColumnIndex = recordIndex.colIdx;
             newColumn      = recordIndex.column;
+
+            // If the record being focused is not available (eg, after a sort), then go to 0,0
+            if (dataSource.indexOf(newRecord) === -1) {
+                newRecordIndex = dataSource.indexOfId(newRecord.id);
+                if (newRecordIndex === -1) {
+                    // Change recordIndex so that the "No movement" test is bypassed if the record is not found
+                    me.recordIndex = -1;
+                    newRecord = dataSource.getAt(0);
+                    newRecordIndex = 0;
+                    newColumnIndex = 0;
+                    newColumn = view.getVisibleColumnManager().getColumns()[0];
+                } else {
+                    newRecord = dataSource.getById(newRecord.id);
+                }
+            }
         } else {
             // Both axes are null, we defocus
             if (clearing) {
@@ -211,9 +247,6 @@ Ext.define('Ext.grid.NavigationModel', {
                 else if (recordIndex.isEntity) {
                     newRecord = recordIndex;
                     newRecordIndex = dataSource.indexOf(newRecord);
-                    if (newRecordIndex === -1) {
-                        newRecord = null;
-                    }
                 }
                 // row is a grid row
                 else if (recordIndex.tagName) {
@@ -234,11 +267,19 @@ Ext.define('Ext.grid.NavigationModel', {
 
             // Record position was successful
             if (newRecord) {
+                // If the record being focused is not available (eg, after a sort), then go to 0,0
+                if (newRecordIndex === -1) {
+                    // Change recordIndex so that the "No movement" test is bypassed if the record is not found
+                    me.recordIndex = -1;
+                    newRecord = dataSource.getAt(0);
+                    newRecordIndex = 0;
+                    columnIndex = null;
+                }
                 // No columnIndex passed, and no previous column position - default to column 0
                 if (columnIndex == null) {
                     if (!(newColumn = me.column)) {
                         newColumnIndex = 0;
-                        newColumn = view.getVisibleColumnManager().getColumns()[newColumnIndex];
+                        newColumn = view.getVisibleColumnManager().getColumns()[0];
                     }
                 }
                 else if (typeof columnIndex === 'number') {
@@ -254,9 +295,10 @@ Ext.define('Ext.grid.NavigationModel', {
             }
         }
 
-        // No movement; return early. Do not push current position into previous position, do not fire events.
+        // No movement; just ensure the correct item is focused and return early.
+        // Do not push current position into previous position, do not fire events.
         if (newRecordIndex === me.recordIndex && newColumnIndex === me.columnIndex) {
-            return;
+            return me.focusPosition(me.position);
         }
 
         if (me.cell) {
@@ -286,7 +328,7 @@ Ext.define('Ext.grid.NavigationModel', {
             me.item = me.cell = null;
         }
         else {
-            me.focusPosition(me.position);
+            me.focusPosition(me.position, preventNavigation);
         }
 
         // Legacy API is that the SelectionModel fires focuschange events and the TableView fires rowfocus and cellfocus events.
@@ -297,7 +339,7 @@ Ext.define('Ext.grid.NavigationModel', {
         }
 
         // If we have moved, fire an event
-        if (!fromSelectionModel && me.cell !== me.previousCell) {
+        if (keyEvent && !preventNavigation && me.cell !== me.previousCell) {
             me.fireNavigateEvent(keyEvent);
         }
     },
@@ -311,6 +353,7 @@ Ext.define('Ext.grid.NavigationModel', {
     focusPosition: function(position) {
         var me = this,
             view,
+            item,
             row;
 
         me.item = me.cell = null;
@@ -322,7 +365,11 @@ Ext.define('Ext.grid.NavigationModel', {
             if (position.rowElement) {
                 row = me.item = position.rowElement;
             } else {
-                row = view.getRowByRecord(position.record);
+                // Get the dataview item at the requested index
+                item = view.all.item(position.rowIdx, true);
+                if (item) {
+                    row = me.item = view.getRow(item);
+                }
                 // If there is no item at that index, it's probably because there's buffered rendering.
                 // This is handled below.
             }
@@ -348,14 +395,16 @@ Ext.define('Ext.grid.NavigationModel', {
                 }
             }
             // View node no longer in view. Clear current position.
+            // Attempt to scroll to the record if it is in the store, but out of rendered range.
             else {
-                row = position.rowIdx;
+                row = view.dataSource.indexOf(position.record);
                 me.position.setAll();
                 me.record = me.column = me.recordIndex = me.columnIndex = null;
 
                 // The reason why the row could not be selected from the DOM could be because it's
                 // out of rendered range, so scroll to the row, and then try focusing it.
-                if (view.bufferedRenderer) {
+                if (row !== -1 && view.bufferedRenderer) {
+                    me.lastKeyEvent = null;
                     view.bufferedRenderer.scrollTo(row, false, me.afterBufferedScrollTo, me);
                 }
             }
@@ -385,19 +434,41 @@ Ext.define('Ext.grid.NavigationModel', {
     getPosition: function() {
         var me = this,
             position = me.position,
-            view;
+            curIndex,
+            view,
+            dataSource;
 
         if (position.record && position.column) {
             view = position.view;
+            dataSource = view.dataSource;
+
+            curIndex = dataSource.indexOf(position.record);
+
+            // The record may have been replaced by one with the same ID.
+            if (curIndex === -1) {
+                curIndex = dataSource.indexOfId(position.record.id);
+
+                // If not with the same ID, at the same index if that is in range
+                if (curIndex === -1) {
+                    curIndex = position.rowIdx;
+                    // If no record now at that index (even if its les than the totalCount, it may be a BufferedStore)
+                    // then there is no focus position, and we must return null
+                    if (!dataSource.getAt(curIndex)) {
+                        curIndex = -1;
+                    }
+                }
+                position.record = dataSource.getAt(curIndex);
+            }
 
             // If the positioned record or column has gone away, we have no position
-            if (view.dataSource.indexOf(position.record) === -1 || view.getVisibleColumnManager().indexOf(position.column) == -1) {
+            if (curIndex === -1 || view.getVisibleColumnManager().indexOf(position.column) === -1) {
                 position.setAll();
                 me.record = me.column = me.recordIndex = me.columnIndex = null;
             } else {
                 return position;
             }
         }
+        return null;
     },
 
     getLastFocused: function() {
@@ -535,7 +606,7 @@ Ext.define('Ext.grid.NavigationModel', {
     },
 
     afterBufferedScrollTo: function(newIdx, newRecord) {
-        this.setPosition(newRecord, null, this.lastKeyEvent);
+        this.setPosition(newRecord, null, this.lastKeyEvent, null, !this.lastKeyEvent);
     },
 
     // End moves the focus to the last cell in the current row.
@@ -561,7 +632,7 @@ Ext.define('Ext.grid.NavigationModel', {
             me.setPosition(keyEvent.record, keyEvent.view.getVisibleColumnManager().getColumns().length - 1, keyEvent);
         }
     },
-
+    
     // Returns the number of rows currently visible on the screen or
     // false if there were no rows. This assumes that all rows are
     // of the same height and the first view is accurate.

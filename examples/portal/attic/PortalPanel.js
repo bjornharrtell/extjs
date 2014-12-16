@@ -17,7 +17,7 @@ Ext.define('Portal.view.PortalPanel', {
     cls: 'x-portal',
     bodyCls: 'x-portal-body',
     defaultType: 'portalcolumn',
-    autoScroll: true,
+    scrollable: true,
 
     manageHeight: false,
 

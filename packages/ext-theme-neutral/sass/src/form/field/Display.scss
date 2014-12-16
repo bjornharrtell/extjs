@@ -38,7 +38,7 @@
     $ui-line-height: $form-display-field-line-height
 ) {
     .#{$prefix}form-display-field-#{$ui} {
-        height: $ui-field-height;
+        min-height: $ui-field-height;
         font: $ui-font-weight #{$ui-font-size}/#{$ui-line-height} $ui-font-family;
         color: $ui-color;
         margin-top: round(($ui-field-height - $ui-line-height) / 2);

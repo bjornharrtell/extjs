@@ -331,9 +331,7 @@ describe("Ext.data.proxy.WebStorage", function() {
 
         it("should recursively remove the node and all of its descendants", function() {
             spyOn(proxy, 'removeRecord').andCallThrough();
-            node1.phantom = node2.phantom = node3.phantom = node4.phantom = node5.phantom = false;
             node1.erase();
-
 
             expect(proxy.removeRecord).toHaveBeenCalledWith(node1);
             expect(proxy.removeRecord).toHaveBeenCalledWith(node2);
@@ -390,7 +388,6 @@ describe("Ext.data.proxy.WebStorage", function() {
                 records: [record]
             });
 
-            spyOn(operation, 'setStarted').andCallThrough();
             spyOn(operation, 'setCompleted').andCallThrough();
             spyOn(operation, 'setSuccessful').andCallThrough();
         };
@@ -408,10 +405,23 @@ describe("Ext.data.proxy.WebStorage", function() {
                 expect(record.getId()).toEqual(10);
             });
 
-            it("should mark the Operation as started", function() {
-                proxy.create(operation);
+            it("should retain an id if using a UUID", function() {
+                var uniqueModel = Ext.define(null, {
+                    extend: 'Ext.data.Model',
+                    fields: ['id'],
+                    identifier: "uuid"
+                });
 
-                expect(operation.setStarted).toHaveBeenCalled();
+                proxy = new spec.Storage({
+                    model: uniqueModel,
+                    id: 'someId'
+                });
+
+                record = new uniqueModel();
+                var id = record.getId();
+                createOperation();
+                proxy.create(operation);
+                expect(record.getId()).toBe(id);
             });
 
             it("should mark the Operation as completed", function() {
@@ -539,15 +549,8 @@ describe("Ext.data.proxy.WebStorage", function() {
                 records: [record]
             });
 
-            spyOn(operation, 'setStarted').andCallThrough();
             spyOn(operation, 'setCompleted').andCallThrough();
             spyOn(operation, 'setSuccessful').andCallThrough();
-        });
-
-        it("should mark the Operation as started", function() {
-            proxy.update(operation);
-
-            expect(operation.setStarted).toHaveBeenCalled();
         });
 
         it("should mark the Operation as completed", function() {
@@ -695,6 +698,22 @@ describe("Ext.data.proxy.WebStorage", function() {
             };
 
             proxy = new spec.Storage(config);
+        });
+
+        describe("via the model", function() {
+            it("should load the data", function() {
+                spec.User.setProxy(proxy);
+
+                var rec = new spec.User({
+                    id: 1,
+                    name: 'Foo'
+                });
+                rec.save();
+
+                var user = spec.User.load(1);
+                expect(user.getId()).toBe(1);
+                expect(user.get('name')).toBe('Foo');
+            });
         });
 
         describe("if passed an id", function() {

@@ -160,7 +160,7 @@ Ext.define('Ext.util.Point', {
      * @return {Boolean}
      */
     roundedEquals: function(point) {
-        if (typeof point != 'object') {
+        if (!point || typeof point !== 'object') {
             point = this.origin;
         }
 
@@ -169,7 +169,7 @@ Ext.define('Ext.util.Point', {
     },
 
     getDistanceTo: function(point) {
-        if (typeof point != 'object') {
+        if (!point || typeof point !== 'object') {
             point = this.origin;
         }
 
@@ -180,7 +180,7 @@ Ext.define('Ext.util.Point', {
     },
 
     getAngleTo: function(point) {
-        if (typeof point != 'object') {
+        if (!point || typeof point !== 'object') {
             point = this.origin;
         }
 

@@ -12,6 +12,10 @@ Ext.define('Ext.slider.Widget', {
     ], 
 
     cachedConfig: {
+        /**
+        * @cfg {Boolean} vertical
+        * Orients the slider vertically rather than horizontally.
+        */
         vertical: false
     },
 
@@ -24,10 +28,22 @@ Ext.define('Ext.slider.Widget', {
 
         ui: 'widget',
 
+        /**
+         * @cfg {Number/Number[]} value
+         * One more values for the position of the slider's thumb(s).
+         */
         value: 0,
-
+        
+        /**
+         * @cfg {Number} minValue
+         * The minimum value for any slider thumb.
+         */
         minValue: 0,
-
+        
+        /**
+         * @cfg {Number} maxValue
+         * The maximum value for any slider thumb.
+         */
         maxValue: 100,
 
         /**

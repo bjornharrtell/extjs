@@ -1,3 +1,6 @@
+/**
+ * A sprite that represents a tick.
+ */
 Ext.define('Ext.draw.sprite.Tick', {
     extend: 'Ext.draw.sprite.Line',
     alias: 'sprite.tick',
@@ -18,7 +21,7 @@ Ext.define('Ext.draw.sprite.Tick', {
                 y: 0,
                 size: 4
             },
-            dirtyTriggers: {
+            triggers: {
                 x: 'tick',
                 y: 'tick',
                 size: 'tick'

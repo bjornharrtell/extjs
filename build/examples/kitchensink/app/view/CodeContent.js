@@ -1,7 +1,7 @@
 Ext.define('KitchenSink.view.CodeContent', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.codeContent',
-    autoScroll: true,
+    scrollable: true,
     
     cls: 'code-content',
     

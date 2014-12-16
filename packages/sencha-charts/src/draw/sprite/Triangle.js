@@ -1,3 +1,6 @@
+/**
+ * A sprite that represents a triangle.
+ */
 Ext.define('Ext.draw.sprite.Triangle', {
     extend: 'Ext.draw.sprite.Path',
     alias: 'sprite.triangle',
@@ -18,7 +21,7 @@ Ext.define('Ext.draw.sprite.Triangle', {
                 y: 0,
                 size: 4
             },
-            dirtyTriggers: {
+            triggers: {
                 x: 'path',
                 y: 'path',
                 size: 'path'

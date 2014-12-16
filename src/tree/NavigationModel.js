@@ -5,6 +5,7 @@
  * by adding the class {@link #focusCls}.
  *
  * Navigation and interactions are defined by http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#TreeView
+ * or, if there are multiple visible columns, by http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#treegrid
  */
 Ext.define('Ext.tree.NavigationModel', {
     extend: 'Ext.grid.NavigationModel',
@@ -12,8 +13,11 @@ Ext.define('Ext.tree.NavigationModel', {
     alias: 'view.navigation.tree',
     
     initKeyNav: function(view) {
-        var me = this;
+        var me = this,
+            columns = me.view.ownerGrid.columns;
 
+        // Must go up to any possible locking assembly to find total number of columns
+        me.isTreeGrid = columns && columns.length > 1;
         me.callParent([view]);
         me.keyNav.map.addBinding([{
             key: '8',
@@ -25,15 +29,29 @@ Ext.define('Ext.tree.NavigationModel', {
             handler: me.onAsterisk,
             scope: me
         }]);
+        me.view.grid.on({
+            columnschanged: me.onColumnsChanged,
+            scope: me
+        });
+    },
+
+    onColumnsChanged: function() {
+        // Must go up to any possible locking assembly to find total number of columns
+        this.isTreeGrid = this.view.ownerGrid.getVisibleColumnManager().getColumns().length > 1;
     },
 
     onKeyLeft: function(keyEvent) {
         var me = this,
-            view = me.view,
+            view = keyEvent.view,
             record = me.record;
 
+        // Left when a TreeGrid navigates between columns
+        if (me.isTreeGrid && !keyEvent.ctrlKey) {
+            return me.callParent([keyEvent]);
+        }
+
         // Left arrow key on an expanded node closes the node.
-        if (!record.isLeaf() && record.isExpanded()) {
+        if (keyEvent.position.column.isTreeColumn && record.isExpanded()) {
             view.collapse(record);
         }
         // Left arrow key on a closed or end node moves focus to the node's parent (don't attempt to focus hidden root).
@@ -49,11 +67,16 @@ Ext.define('Ext.tree.NavigationModel', {
         var me = this,
             record = me.record;
 
+        // Right when a TreeGrid navigates between columns
+        if (me.isTreeGrid && !keyEvent.ctrlKey) {
+            return me.callParent([keyEvent]);
+        }
+
         // Right arrow key expands a closed node, moves to the first child of an open node, or does nothing on an end node.
         if (!record.isLeaf()) {
-            if (!record.isExpanded()) {
-                me.view.expand(record);
-            } else {
+            if (keyEvent.position.column.isTreeColumn && !record.isExpanded()) {
+                keyEvent.view.expand(record);
+            } else if (record.isExpanded()) {
                 record = record.childNodes[0];
                 if (record) {
                     me.setPosition(record);

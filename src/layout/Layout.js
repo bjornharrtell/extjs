@@ -544,6 +544,26 @@ Ext.define('Ext.layout.Layout', {
     },
 
     /**
+     * @private
+     * Called by an owning Panel after the Panel finishes its collapse process.
+     */
+    afterCollapse: function(owner, animated) {
+        if (animated) {
+            this.onContentChange(owner);
+        }
+    },
+
+    /**
+     * @private
+     * Called by an owning Panel after the Panel finishes its expand process.
+     */
+    afterExpand: function(owner, animated) {
+        if (animated) {
+            this.onContentChange(owner);
+        }
+    },
+
+    /**
      * Destroys this layout. This method removes a `targetCls` from the `target`
      * element and calls `onDestroy`.
      * 

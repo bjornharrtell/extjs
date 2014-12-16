@@ -2,7 +2,7 @@ var page = require('webpage').create();
 
 var format = '#{format}';
 var data = '#{data}';
-var scale = parseInt('#{scale}', 10);
+var scale = parseFloat('#{scale}', 10);
 var width = parseInt('#{width}', 10);
 var height = parseInt('#{height}', 10);
 
@@ -51,11 +51,14 @@ function adjustSize() {
         }
     }
 
+    width = Math.round((width || naturalSize.width) * scale);
+    height = Math.round((height || naturalSize.height) * scale);
+
     page.evaluate(function (width, height) {
         var img = document.getElementById('chart');
         img.style.width = width;
         img.style.height = height;
-    }, (width || naturalSize.width) * scale, (height || naturalSize.height) * scale);
+    }, width, height);
 
     // Let the image to scale before rendering.
     window.setTimeout(render, 1);

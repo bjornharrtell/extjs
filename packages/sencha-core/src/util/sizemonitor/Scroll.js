@@ -8,7 +8,7 @@ Ext.define('Ext.util.sizemonitor.Scroll', {
     getElementConfig: function() {
         return {
             reference: 'detectorsContainer',
-            classList: ['x-size-monitors', 'scroll'],
+            classList: [Ext.baseCSSPrefix + 'size-monitors', 'scroll'],
             children: [
                 {
                     reference: 'expandMonitor',
@@ -25,7 +25,7 @@ Ext.define('Ext.util.sizemonitor.Scroll', {
     constructor: function(config) {
         this.onScroll = Ext.Function.bind(this.onScroll, this);
 
-        this.callSuper(arguments);
+        this.callParent(arguments);
     },
 
     bindListeners: function(bind) {

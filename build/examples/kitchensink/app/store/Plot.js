@@ -9,15 +9,17 @@ Ext.define('KitchenSink.store.Plot', {
     fnIndex: 0,
 
     fn: [
-        function (x) { return Math.sin(5 * x); },
         function (x) { return x * x * 2 - 1; },
-        // TODO: EXTJSIV-13098
-        // TODO: non-continuous functions don't draw nicely in SVG and VML engines,
-        // TODO: as y-value may equal to NaN, and methods like moveTo/lineTo don't handle that well.
-        // TODO: Ideally, moveTo should be called before a lineTo/bezierCurveTo/quadraticCurveTo call,
-        // TODO: and all *To methods should be called with valid numeric values.
-        // TODO: function (x) { return Math.sqrt((1 + x) / 2) * 2 - 1; },
+        function (x) { return Math.sin(5 * x); },
+        function (x) { return Math.sqrt((1 + x) / 2) * 2 - 1; },
         function (x) { return x * x * x; },
+        // TODO: The sign function is not rendered correctly:
+        // TODO: the jump at x = 1 is connected with a line.
+        // TODO: A maximum ratio of delta y to delta x should be calculated.
+        // TODO: If exceeded, we should consider that the plotted function is a non-continuous one
+        // TODO: (even if there are no gaps in the data) and has a jump at that increment.
+        // TODO: The problem with this is that it's hard to pick a value that works well for all functions.
+        // TODO: function (x) { return this.sign(x - 1)},
         function (x) { return Math.cos(10 * x); },
         function (x) { return 2 * x; },
         function (x) { return Math.pow(x, -2); },
@@ -25,11 +27,20 @@ Ext.define('KitchenSink.store.Plot', {
         function (x) { return Math.tan(5 * x); }
     ],
 
+    sign: function (x) {
+        if(isNaN(x)) {
+            return NaN;
+        } else if(x === 0) {
+            return x;
+        } else {
+            return (x > 0 ? 1 : -1);
+        }
+    },
+
     traverseFunctions: function () {
         var delta = arguments[0],
             l = arguments.length,
             data = [],
-            cap = 1000,
             i, j, y,
             rec;
         for (i = -2; i <= 2; i += delta) {
@@ -37,11 +48,8 @@ Ext.define('KitchenSink.store.Plot', {
                 x: i
             };
             for (j = 1; j < l; ++j) {
-                y = arguments[j](i);
-                if (y > cap) {
-                    y = cap;
-                }
-                rec['y' + j] = y || 0;
+                y = arguments[j].call(this, i);
+                rec['y' + j] = y;
             }
             data.push(rec);
         }
@@ -50,7 +58,7 @@ Ext.define('KitchenSink.store.Plot', {
 
     generateData: function () {
         var me = this;
-        return me.traverseFunctions(me.xStep, me.fn[++me.fnIndex % me.fn.length]);
+        return me.traverseFunctions(me.xStep, me.fn[me.fnIndex++ % me.fn.length]);
     },
 
     refreshData: function () {

@@ -43,7 +43,7 @@ Ext.define('Ext.layout.container.Container', {
     beginExpand: Ext.emptyFn,
 
     /**
-     * An object which contains boolean properties specifying which properties are to be 
+     * An object which contains boolean properties specifying which properties are to be
      * animated upon flush of child Component ContextItems. For example, Accordion would
      * have:
      *
@@ -84,7 +84,7 @@ Ext.define('Ext.layout.container.Container', {
     /**
      * In addition to work done by our base classes, containers benefit from some extra
      * cached data. The following properties are added to the ownerContext:
-     * 
+     *
      *  - visibleItems: the result of {@link #getVisibleItems}
      *  - childItems: the ContextItem[] for each visible item
      *  - targetContext: the ContextItem for the {@link #getTarget} element
@@ -257,7 +257,7 @@ Ext.define('Ext.layout.container.Container', {
      */
     getContainerSize : function(ownerContext, inDom) {
         // Subtle But Important:
-        // 
+        //
         // We don't want to call getProp/hasProp et.al. unless we in fact need that value
         // for our results! If we call it and don't need it, the layout manager will think
         // we depend on it and will schedule us again should it change.
@@ -313,7 +313,7 @@ Ext.define('Ext.layout.container.Container', {
             gotHeight: gotHeight
         };
     },
-    
+
     // This method is used to offset the DOM position when checking
     // whether the element is a certain child of the target. This is
     // required in cases where the extra elements prepended to the target
@@ -418,20 +418,20 @@ Ext.define('Ext.layout.container.Container', {
             items = this.owner.items,
             itemsGen,
             renderCfgs = {};
-        
+
         do {
             itemsGen = items.generation;
             result = this.getItemsRenderTree(this.getLayoutItems(), renderCfgs);
         } while (items.generation !== itemsGen);
         return result;
     },
-    
+
     renderChildren: function () {
         var me = this,
             ownerItems = me.owner.items,
             target = me.getRenderTarget(),
             itemsGen, items;
-            
+
         // During the render phase, new items may be added. Specifically, a panel will
         // create a placeholder component during render if required, so we need to catch
         // it here so we can render it.
@@ -485,7 +485,7 @@ Ext.define('Ext.layout.container.Container', {
      * @return {Array} All matching items
      */
     getVisibleItems: function() {
-        var target   = this.getRenderTarget(),
+        var target = this.getRenderTarget(),
             items = this.getLayoutItems(),
             ln = items.length,
             visibleItems = [],
@@ -500,45 +500,33 @@ Ext.define('Ext.layout.container.Container', {
 
         return visibleItems;
     },
-        
+
     getMoveAfterIndex: function (after) {
-        var owner = this.owner,
-            items = owner.items;
-        
-        return items.indexOf(after) + 1;
+        return this.owner.items.indexOf(after) + 1;
     },
-        
+
     moveItemBefore: function (item, before) {
         var owner = this.owner,
-            prevOwner = item.ownerCt,
             items = owner.items,
             toIndex;
-        
+
         if (item === before) {
             return item;
         }
 
-        if (prevOwner) {
-            prevOwner.remove(item, false);
-        }
-        
-        if (before) {            
-            toIndex = items.indexOf(before);
-        } else {            
-            toIndex = items.length;
-        }
-        
+        toIndex = before ?
+            items.indexOf(before) :
+            items.length;
+
         return owner.insert(toIndex, item);
     },
 
     setupRenderTpl: function (renderTpl) {
-        var me = this;
-
-        renderTpl.renderBody = me.doRenderBody;
-        renderTpl.renderContainer = me.doRenderContainer;
-        renderTpl.renderItems = me.doRenderItems;
+        renderTpl.renderBody = this.doRenderBody;
+        renderTpl.renderContainer = this.doRenderContainer;
+        renderTpl.renderItems = this.doRenderItems;
     },
-    
+
     getContentTarget: function(){
         return this.owner.getDefaultContentTarget();
     },

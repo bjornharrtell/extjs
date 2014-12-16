@@ -9,6 +9,48 @@ Ext.define('Ext.data.LocalStore', {
         id: 'localstore'
     },
 
+    config: {
+        extraKeys: null
+    },
+
+    applyExtraKeys: function(extraKeys) {
+        var indexName,
+            data = this.getData();
+
+        // Add the extra keys to the data collection
+        data.setExtraKeys(extraKeys);
+
+        // Pluck the extra keyts out so that we can keep them by index name
+        extraKeys = data.getExtraKeys();
+
+        for (indexName in extraKeys) {
+            this[indexName] = extraKeys[indexName];
+        }
+    },
+
+    /**
+     * Adds Model instance to the Store. This method accepts either:
+     *
+     * - An array of Model instances or Model configuration objects.
+     * - Any number of Model instance or Model configuration object arguments.
+     *
+     * The new Model instances will be added at the end of the existing collection.
+     *
+     * Sample usage:
+     *
+     *     myStore.add({some: 'data'}, {some: 'other data'});
+     *
+     * Note that if this Store is sorted, the new Model instances will be inserted
+     * at the correct point in the Store to maintain the sort order.
+     *
+     * @param {Ext.data.Model[]/Ext.data.Model.../Object[]/Object...} model An array of Model instances
+     * or Model configuration objects, or variable number of Model instance or config arguments.
+     * @return {Ext.data.Model[]} The model instances that were added
+     */
+    add: function(arg) {
+        return this.insert(this.getCount(), arguments.length === 1 ? arg : arguments);
+    },
+
     constructDataCollection: function() {
         var data = new Ext.util.Collection({
             rootProperty: 'data',
@@ -20,10 +62,26 @@ Ext.define('Ext.data.LocalStore', {
             }
         }),
         sorters;
-
+ 
+        this.byInternalId = data.byInternalId;
         sorters = data.getSorters();
         sorters.setSorterConfigure(this.addFieldTransform, this);
         return data;
+    },
+
+    /**
+     * Converts a literal to a model, if it's not a model already
+     * @private
+     * @param {Ext.data.Model/Object} record The record to create
+     * @return {Ext.data.Model}
+     */
+    createModel: function(record) {
+        var session = this.getSession();
+        if (!record.isModel) {
+            var Model = this.getModel();
+            record = new Model(record, session);
+        }
+        return record;
     },
 
     createFiltersCollection: function() {
@@ -162,6 +220,41 @@ Ext.define('Ext.data.LocalStore', {
     indexOfId: function(id) {
         return this.indexOf(this.getById(id));
     },
+
+    /**
+     * Inserts Model instances into the Store at the given index and fires the {@link #event-add} event.
+     * See also {@link #method-add}.
+     *
+     * @param {Number} index The start index at which to insert the passed Records.
+     * @param {Ext.data.Model/Ext.data.Model[]/Object/Object[]} records An `Ext.data.Model` instance, the
+     * data needed to populate an instance or an array of either of these.
+     * 
+     * @return {Ext.data.Model[]} records The added records
+     */
+    insert: function(index, records) {
+        var me = this,
+            len, i;
+        
+        if (records) {
+            if (!Ext.isIterable(records)) {
+                records = [records];
+            } else {
+                records = Ext.Array.clone(records);
+            }
+            len = records.length;
+        }
+        
+        if (!len) {
+            return [];
+        }
+        
+        for (i = 0; i < len; ++i) {
+            records[i] = me.createModel(records[i]);
+        }
+        
+        me.getData().insert(index, records);
+        return records;
+    },
     
     /**
      * Query all the cached records in this Store using a filtering function. The specified function
@@ -177,7 +270,7 @@ Ext.define('Ext.data.LocalStore', {
      *  @param {Object} fn.id The ID of the Record passed.
      * @param {Object} [scope] The scope (this reference) in which the function is executed
      * Defaults to this Store.
-     * @return {Ext.util.Collection} Returns an Ext.util.Collection of the matched records
+     * @return {Ext.util.Collection} The matched records
      */
     queryBy: function(fn, scope) {
         var data = this.getData();
@@ -202,7 +295,7 @@ Ext.define('Ext.data.LocalStore', {
      * @param {Boolean} [caseSensitive=false] `true` to create a case-sensitive regex.
      * @param {Boolean} [exactMatch=false] True to force exact match (^ and $ characters
      * added to the regex). Ignored if `anyMatch` is `true`.
-     * @return {Ext.util.Collection} Returns an Ext.util.Collection of the matched records
+     * @return {Ext.util.Collection} The matched records
      */
     query: function(property, value, anyMatch, caseSensitive, exactMatch) {
         var data = this.getData();
@@ -409,5 +502,67 @@ Ext.define('Ext.data.LocalStore', {
                 }
             }
         }
+    },
+
+    /**
+     * Query all the cached records in this Store using a filtering function. The specified function
+     * will be called with each record in this Store. If the function returns `true` the record is
+     * included in the results.
+     *
+     * This method is not affected by filtering, it will always search *all* records in the store
+     * regardless of filtering.
+     * 
+     * @param {Function} fn The function to be called. It will be passed the following parameters:
+     *   @param {Ext.data.Model} fn.record The record to test for filtering.
+     * @param {Object} [scope] The scope (this reference) in which the function is executed
+     * Defaults to this Store.
+     * @return {Ext.data.Model[]} The matched records.
+     *
+     * @private
+     */
+    queryRecordsBy: function(fn, scope) {
+        var data = this.getData(),
+            matches = [],
+            len, i, record;
+
+        data = (data.getSource() || data).items;
+        scope = scope || this;
+
+        for (i = 0, len = data.length; i < len; ++i) {
+            record = data[i];
+            if (fn.call(scope, record) === true) {
+                matches.push(record);
+            }
+        }
+        return matches;
+    },
+
+    /**
+     * Query all the cached records in this Store by field.
+     *
+     * This method is not affected by filtering, it will always search *all* records in the store
+     * regardless of filtering.
+     * 
+     * @param {String} field The field from each record to use.
+     * @param {Object} value The value to match.
+     * @return {Ext.data.Model[]} The matched records.
+     *
+     * @private
+     */
+    queryRecords: function(field, value) {
+        var data = this.getData(),
+            matches = [],
+            len, i, record;
+
+        data = (data.getSource() || data).items;
+
+        for (i = 0, len = data.length; i < len; ++i) {
+            record = data[i];
+            if (record.get(field) === value) {
+                matches.push(record);
+            }
+        }
+        return matches;
     }
+
 });

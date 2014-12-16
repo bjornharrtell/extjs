@@ -105,7 +105,7 @@
  * Grids use a Row Selection Model by default, but this is easy to customise like so:
  *
  *     Ext.create('Ext.grid.Panel', {
- *         selType: 'cellmodel',
+ *         selModel: 'cellmodel',
  *         store: ...
  *     });
  *
@@ -172,10 +172,10 @@
  */
 Ext.define('Ext.grid.Panel', {
     extend: 'Ext.panel.Table',
-    requires: ['Ext.grid.View'],
+    requires: ['Ext.view.Table'],
     alias: ['widget.gridpanel', 'widget.grid'],
     alternateClassName: ['Ext.list.ListView', 'Ext.ListView', 'Ext.grid.GridPanel'],
-    viewType: 'gridview',
+    viewType: 'tableview',
 
     lockable: false,
 

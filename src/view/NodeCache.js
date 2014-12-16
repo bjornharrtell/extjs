@@ -141,6 +141,43 @@ Ext.define('Ext.view.NodeCache', {
         return this.item(this.endIndex, asDom);
     },
 
+    // @private
+    // Used by buffered renderer when ading or removing record ranges which are above the
+    // rendered block. The element block must be shuffled up or down the index range,
+    // and the data-recordIndex connector attribute must be updated.
+    moveBlock: function(increment) {
+        var me = this,
+            elements = me.elements,
+            node,
+            end,
+            step,
+            i;
+
+        if (increment < 0) {
+            i = me.startIndex - 1;
+            end = me.endIndex;
+            step = 1;
+        } else {
+            i = me.endIndex + 1;
+            end = me.startIndex;
+            step = -1;
+        }
+        me.startIndex += increment;
+        me.endIndex += increment;
+
+        do {
+            i += step;
+            node = elements[i + increment] = elements[i];
+            node.setAttribute('data-recordIndex', i + increment);
+
+            // "from" element is outside of the new range, then delete it.
+            if (i < me.startIndex || i > me.endIndex) {
+                delete elements[i];
+            }
+        } while (i !== end)
+        delete elements[i];
+    },
+
     getCount : function() {
         return this.count;
     },
@@ -207,8 +244,7 @@ Ext.define('Ext.view.NodeCache', {
     removeRange: function(start, end, removeDom) {
         var me = this,
             elements = me.elements,
-            el,
-            i, removeCount, fromPos;
+            el, i, removeCount, fromPos;
 
         if (end == null) {
             end = me.endIndex + 1;
@@ -220,9 +256,11 @@ Ext.define('Ext.view.NodeCache', {
         }
         removeCount = end - start;
         for (i = start, fromPos = end; i <= me.endIndex; i++, fromPos++) {
+            el = elements[i];
+
             // Within removal range and we are removing from DOM
             if (removeDom && i < end) {
-                Ext.removeNode(elements[i]);
+                el.parentNode.removeChild(el);
             }
             // If the from position is occupied, shuffle that entry back into reference "i"
             if (fromPos <= me.endIndex) {
@@ -315,6 +353,7 @@ Ext.define('Ext.view.NodeCache', {
      * @param {Number} direction `-1' = scroll up, `0` = scroll down.
      * @param {Number} removeCount The number of records to remove from the end. if scrolling
      * down, rows are removed from the top and the new rows are added at the bottom.
+     * @return {HtmlElement[]} The view item nodes added either at the top or the bottom of the view.
      */
     scroll: function(newRecords, direction, removeCount) {
         var me = this,
@@ -325,7 +364,6 @@ Ext.define('Ext.view.NodeCache', {
             i, el, removeEnd,
             newNodes,
             nodeContainer = view.getNodeContainer(),
-            frag = document.createDocumentFragment(),
             fireItemRemove = view.hasListeners.itemremove,
             fireItemAdd = view.hasListeners.itemadd,
             range = me.statics().range;
@@ -364,14 +402,13 @@ Ext.define('Ext.view.NodeCache', {
                 // grab all nodes rendered, not just the data rows
                 newNodes = view.bufferRender(newRecords, me.startIndex -= recCount);
                 for (i = 0; i < recCount; i++) {
-                    elements[me.startIndex + i] = newNodes[i];
-                    frag.appendChild(newNodes[i]);
+                    elements[me.startIndex + i] = newNodes.childrenArray[i];
                 }
-                nodeContainer.insertBefore(frag, nodeContainer.firstChild);
+                nodeContainer.insertBefore(newNodes, nodeContainer.firstChild);
 
                 // pass the new DOM to any interested parties
                 if (fireItemAdd) {
-                    view.fireEvent('itemadd', newRecords, me.startIndex, newNodes);
+                    view.fireEvent('itemadd', newRecords, me.startIndex, newNodes.childrenArray);
                 }
             }
         }
@@ -407,18 +444,19 @@ Ext.define('Ext.view.NodeCache', {
             // grab all nodes rendered, not just the data rows
             newNodes = view.bufferRender(newRecords, me.endIndex + 1);
             for (i = 0; i < recCount; i++) {
-                elements[me.endIndex += 1] = newNodes[i];
-                frag.appendChild(newNodes[i]);
+                elements[me.endIndex += 1] = newNodes.childrenArray[i];
             }
-            nodeContainer.appendChild(frag);
+            nodeContainer.appendChild(newNodes);
 
             // pass the new DOM to any interested parties
             if (fireItemAdd) {
-                view.fireEvent('itemadd', newRecords, me.endIndex + 1, newNodes);
+                view.fireEvent('itemadd', newRecords, me.endIndex + 1, newNodes.childrenArray);
             }
         }
         // Keep count consistent.
         me.count = me.endIndex - me.startIndex + 1;
+        
+        return newNodes.childrenArray;
     },
 
     sumHeights: function() {

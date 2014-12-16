@@ -9,13 +9,13 @@ Ext.define('Ext.util.sizemonitor.OverflowChange', {
         this.onExpand = Ext.Function.bind(this.onExpand, this);
         this.onShrink = Ext.Function.bind(this.onShrink, this);
 
-        this.callSuper(arguments);
+        this.callParent(arguments);
     },
 
     getElementConfig: function() {
         return {
             reference: 'detectorsContainer',
-            classList: ['x-size-monitors', 'overflowchanged'],
+            classList: [Ext.baseCSSPrefix + 'size-monitors', 'overflowchanged'],
             children: [
                 {
                     reference: 'expandMonitor',

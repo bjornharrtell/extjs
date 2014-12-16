@@ -27,6 +27,8 @@ Ext.define('KitchenSink.view.tree.CheckTree', {
     title: 'Check Tree',
     width: 280,
     height: 300,
+    bufferedRenderer: false,
+    animate: true,
     
     initComponent: function(){
 

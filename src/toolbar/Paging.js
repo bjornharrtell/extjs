@@ -15,49 +15,60 @@
  * Paging Toolbar is typically used as one of the Grid's toolbars:
  *
  *     @example
- *     var itemsPerPage = 2;   // set the number of items you want per page
+ *     var pagelimit = 2;
  *
  *     var store = Ext.create('Ext.data.Store', {
- *         id:'simpsonsStore',
  *         autoLoad: false,
- *         fields:['name', 'email', 'phone'],
- *         pageSize: itemsPerPage, // items per page
+ *         fields: ['title', 'username', 'replycount'],
+ *         pageSize: pagelimit, // items per page
  *         proxy: {
- *             type: 'ajax',
- *             url: 'pagingstore.js',  // url that will load data with respect to start and limit params
+ *             type: 'jsonp',
+ *             url: 'https://www.sencha.com/forum/topics-browse-remote.php',
  *             reader: {
- *                 type: 'json',
- *                 rootProperty: 'items',
- *                 totalProperty: 'total'
- *             }
+ *                 rootProperty: 'topics',
+ *                 totalProperty: 'totalCount'
+ *             },
+ *             // sends single sort as multi parameter
+ *             simpleSortMode: true
  *         }
  *     });
  *
- *     // specify segment of data you want to load using params
  *     store.load({
- *         params:{
- *             start:0,
- *             limit: itemsPerPage
+ *         params: {
+ *             start: 0,
+ *             limit: pagelimit
  *         }
  *     });
  *
  *     Ext.create('Ext.grid.Panel', {
+ *         renderTo: Ext.getBody(),
  *         title: 'Simpsons',
  *         store: store,
- *         columns: [
- *             { header: 'Name',  dataIndex: 'name' },
- *             { header: 'Email', dataIndex: 'email', flex: 1 },
- *             { header: 'Phone', dataIndex: 'phone' }
- *         ],
- *         width: 400,
- *         height: 125,
+ *         height: 152,
+ *         columns:[{
+ *             id: 'topic',
+ *             text: "Topic",
+ *             dataIndex: 'title',
+ *             flex: 1,
+ *             sortable: false
+ *         },{
+ *             text: "Author",
+ *             dataIndex: 'username',
+ *             width: 100,
+ *             sortable: true
+ *         },{
+ *             text: "Replies",
+ *             dataIndex: 'replycount',
+ *             width: 90,
+ *             align: 'right',
+ *             sortable: true
+ *         }],
  *         dockedItems: [{
  *             xtype: 'pagingtoolbar',
- *             store: store,   // same store GridPanel is using
+ *             store: store, // same store GridPanel is using
  *             dock: 'bottom',
  *             displayInfo: true
- *         }],
- *         renderTo: Ext.getBody()
+ *         }]
  *     });
  *
  * To use paging, you need to set a pageSize configuration on the Store, and pass the paging requirements to
@@ -253,6 +264,19 @@ Ext.define('Ext.toolbar.Paging', {
      * @param {Number} page The page number that will be loaded on change
      */
 
+    emptyPageData: {
+        total: 0,
+        currentPage: 0,
+        pageCount: 0,
+        toRecord: 0,
+        fromRecord: 0
+    },
+
+    /**
+     * @inheritdoc
+     */
+    defaultBindProperty: 'store',
+
     /**
      * Gets the standard paging items in the toolbar
      * @private
@@ -360,14 +384,17 @@ Ext.define('Ext.toolbar.Paging', {
     },
     
     beforeRender: function() {
+        this.callParent(arguments);
+        this.updateBarInfo();  
+    },
+
+    updateBarInfo: function() {
         var me = this;
-        
-        me.callParent(arguments);
         if (!me.store.isLoading()) {
-            me.calledFromRender = true;
+            me.calledInternal = true;
             me.onLoad();    
-            delete me.calledFromRender;
-        }    
+            me.calledInternal = false;
+        }  
     },
     
     // @private
@@ -442,8 +469,8 @@ Ext.define('Ext.toolbar.Paging', {
         me.updateInfo();
         Ext.resumeLayouts(true);
 
-        if (!me.calledFromRender) {
-            me.fireEvent('change', me, pageData);
+        if (!me.calledInternal) {
+            me.fireEvent('change', me, pageData || me.emptyPageData);
         }
     },
     
@@ -647,6 +674,12 @@ Ext.define('Ext.toolbar.Paging', {
             load: this.onLoad,
             exception: this.onLoadError
         };
+    },
+
+    onBindStore: function() {
+        if (this.rendered) {
+            this.updateBarInfo();
+        }
     },
 
     // @private

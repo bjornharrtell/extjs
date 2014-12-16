@@ -33,7 +33,8 @@ Ext.define('ExecDashboard.view.kpi.Kpi', {
         align: 'stretch'
     },
 
-    overflowY: 'auto',
+    scrollable: 'y',
+
     minWidth: 600,
 
     items: [{

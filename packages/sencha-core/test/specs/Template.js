@@ -116,7 +116,8 @@ describe("Ext.Template", function() {
         });
 
         afterEach(function() {
-           rootEl.remove();
+            rootEl.destroy();
+            childEl.destroy();
         });
 
         describe("append", function() {
@@ -125,7 +126,11 @@ describe("Ext.Template", function() {
                     simpleTplEl = simpleTpl.append(rootEl, ["world"], true);
                 });
 
-                it("should append the new node the end of the specified element", function() {
+                afterEach(function() {
+                    simpleTplEl.destroy();
+                });
+
+                it("should append the new node to the end of the specified element", function() {
                     expect(simpleTplEl).toEqual(rootEl.last());
                 });
 
@@ -143,7 +148,11 @@ describe("Ext.Template", function() {
                     complexTplEl = complexTpl.append(rootEl, appliedObject, true);
                 });
 
-                it("should append the new node the end of the specified element", function() {
+                afterEach(function() {
+                    complexTplEl.destroy();
+                });
+
+                it("should append the new node to the end of the specified element", function() {
                     expect(complexTplEl).toEqual(rootEl.last());
                 });
 
@@ -159,15 +168,15 @@ describe("Ext.Template", function() {
 
         describe("apply", function() {
             describe("with a simple template", function() {
-                it("should applies the supplied value an return an HTML fragments", function() {
+                it("should apply the supplied value and return an HTML fragments", function() {
                     expect(simpleTpl.apply(appliedArr)).toEqual('<div class="template">Hello world.</div>');
-                 });
+                });
             });
 
             describe("with a complex template", function() {
-                it("should applies the supplied value an return an HTML fragments", function() {
+                it("should apply the supplied value and return an HTML fragments", function() {
                     expect(complexTpl.apply(appliedObject)).toEqual('<div name="myid"><span class="myclass">foo bar</span></div>');
-                 });
+                });
             });
 
         });
@@ -176,6 +185,10 @@ describe("Ext.Template", function() {
             describe("with a simple template", function() {
                 beforeEach(function() {
                     simpleTplEl = simpleTpl.insertAfter(childEl, ["world"], true);
+                });
+
+                afterEach(function() {
+                    simpleTplEl.destroy();
                 });
 
                 it("should insert the new node after the specified element", function() {
@@ -195,6 +208,10 @@ describe("Ext.Template", function() {
                 beforeEach(function() {
                     complexTplEl = complexTpl.insertAfter(childEl, appliedObject, true);
                 });
+
+                afterEach(function() {
+                    complexTplEl.destroy();
+                })
 
                 it("should insert the new node after the specified element", function() {
                     expect(complexTplEl).toEqual(childEl.next());
@@ -216,6 +233,10 @@ describe("Ext.Template", function() {
                     simpleTplEl = simpleTpl.insertBefore(childEl, ["world"], true);
                 });
 
+                afterEach(function() {
+                    simpleTplEl.destroy();
+                });
+
                 it("should insert the new node before the specified element", function() {
                     expect(simpleTplEl).toEqual(childEl.prev());
                 });
@@ -232,6 +253,10 @@ describe("Ext.Template", function() {
             describe("with a complex template", function() {
                 beforeEach(function() {
                     complexTplEl = complexTpl.insertBefore(childEl, appliedObject, true);
+                });
+
+                afterEach(function() {
+                    complexTplEl.destroy();
                 });
 
                 it("should insert the new node before the specified element", function() {
@@ -254,6 +279,10 @@ describe("Ext.Template", function() {
                     simpleTplEl = simpleTpl.insertFirst(rootEl, ["world"], true);
                 });
 
+                afterEach(function() {
+                    simpleTplEl.destroy();
+                });
+
                 it("should insert the new node as first child of the specified element", function() {
                     expect(simpleTplEl).toEqual(rootEl.first());
                 });
@@ -270,6 +299,10 @@ describe("Ext.Template", function() {
             describe("with a complex template", function() {
                 beforeEach(function() {
                     complexTplEl = complexTpl.insertFirst(rootEl, appliedObject, true);
+                });
+
+                afterEach(function() {
+                    complexTplEl.destroy();
                 });
 
                 it("should insert the new node as first child of the specified element", function() {
@@ -292,6 +325,10 @@ describe("Ext.Template", function() {
                     simpleTplEl = simpleTpl.overwrite(rootEl, ["world"], true);
                 });
 
+                afterEach(function() {
+                    simpleTplEl.destroy();
+                });
+
                 it("should overrride the content of the specified element", function() {
                     expect(simpleTplEl).toEqual(rootEl.first());
                     expect(simpleTplEl).toEqual(rootEl.last());
@@ -309,6 +346,10 @@ describe("Ext.Template", function() {
             describe("with a complex template", function() {
                 beforeEach(function() {
                     complexTplEl = complexTpl.overwrite(rootEl, appliedObject, true);
+                });
+
+                afterEach(function() {
+                    complexTplEl.destroy();
                 });
 
                 it("should overrride the content of the specified element", function() {
@@ -334,7 +375,7 @@ describe("Ext.Template", function() {
             });
 
             afterEach(function() {
-                table.remove();
+                table.destroy();
             });
 
             it("should insert table structure into a table", function() {

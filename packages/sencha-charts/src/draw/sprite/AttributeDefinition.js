@@ -1,6 +1,9 @@
 /**
  * @private
- * Flyweight object to process the attribute of a sprite.
+ * Flyweight object to process the attributes of a sprite.
+ * A single instance of the AttributeDefinition is created per sprite class.
+ * See `onClassCreated` and `onClassExtended` callbacks
+ * of the {@link Ext.draw.sprite.Sprite} for more info.
  */
 Ext.define('Ext.draw.sprite.AttributeDefinition', {
     requires: [
@@ -12,59 +15,66 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
         /**
          * @cfg {Object} defaults Defines the default values of attributes.
          */
-        defaults: {
-
-        },
+        defaults: {},
 
         /**
-         * @cfg {Object} aliases Defines the aletrnative names for attributes.
+         * @cfg {Object} aliases Defines the alternative names for attributes.
          */
-        aliases: {
-
-        },
+        aliases: {},
 
         /**
          * @cfg {Object} animationProcessors Defines the process used to animate between attributes.
+         * One doesn't have to define animation processors for sprite attributes that use
+         * predefined {@link #processors} from the {@link Ext.draw.sprite.AttributeParser} singleton.
+         * For such attributes matching animation processors from the {@link Ext.draw.sprite.AnimationParser}
+         * singleton will be used automatically.
+         * However, if you have a custom processor for an attribute that should support
+         * animation, you must provide a corresponding animation processor for it here.
+         * For more information on animation processors please see {@link Ext.draw.sprite.AnimationParser}
+         * documentation.
          */
-        animationProcessors: {
-
-        },
+        animationProcessors: {},
 
         /**
-         * @cfg {Object} processors Defines the preprocessing used on the attribute.
+         * @cfg {Object} processors Defines the preprocessing used on the attributes.
+         * One can define a custom processor function here or use the name of a predefined
+         * processor from the {@link Ext.draw.sprite.AttributeParser} singleton.
          */
-        processors: {
-
-        },
+        processors: {},
 
         /**
-         * @cfg {Object} dirty Defines what updaters have to be called when an attribute is changed.
+         * @cfg {Object} dirtyTriggers
+         * @deprecated Use the {@link #triggers} config instead.
+         */
+        dirtyTriggers: {},
+
+        /**
+         * @cfg {Object} triggers Defines which updaters have to be called when an attribute is changed.
          * For example, the config below indicates that the 'size' updater
          * of a {@link Ext.draw.sprite.Square square} sprite has to be called
          * when the 'size' attribute changes.
          *
-         *     dirtyTriggers: {
+         *     triggers: {
          *         size: 'size'   // Use comma-separated values here if multiple updaters have to be called.
          *     }                  // Note that the order is _not_ guaranteed.
          *
          * If any of the updaters to be called (triggered by the {@link Ext.draw.sprite.Sprite#setAttributes call)
-         * set attributes themselves and those attributes have dirty triggers defined for them,
+         * set attributes themselves and those attributes have triggers defined for them,
          * then their updaters will be called after all current updaters finish execution.
          *
          * The updater functions themselves are defined in the {@link #updaters} config,
          * aside from the 'canvas' updater, which doesn't have to be defined and acts as a flag,
          * indicating that this attribute should be applied to a Canvas context (or whatever emulates it).
+         * @since 5.1.0
          */
-        dirtyTriggers: {
-
-        },
+        triggers: {},
 
         /**
          * @cfg {Object} updaters Defines the postprocessing used by the attribute.
          * Inside the updater function 'this' refers to the sprite that the attributes belong to.
          * In case of an instancing sprite 'this' will refer to the instancing template.
-         * The two parameters passed to the updater function are the attributes themselves
-         * and the dirty flags (changed attributes) that triggered this updater call.
+         * The two parameters passed to the updater function are the attributes object
+         * of the sprite or instance, and the names of attributes that triggered this updater call.
          *
          * The example below shows how the 'size' updater changes other attributes
          * of a {@link Ext.draw.sprite.Square square} sprite sprite when its 'size' attribute changes.
@@ -81,13 +91,17 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
          *         }
          *     }
          */
-        updaters: {
-
-        }
+        updaters: {}
     },
 
     inheritableStatics: {
-        processorRe: /^(\w+)\(([\w\-,]*)\)$/
+        /**
+         * @private
+         * Processor declaration in the form of 'processorFactory(argument1,argument2,...)'.
+         * E.g.: {@link Ext.draw.sprite.AttributeParser#enums enums},
+         * {@link Ext.draw.sprite.AttributeParser#limited limited}.
+         */
+        processorFactoryRe: /^(\w+)\(([\w\-,]*)\)$/
     },
 
     constructor: function (config) {
@@ -105,22 +119,23 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
     },
 
     applyProcessors: function (processors, oldProcessors) {
-        this.getAnimationProcessors();
-        var name,
-            result = oldProcessors || {},
+        this.getAnimationProcessors(); // Apply custom animation processors first.
+        var result = oldProcessors || {},
             defaultProcessor = Ext.draw.sprite.AttributeParser,
-            processorRe = this.self.processorRe,
-            animationProcessors = {}, anyAnimationProcessors,
-            match, fn;
+            processorFactoryRe = this.self.processorFactoryRe,
+            animationProcessors = {},
+            anyAnimationProcessors,
+            name, match, fn;
 
         for (name in processors) {
             fn = processors[name];
             if (!Ext.isFunction(fn)) {
                 if (Ext.isString(fn)) {
-                    match = fn.match(processorRe);
+                    match = fn.match(processorFactoryRe);
                     if (match) {
                         fn = defaultProcessor[match[1]].apply(defaultProcessor, match[2].split(','));
                     } else {
+                        // Names of animation parsers match the names of attribute parsers.
                         animationProcessors[name] = fn;
                         anyAnimationProcessors = true;
                         fn = defaultProcessor[fn];
@@ -141,18 +156,20 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
 
     applyAnimationProcessors: function (animationProcessors, oldAnimationProcessors) {
         var parser = Ext.draw.sprite.AnimationParser,
-            item;
+            name, item;
 
         if (!oldAnimationProcessors) {
             oldAnimationProcessors = {};
         }
 
-        for (var name in animationProcessors) {
+        for (name in animationProcessors) {
             item = animationProcessors[name];
             if (item === 'none') {
                 oldAnimationProcessors[name] = null;
             } else if (Ext.isString(item) && !(name in oldAnimationProcessors)) {
                 if (item in parser) {
+                    // The while loop is used to resolve aliases, e.g. `num: 'number'`,
+                    // where `number` maps to a parser object or is an alias too.
                     while (Ext.isString(parser[item])) {
                         item = parser[item];
                     }
@@ -165,14 +182,18 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
         return oldAnimationProcessors;
     },
 
-    applyDirtyTriggers: function (dirtyTriggers, oldDirtyTrigger) {
-        if (!oldDirtyTrigger) {
-            oldDirtyTrigger = {};
+    updateDirtyTriggers: function (dirtyTriggers) {
+        this.setTriggers(dirtyTriggers);
+    },
+
+    applyTriggers: function (triggers, oldTriggers) {
+        if (!oldTriggers) {
+            oldTriggers = {};
         }
-        for (var name in dirtyTriggers) {
-            oldDirtyTrigger[name] = dirtyTriggers[name].split(',');
+        for (var name in triggers) {
+            oldTriggers[name] = triggers[name].split(',');
         }
-        return oldDirtyTrigger;
+        return oldTriggers;
     },
 
     applyUpdaters: function (updaters, oldUpdaters) {

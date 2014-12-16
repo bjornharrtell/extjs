@@ -59,6 +59,7 @@ Ext.define('KitchenSink.view.charts.pie.Pie3D', {
         xtype: 'polar',
         width: '100%',
         height: 500,
+        color: ['red', 'green', 'blue'],
         store: {
             type: 'pie'
         },

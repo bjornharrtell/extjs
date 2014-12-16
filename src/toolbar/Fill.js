@@ -17,6 +17,9 @@
  */
 Ext.define('Ext.toolbar.Fill', {
     extend: 'Ext.Component',
+    // Toolbar required here because we'll try to decorate it's alternateClassName
+    // with this class' alternate name
+    requires: ['Ext.toolbar.Toolbar'],
     alias: 'widget.tbfill',
     alternateClassName: 'Ext.Toolbar.Fill',
     

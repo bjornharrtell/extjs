@@ -33,12 +33,12 @@ Ext.onReady(function(){
                     emptyText: 'Select a language...',
                     hideLabel: true,
                     listeners: {
-                        select: {
-                            fn: function(cb, records) {
-                                var record = records[0];
-                                window.location.search = Ext.urlEncode({"lang":record.get("code")});
-                            },
-                            scope: this
+                        select: function(cb, record) {
+                            var search = location.search,
+                                index = search.indexOf('&'),
+                                params = Ext.urlEncode({'lang': record.get('code')});
+
+                            location.search = (index === -1) ? params : params + search.substr(index);
                         }
                     }
                 });
@@ -52,10 +52,7 @@ Ext.onReady(function(){
                     if (record) {
                         combo.setValue(record.data.language);
                     }
-                }
 
-                if (params.lang) {
-                    // record = store.findRecord('code', params.lang, null, null, null, true);
                     url = Ext.util.Format.format("../../packages/ext-locale/build/ext-locale-{0}.js", params.lang);
 
                     Ext.Loader.loadScript({

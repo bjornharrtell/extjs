@@ -1,3 +1,6 @@
+/**
+ * A sprite that represents a plus.
+ */
 Ext.define('Ext.draw.sprite.Plus', {
     extend: 'Ext.draw.sprite.Path',
     alias: 'sprite.plus',
@@ -18,7 +21,7 @@ Ext.define('Ext.draw.sprite.Plus', {
                 y: 0,
                 size: 4
             },
-            dirtyTriggers: {
+            triggers: {
                 x: 'path',
                 y: 'path',
                 size: 'path'

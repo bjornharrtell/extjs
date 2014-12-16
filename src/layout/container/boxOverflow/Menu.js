@@ -244,8 +244,7 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
             };
 
         menu.suspendLayouts();
-        me.clearMenu();
-        menu.removeAll();
+        menu.removeAll(false);
 
         for (; i < len; i++) {
             item = items[i];
@@ -288,7 +287,7 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
             text: component.overflowText || component.text,
             hideOnClick: hideOnClick,
             destroyMenu: false,
-            listeners: {}
+            listeners: null
         });
 
         // Clone must have same value, and must sync original's value on change
@@ -300,8 +299,10 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
             // That's because we monitor the clone's change event, and sync the
             // original field by calling setValue, so the original field's change
             // event will still fire.
-            config.listeners.change = function(c, newVal, oldVal) {                            
-                component.setValue(newVal);
+            config.listeners = {
+                change: function(c, newVal, oldVal) {                            
+                    component.setValue(newVal);
+                }
             };
         }
 
@@ -375,6 +376,9 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
         else if (component instanceof Ext.toolbar.Separator) {
             menu.add('-');
         }
+        else if (component.overflowClone) {
+            menu.add(component.overflowClone);
+        }
         // Other types...
         else if (component.isComponent) {
             if (component.isXType('splitbutton')) {
@@ -392,28 +396,6 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
                 }
             } else {
                 component.overflowClone = menu.add(Ext.create(Ext.getClassName(component), me.createMenuConfig(component)));
-            }
-        }
-    },
-
-    /**
-     * @private
-     * Deletes the sub-menu of each item in the expander menu. Submenus are created for items such as
-     * splitbuttons and buttongroups, where the Toolbar item cannot be represented by a single menu item
-     */
-    clearMenu : function() {
-        var menu = this.menu,
-            items, i, iLen, item;
-        
-        if (menu && menu.items) {
-            items = menu.items.items;
-            iLen  = items.length;
-            
-            for (i = 0; i < iLen; i++) {
-                item = items[i];
-                if (item.setMenu) {
-                    item.setMenu(null);
-                }
             }
         }
     },

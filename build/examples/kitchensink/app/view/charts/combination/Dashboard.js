@@ -271,7 +271,7 @@ Ext.define('KitchenSink.view.charts.combination.Dashboard', {
                     }
                 }
             }],
-            series: [{
+            series: {
                 type: 'bar',
                 axis: 'left',
                 style: {
@@ -289,15 +289,14 @@ Ext.define('KitchenSink.view.charts.combination.Dashboard', {
                     orientation: 'vertical',
                     'text-anchor': 'middle'
                 },
-                listeners: {
-                    itemmouseup: function(item) {
-                         var series = barChart.series.get(0);
-                         gridPanel.getSelectionModel().select(Ext.Array.indexOf(series.items, item));
-                    }
-                },
                 xField: 'name',
                 yField: 'price'
-            }]
+            },
+            listeners: {
+                itemhighlight: function (item) {
+                    gridPanel.getSelectionModel().select(item.record);
+                }
+            }
         });
 
         me.items = [{

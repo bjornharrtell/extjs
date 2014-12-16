@@ -52,10 +52,6 @@ describe("Ext.data.field.Field", function() {
             expect(field.getPersist()).toBe(true);    
         });
         
-        it("should have sortDir: 'ASC'", function() {
-            expect(field.getSortDir()).toBe('ASC');
-        });
-        
         it("should have sortType: none", function() {
             expect(field.getSortType()).toBe(stypes.none);    
         });
@@ -211,14 +207,7 @@ describe("Ext.data.field.Field", function() {
                 expect(field.getPersist()).toBe(true);
             });
         });
-        
-        it("should configure sortDir", function() {
-            make({
-                sortDir: 'DESC'
-            });    
-            expect(field.getSortDir()).toBe('DESC');
-        });
-        
+
         describe("sortType", function() {
             it("should accept a string from Ext.data.SortTypes", function() {
                 make({

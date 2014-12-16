@@ -61,6 +61,10 @@ Ext.define('Ext.data.schema.Namer', {
         return this.apply('uncapitalize,singularize', name) + 'Id';
     },
 
+    instanceName: function(roleName) {
+        return this.apply('underscore', roleName);
+    },
+
     multiRole: function (name) {
         return this.apply('undotted,uncapitalize,pluralize', name);
     },

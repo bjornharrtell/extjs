@@ -5,6 +5,9 @@ Ext.define('KitchenSink.view.binding.ChainedStoresModel', {
     extend: 'Ext.app.ViewModel',
     alias: 'viewmodel.binding.chainedstores',
 
+    data: {
+        minimumAge: 18
+    },
     stores: {
         everyone: {
             model: 'Person',
@@ -14,7 +17,7 @@ Ext.define('KitchenSink.view.binding.ChainedStoresModel', {
             source: '{everyone}',
             filters: [{
                 property: 'age',
-                value: 18,
+                value: '{minimumAge}',
                 operator: '>='
             }],
             sorters: [{

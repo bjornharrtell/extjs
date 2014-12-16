@@ -83,7 +83,17 @@ Ext.define('Ext.data.proxy.Direct', {
         * The same as {@link Ext.data.proxy.Server#api}, however instead of providing urls, you should provide a direct
         * function call. See {@link #directFn}.
         */
-        api: undefined
+        api: undefined,
+        
+        /**
+         * @cfg {Object/Array} [metadata]
+         * Optional set of fixed parameters to send with every Proxy request, similar to
+         * {@link #extraParams} but available with all CRUD requests. Also unlike
+         * {@link #extraParams}, metadata is not mixed with the ordinary data but sent
+         * separately in the data packet.
+         * You may need to update your server side Ext.Direct stack to use this feature.
+         */
+        metadata: undefined
     },
 
     // private
@@ -94,6 +104,14 @@ Ext.define('Ext.data.proxy.Direct', {
             paramOrder = paramOrder.split(this.paramOrderRe);
         }
         return paramOrder;
+    },
+
+    updateApi: function() {
+        this.methodsResolved = false;
+    },
+
+    updateDirectFn: function() {
+        this.methodsResolved = false;
     },
     
     resolveMethods: function() {
@@ -109,7 +127,9 @@ Ext.define('Ext.data.proxy.Direct', {
             if (!Ext.isFunction(method)) {
                 Ext.Error.raise('Cannot resolve directFn ' + fn);
             }
-        } else if (api) {
+        }
+        
+        if (api) {
             for (fn in api) {
                 if (api.hasOwnProperty(fn)) {
                     method = api[fn];
@@ -127,42 +147,58 @@ Ext.define('Ext.data.proxy.Direct', {
 
     doRequest: function(operation) {
         var me = this,
-            writer = me.getWriter(),
-            request = me.buildRequest(operation),
-            params = request.getParams(),
-            args = [],
-            action = request.getAction(),
-            api = me.getApi(),
-            fn, method;
+            writer, request, action, params, args, api, fn, callback;
         
         if (!me.methodsResolved) {
             me.resolveMethods();
         }
+        
+        request = me.buildRequest(operation);
+        action  = request.getAction();
+        api     = me.getApi();
 
         if (api) {
             fn = api[action];
         }
+        
         fn = fn || me.getDirectFn();
         
         //<debug>
         if (!fn) {
-            Ext.Error.raise('No direct function specified for this proxy');
+            Ext.Error.raise('No Ext.Direct function specified for this proxy');
         }
         //</debug>
+        
+        writer = me.getWriter();
 
         if (writer && operation.allowWrite()) {
             request = writer.write(request);
         }
         
+        // The weird construct below is due to historical way of handling extraParams;
+        // they were mixed in with request data in ServerProxy.buildRequest() and were
+        // inseparable after that point. This does not work well with CUD operations
+        // so instead of using potentially poisoned request params we took the raw
+        // JSON data as Direct function argument payload (but only for CUD!). A side
+        // effect of that was that the request metadata (extraParams) was only available
+        // for read operations.
+        // We keep this craziness for backwards compatibility.
         if (action === 'read') {
-            // We need to pass params
-            method = fn.directCfg.method;
-            args = method.getArgs(params, me.getParamOrder(), me.getParamsAsHash());
-        } else {
-            args.push(request.getJsonData());
+            params = request.getParams();
         }
-
-        args.push(me.createRequestCallback(request, operation), me);
+        else {
+            params = request.getJsonData();
+        }
+        
+        args = fn.directCfg.method.getArgs({
+            params: params,
+            paramOrder: me.getParamOrder(),
+            paramsAsHash: me.getParamsAsHash(),
+            metadata: me.getMetadata(),
+            callback: me.createRequestCallback(request, operation),
+            scope: me
+        });
+        
         request.setConfig({
             args: args,
             directFn: fn
@@ -177,6 +213,7 @@ Ext.define('Ext.data.proxy.Direct', {
     },
 
     /**
+     * @method
      * @inheritdoc
      */
     applyEncoding: Ext.identityFn,
@@ -190,6 +227,7 @@ Ext.define('Ext.data.proxy.Direct', {
     },
 
     /**
+     * @method
      * @inheritdoc
      */
     extractResponseData: function(response){
@@ -197,6 +235,7 @@ Ext.define('Ext.data.proxy.Direct', {
     },
 
     /**
+     * @method
      * @inheritdoc
      */
     setException: function(operation, response) {
@@ -204,6 +243,7 @@ Ext.define('Ext.data.proxy.Direct', {
     },
 
     /**
+     * @method
      * @inheritdoc
      */
     buildUrl: function(){

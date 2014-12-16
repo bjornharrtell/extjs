@@ -156,37 +156,42 @@
 
     <target name="build-classic" depends="init">
         <echo>Build Kitchen Sink - Classic Theme</echo>
-        <x-run-build theme="classic" target="app-build-impl.build"/>
+        <x-run-build theme="classic" target="x-app-build-impl.build"/>
     </target>
 
     <target name="build-gray" depends="init">
         <echo>Build Kitchen Sink - Gray Theme</echo>
-        <x-run-build theme="gray" target="app-build-impl.build"/>
+        <x-run-build theme="gray" target="x-app-build-impl.build"/>
     </target>
 
     <target name="build-neptune-touch" depends="init">
         <echo>Build Kitchen Sink - Neptune Touch Theme</echo>
-        <x-run-build theme="neptune-touch" target="app-build-impl.build"/>
+        <x-run-build theme="neptune-touch" target="x-app-build-impl.build"/>
     </target>
 
     <target name="build-neptune-hebrew" depends="init">
         <echo>Build Kitchen Sink - Neptune Hebrew</echo>
-        <x-run-build theme="neptune" locale="he" target="app-build-impl.build"/>
+        <x-run-build theme="neptune" locale="he" target="x-app-build-impl.build"/>
     </target>
 
     <target name="build-crisp" depends="init">
         <echo>Build Kitchen Sink - Crisp Theme</echo>
-        <x-run-build theme="crisp" target="app-build-impl.build"/>
+        <x-run-build theme="crisp" target="x-app-build-impl.build"/>
+    </target>
+
+    <target name="build-crisp-hebrew" depends="init">
+        <echo>Build Kitchen Sink - Crisp Hebrew</echo>
+        <x-run-build theme="crisp" locale="he" target="x-app-build-impl.build"/>
     </target>
 
     <target name="build-crisp-touch" depends="init">
         <echo>Build Kitchen Sink - Crisp Touch Theme</echo>
-        <x-run-build theme="crisp-touch" target="app-build-impl.build"/>
+        <x-run-build theme="crisp-touch" target="x-app-build-impl.build"/>
     </target>
 
     <target name="build-neptune" depends="init">
         <echo>Build Kitchen Sink - Neptune Theme</echo>
-        <x-run-build theme="neptune" target="app-build-impl.build"/>
+        <x-run-build theme="neptune" target="x-app-build-impl.build"/>
     </target>
     
     <!--
@@ -232,37 +237,37 @@
     -->
     <target name="refresh-classic" depends="init">
         <echo>Refresh Kitchen Sink - Classic Theme</echo>
-        <x-run-build theme="classic" target="app-build-impl.refresh"/>
+        <x-run-build theme="classic" target="x-app-build-impl.refresh"/>
     </target>
 
     <target name="refresh-gray" depends="init">
         <echo>Refresh Kitchen Sink - Gray Theme</echo>
-        <x-run-build theme="gray" target="app-build-impl.refresh"/>
+        <x-run-build theme="gray" target="x-app-build-impl.refresh"/>
     </target>
 
     <target name="refresh-neptune-touch" depends="init">
         <echo>Refresh Kitchen Sink - Neptune Touch Theme</echo>
-        <x-run-build theme="neptune-touch" target="app-build-impl.refresh"/>
+        <x-run-build theme="neptune-touch" target="x-app-build-impl.refresh"/>
     </target>
 
     <target name="refresh-neptune-hebrew" depends="init">
         <echo>Refresh Kitchen Sink - Neptune Hebrew</echo>
-        <x-run-build theme="neptune" locale="he" target="app-build-impl.refresh"/>
+        <x-run-build theme="neptune" locale="he" target="x-app-build-impl.refresh"/>
     </target>
 
     <target name="refresh-crisp" depends="init">
         <echo>Refresh Kitchen Sink - Crisp Theme</echo>
-        <x-run-build theme="crisp" target="app-build-impl.refresh"/>
+        <x-run-build theme="crisp" target="x-app-build-impl.refresh"/>
     </target>
 
     <target name="refresh-crisp-touch" depends="init">
         <echo>Refresh Kitchen Sink - Crisp Theme</echo>
-        <x-run-build theme="crisp-touch" target="app-build-impl.refresh"/>
+        <x-run-build theme="crisp-touch" target="x-app-build-impl.refresh"/>
     </target>
 
     <target name="refresh-neptune" depends="init">
         <echo>Refresh Kitchen Sink - Neptune Theme</echo>
-        <x-run-build theme="neptune" target="app-build-impl.refresh"/>
+        <x-run-build theme="neptune" target="x-app-build-impl.refresh"/>
     </target>
 
     <!--
@@ -273,37 +278,37 @@
 
     <target name="clean-classic" depends="init">
         <echo>Clean Kitchen Sink - Classic Theme</echo>
-        <x-run-build theme="classic" target="app-build-impl.clean"/>
+        <x-run-build theme="classic" target="x-app-build-impl.clean"/>
     </target>
 
     <target name="clean-gray" depends="init">
         <echo>Clean Kitchen Sink - Gray Theme</echo>
-        <x-run-build theme="gray" target="app-build-impl.clean"/>
+        <x-run-build theme="gray" target="x-app-build-impl.clean"/>
     </target>
 
     <target name="clean-neptune-touch" depends="init">
         <echo>Clean Kitchen Sink - Neptune Touch Theme</echo>
-        <x-run-build theme="neptune-touch" target="app-build-impl.clean"/>
+        <x-run-build theme="neptune-touch" target="x-app-build-impl.clean"/>
     </target>
 
     <target name="clean-crisp" depends="init">
         <echo>Clean Kitchen Sink - Crisp Theme</echo>
-        <x-run-build theme="crisp" target="app-build-impl.clean"/>
+        <x-run-build theme="crisp" target="x-app-build-impl.clean"/>
     </target>
 
     <target name="clean-crisp-touch" depends="init">
         <echo>Clean Kitchen Sink - Crisp Theme</echo>
-        <x-run-build theme="crisp-touch" target="app-build-impl.clean"/>
+        <x-run-build theme="crisp-touch" target="x-app-build-impl.clean"/>
     </target>
 
     <target name="clean-neptune" depends="init">
         <echo>Clean Kitchen Sink - Neptune Theme</echo>
-        <x-run-build theme="neptune" target="app-build-impl.clean"/>
+        <x-run-build theme="neptune" target="x-app-build-impl.clean"/>
     </target>
 
     <target name="clean-neptune-hebrew" depends="init">
         <echo>Clean Kitchen Sink - Neptune/Hebrew</echo>
-        <x-run-build theme="neptune" locale="he" target="app-build-impl.clean"/>
+        <x-run-build theme="neptune" locale="he" target="x-app-build-impl.clean"/>
     </target>
 
     <target name="sass-full" depends="resources,sass"/>

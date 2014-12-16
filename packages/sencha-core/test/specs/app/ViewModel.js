@@ -1378,6 +1378,17 @@ describe("Ext.app.ViewModel", function() {
                         notify();
                         expect(spy).toHaveBeenCalled();
                     });
+
+                    it("should publish a field when the model is cleared", function() {
+                        makeUser(1, {
+                            name: 'Foo'
+                        });
+                        bindNotify('{user.name}', spy);
+                        setNotify('user', user);
+                        spy.reset();
+                        setNotify('user', null);
+                        expectArgs(null, 'Foo');
+                    });
                 });
 
                 describe("remote loading", function() {
@@ -1590,6 +1601,55 @@ describe("Ext.app.ViewModel", function() {
                             binding.setValue('Bar');
                         }).toThrow();
                     });
+
+                    describe("associations", function() {
+                        var Comment;
+
+                        beforeEach(function() {
+                            Comment = Ext.define('spec.Comment', {
+                                extend: 'Ext.data.Model',
+                                fields: ['id', 'text', {
+                                    name: 'userId',
+                                    reference: 'User'
+                                }]
+                            });
+                        });
+
+                        afterEach(function() {
+                            Ext.undefine('spec.Comment');
+                            Comment = null;
+                        });
+
+                        it("should be able to set association keys", function() {
+                            var comment = makeRecord(Comment, 101, {
+                                userId: 1
+                            });
+                            var binding = viewModel.bind('{comment.user}', spy);
+                            setNotify('comment', comment);
+                            spy.reset();
+                            binding.setValue(3);
+                            notify();
+                            expect(comment.get('userId')).toBe(3);
+                            // We set the key, but the user itself is not available
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+
+                        it("should be able to set association record", function() {
+                            var comment = makeRecord(Comment, 101, {
+                                userId: 1
+                            });
+                            makeUser(3);
+                            var binding = viewModel.bind('{comment.user}', spy);
+                            setNotify('comment', comment);
+                            spy.reset();
+                            binding.setValue(user);
+                            notify();
+                            expect(comment.get('userId')).toBe(3);
+                            // We set the key, but the user itself is not available
+                            expect(spy).toHaveBeenCalled();
+                            expectArgs(user);
+                        });
+                    });
                 });
             });
 
@@ -1706,6 +1766,15 @@ describe("Ext.app.ViewModel", function() {
                         bindNotify('{user.comments}', Ext.emptyFn);
                         setNotify('user', user);
                         expect(comments.load).not.toHaveBeenCalled();
+                    });
+
+                    it("should not load if the record is a phantom", function() {
+                        // We don't have a reference to the store, so spy on everything here
+                        var loadSpy = spyOn(Ext.data.Store.prototype, 'load').andCallThrough();
+                        user = new User({}, session);
+                        bindNotify('{user.comments}', Ext.emptyFn);
+                        setNotify('user', user);
+                        expect(loadSpy).not.toHaveBeenCalled();
                     });
 
                     it("should not load if the data has been load via nested-loading", function() {
@@ -1969,6 +2038,14 @@ describe("Ext.app.ViewModel", function() {
                             bindNotify('{user.posts}', spy);
                             user.posts().load();
                             complete([]);
+                            var proxySpy = spyOn(Post.getProxy(), 'read');
+                            setNotify('user', user);
+                            expect(proxySpy).not.toHaveBeenCalled();
+                        });
+
+                        it("should not load the store if the record is a phantom", function() {
+                            makeUser();
+                            bindNotify('{user.posts}', spy);
                             var proxySpy = spyOn(Post.getProxy(), 'read');
                             setNotify('user', user);
                             expect(proxySpy).not.toHaveBeenCalled();
@@ -2324,6 +2401,14 @@ describe("Ext.app.ViewModel", function() {
                             expect(proxySpy).toHaveBeenCalled();
                         });
 
+                        it("should not load the store if the record is a phantom", function() {
+                            makeUser();
+                            bindNotify('{user.groups}', spy);
+                            var proxySpy = spyOn(Group.getProxy(), 'read');
+                            setNotify('user', user);
+                            expect(proxySpy).not.toHaveBeenCalled();
+                        });
+
                         it("should not load the store if it's already been loaded", function() {
                             makeUser(1);
                             bindNotify('{user.groups}', spy);
@@ -2422,6 +2507,14 @@ describe("Ext.app.ViewModel", function() {
                             var proxySpy = spyOn(User.getProxy(), 'read');
                             setNotify('group', group);
                             expect(proxySpy).toHaveBeenCalled();
+                        });
+
+                        it("should not load the store if the record is a phantom", function() {
+                            makeGroup();
+                            bindNotify('{group.users}', spy);
+                            var proxySpy = spyOn(User.getProxy(), 'read');
+                            setNotify('group', group);
+                            expect(proxySpy).not.toHaveBeenCalled();
                         });
 
                         it("should not load the store if it's already been loaded", function() {
@@ -2932,6 +3025,27 @@ describe("Ext.app.ViewModel", function() {
                 expect(scheduler.passes).toBe(3);
                 expect(calls).toBe(2);
                 expect(value).toBe('Greetings Evan!');
+            });
+
+            it("should call the setter in the parent viewmodel when setting the value on a binding bound to a formula in a parent viewmodel", function() {
+                var spy = jasmine.createSpy();
+                viewModel.bind('{firstName} {lastName}', spy);
+                var nameBind = grandSubViewModel.bind('{fullName}', Ext.emptyFn);
+                notify();
+                nameBind.setValue('Foo Bar');
+                notify();
+                expect(spy).toHaveBeenCalled();
+                expect(spy.mostRecentCall.args[0]).toBe('Foo Bar');
+            });
+
+            it("should call the setter in the parent viewmodel when setting the value on a stub bound to a formula in a parent viewmodel", function() {
+                var spy = jasmine.createSpy();
+                viewModel.bind('{firstName} {lastName}', spy);
+                grandSubViewModel.bind('{fullName}', Ext.emptyFn);
+                grandSubViewModel.set('fullName', 'Foo Bar');
+                notify();
+                expect(spy).toHaveBeenCalled();
+                expect(spy.mostRecentCall.args[0]).toBe('Foo Bar');
             });
         }); // with formulas
     }); 
@@ -3586,6 +3700,162 @@ describe("Ext.app.ViewModel", function() {
                 expect(result.posts.getCount()).toBe(2);
             });
         });
+
+        describe("trackStatics", function() {
+            var options = {trackStatics: true};
+
+            describe("root level", function() {
+                it("should prune static string values", function() {
+                    var binding = viewModel.bind({
+                        a: 'foo',
+                        b: 'bar'
+                    }, spy, null, options);
+                    notify();
+                    expect(binding.pruneStaticKeys()).toEqual({});
+                });
+
+                it("should prune static numeric values", function() {
+                    var binding = viewModel.bind({
+                        a: 1,
+                        b: Math.PI
+                    }, spy, null, options);
+                    notify();
+                    expect(binding.pruneStaticKeys()).toEqual({});
+                });
+
+                it("should prune static boolean values", function() {
+                   var binding = viewModel.bind({
+                        a: true,
+                        b: false
+                    }, spy, null, options);
+                    notify();
+                    expect(binding.pruneStaticKeys()).toEqual({}); 
+                });
+
+                it("should prune static arrays", function() {
+                    var binding = viewModel.bind({
+                        a: [1, 2, 3],
+                        b: ['a', 'b', 'c']
+                    }, spy, null, options);
+                    notify();
+                    expect(binding.pruneStaticKeys()).toEqual({}); 
+                });
+
+                it("should prune static objects", function() {
+                    var binding = viewModel.bind({
+                        a: {
+                            p: 1,
+                            q: 2
+                        },
+                        b: {
+                            r: 'a',
+                            s: 'b'
+                        }
+                    }, spy, null, options);
+                    notify();
+                    expect(binding.pruneStaticKeys()).toEqual({}); 
+                });
+
+                it("should not prune a dynamic value", function() {
+                    var binding = viewModel.bind({
+                        a: '{value}'
+                    }, spy, null, options);
+                    setNotify('value', 'foo');
+                    expect(binding.pruneStaticKeys()).toEqual({
+                        a: 'foo'
+                    });   
+                });
+            });
+
+            describe("nested values", function() {
+                it("should prune deeply nested static objects", function() {
+                    var binding = viewModel.bind({
+                        a: {
+                            b: {
+                                x: {
+                                    q: 1,
+                                    r: {
+                                        s: 2
+                                    }
+                                }
+                            },
+                            c: {
+                                y: {
+                                    z: 100
+                                }
+                            },
+                            d: [100, 200, 300, 400]
+                        }
+                    }, spy, null, options);
+                    notify();
+                    expect(binding.pruneStaticKeys()).toEqual({}); 
+                });
+
+                it("should not prune an array of objects where the objects are dynamic", function() {
+                    var binding = viewModel.bind({
+                        root: [{
+                            property: 'foo',
+                            value: '{value}'
+                        }, {
+                            property: 'bar',
+                            value: '{value}'
+                        }, {
+                            property: 'baz',
+                            value: '{value}'
+                        }]
+                    }, spy, null, options);
+                    setNotify('value', 1);
+                    expect(binding.pruneStaticKeys()).toEqual({
+                        root: [{
+                            property: 'foo',
+                            value: 1
+                        }, {
+                            property: 'bar',
+                            value: 1
+                        }, {
+                            property: 'baz',
+                            value: 1
+                        }]
+                    }); 
+                });
+
+                it("should not prune nested objects where the children are dynamic", function() {
+                    var binding = viewModel.bind({
+                        root: {
+                            a: {
+                                property: 'foo',
+                                value: '{value}'
+                            },
+                            b: {
+                                property: 'bar',
+                                value: '{value}'
+                            },
+                            c: {
+                                property: 'baz',
+                                value: '{value}'
+                            }
+                        }
+                    }, spy, null, options);
+                    setNotify('value', 1);
+                    expect(binding.pruneStaticKeys()).toEqual({
+                        root: {
+                            a: {
+                                property: 'foo',
+                                value: 1
+                            },
+                            b: {
+                                property: 'bar',
+                                value: 1
+                            },
+                            c: {
+                                property: 'baz',
+                                value: 1
+                            }
+                        }
+                    });
+                });
+            });
+        });
     });
 
     describe("stores", function() {
@@ -4059,6 +4329,32 @@ describe("Ext.app.ViewModel", function() {
                         expect(s.getDirection()).toBe('DESC');
                     });
                 });
+
+                describe("filters + sorters with remoteSort & remoteFilter", function() {
+                    it("should only trigger a single load", function() {
+                        viewModel.set('prop', 'a');
+                        viewModel.setStores({
+                            users: {
+                                model: 'spec.User',
+                                remoteFilter: true,
+                                remoteSort: true,
+                                sorters: [{
+                                    property: '{prop}',
+                                    direction: 'ASC'
+                                }],
+                                filters: [{
+                                    property: 'foo',
+                                    value: '{prop}'
+                                }]
+                            }
+                        });
+                        notify();
+                        var store = viewModel.getStore('users');
+                        spyOn(store, 'load');
+                        setNotify('prop', 'b');
+                        expect(store.load.callCount).toBe(1);
+                    });
+                });
             });
         });
         
@@ -4130,6 +4426,30 @@ describe("Ext.app.ViewModel", function() {
                     child = viewModel.getStore('child');
 
                 expect(child.getSource()).toBe(parent);
+            });
+
+            describe("bindings", function() {
+                it("should be able to bind to chained store configs", function() {
+                    viewModel.setStores({
+                        parent: {
+                            model: 'spec.User'
+                        },
+                        child: {
+                            source: '{parent}',
+                            filters: [{
+                                property: 'foo',
+                                value: '{foo}'
+                            }]
+                        }
+                    });
+                    notify();
+                    setNotify('foo', 1);
+
+                    var child = viewModel.getStore('child');
+                    expect(child.getFilters().getAt(0).getValue()).toBe(1);
+                    setNotify('foo', 2);
+                    expect(child.getFilters().getAt(0).getValue()).toBe(2);
+                });
             });
         });
 

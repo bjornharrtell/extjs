@@ -1,3 +1,6 @@
+/**
+ * @private
+ */
 Ext.define('Ext.sparkline.VmlCanvas', {
     extend: 'Ext.sparkline.CanvasBase',
 

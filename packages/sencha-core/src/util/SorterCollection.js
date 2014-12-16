@@ -255,7 +255,7 @@ Ext.define('Ext.util.SorterCollection', {
             for (i = 0; i < ln; i++) {
                 sorter = ret[i];
 
-                if (sorter && sorter.isFilter) {
+                if (sorter && sorter.isSorter) {
                     remove.push(sorter);
                 } else {
                     type = typeof sorter;

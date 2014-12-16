@@ -43,7 +43,7 @@ Ext.onReady(function() {
             title: '\u0634\u0645\u0627\u0644',
             height: 100,
             html: paragraph,
-            autoScroll: true,
+            scrollable: true,
             collapsible: true,
             split: true
         },{

@@ -16,6 +16,9 @@
  */
 Ext.define('Ext.toolbar.Separator', {
     extend: 'Ext.toolbar.Item',
+    // Toolbar required here because we'll try to decorate it's alternateClassName
+    // with this class' alternate name
+    requires: ['Ext.toolbar.Toolbar'],
     alias: 'widget.tbseparator',
     alternateClassName: 'Ext.Toolbar.Separator',
     baseCls: Ext.baseCSSPrefix + 'toolbar-separator',

@@ -192,7 +192,7 @@ Ext.define('Ext.picker.Color', {
         var me = this,
             selectedCls = me.selectedCls,
             value = me.value,
-            el;
+            el, item;
 
         color = color.replace('#', '');
         if (!me.rendered) {
@@ -205,9 +205,11 @@ Ext.define('Ext.picker.Color', {
             el = me.el;
 
             if (me.value) {
-                el.down('a.color-' + value).removeCls(selectedCls);
+                item = el.down('a.color-' + value, true);
+                Ext.fly(item).removeCls(selectedCls);
             }
-            el.down('a.color-' + color).addCls(selectedCls);
+            item = el.down('a.color-' + color, true);
+            Ext.fly(item).addCls(selectedCls);
             me.value = color;
             if (suppressEvent !== true) {
                 me.fireEvent('select', me, color);
@@ -224,8 +226,8 @@ Ext.define('Ext.picker.Color', {
             el;
             
         if (value && me.rendered) {
-            el = me.el.down('a.color-' + value);
-            el.removeCls(me.selectedCls);
+            el = me.el.down('a.color-' + value, true);
+            Ext.fly(el).removeCls(me.selectedCls);
         }
         me.value = null;  
     },

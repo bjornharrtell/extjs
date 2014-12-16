@@ -299,10 +299,12 @@ Ext.define('Ext.data.writer.Writer', {
             nameProperty = me.getNameProperty(),
             mapping = nameProperty !== 'name',
             idField = record.self.idField,
-            key = idField.name, // setup for idField first
+            key = idField[nameProperty] || idField.name, // setup for idField first
             value = record.id,
             writeAll = me.getWriteAllFields(),
-            ret;
+            ret, dateFormat, phantom,
+            options, clientIdProperty,
+            fieldsMap, data, field;
 
         if (idField.serialize) {
             value = idField.serialize(value);
@@ -310,15 +312,13 @@ Ext.define('Ext.data.writer.Writer', {
 
         if (!writeAll && operation && operation.isDestroyOperation) {
             ret = {};
-            ret[nameProperty ? idField[nameProperty] : key] = value;
+            ret[key] = value;
         } else {
-            var dateFormat = me.getDateFormat(),
-                phantom = record.phantom,
-                options = (phantom || writeAll) ? me.getAllDataOptions()
-                                                : me.getPartialDataOptions(),
-                clientIdProperty = phantom && me.getClientIdProperty(),
-                fieldsMap = record.getFieldsMap(),
-                data, field;
+            dateFormat = me.getDateFormat();
+            phantom = record.phantom;
+            options = (phantom || writeAll) ? me.getAllDataOptions() : me.getPartialDataOptions();
+            clientIdProperty = phantom && me.getClientIdProperty();
+            fieldsMap = record.getFieldsMap();
 
             options.serialize = false; // we must take over this here
             data = record.getData(options);

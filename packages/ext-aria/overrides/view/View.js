@@ -5,7 +5,7 @@ Ext.define('Ext.aria.view.View', {
         var me = this,
             selModel;
         
-        me.callParent(arguments);
+        me.callParent();
 
         selModel = me.getSelectionModel();
         
@@ -67,14 +67,6 @@ Ext.define('Ext.aria.view.View', {
                 node.setAttribute('aria-setsize', size);
                 node.setAttribute('aria-posinset', pos + i);
             }
-        }
-    },
-
-    processItemEvent: function(record, row, rowIndex, e) {
-        var me = this;
-        
-        if (e.type === 'keydown' && (e.keyCode === Ext.event.Event.ENTER)) {
-            me.fireEvent('itemclick', me, record, row, rowIndex, e);
         }
     },
 

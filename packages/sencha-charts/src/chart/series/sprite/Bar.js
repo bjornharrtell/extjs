@@ -147,20 +147,22 @@ Ext.define('Ext.chart.series.sprite.Bar', {
     },
 
     drawBar: function (ctx, surface, clip, left, top, right, bottom, index) {
-        var itemCfg = this.itemCfg || (this.itemCfg = {}),
+        var me = this,
+            itemCfg = {},
+            renderer = me.attr.renderer,
             changes;
 
         itemCfg.x = left;
         itemCfg.y = top;
         itemCfg.width = right - left;
         itemCfg.height = bottom - top;
-        itemCfg.radius = this.attr.radius;
+        itemCfg.radius = me.attr.radius;
 
-        if (this.attr.renderer) {
-            changes = this.attr.renderer.call(this, this, itemCfg, {store:this.getStore()}, index);
+        if (renderer) {
+            changes = renderer.call(me, me, itemCfg, {store: me.getStore()}, index);
             Ext.apply(itemCfg, changes);
         }
-        this.putMarker('items', itemCfg, index, !this.attr.renderer);
+        me.putMarker('items', itemCfg, index, !renderer);
     },
 
     //@inheritdoc
@@ -207,7 +209,8 @@ Ext.define('Ext.chart.series.sprite.Bar', {
 
             me.drawBar(ctx, surface, clip, left, top - halfLineWidth, right, bottom - halfLineWidth, i);
 
-            if (drawMarkers && dataText[i]) {
+            // We want 0 values to be passed to the renderer
+            if (drawMarkers && dataText[i] != null) {
                 me.drawLabel(dataText[i], center, bottom, top, i);
             }
             me.putMarker('markers', {
@@ -246,8 +249,9 @@ Ext.define('Ext.chart.series.sprite.Bar', {
 
         for (i = 0; i < dataX.length; i++) {
             bbox = sprite.getMarkerBBox('items', i);
-            if (bbox && hitX >= bbox.x && hitX <= (bbox.x + bbox.width) && hitY >= bbox.y && hitY <= (bbox.y + bbox.height)) {
+            if (Ext.draw.Draw.isPointInBBox(hitX, hitY, bbox)) {
                 index = i;
+                break;
             }
         }
         return index;

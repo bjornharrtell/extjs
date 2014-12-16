@@ -471,7 +471,7 @@ Ext.define('Ext.tab.Tab', {
         }
     },
 
-   /**
+    /**
      * @private
      */
     onDeleteKey: function(e) {
@@ -481,7 +481,7 @@ Ext.define('Ext.tab.Tab', {
     },
     
     // @private
-    afterClick: function(isCloseClick) {
+    beforeClick: function(isCloseClick) {
         if (!isCloseClick) {
             this.focus();
         }
@@ -518,7 +518,7 @@ Ext.define('Ext.tab.Tab', {
 
         wrapPrimaryEl: function(dom) {
             // Tabs don't need the hacks in Ext.dom.ButtonElement
-            this.el = new Ext.dom.Element(dom);
+            Ext.Button.superclass.wrapPrimaryEl.call(this, dom);
         }
     }
 });

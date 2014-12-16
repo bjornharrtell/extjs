@@ -119,6 +119,11 @@ describe("Ext.data.proxy.Rest", function() {
                 expect(stripCache(proxy.buildUrl(singleRequest))).toBe('/users/2');
             });
 
+            it("should url encode the id", function() {
+                record1.set('id', 'Foo & Bar');
+                expect(stripCache(proxy.buildUrl(singleRequest))).toBe('/users/Foo%20%26%20Bar');
+            });
+
             it("should not append a phantom record", function() {
                 record1.setId('User-1');
                 record1.phantom = true;

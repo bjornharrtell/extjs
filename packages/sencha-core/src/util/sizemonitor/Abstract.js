@@ -55,7 +55,7 @@ Ext.define('Ext.util.sizemonitor.Abstract', {
 
     updateElement: function(element) {
         element.append(this.detectorsContainer);
-        element.addCls('x-size-monitored');
+        element.addCls(Ext.baseCSSPrefix + 'size-monitored');
     },
 
     applyArgs: function(args) {
@@ -130,7 +130,7 @@ Ext.define('Ext.util.sizemonitor.Abstract', {
         this.bindListeners(false);
 
         if (element && !element.isDestroyed) {
-            element.removeCls('x-size-monitored');
+            element.removeCls(Ext.baseCSSPrefix + 'size-monitored');
         }
 
         delete this._element;

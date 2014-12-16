@@ -262,29 +262,72 @@ describe("Ext.Element.traversal", function() {
         it("should return an el", function() {
             expect(child1.findParent('.wrapper', null, true)).toEqual(el);
         });
+
+        it("should include itself if it matches", function() {
+            expect(child4_1_1.findParent('#child4_1_1', null, true)).toBe(child4_1_1);
+        });
+
+        it("should default the maxDepth to 50 or the document element", function() {
+            var root = Ext.getBody().createChild({
+                cls: 'findParentRoot'
+            }),
+                current = root,
+                els = [root],
+                i;
+
+            for (i = 0; i < 49; ++i) {
+                current = current.createChild();
+                els.push(current);
+            }
+
+            expect(current.findParent('.findParentRoot', undefined, true)).toBe(root);
+            current = current.createChild();
+            els.push(current);
+            expect(current.findParent('.findParentRoot', undefined, true)).toBeNull();
+
+            expect(els[10].findParent('.doesntExist')).toBeNull();
+
+            Ext.destroy(els);
+        });
         
-        describe("when maxDepth", function() {
-            describe("1", function() {
-                it("should not return the el", function() {
-                    expect(child4_1.findParent('.wrapper', 1)).toBeNull();
+        describe("with maxDepth", function() {
+            describe("as a number", function() {
+                it("should include an element within the limit", function() {
+                    expect(child4_1_1.findParent('#child4', 3, true)).toBe(child4);
+                });
+
+                it("should exclude an element at the limit", function() {
+                    expect(child4_1_1.findParent('#child4', 2, true)).toBeNull();
+                });
+
+                it("should exclude an element above the limit", function() {
+                    expect(child4_1_1.findParent('#child4', 1, true)).toBeNull();
                 });
             });
-            
-            describe("2", function() {
-                it("should not return the el", function() {
-                    expect(child4_1.findParent('.wrapper', 2)).toBeNull();
+
+            describe("as an element", function() {
+                it("should accept a string id", function() {
+                    expect(child4_1_1.findParent('.wrapper', 'child4_1')).toBeNull();
                 });
-            });
-            
-            describe("3", function() {
-                it("should return the el", function() {
-                    expect(child4_1.findParent('.wrapper', 3)).toEqual(Ext.getDom(el));
+
+                it("should accept a dom element", function() {
+                    expect(child4_1_1.findParent('.wrapper', child4_1.dom)).toBeNull();
                 });
-            });
-            
-            describe("NaN", function() {
-                it("should use Number.MAX_VALUE", function() {
-                    expect(child4_1.findParent('.wrapper', Ext.getBody())).toEqual(Ext.getDom(el));
+
+                it("should accept an Ext.dom.Element", function() {
+                    expect(child4_1_1.findParent('.wrapper', child4_1)).toBeNull();
+                });
+
+                it("should include an element within the limit", function() {
+                    expect(child4_1_1.findParent('.findIt', child4, true)).toBe(child4_1);
+                });
+
+                it("should exclude elements at the limit", function() {
+                    expect(child4_1_1.findParent('#child4', child4, true)).toBeNull();
+                });
+
+                it("should exclude an element above the limit", function() {
+                    expect(child4_1_1.findParent('.wrapper', child4, true)).toBeNull();
                 });
             });
         });

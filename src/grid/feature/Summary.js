@@ -26,6 +26,7 @@
  *  - value {Object} - The calculated value.
  *  - summaryData {Object} - Contains all raw summary values for the row.
  *  - field {String} - The name of the field we are calculating
+ *  - metaData {Object} - A collection of metadata about the current cell; can be used or modified by the renderer.
  *
  * ## Example Usage
  *
@@ -130,7 +131,11 @@ Ext.define('Ext.grid.feature.Summary', {
                                 '</table>',
                             '</div>'
                         ],
-                        style: 'overflow:hidden',
+                        scrollable: {
+                            x: false,
+                            y: false
+                        },
+                        hidden: !me.showSummaryRow,
                         itemId: 'summaryBar',
                         cls: [ me.dockedSummaryCls, me.dockedSummaryCls + '-' + me.dock ],
                         xtype: 'component',
@@ -179,24 +184,31 @@ Ext.define('Ext.grid.feature.Summary', {
 
     renderSummaryRow: function(values, out, parent) {
         var view = values.view,
-            me = view.findFeature('summary');
+            me = view.findFeature('summary'),
+            record;
 
         if (me.showSummaryRow) {
+            record = me.summaryRecord;
+
             out.push('<table class="' + Ext.baseCSSPrefix + 'table-plain ' + me.summaryItemCls + '">');
-            me.outputSummaryRecord(me.createSummaryRecord(view), values, out, parent);
+            me.outputSummaryRecord((record && record.isModel) ? record : me.createSummaryRecord(view), values, out, parent);
             out.push('</table>');
         }
     },
 
-    toggleSummaryRow: function(visible) {
+    toggleSummaryRow: function(visible /* private */, fromLockingPartner) {
         var me = this,
             bar = me.summaryBar;
 
-        me.callParent(arguments);
+        me.callParent([visible, fromLockingPartner]);
         if (bar) {
             bar.setVisible(me.showSummaryRow);
             me.onViewScroll();
         }
+    },
+
+    getSummaryBar: function() {
+        return this.summaryBar;
     },
 
     vetoEvent: function(record, row, rowIndex, e) {
@@ -208,34 +220,41 @@ Ext.define('Ext.grid.feature.Summary', {
     },
 
     createSummaryRecord: function (view) {
-        var columns = view.headerCt.getVisibleGridColumns(),
-            summaryRecord = this.summaryRecord,
+        var me = this,
+            columns = view.headerCt.getVisibleGridColumns(),
+            remoteRoot = me.remoteRoot,
+            summaryRecord = me.summaryRecord,
             colCount = columns.length, i, column,
             dataIndex, summaryValue, modelData;
-        
+
         if (!summaryRecord) {
             modelData = {
                 id: view.id + '-summary-record'
             };
-            summaryRecord = this.summaryRecord = new Ext.data.Model(modelData);
+            summaryRecord = me.summaryRecord = new Ext.data.Model(modelData);
         }
 
         // Set the summary field values
         summaryRecord.beginEdit();
-        for (i = 0; i < colCount; i++) {
-            column = columns[i];
 
-            // In summary records, if there's no dataIndex, then the value in regular rows must come from a renderer.
-            // We set the data value in using the column ID.
-            dataIndex = column.dataIndex || column.getItemId();
+        if (remoteRoot && view.store.proxy.reader.rawData) {
+            summaryRecord.set(me.generateSummaryData());
+        } else if (!remoteRoot) {
+            for (i = 0; i < colCount; i++) {
+                column = columns[i];
 
-            // We need to capture this value because it could get overwritten when setting on the model if there
-            // is a convert() method on the model.
-            summaryValue = this.getSummary(view.store, column.summaryType, dataIndex);
-            summaryRecord.set(dataIndex, summaryValue);
+                // In summary records, if there's no dataIndex, then the value in regular rows must come from a renderer.
+                // We set the data value in using the column ID.
+                dataIndex = column.dataIndex || column.getItemId();
 
-            // Capture the columnId:value for the summaryRenderer in the summaryData object.
-            this.setSummaryData(summaryRecord, column.getItemId(), summaryValue);
+                // We need to capture this value because it could get overwritten when setting on the model if there
+                // is a convert() method on the model.
+                summaryValue = me.getSummary(view.store, column.summaryType, dataIndex);
+                summaryRecord.set(dataIndex, summaryValue);
+
+                // Capture the columnId:value for the summaryRenderer in the summaryData object.
+                me.setSummaryData(summaryRecord, column.getItemId(), summaryValue);
+            }
         }
 
         summaryRecord.endEdit(true);

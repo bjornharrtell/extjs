@@ -1,3 +1,6 @@
+/**
+ * A sprite that represents a line.
+ */
 Ext.define('Ext.draw.sprite.Line', {
     extend: 'Ext.draw.sprite.Sprite',
     alias: 'sprite.line',

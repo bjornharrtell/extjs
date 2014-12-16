@@ -63,7 +63,7 @@ Ext.define('Neptune.view.combination.BorderLayout', function() {
             defaults: {
                 anchor: '100%'
             },
-            autoScroll: true,
+            scrollable: true,
             items: [
                 { xtype: 'textField' },
                 { xtype: 'dateField' },

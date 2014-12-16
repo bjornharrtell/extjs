@@ -151,22 +151,19 @@ Ext.define('Ext.tip.QuickTip', {
      */
     getTipCfg: function (target, event) {
         var titleText = target.title,
-            cfg, attr, text;
+            cfg = this.tagConfig,
+            attr = cfg.attr || (cfg.attr = cfg.namespace + cfg.attribute),
+            text;
 
         if (this.interceptTitles && titleText && Ext.isString(titleText)) {
-            target.qtip = titleText;
-            target.removeAttribute("title");
-            if (event) {
-                event.preventDefault();
-            }
+            target.setAttribute(attr, titleText);
+            target.removeAttribute('title');
 
             return {
                 text: titleText
             };
         }
         else {
-            cfg = this.tagConfig;
-            attr = cfg.attr || (cfg.attr = cfg.namespace + cfg.attribute);
             target = Ext.fly(target).findParent(function(dom) {
                 // Want to test the truthiness of the attribute and save it.
                 return (text = dom.getAttribute(attr));

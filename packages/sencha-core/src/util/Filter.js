@@ -87,13 +87,22 @@ Ext.define('Ext.util.Filter', {
         caseSensitive: false,
 
         /**
-         * @property {Boolean} disabled
+         * @cfg {Boolean} disabled
          * Setting this property to `true` disables this individual Filter so that it no longer contributes to a {@link Ext.data.Store#cfg-filters Store's filter set}
          *
          * When disabled, the next time the store is filtered, the Filter plays no part in filtering and records eliminated by it may rejoin the dataset.
          *
          */
         disabled: false,
+
+        /**
+         * @cfg {Boolean} disableOnEmpty
+         * `true` to not have this filter participate in the filtering process when the {@link #value} of
+         * this the filter is empty according to {@link Ext#isEmpty}.
+         *
+         * @since 5.1.0
+         */
+        disableOnEmpty: false,
 
         /**
          * @cfg {String} [operator]
@@ -123,7 +132,25 @@ Ext.define('Ext.util.Filter', {
          * Optional root property. This is mostly useful when filtering a Store, in which case we set the root to 'data' to
          * make the filter pull the {@link #property} out of the data object of each item
          */
-        root: null
+        root: null,
+
+        /**
+         * @cfg {Function} [serializer]
+         * A function to post-process any serialization.
+         * @param {Object} serializer.data The serialized data.
+         * @private
+         */
+        serializer: null,
+
+        /**
+         * @cfg {Function} [convert]
+         * A function to do any conversion on the value before comparison. For example,
+         * something that returns the date only part of a date.
+         * @cfg {Object} convert.value The value to convert.
+         * @cfg {Object} convert.return The converted value.
+         * @private
+         */
+        convert: null
     },
 
     /**
@@ -181,19 +208,14 @@ Ext.define('Ext.util.Filter', {
          * @private
          */
         isInvalid: function(cfg) {
-            var value = cfg.value;
-            
             if (!cfg.filterFn) {
                 // If we don't have a filterFn, we must have a property
                 if (!cfg.property) {
                     return 'A Filter requires either a property or a filterFn to be set';
                 }
                 
-                if (!(value || value === 0 || value === false || (value === '' && cfg.exatchMatch))) {
-                    // No valid valid
-                    if (!cfg.operator) {
-                        return 'A Filter requires either a property and value, or a filterFn to be set';
-                    }
+                if (!cfg.hasOwnProperty('value') && !cfg.operator) {
+                    return 'A Filter requires either a property and value, or a filterFn to be set';
                 }
                 
             }
@@ -215,9 +237,24 @@ Ext.define('Ext.util.Filter', {
         this.initConfig(config);
     },
 
+    preventConvert: {
+        'in': 1
+    },
+
     filter: function (item) {
         var me = this,
-            filterFn = me._filterFn || me.getFilterFn();
+            filterFn = me._filterFn || me.getFilterFn(),
+            convert = me.getConvert(),
+            value = me._value;
+
+        me._filterValue = value;
+        me.isDateValue = Ext.isDate(value);
+        if (me.isDateValue) {
+            me.dateValue = value.getTime();
+        }
+        if (convert && !me.preventConvert[me.getOperator()]) {
+            me._filterValue = convert.call(me.scope || me, value);
+        }
 
         return filterFn.call(me.scope || me, item);
     },
@@ -326,58 +363,128 @@ Ext.define('Ext.util.Filter', {
      * @return {Object}
      */
     serialize: function () {
-        var result = this.getState();
+        var result = this.getState(),
+            serializer = this.getSerializer();
 
         delete result.id;
+        delete result.serializer;
+
+        if (serializer) {
+            serializer.call(this, result);
+        }
 
         return result;
+    },
+
+    updateOperator: function() {
+        this._filterFn = null;
+    },
+
+    updateValue: function(value) {
+        this._filterFn = null;
+        if (this.getDisableOnEmpty()) {
+            this.setDisabled(Ext.isEmpty(value));
+        }
+    },
+
+    updateDisableOnEmpty: function(disableOnEmpty) {
+        var disabled = false;
+        if (disableOnEmpty) {
+            disabled = Ext.isEmpty(this.getValue());
+        }
+        this.setDisabled(disabled);
+    },
+
+    privates: {
+        getCandidateValue: function(candidate, v, preventCoerce) {
+            var me = this,
+                convert = me._convert,
+                result = me.getPropertyValue(candidate);
+
+            if (convert) {
+                result = convert.call(me.scope || me, result);
+            } else if (!preventCoerce) {
+                result = Ext.coerce(result, v);
+            }
+            return result;
+        }
     }
 }, function() {
     var prototype = this.prototype,
         operatorFns = (prototype.operatorFns = {
             "<": function (candidate) {
-                var v = this._value;
-                return Ext.coerce(this.getPropertyValue(candidate), v) < v;
+                var v = this._filterValue;
+                return this.getCandidateValue(candidate, v) < v;
             },
             "<=": function (candidate) {
-                var v = this._value;
-                return Ext.coerce(this.getPropertyValue(candidate), v) <= v;
+                var v = this._filterValue;
+                return this.getCandidateValue(candidate, v) <= v;
             },
             "=": function (candidate) {
-                var v = this._value;
-                return Ext.coerce(this.getPropertyValue(candidate), v) == v;
+                var me = this,
+                    v = me._filterValue;
+
+                candidate = me.getCandidateValue(candidate, v);
+
+                if (me.isDateValue && candidate instanceof Date) {
+                    candidate = candidate.getTime();
+                    v = me.dateValue;
+                }
+                return candidate == v;
+            },
+            "===": function(candidate) {
+                var me = this,
+                    v = me._filterValue;
+
+                candidate = me.getCandidateValue(candidate, v, true);
+
+                if (me.isDateValue && candidate instanceof Date) {
+                    candidate = candidate.getTime();
+                    v = me.dateValue;
+                }
+                return candidate === v;
             },
             ">=": function (candidate) {
-                var v = this._value;
-                return Ext.coerce(this.getPropertyValue(candidate), v) >= v;
+                var v = this._filterValue;
+                return this.getCandidateValue(candidate, v) >= v;
             },
             ">": function (candidate) {
-                var v = this._value;
-                return Ext.coerce(this.getPropertyValue(candidate), v) > v;
+                var v = this._filterValue;
+                return this.getCandidateValue(candidate, v) > v;
             },
             "!=": function (candidate) {
-                var v = this._value;
-                return Ext.coerce(this.getPropertyValue(candidate), v) != v;
+                var me = this,
+                    v = me._filterValue;
+
+                candidate = me.getCandidateValue(candidate, v);
+
+                if (me.isDateValue && candidate instanceof Date) {
+                    candidate = candidate.getTime();
+                    v = me.dateValue;
+                }
+                return candidate != v;
+            },
+            "!==": function(candidate) {
+                var me = this,
+                    v = me._filterValue;
+
+                candidate = me.getCandidateValue(candidate, v, true);
+
+                if (me.isDateValue && candidate instanceof Date) {
+                    candidate = candidate.getTime();
+                    v = me.dateValue;
+                }
+                return candidate !== v;
             },
             "in": function (candidate) {
-                var v = this._value;
-                return Ext.Array.contains(v, Ext.coerce(this.getPropertyValue(candidate), v));
+                var v = this._filterValue;
+                return Ext.Array.contains(v, this.getCandidateValue(candidate, v));
             },
             like: function (candidate) {
-                var v = this._value;
-                return v && Ext.coerce(this.getPropertyValue(candidate), v).toLowerCase().indexOf(v.toLowerCase()) > -1;
+                var v = this._filterValue;
+                return v && this.getCandidateValue(candidate, v).toLowerCase().indexOf(v.toLowerCase()) > -1;
             }
-        }),
-        invalidateFilterFn = function () {
-            this._filterFn = null;
-        },
-        updaters = [
-            // These updaters all clear filterFn so that it will be recreated on the next
-            // call to getFilterFn.
-            'updateOperator',
-            'updateValue'
-        ],
-        i;
+        });
 
     // Operator type '==' is the same as operator type '='
     operatorFns['=='] = operatorFns['='];
@@ -390,8 +497,4 @@ Ext.define('Ext.util.Filter', {
 
     operatorFns.eq = operatorFns['='];
     operatorFns.ne = operatorFns['!='];
-
-    for (i = updaters.length; i-- > 0; ) {
-        prototype[updaters[i]] = invalidateFilterFn;
-    }
 });

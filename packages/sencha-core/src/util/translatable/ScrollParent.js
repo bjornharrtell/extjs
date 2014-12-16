@@ -6,10 +6,14 @@
 Ext.define('Ext.util.translatable.ScrollParent', {
     extend: 'Ext.util.translatable.Dom',
 
+    isScrollParent: true,
+
     applyElement: function(element) {
         var el = Ext.get(element);
 
-        this.parent = el.parent();
+        if (el) {
+            this.parent = el.parent();
+        }
 
         return el;
     },

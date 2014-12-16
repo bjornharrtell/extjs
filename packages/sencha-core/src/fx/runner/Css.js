@@ -106,7 +106,7 @@ Ext.define('Ext.fx.runner.Css', {
 
         this.ruleStylesCache = {};
 
-        return this;
+        this.callParent();
     },
 
     getStyleSheet: function() {
@@ -238,7 +238,7 @@ Ext.define('Ext.fx.runner.Css', {
                 unit = value.match(this.lengthUnitRegex)[1];
 
                 if (unit.length > 0) {
-                    //<debug error>
+                    //<debug>
                     if (unit !== lengthUnit) {
                         Ext.Logger.error("Length unit: '" + unit + "' in value: '" + value + "' of property: '" + name + "' is not " +
                             "valid for animation. Only 'px' is allowed");

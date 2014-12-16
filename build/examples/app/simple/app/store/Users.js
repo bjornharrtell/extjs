@@ -13,7 +13,7 @@ Ext.define('AM.store.Users', {
         },
         reader: {
             type: 'json',
-            root: 'users',
+            rootProperty: 'users',
             successProperty: 'success'
         }
     }

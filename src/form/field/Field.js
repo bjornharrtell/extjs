@@ -371,6 +371,11 @@ Ext.define('Ext.form.field.Field', {
         me.checkDirty();
     },
 
+    /**
+     * Publish the value of this field.
+     *
+     * @private
+     */
     publishValue: function () {
         var me = this;
 

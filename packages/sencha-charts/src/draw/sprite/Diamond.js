@@ -1,3 +1,6 @@
+/**
+ * A sprite that represents a diamond.
+ */
 Ext.define('Ext.draw.sprite.Diamond', {
     extend: 'Ext.draw.sprite.Path',
     alias: 'sprite.diamond',
@@ -18,7 +21,7 @@ Ext.define('Ext.draw.sprite.Diamond', {
                 y: 0,
                 size: 4
             },
-            dirtyTriggers: {
+            triggers: {
                 x: 'path',
                 y: 'path',
                 size: 'path'
