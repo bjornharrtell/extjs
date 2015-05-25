@@ -439,6 +439,30 @@ this file in most cases.
         </x-ant-call>
     </target>
 
+
+    <target name="-before-publish"/>
+    <target name="-after-publish"/>
+    <target name="-publish">
+        <property name="app.space.file" value="${app.output.base}"/>
+        <x-sencha-command>
+            <![CDATA[
+            space
+                version
+                    create
+                        -id=${app.space.id}
+                        -name=${app.version}
+                        -host=${app.space.host}
+                        -secret=${app.space.secret}
+                        -apiKey=${app.space.apiKey}
+                        -file=${app.space.file}
+            ]]>
+        </x-sencha-command>
+    </target>
+    <target name="publish"
+            depends="init,-before-publish,-publish,-after-publish"
+            description="publish app to sencha space"/>
+
+
     <!--
     ===============================================================
     Help - properties

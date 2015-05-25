@@ -14,61 +14,55 @@
  *
  * Paging Toolbar is typically used as one of the Grid's toolbars:
  *
- *     @example
- *     var pagelimit = 2;
- *
- *     var store = Ext.create('Ext.data.Store', {
+ *     var itemsPerPage = 2; // set the number of items you want per page
+ * 
+ *     Ext.create('Ext.data.Store', {
+ *         id: 'simpsonsStore',
  *         autoLoad: false,
- *         fields: ['title', 'username', 'replycount'],
- *         pageSize: pagelimit, // items per page
+ *         fields: ['name', 'email', 'phone'],
+ *         pageSize: itemsPerPage, // items per page
  *         proxy: {
- *             type: 'jsonp',
- *             url: 'https://www.sencha.com/forum/topics-browse-remote.php',
+ *             type: 'ajax',
+ *             url: 'pagingstore.js', // url that will load data with respect to start and limit params
  *             reader: {
- *                 rootProperty: 'topics',
- *                 totalProperty: 'totalCount'
- *             },
- *             // sends single sort as multi parameter
- *             simpleSortMode: true
+ *                 type: 'json',
+ *                 rootProperty: 'items',
+ *                 totalProperty: 'total'
+ *             }
  *         }
  *     });
- *
+ * 
+ *     // specify segment of data you want to load using params
  *     store.load({
  *         params: {
  *             start: 0,
- *             limit: pagelimit
+ *             limit: itemsPerPage
  *         }
  *     });
- *
+ * 
  *     Ext.create('Ext.grid.Panel', {
- *         renderTo: Ext.getBody(),
  *         title: 'Simpsons',
- *         store: store,
- *         height: 152,
- *         columns:[{
- *             id: 'topic',
- *             text: "Topic",
- *             dataIndex: 'title',
- *             flex: 1,
- *             sortable: false
- *         },{
- *             text: "Author",
- *             dataIndex: 'username',
- *             width: 100,
- *             sortable: true
- *         },{
- *             text: "Replies",
- *             dataIndex: 'replycount',
- *             width: 90,
- *             align: 'right',
- *             sortable: true
+ *         store: 'simpsonsStore',
+ *         columns: [{
+ *             text: 'Name',
+ *             dataIndex: 'name'
+ *         }, {
+ *             text: 'Email',
+ *             dataIndex: 'email',
+ *             flex: 1
+ *         }, {
+ *             text: 'Phone',
+ *             dataIndex: 'phone'
  *         }],
+ *         width: 400,
+ *         height: 125,
  *         dockedItems: [{
  *             xtype: 'pagingtoolbar',
- *             store: store, // same store GridPanel is using
+ *             store: 'simpsonsStore', // same store GridPanel is using
  *             dock: 'bottom',
  *             displayInfo: true
- *         }]
+ *         }],
+ *         renderTo: Ext.getBody()
  *     });
  *
  * To use paging, you need to set a pageSize configuration on the Store, and pass the paging requirements to
@@ -126,8 +120,12 @@ Ext.define('Ext.toolbar.Paging', {
     ],
 
     /**
-     * @cfg {Ext.data.Store} store (required)
-     * The {@link Ext.data.Store} the paging toolbar should use as its data source.
+     * @cfg {Ext.data.Store/String} store (required)
+     * The data source to which the paging toolbar is bound (must be the same store instance 
+     * used in the grid / tree). Acceptable values for this property are:
+     *
+     *   - **any {@link Ext.data.Store Store} class / subclass**
+     *   - **an {@link Ext.data.Store#storeId ID of a store}**
      */
 
     /**
@@ -441,7 +439,15 @@ Ext.define('Ext.toolbar.Paging', {
             
              // Check for invalid current page.
             if (currPage > pageCount) {
-                me.store.loadPage(pageCount);
+                // If the surrent page is beyond the loaded end,
+                // jump back to the loaded end if there is a valid page count.
+                if (pageCount > 0) {
+                    me.store.loadPage(pageCount);
+                }
+                // If no pages, reset the page field.
+                else {
+                    me.getInputItem().reset();
+                }
                 return;
             }
             
@@ -454,7 +460,7 @@ Ext.define('Ext.toolbar.Paging', {
 
         Ext.suspendLayouts();
         item = me.child('#afterTextItem');
-        if (item) {    
+        if (item) {
             item.setText(afterText);
         }
         item = me.getInputItem();
@@ -540,12 +546,12 @@ Ext.define('Ext.toolbar.Paging', {
     
     processKeyEvent: function(field, e) {
         var me = this,
-            k = e.getKey(),
+            key = e.getKey(),
             pageData = me.getPageData(),
             increment = e.shiftKey ? 10 : 1,
             pageNum;
 
-        if (k == e.RETURN) {
+        if (key === e.RETURN) {
             e.stopEvent();
             pageNum = me.readPageFromInput(pageData);
             if (pageNum !== false) {
@@ -554,15 +560,15 @@ Ext.define('Ext.toolbar.Paging', {
                     me.store.loadPage(pageNum);
                 }
             }
-        } else if (k == e.HOME || k == e.END) {
+        } else if (key === e.HOME || key === e.END) {
             e.stopEvent();
-            pageNum = k == e.HOME ? 1 : pageData.pageCount;
+            pageNum = key === e.HOME ? 1 : pageData.pageCount;
             field.setValue(pageNum);
-        } else if (k == e.UP || k == e.PAGE_UP || k == e.DOWN || k == e.PAGE_DOWN) {
+        } else if (key === e.UP || key === e.PAGE_UP || key === e.DOWN || key === e.PAGE_DOWN) {
             e.stopEvent();
             pageNum = me.readPageFromInput(pageData);
             if (pageNum) {
-                if (k == e.DOWN || k == e.PAGE_DOWN) {
+                if (key === e.DOWN || key === e.PAGE_DOWN) {
                     increment *= -1;
                 }
                 pageNum += increment;

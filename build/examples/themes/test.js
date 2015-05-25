@@ -152,8 +152,6 @@ Ext.define('Ext.ux.event.Driver', {
  *              async = true; // let the callback know that we have gone async
  *          }
  *      }
- *
- * @markdown
  */
 Ext.define('Ext.ux.event.Player', {
     extend: 'Ext.ux.event.Driver',

@@ -1,3 +1,11 @@
+// This fixes a browser bug in Chrome (current as of 40.0.2214.111).
+// When using the buffered renderer plugin, the view rows are positioned by using CSS transforms.
+// However, b/c of the browser bug, the scrollbar will be covered by the itemcontainer when scrolled
+// to a point where the view is refreshed so we need to bump up its z-index. See EXTJS-15608.
+.#{$prefix}grid-view {
+    z-index: 1;
+}
+
 .#{$prefix}grid-body {
     background: $grid-body-background-color;
     border-width: $grid-body-border-width;
@@ -57,6 +65,7 @@
         right: $grid-row-cell-focus-border-inset;
         bottom: $grid-row-cell-focus-border-inset;
         left: $grid-row-cell-focus-border-inset;
+        pointer-events: none;
 
         border: $grid-row-cell-focus-border-width $grid-row-cell-focus-border-style $grid-row-cell-focus-border-color;
     }

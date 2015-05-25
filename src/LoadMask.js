@@ -391,8 +391,12 @@ Ext.define('Ext.LoadMask', {
                 // Fired when a range is requested for rendering that is not in the cache
                 cachemiss: beforeLoad,
 
-                // Fired when a range for rendering which was previously missing from the cache is loaded
-                cachefilled: load
+                // Fired when a range for rendering which was previously missing from the cache is loaded.
+                // buffer so that scrolling and store filling has settled, and the results have been rendered.
+                cachefilled: {
+                    fn: load,
+                    buffer: 100
+                }
             };
 
         // Only need to mask on load if the proxy is asynchronous - ie: Ajax/JsonP
@@ -470,8 +474,6 @@ Ext.define('Ext.LoadMask', {
             return;
         }
         
-        me.restoreFocus();
-        
         ownerCt.enableTabbing();
         ownerCt.setMasked(false);
         
@@ -528,9 +530,12 @@ Ext.define('Ext.LoadMask', {
         // Owner's disabled tabbing will also make the mask
         // untabbable since it is rendered within the target
         el.restoreTabbableState();
-        
-        me.saveFocus();
-        
+
+        // If owner contains focus, focus this.
+        // Component level onHide processing takes care of focus reversion on hide.
+        if (ownerCt.containsFocus) {
+            me.focus();
+        }
         me.sizeMask();
     },
 
@@ -561,46 +566,6 @@ Ext.define('Ext.LoadMask', {
     privates: {
         getFocusEl: function() {
             return this.el;
-        },
-        
-        saveFocus: function() {
-            var me = this,
-                ownerEl = me.ownerCt.el,
-                activeDom = Ext.Element.getActiveElement();
-            
-            if (ownerEl.contains(activeDom)) {
-                me.previouslyFocused = activeDom;
-                me.el.focus();
-            }
-        },
-        
-        restoreFocus: function() {
-            var me = this,
-                ownerCt = me.ownerCt,
-                prev = me.previouslyFocused,
-                focusEl;
-            
-            if (me.el.dom === document.activeElement) {
-                if (prev) {
-                    if (Ext.fly(prev).isFocusable()) {
-                        focusEl = prev;
-                    }
-                }
-                // This is a temporary plug until https://sencha.jira.com/browse/EXTJS-15464
-                // is implemented
-                else if (ownerCt.getDefaultFocus) {
-                    focusEl = ownerCt.getDefaultFocus();
-                }
-                else if (ownerCt.canFocus()) {
-                    focusEl = ownerCt.getFocusEl();
-                }
-                
-                if (focusEl) {
-                    focusEl.focus();
-                }
-            }
-                
-            delete me.previouslyFocused;
         }
     }
 });

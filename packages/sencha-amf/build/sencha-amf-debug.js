@@ -1975,6 +1975,7 @@ Ext.define('Ext.data.amf.Packet', function() {
         }
     };
 });
+// array collections have a source var that contains the actual data
 
 // @tag enterprise
 /**
@@ -3263,27 +3264,26 @@ TestAction.multiply(
      * The timeout to use for each request.
      */
     timeout: undefined,
+    /**
+     * @event beforecall
+     * Fires immediately before the client-side sends off the RPC call.
+     * By returning false from an event handler you can prevent the call from
+     * executing.
+     * @param {Ext.direct.AmfRemotingProvider} provider
+     * @param {Ext.direct.Transaction} transaction
+     * @param {Object} meta The meta data
+     */
+    /**
+     * @event call
+     * Fires immediately after the request to the server-side is sent. This does
+     * NOT fire after the response has come back from the call.
+     * @param {Ext.direct.AmfRemotingProvider} provider
+     * @param {Ext.direct.Transaction} transaction
+     * @param {Object} meta The meta data
+     */
     constructor: function(config) {
         var me = this;
         me.callParent(arguments);
-        me.addEvents(/**
-             * @event beforecall
-             * Fires immediately before the client-side sends off the RPC call.
-             * By returning false from an event handler you can prevent the call from
-             * executing.
-             * @param {Ext.direct.AmfRemotingProvider} provider
-             * @param {Ext.direct.Transaction} transaction
-             * @param {Object} meta The meta data
-             */
-        'beforecall', /**
-             * @event call
-             * Fires immediately after the request to the server-side is sent. This does
-             * NOT fire after the response has come back from the call.
-             * @param {Ext.direct.AmfRemotingProvider} provider
-             * @param {Ext.direct.Transaction} transaction
-             * @param {Object} meta The meta data
-             */
-        'call');
         me.namespace = (Ext.isString(me.namespace)) ? Ext.ns(me.namespace) : me.namespace || window;
         me.transactions = new Ext.util.MixedCollection();
         me.callBuffer = [];
@@ -3576,7 +3576,7 @@ TestAction.multiply(
         me.callBuffer.push(transaction);
         if (enableBuffer) {
             if (!me.callTask) {
-                me.callTask = new Ext.util.DelayedTask(me.combineAndSend,me);
+                me.callTask = new Ext.util.DelayedTask(me.combineAndSend, me);
             }
             me.callTask.delay(Ext.isNumber(enableBuffer) ? enableBuffer : 10);
         } else {

@@ -320,7 +320,7 @@ Ext.define('Ext.button.Segmented', {
             //    });
             //
             // reading offsetWidth corrects the issue.
-            this.el.dom.offsetWidth;
+            this.el.dom.offsetWidth; // jshint ignore:line
         }
         this.callParent();
     },

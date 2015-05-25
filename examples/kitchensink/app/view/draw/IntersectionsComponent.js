@@ -16,10 +16,10 @@ Ext.define('KitchenSink.view.IntersectionsComponent', {
     listeners: {
         element: 'element',
         scope: 'this',
-        mouseDown: 'onMouseDown',
-        mouseMove: 'onMouseMove',
-        mouseUp: 'onMouseUp',
-        mouseLeave: 'onMouseUp'
+        mousedown: 'onMouseDown',
+        mousemove: 'onMouseMove',
+        mouseup: 'onMouseUp',
+        mouseleave: 'onMouseUp'
     },
 
     findTarget: function (sprites, x, y) {

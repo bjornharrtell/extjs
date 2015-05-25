@@ -272,7 +272,7 @@ Ext.define('Ext.slider.Thumb', {
         me.dragging = slider.dragging = false;
         slider.fireEvent('dragend', slider, e);
 
-        if (me.dragStartValue != value) {
+        if (me.dragStartValue !== value) {
             slider.fireEvent('changecomplete', slider, value, me);
         }
     },

@@ -234,7 +234,7 @@ Ext.define('Ext.util.KeyNav', {
      * @param {Number} keyCode
      * @param {Ext.event.Event} event
      * @param {Function} handler The function to call
-     * @param {Ext.util.KeyNav} handler The owning KeyNav
+     * @param {Ext.util.KeyNav} keyNav The owning KeyNav
      */
     handleEvent: function(keyCode, event, handler, keyNav) {
         keyNav.lastKeyEvent = event;

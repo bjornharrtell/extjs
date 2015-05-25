@@ -6,7 +6,6 @@
  * 3. Provide a visual cue for focused components, in the form of a focus ring/frame.
  *
  */
- 
 Ext.define('Ext.aria.FocusManager', {
     singleton: true,
 

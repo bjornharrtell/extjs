@@ -259,7 +259,7 @@ Ext.define('Ext.layout.container.Accordion', {
                 header.addCls(Ext.baseCSSPrefix + 'accordion-hd-sibling-expanded');
             }
 
-            if (i + 1 == ln && child.collapsed) {
+            if (i + 1 === ln && child.collapsed) {
                 header.addCls(Ext.baseCSSPrefix + 'accordion-hd-last-collapsed');
             } else {
                 header.removeCls(Ext.baseCSSPrefix + 'accordion-hd-last-collapsed');
@@ -369,7 +369,7 @@ Ext.define('Ext.layout.container.Accordion', {
             // want to react here.
             me.processing = true;
             item.collapse();
-            me.processing = false
+            me.processing = false;
         }
     },
 

@@ -36,7 +36,6 @@
 
 .#{$prefix}column-header-inner {
     padding: $grid-header-padding;
-    text-overflow: ellipsis;
 }
 
 .#{$prefix}column-header-inner-empty {
@@ -56,6 +55,7 @@
         bottom: $grid-column-header-focus-border-inset;
         left: $grid-column-header-focus-border-inset;
         border: $grid-column-header-focus-border-width $grid-column-header-focus-border-style $grid-column-header-focus-border-color;
+        pointer-events: none;
     }
 
     // For some reason without this rule the inner focus border on grouped column headers

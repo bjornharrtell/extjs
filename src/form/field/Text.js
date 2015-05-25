@@ -1,6 +1,4 @@
 /**
- * @docauthor Jason Johnston <jason@sencha.com>
- *
  * A basic text field.  Can be used as a direct replacement for traditional text inputs,
  * or as the base class for more sophisticated input controls (like {@link Ext.form.field.TextArea}
  * and {@link Ext.form.field.ComboBox}). Has support for empty-field placeholder values (see {@link #emptyText}).
@@ -129,9 +127,8 @@ Ext.define('Ext.form.field.Text', {
          * this object are unique identifiers for the triggers. The values in this object
          * are {@link Ext.form.trigger.Trigger Trigger} configuration objects.
          *
-         *     @example
          *     Ext.create('Ext.form.field.Text', {
-         *         renderTo: Ext.getBody(),
+         *         renderTo: document.body,
          *         fieldLabel: 'My Custom Field',
          *         triggers: {
          *             foo: {
@@ -142,6 +139,30 @@ Ext.define('Ext.form.field.Text', {
          *             },
          *             bar: {
          *                 cls: 'my-bar-trigger',
+         *                 handler: function() {
+         *                     console.log('bar trigger clicked');
+         *                 }
+         *             }
+         *         }
+         *     });
+         * 
+         * The weight value may be a negative value in order to position custom triggers 
+         * ahead of default triggers like that of ComboBox.
+         * 
+         *     Ext.create('Ext.form.field.ComboBox', {
+         *         renderTo: Ext.getBody(),
+         *         fieldLabel: 'My Custom Field',
+         *         triggers: {
+         *             foo: {
+         *                 cls: 'my-foo-trigger',
+         *                 weight: -2, // negative to place before default triggers
+         *                 handler: function() {
+         *                     console.log('foo trigger clicked');
+         *                 }
+         *             },
+         *             bar: {
+         *                 cls: 'my-bar-trigger',
+         *                 weight: -1, 
          *                 handler: function() {
          *                     console.log('bar trigger clicked');
          *                 }
@@ -297,14 +318,25 @@ Ext.define('Ext.form.field.Text', {
      * A custom validation function to be called during field validation ({@link #getErrors}).
      * If specified, this function will be called first, allowing the developer to override the default validation
      * process.
+     * 
+     *     Ext.create('Ext.form.field.Text', {
+     *         renderTo: document.body,
+     *         name: 'phone',
+     *         fieldLabel: 'Phone Number',
+     *         validator: function (val) {
+     *             // remove non-numeric characters
+     *             var tn = val.replace(/[^0-9]/g,''),
+     *                 errMsg = "Must be a 10 digit telephone number";
+     *             // if the numeric value is not 10 digits return an error message
+     *             return (tn.length === 10) ? true : errMsg;
+     *         }
+     *     });
      *
-     * This function will be passed the following parameters:
+     * @param {Object} validator.value The current field value
+     * @return {Boolean/String} response
      *
-     * @cfg {Object} validator.value The current field value
-     * @cfg {Boolean/String} validator.return
-     *
-     * - True if the value is valid
-     * - An error message if the value is invalid
+     *  - True if the value is valid
+     *  - An error message if the value is invalid
      */
 
     /**
@@ -492,7 +524,9 @@ Ext.define('Ext.form.field.Text', {
 
         me.callParent();
 
-        me.setReadOnly(me.readOnly);
+        if (me.readOnly) {
+            me.setReadOnly(me.readOnly);
+        }
         me.fieldFocusCls = me.baseCls + '-focus';
         me.emptyUICls = emptyCls + ' ' + emptyCls + '-' + me.ui;
         me.addStateEvents('change');
@@ -504,6 +538,10 @@ Ext.define('Ext.form.field.Text', {
             el = me.inputEl;
 
         me.callParent();
+
+        // Workaround for https://code.google.com/p/chromium/issues/detail?id=4505
+        // On mousedown, add a single: true mouseup listener which prevents default.
+        // That will prevent deselection of the text that was selected in the onFocus method.
         if(me.selectOnFocus || me.emptyText){
             me.mon(el, 'mousedown', me.onMouseDown, me);
         }
@@ -627,8 +665,12 @@ Ext.define('Ext.form.field.Text', {
 
     onMouseDown: function(){
         var me = this;
-        if(!me.hasFocus){
-            me.mon(me.inputEl, 'mouseup', Ext.emptyFn, me, { single: true, preventDefault: true });
+        if(!me.hasFocus) {
+            // On the next mouseup, prevent default.
+            // 99% of the time, it will be the mouseup of the click into the field, and 
+            // We will be preventing deselection of selected text: https://code.google.com/p/chromium/issues/detail?id=4505
+            // Listener is on the doc in case the pointer moves out before user lets go.
+            Ext.getDoc().on('mouseup', Ext.emptyFn, me, { single: true, preventDefault: true });
         }
     },
 
@@ -662,7 +704,8 @@ Ext.define('Ext.form.field.Text', {
                 me.trigger1Cls = me.triggerCls;
             }
 
-            for (i = 1; triggerCls = me['trigger' + i + 'Cls']; i++) {
+            // Assignment in conditional test is deliberate here
+            for (i = 1; triggerCls = me['trigger' + i + 'Cls']; i++) { // jshint ignore:line
                 triggers['trigger' + i] = {
                     cls: triggerCls,
                     extraCls: Ext.baseCSSPrefix + 'trigger-index-' + i,
@@ -730,9 +773,7 @@ Ext.define('Ext.form.field.Text', {
     },
 
     updateHideTrigger: function(hideTrigger) {
-        if (this.rendered) {
-            this.invokeTriggers(hideTrigger ? 'hide' : 'show');
-        }
+        this.invokeTriggers(hideTrigger ? 'hide' : 'show');
     },
 
     /**
@@ -767,20 +808,20 @@ Ext.define('Ext.form.field.Text', {
         me.callParent([readOnly]);
         if (me.rendered) {
             me.setReadOnlyAttr(readOnly || !me.editable);
+        }
 
-            if (triggers) {
-                for (id in triggers) {
-                    trigger = triggers[id];
-                    /*
-                     * Controlled trigger visibility state is only managed fully when 'hideOnReadOnly' is falsy.
-                     * Truth table:
-                     *   - If the trigger is configured/defaulted as 'hideOnReadOnly : true', it's readOnly-visibility
-                     *     is determined solely by readOnly state of the Field.
-                     *   - If 'hideOnReadOnly : false/undefined', the Fields.{link #hideTrigger hideTrigger} is honored.
-                     */
-                    if (trigger.hideOnReadOnly === true || (trigger.hideOnReadOnly !== false && !hideTriggers)) {
-                        trigger[readOnly ? 'hide' : 'show'].call(trigger);
-                    }
+        if (triggers) {
+            for (id in triggers) {
+                trigger = triggers[id];
+                /*
+                 * Controlled trigger visibility state is only managed fully when 'hideOnReadOnly' is falsy.
+                 * Truth table:
+                 *   - If the trigger is configured/defaulted as 'hideOnReadOnly : true', it's readOnly-visibility
+                 *     is determined solely by readOnly state of the Field.
+                 *   - If 'hideOnReadOnly : false/undefined', the Fields.{link #hideTrigger hideTrigger} is honored.
+                 */
+                if (trigger.hideOnReadOnly === true || (trigger.hideOnReadOnly !== false && !hideTriggers)) {
+                    trigger.setVisible(!readOnly);
                 }
             }
         }
@@ -858,7 +899,7 @@ Ext.define('Ext.form.field.Text', {
         this.applyEmptyText();
     },
 
-    applyEmptyText : function(){
+    applyEmptyText: function(){
         var me = this,
             emptyText = me.emptyText,
             isEmpty;
@@ -907,7 +948,7 @@ Ext.define('Ext.form.field.Text', {
     },
 
     // private
-    beforeFocus : function(){
+    beforeFocus: function(){
         var me = this,
             inputEl = me.inputEl,
             emptyText = me.emptyText,
@@ -922,34 +963,15 @@ Ext.define('Ext.form.field.Text', {
         } else if (Ext.supports.Placeholder) {
             inputEl.removeCls(me.emptyUICls);
         }
-
-        if (me.selectOnFocus || isEmpty) {
-            // see: http://code.google.com/p/chromium/issues/detail?id=4505
-            if (Ext.isWebKit) {
-                if (!me.inputFocusTask) {
-                    me.inputFocusTask = new Ext.util.DelayedTask(me.focusInput, me);
-                }
-                me.inputFocusTask.delay(1);
-            } else {
-                me.focusInput();
-            }
-        }
-    },
-
-    focusInput: function(){
-        var input = this.inputEl;
-        if (input) {
-            input = input.dom;
-            if (input) {
-                input.select();
-            }
-        }
     },
 
     onFocus: function(e) {
         var me = this;
 
         me.callParent(arguments);
+        if (me.selectOnFocus) {
+            me.inputEl.dom.select();
+        }
 
         if (me.emptyText) {
             me.autoSize();
@@ -973,40 +995,25 @@ Ext.define('Ext.form.field.Text', {
         me.invokeTriggers('onFieldBlur', [e]);
     },
 
-    completeEdit: function() {
-        var task = this.inputFocusTask;
-
-        this.callParent(arguments);
+    completeEdit: function(e) {
+        this.callParent([e]);
         this.applyEmptyText();
-        // Once we blur, cancel any pending select events from focus
-        // We need this because of the WebKit bug detailed in beforeFocus
-        if (task) {
-            task.cancel();
-        }
-
     },
 
     // private
     filterKeys : function(e){
         /*
+         * Current only FF will fire keypress events for special keys.
+         * 
          * On European keyboards, the right alt key, Alt Gr, is used to type certain special characters.
          * JS detects a keypress of this as ctrlKey & altKey. As such, we check that alt isn't pressed
          * so we can still process these special characters.
          */
-        if (e.ctrlKey && !e.altKey) {
+        if ((e.ctrlKey && !e.altKey) || e.isSpecialKey()) {
             return;
         }
-        var key = e.getKey(),
-            charCode = String.fromCharCode(e.getCharCode());
-
-        if((Ext.isGecko || Ext.isOpera) && (e.isNavKeyPress() || key === e.BACKSPACE || (key === e.DELETE && e.button === -1))){
-            return;
-        }
-
-        if((!Ext.isGecko && !Ext.isOpera) && e.isSpecialKey() && !charCode){
-            return;
-        }
-        if(!this.maskRe.test(charCode)){
+        var charCode = String.fromCharCode(e.getCharCode());
+        if (!this.maskRe.test(charCode)) {
             e.stopEvent();
         }
     },
@@ -1176,7 +1183,6 @@ Ext.define('Ext.form.field.Text', {
         var me = this,
             v = me.getRawValue(),
             len = v.length,
-            doFocus = true,
             el = me.inputEl.dom,
             range;
 
@@ -1209,7 +1215,7 @@ Ext.define('Ext.form.field.Text', {
      */
     autoSize: function() {
         var me = this,
-            triggers, triggerId, trigger, triggerWidth, inputEl, inputWidth, width, value;
+            triggers, triggerId, triggerWidth, inputEl, width, value;
 
         if (me.grow && me.rendered && me.getSizeModel().width.auto) {
             inputEl = me.inputEl;
@@ -1247,11 +1253,6 @@ Ext.define('Ext.form.field.Text', {
         Ext.destroy(me.triggerRepeater);
 
         me.callParent();
-
-        if (me.inputFocusTask) {
-            me.inputFocusTask.cancel();
-            me.inputFocusTask = null;
-        }
     },
 
     onTriggerClick: Ext.emptyFn,

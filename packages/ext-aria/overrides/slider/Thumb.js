@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.slider.Thumb', {
     override: 'Ext.slider.Thumb',
     

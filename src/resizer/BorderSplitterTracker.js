@@ -160,7 +160,7 @@ Ext.define('Ext.resizer.BorderSplitterTracker', {
             //i, neighbor,
             owner;
 
-        if (collapseDirection == 'right' || collapseDirection == 'bottom') {
+        if (collapseDirection === 'right' || collapseDirection === 'bottom') {
             // these splitters grow by moving left/up, so flip the sign of delta...
             delta = -delta;
         }

@@ -51,7 +51,7 @@ Ext.define('Ext.fx.target.CompositeElement', {
             elements = target.elements,
             ln3 = elements.length,
             value, k,
-            attrs, attr, o, i, j, ln2;
+            attrs, attr, el, i, j, ln2;
             
         for (i = 0; i < ln; i++) {
             attrs = targetData[i].attrs;

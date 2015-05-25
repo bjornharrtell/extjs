@@ -374,4 +374,22 @@
             }
         ]
     }
+
+    /**
+     * The space config object is used by the sencha app publish command to deploy this application to sencha space
+     * "space": {
+     *     // the space id for this application
+     *     "id": 12345,
+     *     // name of app in space deployments
+     *     "name": "${app.name}",
+     *     // space host
+     *     "host": "https://api.space.sencha.com/json.rpc",
+     *     // can be a zip file path, or a folder to be zipped and deployd to sencha space
+     *     "file": "${app.output.base}",
+     *     // These may be specified here, but are best specified in your user
+     *     // ~/.sencha/cmd/sencha.cfg file
+     *     "apiKey": "",
+     *     "secret": ""
+     * }
+     */
 }

@@ -18,5 +18,19 @@ Ext.define('Ext.resizer.BorderSplitter', {
         trackerConfig.xclass = 'Ext.resizer.BorderSplitterTracker';
 
         return trackerConfig;
+    },
+
+    onTargetCollapse: function(target) {
+        this.callParent([target]);
+        if (this.performCollapse !== false && target.collapseMode == 'mini') {
+            target.addCls(target.baseCls + '-' + target.collapsedCls + '-mini');
+        }
+    },
+
+    onTargetExpand: function(target) {
+        this.callParent([target]);
+        if (this.performCollapse !== false && target.collapseMode == 'mini') {
+            target.removeCls(target.baseCls + '-' + target.collapsedCls + '-mini');
+        }
     }
 });

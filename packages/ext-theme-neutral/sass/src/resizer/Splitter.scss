@@ -87,3 +87,12 @@
         @include opacity($splitter-active-collapse-tool-opacity);
     }
 }
+
+.#{$prefix}splitter-focus {
+    @include css-outline(
+        $width: $splitter-focus-outline-width,
+        $style: $splitter-focus-outline-style,
+        $color: $splitter-focus-outline-color,
+        $offset: $splitter-focus-outline-offset
+    );
+}

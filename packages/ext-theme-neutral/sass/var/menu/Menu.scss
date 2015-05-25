@@ -75,6 +75,12 @@ $menu-item-border-width: 1px !default;
 $menu-item-cursor: pointer !default;
 
 /**
+ * @var {string}
+ * The style of cursor to display when the cursor is over a disabled {@link Ext.menu.Item Menu Item}
+ */
+$menu-item-disabled-cursor: default !default;
+
+/**
  * @var {color}
  * The background-color of the active {@link Ext.menu.Item Menu Item}
  */
@@ -273,21 +279,21 @@ $menu-scroller-cursor-disabled: default !default;
 /**
  * @var {number}
  * The opacity of Menu scroller buttons. Only applicable when
- * {@link $menu-classic-scrollers} is `false`.
+ * {@link #$menu-classic-scrollers} is `false`.
  */
 $menu-scroller-opacity: 0.5 !default;
 
 /**
  * @var {number}
  * The opacity of hovered Menu scroller buttons. Only applicable when
- * {@link $menu-classic-scrollers} is `false`.
+ * {@link #$menu-classic-scrollers} is `false`.
  */
 $menu-scroller-opacity-over: 0.6 !default;
 
 /**
  * @var {number}
  * The opacity of pressed Menu scroller buttons. Only applicable when
- * {@link $menu-classic-scrollers} is `false`.
+ * {@link #$menu-classic-scrollers} is `false`.
  */
 $menu-scroller-opacity-pressed: 0.7 !default;
 

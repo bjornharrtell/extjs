@@ -26,3 +26,8 @@
     position: absolute;
     background-repeat: no-repeat;
 }
+
+.#{$prefix}splitter-focus {
+    // Must float above following absolutely positioned components
+    z-index: 4;
+}

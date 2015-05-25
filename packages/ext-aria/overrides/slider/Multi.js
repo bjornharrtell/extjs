@@ -2,6 +2,8 @@
 // in accessible applications, so we default to support
 // only single-slider ones
 
+
+/** */
 Ext.define('Ext.aria.slider.Multi', {
     override: 'Ext.slider.Multi',
     

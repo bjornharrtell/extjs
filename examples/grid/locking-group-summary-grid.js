@@ -75,8 +75,8 @@ Ext.onReady(function(){
                 text: 'Toggle Summary',
                 enableToggle: true,
                 pressed: true,
-                handler: function() {
-                    grid.lockedGrid.getView().getFeature('group').toggleSummaryRow(showSummary);
+                toggleHandler: function(btn, pressed) {
+                    grid.lockedGrid.getView().getFeature('group').toggleSummaryRow(pressed);
                 }
             }]
         }],

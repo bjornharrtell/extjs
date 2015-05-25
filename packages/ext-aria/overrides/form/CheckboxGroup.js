@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.form.CheckboxGroup', {
     override: 'Ext.form.CheckboxGroup',
     

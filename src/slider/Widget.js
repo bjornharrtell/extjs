@@ -456,7 +456,7 @@ Ext.define('Ext.slider.Widget', {
                 from[styleProp] = thumb.dom.style[styleProp];
             }
 
-            new Ext.fx.Anim({
+            new Ext.fx.Anim({ // jshint ignore:line
                 target: thumb,
                 duration: 350,
                 from: from,

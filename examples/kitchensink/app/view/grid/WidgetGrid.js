@@ -177,7 +177,7 @@ Ext.define('KitchenSink.view.grid.WidgetGrid', {
         me.on({
             columnshow: me.onColumnToggle,
             columnhide: me.onColumnToggle
-        })
+        });
     },
 
     onButtonToggle: function(btn, pressed) {

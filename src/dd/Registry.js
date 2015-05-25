@@ -11,11 +11,11 @@ Ext.define('Ext.dd.Registry', {
     },
     
     getId: function(el, autogen){
-        if(typeof el == "string"){
+        if (typeof el === "string") {
             return el;
         }
         var id = el.id;
-        if(!id && autogen !== false){
+        if (!id && autogen !== false) {
             id = "extdd-" + (++this.autoIdSeed);
             el.id = id;
         }
@@ -77,7 +77,7 @@ Ext.define('Ext.dd.Registry', {
      * @return {Object} handle The custom handle data
      */
     getHandle : function(id){
-        if(typeof id != "string"){ // must be element?
+        if(typeof id !== "string"){ // must be element?
             id = id.id;
         }
         return this.handles[id];
@@ -99,7 +99,7 @@ Ext.define('Ext.dd.Registry', {
      * @return {Object} data The custom data
      */
     getTarget : function(id){
-        if(typeof id != "string"){ // must be element?
+        if (typeof id !== "string") { // must be element?
             id = id.id;
         }
         return this.elements[id];

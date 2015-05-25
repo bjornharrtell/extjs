@@ -44,10 +44,16 @@ Ext.define('Ext.tip.QuickTip', {
      */
     interceptTitles : false,
 
-    // Force creation of header Component
+    /**
+     * @cfg {String/Ext.panel.Title} title
+     * The title text to be used to display in the Tip header.  May be a string 
+     * (including HTML tags) or an {@link Ext.panel.Title} config object.
+     */
     title: '&#160;',
 
-    // @private
+    /**
+     * @private
+     */
     tagConfig : {
         namespace : 'data-',
         attribute : 'qtip',
@@ -65,7 +71,6 @@ Ext.define('Ext.tip.QuickTip', {
     
     shrinkWrapDock: true,
 
-    // @private
     initComponent : function(){
         var me = this;
 
@@ -81,18 +86,34 @@ Ext.define('Ext.tip.QuickTip', {
     },
 
     /**
+     * @cfg text
+     * @inheritdoc Ext.tip.ToolTip#cfg-html
+     */
+    text: null,
+
+    /**
+     * @cfg html
+     * @hide
+     * -- hidden for Ext.tip.QuickTip - see #cfg-text
+     */
+
+    /**
      * Configures a new quick tip instance and assigns it to a target element.
      *
      * For example usage, see the {@link Ext.tip.QuickTipManager} class header.
      *
      * @param {Object} config The config object with the following properties:
-     * @param config.autoHide
-     * @param config.cls
-     * @param config.dismissDelay overrides the singleton value
-     * @param config.target required
-     * @param config.text required
-     * @param config.title
-     * @param config.width
+     * @param config.target (required) The target HTMLElement, {@link Ext.dom.Element} or 
+     * id to associate with this Quicktip.  See {@link #target}.
+     * @param config.text Tip body content.  See {@link #text}.
+     * @param config.title Tip header.  See {@link #title}.
+     * @param config.autoHide False to prevent the tip from automatically hiding on 
+     * mouseleave.  See {@link #autoHide}.
+     * @param config.cls An optional extra CSS class that will be added to the tip.  See 
+     * {@link #cls}.
+     * @param config.dismissDelay Delay in milliseconds before the tooltip automatically 
+     * hides (overrides singleton value).  See {@link #dismissDelay}.
+     * @param config.width Tip width in pixels.  See {@link #width}.
      */
     register : function(config){
         var configs = Ext.isArray(config) ? config : arguments,
@@ -183,7 +204,9 @@ Ext.define('Ext.tip.QuickTip', {
         this.doTargetOver(event.getTarget(this.delegate), null, event);
     },
 
-    // @private
+    /**
+     * @private
+     */
     doTargetOver : function (target, xy, event) {
         var me = this,
             hasShowDelay, hideAction, delay, elTarget, cfg, ns, tipConfig, autoHide,
@@ -200,7 +223,7 @@ Ext.define('Ext.tip.QuickTip', {
         me.targetXY = xy || (event ? event.getXY() : Ext.fly(target).getXY());
 
         // If the over target was filtered out by the delegate selector, or is not an HTMLElement, or is the <html> or the <body>, then return
-        if(!target || target.nodeType !== 1 || target == document.documentElement || target == document.body){
+        if(!target || target.nodeType !== 1 || target === document.documentElement || target === document.body){
             return;
         }
 
@@ -279,7 +302,7 @@ Ext.define('Ext.tip.QuickTip', {
                 el: target,
                 text: tipConfig.text,
                 width: +elTarget.getAttribute(ns + cfg.width) || null,
-                autoHide: autoHide != "user" && autoHide !== 'false',
+                autoHide: autoHide !== "user" && autoHide !== 'false',
                 title: elTarget.getAttribute(ns + cfg.title),
                 cls: elTarget.getAttribute(ns + cfg.cls),
                 align: elTarget.getAttribute(ns + cfg.align),
@@ -309,7 +332,9 @@ Ext.define('Ext.tip.QuickTip', {
         }
     },
 
-    // @private
+    /**
+     * @private
+     */
     onTargetOut : function(e){
         var me = this,
             active = me.activeTarget,
@@ -372,7 +397,9 @@ Ext.define('Ext.tip.QuickTip', {
         me.callParent(arguments);
     },
 
-    // @inheritdoc
+    /**
+     * @inheritdoc Ext.tip.Tip#method-showAt
+     */
     showAt : function(xy){
         var me = this,
             target = me.activeTarget,
@@ -428,7 +455,10 @@ Ext.define('Ext.tip.QuickTip', {
         me.callParent([xy]);
     },
 
-    // @inheritdoc
+    /**
+     * @method hide
+     * @inheritdoc
+     */
     hide: function(){
         delete this.activeTarget;
         this.callParent();

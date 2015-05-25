@@ -462,7 +462,7 @@ Ext.define('Ext.slider.Multi', {
 
         //see if the click was on any of the thumbs
         for (; !thumbClicked && i < len; i++) {
-            thumbClicked = thumbClicked || e.target == thumbs[i].el.dom;
+            thumbClicked = thumbClicked || e.target === thumbs[i].el.dom;
         }
 
         if (me.clickToChange && !thumbClicked) {

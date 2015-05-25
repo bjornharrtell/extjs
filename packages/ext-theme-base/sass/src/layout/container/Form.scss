@@ -60,4 +60,5 @@
 .#{$prefix}form-form-item.#{$prefix}form-item-no-label:before {
     content: ' ';
     display: table-cell;
+    pointer-events: none;
 }

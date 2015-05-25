@@ -1,36 +1,41 @@
 /**
- * A selection model for {@link Ext.grid.Panel grid panels} which allows selection grid rows..
+ * RowModel Selection Model implements row based navigation for
+ * {@link Ext.grid.Panel grid panels} via user input. RowModel is the default grid selection
+ * model and, generally, will not need to be specified.
  *
- * Implements row based navigation via keyboard.
+ * By utilizing the selModel config as an object, you may also set configurations for:
+ *
+ * + {@link #mode} - Specifies whether user may select multiple rows or single rows
+ * + {@link #allowDeselect} - Specifies whether user may deselect records when in SINGLE mode
+ * + {@link #ignoreRightMouseSelection} - Specifies whether user may ignore right clicks
+ * for selection purposes
+ *
+ * In the example below, we've enabled MULTI mode. This means that multiple rows can be selected.
  *
  *     @example
  *     var store = Ext.create('Ext.data.Store', {
- *         fields  : ['name', 'email', 'phone'],
- *         data    : {
- *             items : [
- *                 { name : 'Lisa',  email : 'lisa@simpsons.com',  phone : '555-111-1224' },
- *                 { name : 'Bart',  email : 'bart@simpsons.com',  phone : '555-222-1234' },
- *                 { name : 'Homer', email : 'homer@simpsons.com', phone : '555-222-1244' },
- *                 { name : 'Marge', email : 'marge@simpsons.com', phone : '555-222-1254' }
- *             ]
- *         },
- *         proxy   : {
- *             type   : 'memory',
- *             reader : {
- *                 type : 'json',
- *                 root : 'items'
- *             }
- *         }
+ *         fields: ['name', 'email', 'phone'],
+ *         data: [
+ *             { name: 'Lisa', email: 'lisa@simpsons.com', phone: '555-111-1224' },
+ *             { name: 'Bart', email: 'bart@simpsons.com', phone: '555-222-1234' },
+ *             { name: 'Homer', email: 'homer@simpsons.com', phone: '555-222-1244' },
+ *             { name: 'Marge', email: 'marge@simpsons.com', phone: '555-222-1254' }
+ *         ]
  *     });
+ *
  *     Ext.create('Ext.grid.Panel', {
- *         title    : 'Simpsons',
- *         store    : store,
- *         width    : 400,
- *         renderTo : Ext.getBody(),
- *         columns  : [
- *             { text : 'Name',  dataIndex : 'name'  },
- *             { text : 'Email', dataIndex : 'email', flex : 1 },
- *             { text : 'Phone', dataIndex : 'phone' }
+ *         title: 'Simpsons',
+ *         store: store,
+ *         width: 400,
+ *         renderTo: Ext.getBody(),
+ *         selModel: {
+ *            selType: 'rowmodel', // rowmodel is the default selection model
+ *            mode: 'MULTI' // Allows selection of multiple rows
+ *         },
+ *         columns: [
+ *             { text: 'Name',  dataIndex: 'name'  },
+ *             { text: 'Email', dataIndex: 'email', flex: 1 },
+ *             { text: 'Phone', dataIndex: 'phone' }
  *         ]
  *     });
  */
@@ -102,24 +107,6 @@ Ext.define('Ext.selection.RowModel', {
                 view.onRowFocus(index, true);
             }
         }
-    },
-
-    // Returns the number of rows currently visible on the screen or
-    // false if there were no rows. This assumes that all rows are
-    // of the same height and the first view is accurate.
-    getRowsVisible: function() {
-        var rowsVisible = false,
-            view = this.view,
-            firstRow = view.all.first(),
-            rowHeight, gridViewHeight;
-
-        if (firstRow) {
-            rowHeight = firstRow.getHeight();
-            gridViewHeight = view.el.getHeight();
-            rowsVisible = Math.floor(gridViewHeight / rowHeight);
-        }
-
-        return rowsVisible;
     },
 
     // Allow the GridView to update the UI by

@@ -8,6 +8,8 @@
  *
  *     var changingImage = Ext.create('Ext.Img', {
  *         src: 'http://www.sencha.com/img/20110215-feat-html5.png',
+ *         width: 184,
+ *         height: 90,
  *         renderTo: Ext.getBody()
  *     });
  *
@@ -26,6 +28,12 @@
  *         autoEl: 'div', // wrap in a div
  *         renderTo: Ext.getBody()
  *     });
+ *
+ * ## Image Dimensions
+ *
+ * You should include height and width dimensions for any image owned by a parent 
+ * container.  By omitting dimensions, an owning container will not know how to 
+ * size and position the image in the initial layout.
  */
 Ext.define('Ext.Img', {
     extend: 'Ext.Component',
@@ -140,14 +148,20 @@ Ext.define('Ext.Img', {
         
         if (autoEl === 'img' || (Ext.isObject(autoEl) && autoEl.tag === 'img')) {
             me.imgEl = el;
-        }
-        else {
+        } else {
             me.imgEl = el.getById(me.id + '-img');
         }
     },
 
     onDestroy: function () {
-        Ext.destroy(this.imgEl);
+        var me = this,
+            imgEl = me.imgEl;
+
+        // Only clean up when the img is a child, otherwise it will get handled
+        // by the element destruction in the parent
+        if (imgEl && me.el !== imgEl) {
+            imgEl.destroy();
+        }
         this.imgEl = null;
         this.callParent();
     },
@@ -179,7 +193,7 @@ Ext.define('Ext.Img', {
             glyphParts;
 
         me.glyph = glyph;
-        if (me.rendered && glyph != old) {
+        if (me.rendered && glyph !== old) {
             if (typeof glyph === 'string') {
                 glyphParts = glyph.split('@');
                 glyph = glyphParts[0];

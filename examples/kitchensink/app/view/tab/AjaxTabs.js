@@ -5,13 +5,8 @@
 Ext.define('KitchenSink.view.tab.AjaxTabs', {
     extend: 'Ext.tab.Panel',
     xtype: 'ajax-tabs',
-    controller: 'ajax-tabs',
 
     //<example>
-    otherContent: [{
-        type: 'ViewController',
-        path: 'app/view/tab/AjaxTabsController.js'
-    }],
     exampleTitle: 'Ajax Tabs',
     //</example>
     width: 600,
@@ -22,10 +17,6 @@ Ext.define('KitchenSink.view.tab.AjaxTabs', {
         scrollable: true
     },
 
-    listeners: {
-        tabchange: 'onTabChange'
-    },
-
     items: [{
         title: 'Normal Tab',
         html: "My content was added during construction."
@@ -34,14 +25,16 @@ Ext.define('KitchenSink.view.tab.AjaxTabs', {
         loader: {
             url: 'resources/data/tab/ajax1.htm',
             contentType: 'html',
-            loadMask: true
+            loadMask: true,
+            loadOnRender: true
         }
     }, {
         title: 'Ajax Tab 2',
         loader: {
             url: 'resources/data/tab/ajax2.htm',
             contentType: 'html',
-            loadMask: true
+            loadMask: true,
+            loadOnRender: true
         }
     }]
 });

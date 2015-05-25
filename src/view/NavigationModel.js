@@ -18,10 +18,10 @@ Ext.define('Ext.view.NavigationModel', {
      * @param {Ext.event.Event} keyEvent The key event which caused the navigation.
      * @param {Number} event.previousRecordIndex The previously focused record index.
      * @param {Ext.data.Model} event.previousRecord The previously focused record.
-     * @param {HtmlElement} event.previousItem The previously focused view item.
+     * @param {HTMLElement} event.previousItem The previously focused view item.
      * @param {Number} event.recordIndex The newly focused record index.
      * @param {Ext.data.Model} event.record the newly focused record.
-     * @param {HtmlElement} event.item the newly focused view item.
+     * @param {HTMLElement} event.item the newly focused view item.
      */
 
     /**
@@ -94,9 +94,7 @@ Ext.define('Ext.view.NavigationModel', {
             ignoreInputFields: true,
             eventName: 'itemkeydown',
             defaultEventAction: 'stopEvent',
-            processEvent: function(view, record, node, index, event) {
-                return event;
-            },
+            processEvent: me.processViewEvent,
             up: me.onKeyUp,
             down: me.onKeyDown,
             right: me.onKeyRight,
@@ -116,6 +114,10 @@ Ext.define('Ext.view.NavigationModel', {
             },
             scope: me
         });
+    },
+
+    processViewEvent: function(view, record, node, index, event) {
+        return event;
     },
 
     addKeyBindings: function(binding) {
@@ -160,8 +162,8 @@ Ext.define('Ext.view.NavigationModel', {
     /**
      * @template
      * @protected
-     * Called by {@link Ext.view.AbstractView#refresh} before refresh to allow the current focus position to be cached.
-     * @returns {undefined}
+     * Called by {@link Ext.view.AbstractView#method-refresh} before refresh to allow
+     * the current focus position to be cached.
      */
     beforeViewRefresh: function() {
         this.focusRestorePosition = this.view.dataSource.isBufferedStore ? this.recordIndex : this.record;
@@ -170,8 +172,8 @@ Ext.define('Ext.view.NavigationModel', {
     /**
      * @template
      * @protected
-     * Called by {@link Ext.view.AbstractView#refresh} after refresh to allow cached focus position to be restored.
-     * @returns {undefined}
+     * Called by {@link Ext.view.AbstractView#method-refresh} after refresh to allow
+     * cached focus position to be restored.
      */
     onViewRefresh: function() {
         if (this.focusRestorePosition != null) {
@@ -217,7 +219,7 @@ Ext.define('Ext.view.NavigationModel', {
                     newRecordIndex = 0;
                 }
             }
-            // row is a grid row
+            // row is a view item
             else if (recordIndex.tagName) {
                 newRecord = view.getRecord(recordIndex);
                 newRecordIndex = dataSource.indexOf(newRecord);
@@ -227,12 +229,14 @@ Ext.define('Ext.view.NavigationModel', {
             }
         }
 
-        // No movement; just ensure the correct item is focused and return early.
+        // No change; just ensure the correct item is focused and return early.
         // Do not push current position into previous position, do not fire events.
         // We must check record instances, not indices because of store reloads (combobox remote filtering).
-        // If there's a new record, focus it.
+        // If there's a new record, focus it. Note that the index may be different even though
+        // the record is the same (filtering, sorting)
         if (newRecord === me.record) {
-            return me.focusPosition(me.recordIndex);
+            me.recordIndex = newRecordIndex;
+            return me.focusPosition(newRecordIndex);
         }
 
         if (me.item) {
@@ -302,8 +306,8 @@ Ext.define('Ext.view.NavigationModel', {
      * Subclasses may choose to keep focus in another target.
      *
      * For example {@link Ext.view.BoundListKeyNav} maintains focus in the input field.
-     * @param {type} item
-     * @returns {undefined}
+     * @param {Ext.dom.Element} item
+     * @return {undefined}
      */
     focusItem: function(item) {
         item.addCls(this.focusCls);

@@ -15,6 +15,14 @@ Ext.define('KitchenSink.view.draw.Intersections', {
     layout: 'fit',
     width: 650,
 
+    // <example>
+    // Content between example tags is omitted from code preview.
+    otherContent: [{
+        type: 'Component',
+        path: 'app/view/draw/IntersectionsComponent.js'
+    }],
+    // </example>
+
     items: [
         {
             xtype: 'intersections-component',

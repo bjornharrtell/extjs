@@ -29,7 +29,7 @@ Ext.define('Ext.toolbar.Breadcrumb', {
     config: {
         /**
          * @cfg {String} [buttonUI='plain-toolbar']
-         * Button UI to use for breadcrumb items.  Use {@link #extjs-breadcrumb-arrow} to
+         * Button UI to use for breadcrumb items.  Use {@link #extjs-breadcrumb-ui} to
          * add special styling to the breadcrumb arrows
          */
         buttonUI: 'plain-toolbar',
@@ -173,6 +173,21 @@ Ext.define('Ext.toolbar.Breadcrumb', {
             overflowHandler.scrollToItem(me.getSelection().get('depth'));
         }
     },
+
+    /**
+     * @method getSelection
+     * Returns the currently selected {@link Ext.data.TreeModel node}.
+     * @return {Ext.data.TreeModel} node The selected node (or null if there is no
+     * selection).
+     */
+
+    /**
+     * @method setSelection
+     * Selects the passed {@link Ext.data.TreeModel node} in the breadcrumb component.
+     * @param {Ext.data.TreeModel} node The node in the breadcrumb {@link #store} to
+     * select as the active node.
+     * @return {Ext.toolbar.Breadcrumb} this The breadcrumb component
+     */
 
     applySelection: function(node) {
         var store = this.getStore();
@@ -359,7 +374,9 @@ Ext.define('Ext.toolbar.Breadcrumb', {
          * @param {Ext.event.Event} e
          */
         _onMenuClick: function(menu, item, e) {
-            this.setSelection(this.getStore().getNodeById(item._breadcrumbNodeId));
+            if (item) {
+                this.setSelection(this.getStore().getNodeById(item._breadcrumbNodeId));
+            }
         },
 
         /**
@@ -401,7 +418,7 @@ Ext.define('Ext.toolbar.Breadcrumb', {
                             // only show default icons if showIcons === true
                             item.iconCls =
                                 (child.isLeaf() ? me._leafIconCls : me._folderIconCls) +
-                                '-' + me.ui
+                                '-' + me.ui;
                         }
                     }
 

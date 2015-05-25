@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.window.Toast', {
     override: 'Ext.window.Toast',
     

@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.window.MessageBox', {
     override: 'Ext.window.MessageBox',
     

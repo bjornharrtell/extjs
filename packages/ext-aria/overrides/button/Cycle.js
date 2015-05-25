@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.button.Cycle', {
     override: 'Ext.button.Cycle'
     

@@ -10,7 +10,7 @@ Ext.define('Ext.form.trigger.Component', {
     cls: Ext.baseCSSPrefix + 'form-trigger-cmp',
 
     /**
-     * @cfg {Object/Ext.Component/Ext.Widget} A config object for a Component or Widget,
+     * @cfg {Object/Ext.Component/Ext.Widget} component A config object for a Component or Widget,
      * or an already instantiated Component or Widget.
      */
 
@@ -23,7 +23,7 @@ Ext.define('Ext.form.trigger.Component', {
         var me = this,
             component = me.component;
 
-        this.callParent();
+        me.callParent();
 
         if (!component.isComponent && !component.isWidget) {
             component = Ext.widget(component);
@@ -41,6 +41,7 @@ Ext.define('Ext.form.trigger.Component', {
             component.destroy();
         }
 
+        this.component = null;
         this.callParent();
     }
 });

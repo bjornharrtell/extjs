@@ -44,10 +44,11 @@ Ext.define('Ext.button.Split', {
     isSplitButton: true,
     
     /**
-     * @cfg {Function} arrowHandler
+     * @cfg {Function/String} arrowHandler
      * A function called when the arrow button is clicked (can be used instead of click event)
      * @cfg {Ext.button.Split} arrowHandler.this
      * @cfg {Event} arrowHandler.e The click event.
+     * @declarativeHandler
      */
     /**
      * @cfg {String} arrowTooltip

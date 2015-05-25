@@ -59,7 +59,7 @@ Ext.define('Ext.view.TableLayout', {
             state = ownerContext.state,
             columnFlusher, otherSynchronizer, synchronizer, rowHeightFlusher,
             bodyDom = owner.body.dom,
-            bodyHeight, ctSize;
+            bodyHeight, ctSize, overflowY;
 
         // Shortcut when empty grid - let the base handle it.
         // EXTJS-14844: Even when no data rows (all.getCount() === 0) there may be summary rows to size.
@@ -133,30 +133,38 @@ Ext.define('Ext.view.TableLayout', {
         me.callParent([ ownerContext ]);
 
         if (!ownerContext.heightModel.shrinkWrap) {
-            // We are placed in a fit layout of the gridpanel (our ownerCt), so we need to
-            // consult its containerSize when we are not shrink-wrapping to see if our
-            // content will overflow vertically.
-            ctSize = ownerCtContext.target.layout.getContainerSize(ownerCtContext);
-            if (!ctSize.gotHeight) {
-                me.done = false;
-                return;
-            }
+            // If the grid is shrink wrapping, we can't be overflowing
+            overflowY = false;
+            if (!ownerCtContext.heightModel.shrinkWrap) {
+                // We are placed in a fit layout of the gridpanel (our ownerCt), so we need to
+                // consult its containerSize when we are not shrink-wrapping to see if our
+                // content will overflow vertically.
+                ctSize = ownerCtContext.target.layout.getContainerSize(ownerCtContext);
+                if (!ctSize.gotHeight) {
+                    me.done = false;
+                    return;
+                }
 
-            bodyHeight = bodyDom.offsetHeight;
-            ownerContext.setProp('viewOverflowY', bodyHeight > ctSize.height);
+                bodyHeight = bodyDom.offsetHeight;
+                overflowY = bodyHeight > ctSize.height;
+            }
+            ownerContext.setProp('viewOverflowY', overflowY);
         }
     },
 
     measureContentHeight: function (ownerContext) {
         var owner = this.owner,
             bodyDom = owner.body.dom,
-            bodyHeight;
+            emptyEl = owner.emptyEl,
+            bodyHeight = 0;
 
-        if (!bodyDom){
-            bodyDom = owner.el.down('.' + owner.ownerCt.emptyCls, true);
+        if (emptyEl) {
+            bodyHeight += emptyEl.offsetHeight;
         }
 
-        bodyHeight = bodyDom ? bodyDom.offsetHeight : 0;
+        if (bodyDom){
+            bodyHeight += bodyDom.offsetHeight;
+        }
 
         // This will have been figured out by now because the columnWidths have been
         // published...

@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.form.RadioGroup', {
     override: 'Ext.form.RadioGroup',
     

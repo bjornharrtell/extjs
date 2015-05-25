@@ -72,7 +72,7 @@ Ext.define('Ext.fx.Queue', {
         if (!queue) {
             me.fxQueue[targetId] = [];
             // GarbageCollector will need to clean up Elements since they aren't currently observable
-            if (target.type != 'element') {
+            if (target.type !== 'element') {
                 target.target.on('destroy', function() {
                     me.fxQueue[targetId] = [];
                 });
@@ -113,7 +113,7 @@ Ext.define('Ext.fx.Queue', {
                 me.targets.remove(anim.target);
             }
             if (anim.remove) {
-                if (target.type == 'element') {
+                if (target.type === 'element') {
                     var el = Ext.get(target.id);
                     if (el) {
                         el.destroy();

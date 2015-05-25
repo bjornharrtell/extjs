@@ -3,30 +3,22 @@
  * config option of {@link Ext.grid.column.Column} for more details.
  *
  *     @example
- *     Ext.create('Ext.data.Store', {
- *        storeId:'sampleStore',
- *        fields:[
+ *     var store = Ext.create('Ext.data.Store', {
+ *        fields: [
  *            {name: 'framework', type: 'string'},
  *            {name: 'rocks', type: 'boolean'}
  *        ],
- *        data:{'items':[
- *            { 'framework': "Ext JS 4",     'rocks': true  },
- *            { 'framework': "Sencha Touch", 'rocks': true  },
- *            { 'framework': "Ext GWT",      'rocks': true  },
- *            { 'framework': "Other Guys",   'rocks': false }
- *        ]},
- *        proxy: {
- *            type: 'memory',
- *            reader: {
- *                type: 'json',
- *                rootProperty: 'items'
- *            }
- *        }
+ *        data: [
+ *            { framework: 'Ext JS 5', rocks: true },
+ *            { framework: 'Sencha Touch', rocks: true },
+ *            { framework: 'Ext GWT', rocks: true },
+ *            { framework: 'Other Guys', rocks: false }
+ *        ]
  *     });
  *
  *     Ext.create('Ext.grid.Panel', {
  *         title: 'Boolean Column Demo',
- *         store: Ext.data.StoreManager.lookup('sampleStore'),
+ *         store: store,
  *         columns: [
  *             { text: 'Framework',  dataIndex: 'framework', flex: 1 },
  *             {

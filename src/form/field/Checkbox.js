@@ -1,6 +1,4 @@
 /**
- * @docauthor Robert Dougan <rob@sencha.com>
- *
  * Single checkbox field. Can be used as a direct replacement for traditional checkbox fields. Also serves as a
  * parent class for {@link Ext.form.field.Radio radio buttons}.
  *
@@ -20,7 +18,7 @@
  * - `'1'`
  * - `'on'`
  *
- * Any other value will uncheck the checkbox.
+ * Any other value will un-check the checkbox.
  *
  * In addition to the main boolean value, you may also specify a separate {@link #inputValue}. This will be
  * sent as the parameter value when the form is {@link Ext.form.Basic#submit submitted}. You will want to set
@@ -103,12 +101,13 @@ Ext.define('Ext.form.field.Checkbox', {
          * A reference to the label element created for the {@link #boxLabel}. Only present if the component has been
          * rendered and has a boxLabel configured.
          */
-        'boxLabelEl'
+        'boxLabelEl',
+        'innerWrapEl'
     ],
 
     // note: {id} here is really {inputId}, but {cmpId} is available
     fieldSubTpl: [
-        '<div class="{wrapInnerCls} {noBoxLabelCls}" role="presentation">',
+        '<div id="{cmpId}-innerWrapEl" data-ref="innerWrapEl" class="{wrapInnerCls} {noBoxLabelCls}" role="presentation">',
             '<tpl if="labelAlignedBefore">',
                 '{beforeBoxLabelTpl}',
                 '<label id="{cmpId}-boxLabelEl" data-ref="boxLabelEl" {boxLabelAttrTpl} class="{boxLabelCls} ',
@@ -124,7 +123,7 @@ Ext.define('Ext.form.field.Checkbox', {
                 '<tpl if="disabled"> disabled="disabled"</tpl>',
                 '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
                 ' class="{fieldCls} {typeCls} {typeCls}-{ui} {inputCls} {inputCls}-{ui} {childElCls} {afterLabelCls}" autocomplete="off" hidefocus="true" />',
-            '<tpl if="boxLabel && !labelAlignedBefore">',
+            '<tpl if="!labelAlignedBefore">',
                 '{beforeBoxLabelTpl}',
                 '<label id="{cmpId}-boxLabelEl" data-ref="boxLabelEl" {boxLabelAttrTpl} class="{boxLabelCls} ',
                         '{boxLabelCls}-{ui} {boxLabelCls}-{boxLabelAlign} {childElCls}" for="{id}">',
@@ -268,11 +267,12 @@ Ext.define('Ext.form.field.Checkbox', {
      */
 
     /**
-     * @cfg {Function} handler
+     * @cfg {Function/String} [handler=undefined]
      * A function called when the {@link #checked} value changes (can be used instead of handling the {@link #change
      * change event}).
      * @cfg {Ext.form.field.Checkbox} handler.checkbox The Checkbox being toggled.
      * @cfg {Boolean} handler.checked The new checked state of the checkbox.
+     * @declarativeHandler
      */
 
     /**
@@ -336,7 +336,7 @@ Ext.define('Ext.form.field.Checkbox', {
         var me = this,
             boxLabel = me.boxLabel,
             boxLabelAlign = me.boxLabelAlign,
-            labelAlignedBefore = boxLabel && boxLabelAlign === 'before';
+            labelAlignedBefore = boxLabelAlign === 'before';
 
         return Ext.apply(me.callParent(arguments), {
             disabled: me.readOnly || me.disabled,
@@ -371,6 +371,8 @@ Ext.define('Ext.form.field.Checkbox', {
         me.boxLabel = boxLabel;
         if (me.rendered) {
             me.boxLabelEl.setHtml(boxLabel);
+            me.innerWrapEl[boxLabel ? 'removeCls' : 'addCls'](me.noBoxLabelCls);
+            me.updateLayout();
         }
     },
 
@@ -380,7 +382,7 @@ Ext.define('Ext.form.field.Checkbox', {
     onBoxClick: function() {
         var me = this;
         if (!me.disabled && !me.readOnly) {
-            this.setValue(!this.checked);
+            me.setValue(!me.checked);
         }
     },
 
@@ -421,7 +423,7 @@ Ext.define('Ext.form.field.Checkbox', {
      *
      * @param {Boolean/String/Number} value The following values will check the checkbox:
      * `true, 'true', '1', 1, or 'on'`, as well as a String that matches the {@link #inputValue}.
-     * Any other value will uncheck the checkbox.
+     * Any other value will un-check the checkbox.
      * @return {Boolean} the new checked state of the checkbox
      */
     setRawValue: function(value) {
@@ -442,8 +444,13 @@ Ext.define('Ext.form.field.Checkbox', {
 
     /**
      * Sets the checked state of the checkbox, and invokes change detection.
-     * @param {Boolean/String} checked The following values will check the checkbox: `true, 'true', '1', or 'on'`, as
-     * well as a String that matches the {@link #inputValue}. Any other value will uncheck the checkbox.
+     * @param {Array/Boolean/String} checked The following values will check the checkbox: `true, 'true', '1', or 'on'`, as
+     * well as a String that matches the {@link #inputValue}. Any other value will 
+     * un-check the checkbox.
+     *
+     * You may also pass an array of string values. If an array of strings is passed, all checkboxes in the group
+     * with a matched name will be checked.  The checkbox will be unchecked if a corresponding value
+     * is not found in the array.
      * @return {Ext.form.field.Checkbox} this
      */
     setValue: function(checked) {
@@ -451,9 +458,10 @@ Ext.define('Ext.form.field.Checkbox', {
             boxes, i, len, box;
 
         // If an array of strings is passed, find all checkboxes in the group with the same name as this
-        // one and check all those whose inputValue is in the array, unchecking all the others. This is to
-        // facilitate setting values from Ext.form.Basic#setValues, but is not publicly documented as we
-        // don't want users depending on this behavior.
+        // one and check all those whose inputValue is in the array, un-checking all the 
+        // others. This is to facilitate setting values from Ext.form.Basic#setValues, 
+        // but is not publicly documented as we don't want users depending on this 
+        // behavior.
         if (Ext.isArray(checked)) {
             boxes = me.getManager().getByName(me.name, me.getFormId()).items;
             len = boxes.length;
@@ -485,7 +493,9 @@ Ext.define('Ext.form.field.Checkbox', {
         var me = this,
             handler = me.handler;
 
-        Ext.callback(me.handler, me.scope, [me, newVal], 0, me);
+        if (handler) {
+            Ext.callback(handler, me.scope, [me, newVal], 0, me);
+        }
 
         me.callParent(arguments);
 

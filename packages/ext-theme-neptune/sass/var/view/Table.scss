@@ -9,7 +9,7 @@ $grid-row-cell-focus-border-style: solid !default;
 // special cells
 $grid-cell-special-background-color: 'none' !default;
 $grid-cell-special-background-gradient: 'none' !default;
-$grid-cell-special-border-width: 1px 0 !default;
+$grid-cell-special-border-width: 1px !default;
 
 //row cell over
 $grid-row-cell-over-background-color: mix(#fff, $base-light-color, 65%) !default;

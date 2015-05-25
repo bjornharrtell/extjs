@@ -23,6 +23,13 @@ Ext.define('Ext.view.BoundListKeyNav', {
         // Unless it's already been done (we may have to defer a call until the field is rendered.
         if (!me.keyNav) {
             me.callParent([view]);
+
+            // Add ESC handling to the View's KeyMap to caollapse the field
+            me.keyNav.map.addBinding({
+                key: Ext.event.Event.ESC,
+                fn: me.onKeyEsc,
+                scope: me
+            });
         }
 
         // BoundLists must be able to function standalone with no bound field
@@ -59,6 +66,24 @@ Ext.define('Ext.view.BoundListKeyNav', {
             },
             scope: me
         });
+    },
+
+    processViewEvent: function(view, record, node, index, event) {
+
+        // Event is valid if it is from within the list
+        if (event.within(view.listWrap)) {
+            return event;
+        }
+
+        // If not from within the list, we're only interested in ESC.
+        // Defeat the NavigationModel's ignoreInputFields for that.
+        if (event.getKey() === event.ESC) {
+            if (Ext.fly(event.target).isInputField()) {
+                event.target = event.target.parentNode;
+            }
+            return event;
+        }
+        // Falsy return stops the KeyMap processing the event
     },
 
     enable: function() {
@@ -148,6 +173,12 @@ Ext.define('Ext.view.BoundListKeyNav', {
         return true;
     },
 
+    onKeyEsc: function() {
+        if (this.view.pickerField) {
+            this.view.pickerField.collapse();
+        }
+    },
+
     /**
      * Highlights the item at the given index.
      * @param {Number} index
@@ -162,7 +193,7 @@ Ext.define('Ext.view.BoundListKeyNav', {
         if (item) {
             item = item.dom;
             boundList.highlightItem(item);
-            boundList.getOverflowEl().scrollChildIntoView(item, false);
+            boundList.getScrollable().scrollIntoView(item, false);
         }
     },
 

@@ -34,6 +34,25 @@ Ext.define('PageAnalyzer.hook.Context', function () {
         return layout.owner.id + '<' + layout.type + '>';
     }
 
+    // If the passed object is an instance of Ext.Base, returns a string representation
+    // of that object, otherwise returns the object itself.
+    //
+    // If an array is passed, calls referenceToString on each element in the array
+    function referenceToString(obj) {
+        var result = obj;
+
+        if (obj instanceof Ext.Base) {
+            result = obj.$className + (obj.id ? ('#' + obj.id) : '');
+        } else if (obj instanceof Array) {
+            result = [];
+            Ext.each(obj, function(o) {
+                result.push(referenceToString(o));
+            });
+        }
+
+        return result;
+    }
+
     function getLayoutResults (me, layout, reported, orphan) {
         var owner = layout.owner,
             ownerContext = me.getCmp(owner),
@@ -77,7 +96,11 @@ Ext.define('PageAnalyzer.hook.Context', function () {
             var item = info.item,
                 dirty = item.dirty || false,
                 prop = info.name,
-                value = item.props[prop];
+                // ContextItems sometimes place references to other ContextItems in their
+                // props (see ColumnLayout and columnsChanged). We must convert these
+                // references to strings or else we can end up in trouble when we attempt
+                // to JSON-serialize them later on.
+                value = referenceToString(item.props[prop]);
 
             results.triggers.push({
                 name: name,

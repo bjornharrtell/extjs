@@ -121,11 +121,11 @@ Ext.define('Ext.layout.container.Absolute', {
 
     calculateContentSize: function (ownerContext, dimensions) {
         var me = this,
-            containerDimensions = (dimensions || 0) |
-                   ((ownerContext.widthModel.shrinkWrap ? 1 : 0) |
+            containerDimensions = (dimensions || 0) | // jshint ignore:line
+                   ((ownerContext.widthModel.shrinkWrap ? 1 : 0) | // jshint ignore:line
                     (ownerContext.heightModel.shrinkWrap ? 2 : 0)),
-            calcWidth = (containerDimensions & 1) || undefined,
-            calcHeight = (containerDimensions & 2) || undefined,
+            calcWidth = (containerDimensions & 1) || undefined,// jshint ignore:line
+            calcHeight = (containerDimensions & 2) || undefined,// jshint ignore:line
             childItems = ownerContext.childItems,
             length = childItems.length,
             contentHeight = 0,

@@ -113,7 +113,8 @@ Ext.define('KitchenSink.store.Navigation', {
                     { id: 'line-plot', text: 'Plot', leaf: true },
                     { id: 'line-markers', text: 'With Image Markers', leaf: true },
                     { id: 'line-crosszoom', text: 'With Zoom', leaf: true },
-                    { id: 'line-renderer', text: 'With Renderer', leaf: true }
+                    { id: 'line-renderer', text: 'With Renderer', leaf: true },
+                    { id: 'line-real-time', text: 'Real-time', leaf: true }
                 ]
             },
             {
@@ -215,7 +216,8 @@ Ext.define('KitchenSink.store.Navigation', {
                     { id: 'free-paint', text: 'Free Paint', leaf: true },
                     { id: 'hit-test', text: 'Hit Testing', leaf: true },
                     { id: 'intersections', text: 'Path Intersections', leaf: true },
-                    { id: 'draw-composite', text: 'Composite', leaf: true }
+                    { id: 'draw-composite', text: 'Composite', leaf: true },
+                    { id: 'sprite-events', text: 'Sprite Events', leaf: true }
                 ]
             }
         ]);
@@ -341,6 +343,7 @@ Ext.define('KitchenSink.store.Navigation', {
                     { id: 'icon-tabs', text: 'Icon Tabs', leaf: true },
                     { id: 'ajax-tabs', text: 'Ajax Tabs', leaf: true },
                     { id: 'advanced-tabs', text: 'Advanced Tabs', leaf: true },
+                    { id: 'lazy-tabs', text: 'Lazy Instantiating Tabs', leaf: true},
                     { id: 'navigation-tabs', text: 'Navigation Tabs', leaf: true },
                     { id: 'side-navigation-tabs', text: 'Side Navigation Tabs', leaf: true },
                     { id: 'header-tabs', text: 'Header Tabs', leaf: true },

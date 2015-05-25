@@ -177,7 +177,7 @@ Ext.define('Ext.view.Table', {
 
     /**
      * Override this function to apply custom CSS classes to rows during rendering. This function should return the
-     * CSS class name (or empty string '' for none) that will be added to the row's wrapping div. To apply multiple
+     * CSS class name (or empty string '' for none) that will be added to the row's wrapping element. To apply multiple
      * class names, simply return them space-delimited within the string (e.g. 'my-class another-class').
      * Example usage:
      *
@@ -673,13 +673,21 @@ Ext.define('Ext.view.Table', {
         var me = this;
 
         if (oldSelModel) {
-            oldSelModel.un('selectionchange', me.updateBindSelection, me);
+            oldSelModel.un({
+                scope: me,
+                lastselectedchanged: me.updateBindSelection,
+                selectionchange: me.updateBindSelection
+            });
             Ext.destroy(me.selModelRelayer);
         }
         me.selModelRelayer = me.relayEvents(selModel, [
             'selectionchange', 'beforeselect', 'beforedeselect', 'select', 'deselect', 'focuschange'
         ]);
-        selModel.on('selectionchange', me.updateBindSelection, me);
+        selModel.on({
+            scope: me,
+            lastselectedchanged: me.updateBindSelection,
+            selectionchange: me.updateBindSelection
+        });
         me.selModel = selModel;
     },
 
@@ -1121,8 +1129,11 @@ Ext.define('Ext.view.Table', {
                 result.appendChild(div.firstChild);
             }
         }
-        result.childrenArray = Ext.Array.toArray(result.childNodes);
-        return  result;
+
+        return {
+            fragment: result,
+            children: Ext.Array.toArray(result.childNodes)
+        };
     },
 
     collectData: function(records, startIndex) {
@@ -1640,7 +1651,7 @@ Ext.define('Ext.view.Table', {
      *
      */
     getCellSelector: function(header) {
-        return header ? header.getCellSelector() : this.cellSelector; 
+        return header ? header.getCellSelector() : this.cellSelector;
     },
 
     /*
@@ -1761,11 +1772,11 @@ Ext.define('Ext.view.Table', {
         // the view is not cleared on the leading end of a reload operation, but the
         // store can be empty.
         if (!me.cellFocused && me.all.getCount() && me.dataSource.getCount()) {
-            focusTarget = e.getTarget(null, null, true);
+            focusTarget = e.getTarget();
 
             // If what is being focused an interior element, but is not a cell, allow it to proceed.
             // The position silently restores to what it was when we were focused last.
-            if (focusTarget && me.el.contains(focusTarget) && focusTarget !== me.el && !focusTarget.is(me.getCellSelector())) {
+            if (focusTarget && me.el.contains(focusTarget) && focusTarget !== me.el.dom && !Ext.fly(focusTarget).is(me.getCellSelector())) {
                 if (navigationModel.lastFocused) {
                     navigationModel.position = navigationModel.lastFocused;
                 }
@@ -1775,12 +1786,12 @@ Ext.define('Ext.view.Table', {
 
                 // Default to the first cell if the NavigationModel has never focused anything
                 if (!focusPosition) {
-                    targetView = me.isLockingView ? (me.lockedGrid.isVisible() ? me.lockedView : me.normalView) : me;
+                    targetView = me.isNormalView ? (me.lockingPartner.isVisible() ? me.lockingPartner : me.normalView) : me;
                     firstRecord = me.dataSource.getAt(br ? br.getFirstVisibleRowIndex() : 0);
 
                     // A non-row producing record like a collapsed placeholder.
                     // We cannot focus these yet.
-                    if (!firstRecord.isNonData) {
+                    if (firstRecord && !firstRecord.isNonData) {
                         focusPosition = new Ext.grid.CellContext(targetView).setPosition({
                             row: firstRecord,
                             column: 0
@@ -1987,23 +1998,32 @@ Ext.define('Ext.view.Table', {
 
     syncRowHeightFinish: function (synchronizer, otherSynchronizer) {
         var ln = synchronizer.length,
+            bufferedRenderer = this.bufferedRenderer,
             i;
 
         for (i = 0; i < ln; i++) {
             synchronizer[i].finish(otherSynchronizer[i]);
         }
+
+        // Ensure that both BufferedRenderers have the same idea about scroll range and row height
+        if (bufferedRenderer) {
+            bufferedRenderer.syncRowHeightsFinish();
+        }
     },
 
     // private
     handleUpdate: function(store, record, operation, changedFieldNames) {
+        operation = operation || Ext.data.Model.EDIT;
         var me = this,
             rowTpl = me.rowTpl,
             markDirty = me.markDirty,
             dirtyCls = me.dirtyCls,
+            clearDirty = operation !== Ext.data.Model.EDIT,
             columnsToUpdate = [],
             hasVariableRowHeight = me.variableRowHeight,
             updateTypeFlags = 0,
             ownerCt = me.ownerCt,
+            cellFly = me.cellFly || (me.self.prototype.cellFly = new Ext.dom.Fly()),
             oldItem, oldItemDom, oldDataRow,
             newItemDom,
             newAttrs, attLen, attName, attrIndex,
@@ -2017,7 +2037,8 @@ Ext.define('Ext.view.Table', {
             value,
             defaultRenderer,
             scope,
-            elData;
+            elData,
+            emptyValue;
 
         if (me.viewReady) {
             // Table row being updated
@@ -2034,26 +2055,44 @@ Ext.define('Ext.view.Table', {
                 for (i = 0, len = columns.length; i < len; i++) {
                     column = columns[i];
 
-                    // 0 = Column doesn't need update.
-                    // 1 = Column needs update, and renderer has > 1 argument; We need to render a whole new HTML item.
-                    // 2 = Column needs update, but renderer has 1 argument or column uses an updater.
-                    cellUpdateFlag = me.shouldUpdateCell(record, column, changedFieldNames);
+                    // We are not going to update the cell, but we still need to mark it as dirty.
+                    if (column.preventUpdate) {
+                        cell = Ext.fly(oldItemDom).down(column.getCellSelector(), true);
 
-                    if (cellUpdateFlag) {
-                        // Track if any of the updating columns yields a flag with the 1 bit set.
-                        // This means that there is a custom renderer involved and a new TableView item
-                        // will need rendering.
-                        updateTypeFlags = updateTypeFlags | cellUpdateFlag;
+                        // Mark the field's dirty status if we are configured to do so (defaults to true)
+                        if (!clearDirty && markDirty) {
+                            cellFly.attach(cell);
+                            if (record.isModified(column.dataIndex)) {
+                                cellFly.addCls(dirtyCls);
+                            } else {
+                                cellFly.removeCls(dirtyCls);
+                            }
+                        }
+                    } else {
+                        // 0 = Column doesn't need update.
+                        // 1 = Column needs update, and renderer has > 1 argument; We need to render a whole new HTML item.
+                        // 2 = Column needs update, but renderer has 1 argument or column uses an updater.
+                        cellUpdateFlag = me.shouldUpdateCell(record, column, changedFieldNames);
 
-                        columnsToUpdate[columnsToUpdate.length] = column;
-                        hasVariableRowHeight = hasVariableRowHeight || column.variableRowHeight;
+                        if (cellUpdateFlag) {
+                            // Track if any of the updating columns yields a flag with the 1 bit set.
+                            // This means that there is a custom renderer involved and a new TableView item
+                            // will need rendering.
+                            updateTypeFlags = updateTypeFlags | cellUpdateFlag; // jshint ignore:line
+
+                            columnsToUpdate[columnsToUpdate.length] = column;
+                            hasVariableRowHeight = hasVariableRowHeight || column.variableRowHeight;
+                        }
                     }
                 }
 
                 // If there's no data row (some other rowTpl has been used; eg group header)
-                //  or one or more columns has a custom renderer
-                //  or there's more than one <TR>, we must use the full render pathway to create a whole new TableView item
-                if (!me.getRowFromItem(oldItemDom) || (updateTypeFlags & 1) || (oldItemDom.tBodies[0].childNodes.length > 1)) {
+                // or we have a getRowClass
+                // or one or more columns has a custom renderer
+                // or there's more than one <TR>, we must use the full render pathway to create a whole new TableView item
+                if (me.getRowClass || !me.getRowFromItem(oldItemDom) ||
+                        (updateTypeFlags & 1) || // jshint ignore:line
+                        (oldItemDom.tBodies[0].childNodes.length > 1)) {
                     oldItem = Ext.fly(oldItemDom, '_internal');
                     elData = oldItemDom._extData;
                     newItemDom = me.createRowElement(record, me.dataSource.indexOf(record), columnsToUpdate);
@@ -2104,12 +2143,6 @@ Ext.define('Ext.view.Table', {
 
                 // No custom renderers found in columns to be updated, we can simply update the existing cells.
                 else {
-                    
-                    // Flyweight for manipulation of the update cell
-                    if (!me.cellFly) {
-                        me.cellFly = new Ext.dom.Fly();
-                    }
-
                     // Loop through columns which need updating.
                     for (i = 0, len = columnsToUpdate.length; i < len; i++) {
                         column = columnsToUpdate[i];
@@ -2118,15 +2151,15 @@ Ext.define('Ext.view.Table', {
                         fieldName = column.dataIndex;
 
                         value = record.get(fieldName);
-                        cell = oldItemDom.firstChild.firstChild.childNodes[column.getVisibleIndex()];
+                        cell = Ext.fly(oldItemDom).down(column.getCellSelector(), true);
 
                         // Mark the field's dirty status if we are configured to do so (defaults to true)
-                        if (markDirty) {
-                            me.cellFly.attach(cell);
+                        if (!clearDirty && markDirty) {
+                            cellFly.attach(cell);
                             if (record.isModified(column.dataIndex)) {
-                                me.cellFly.addCls(dirtyCls);
+                                cellFly.addCls(dirtyCls);
                             } else {
-                                me.cellFly.removeCls(dirtyCls);
+                                cellFly.removeCls(dirtyCls);
                             }
                         }
 
@@ -2143,10 +2176,14 @@ Ext.define('Ext.view.Table', {
                                         [value, null, record, 0, 0, me.dataSource, me], 0, column, ownerCt);
                             }
 
+                            emptyValue = value == null || value === '';
+                            value = emptyValue ? column.emptyCellText : value;
+
                             // Update the value of the cell's inner in the best way.
                             // We only use innerHTML of the cell's inner DIV if the renderer produces HTML
                             // Otherwise we change the value of the single text node within the inner DIV
-                            if (column.producesHTML) {
+                            // The emptyValue may be HTML, typically defaults to &#160;
+                            if (column.producesHTML || emptyValue) {
                                 cell.childNodes[0].innerHTML = value;
                             } else {
                                 cell.childNodes[0].childNodes[0].data = value;
@@ -2173,12 +2210,12 @@ Ext.define('Ext.view.Table', {
                             });
                         }
                     }
+                }
 
-                    // If we have a commit or a reject, some fields may no longer be dirty but may
-                    // not appear in the modified field names. Remove all the dirty class here to be sure.
-                    if (markDirty && !record.dirty) {
-                        Ext.fly(oldItemDom, '_internal').select('.' + dirtyCls).removeCls(dirtyCls);
-                    }
+                // If we have a commit or a reject, some fields may no longer be dirty but may
+                // not appear in the modified field names. Remove all the dirty class here to be sure.
+                if (clearDirty && markDirty && !record.dirty) {
+                    Ext.fly(oldItemDom, '_internal').select('.' + dirtyCls).removeCls(dirtyCls);
                 }
 
                 // Coalesce any layouts which happen due to any itemupdate handlers (eg Widget columns) with the final refreshSize layout.
@@ -2334,7 +2371,7 @@ Ext.define('Ext.view.Table', {
     processContainerEvent: function(e) {
         // If we find a component & it belongs to our grid, don't fire the event.
         // For example, grid editors resolve to the parent grid
-        var cmp = Ext.ComponentManager.byElement(e.target.parentNode);
+        var cmp = Ext.Component.fromElement(e.target.parentNode);
         if (cmp && cmp.up(this.ownerCt)) {
             return false;
         } 
@@ -2345,13 +2382,12 @@ Ext.define('Ext.view.Table', {
             self = me.self,
             map = self.EventMap,
             type = e.type,
-            row, cell, selModel,
             features = me.features,
             len = features.length,
             i, cellIndex, result, feature, column,
             navModel = me.getNavigationModel(),
-            focusPosition,
-            eventPosition = e.position = me.eventPosition || (me.eventPosition = new Ext.grid.CellContext());
+            eventPosition = e.position = me.eventPosition || (me.eventPosition = new Ext.grid.CellContext()),
+            focusPosition, row, cell;
 
         // IE has a bug whereby if you mousedown in a cell editor in one side of a locking grid and then
         // drag out of that, and mouseup in *the other side*, the mousedowned side still receives the event!
@@ -2409,10 +2445,6 @@ Ext.define('Ext.view.Table', {
             // For example, action columns by default will stop event propagation by returning `false` from its
             // 'uievent' event handler.
             if ((result === false || me.callParent(arguments) === false)) {
-                selModel = me.getSelectionModel();
-                if (selModel.onVetoUIEvent) {
-                    selModel.onVetoUIEvent(type, me, cell, rowIndex, cellIndex, e, record, row);
-                }
                 return false;
             }
 
@@ -2472,7 +2504,7 @@ Ext.define('Ext.view.Table', {
 
         me.callParent(arguments);
 
-        if (type == 'mouseover' || type == 'mouseout') {
+        if (type === 'mouseover' || type === 'mouseout') {
             return;
         }
 
@@ -2541,7 +2573,7 @@ Ext.define('Ext.view.Table', {
      */
     autoSizeColumn: function(header) {
         if (Ext.isNumber(header)) {
-            header = this.getGridColumns[header];
+            header = this.getGridColumns()[header];
         }
         if (header) {
             if (header.isGroupHeader) {
@@ -2585,13 +2617,19 @@ Ext.define('Ext.view.Table', {
         // space the text occupies, but it will not report the correct width if the titleEl
         // has text-overflow:ellipsis.  Set text-overflow to 'clip' before proceeding to
         // ensure we get the correct measurement.
-        header.titleEl.setStyle('text-overflow', 'clip');
+        header.textEl.setStyle({
+            "text-overflow": 'clip',
+            display: 'table-cell'
+        });
 
         // Allow for padding round text of header
         maxWidth = header.textEl.dom.offsetWidth + header.titleEl.getPadding('lr');
 
         // revert to using text-overflow defined by the stylesheet
-        header.titleEl.setStyle('text-overflow', '');
+        header.textEl.setStyle({
+            "text-overflow": '',
+            display: ''
+        });
 
         for (; i < ln; i++) {
             maxWidth = max(maxWidth, cells[i].scrollWidth);
@@ -2601,7 +2639,8 @@ Ext.define('Ext.view.Table', {
         maxWidth += widthAdjust;
 
         // 40 is the minimum column width.  TODO: should this be configurable?
-        maxWidth = max(maxWidth, 40);
+        // One extra pixel needed. EXACT width shrinkwrap of text causes ellipsis to appear.
+        maxWidth = max(maxWidth + 1, 40);
 
         // Set column width back to original width
         columnSizer.setWidth(originalWidth);
@@ -2638,7 +2677,7 @@ Ext.define('Ext.view.Table', {
      * @param {Function} verifierFn A function to verify the validity of the calculated position.
      * When using this function, you must return true to allow the newPosition to be returned.
      * @param {Object} scope Scope to run the verifierFn in
-     * @returns {Ext.grid.CellContext} An object encapsulating the unique cell position.
+     * @return {Ext.grid.CellContext} An object encapsulating the unique cell position.
      *
      * @private
      */

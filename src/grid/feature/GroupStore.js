@@ -20,6 +20,8 @@ Ext.define('Ext.grid.feature.GroupStore', {
     // that the correct object is used to call various APIs. See EXTJSIV-10022.
     isFeatureStore: true,
 
+    badGrouperKey: '[object Object]',
+
     constructor: function(groupingFeature, store) {
         var me = this;
 
@@ -52,19 +54,27 @@ Ext.define('Ext.grid.feature.GroupStore', {
         }
     },
 
-    processStore: function(store) {
+    processStore: function (store) {
         var me = this,
+            groupingFeature = me.groupingFeature,
+            collapseAll = groupingFeature.startCollapsed,
+            data = me.data,
+            ExtArray = Ext.Array,
+            indexOf = ExtArray.indexOf,
+            splice = ExtArray.splice,
             groups = store.getGroups(),
             groupCount = groups ? groups.length : 0,
-            i,
-            group,
-            groupPlaceholder,
-            data = me.data,
-            oldGroupCache = me.groupingFeature.groupCache,
-            groupCache = me.groupingFeature.clearGroupCache(),
-            collapseAll = me.groupingFeature.startCollapsed, 
             groupField = store.getGroupField(),
-            key, modelData, Model;
+            // We need to know all of the possible unique group names. The only way to know this is to check itemGroupKeys, which will keep a
+            // list of all potential group names. It's not enough to get the key of the existing groups since the collection may be filtered.
+            groupNames = groups && ExtArray.unique(Ext.Object.getValues(groups.itemGroupKeys)),
+            isCollapsed = false,
+            oldMetaGroupCache = groupingFeature.getCache(),
+            metaGroup, metaGroupCache, i, len, featureGrouper, group, groupName, groupPlaceholder, key, modelData, Model;
+
+        groupingFeature.invalidateCache();
+        // Get a new cache since we invalidated the old one.
+        metaGroupCache = groupingFeature.getCache();
 
         if (data) {
             data.clear();
@@ -81,36 +91,74 @@ Ext.define('Ext.grid.feature.GroupStore', {
         }
 
         if (store.getCount()) {
-
             // Upon first process of a loaded store, clear the "always" collapse" flag
-            me.groupingFeature.startCollapsed = false;
+            groupingFeature.startCollapsed = false;
 
             if (groupCount > 0) {
+                Model = store.getModel();
+
                 for (i = 0; i < groupCount; i++) {
                     group = groups.getAt(i);
 
-                    // Cache group information by group name
+                    // Cache group information by group name.
                     key = group.getGroupKey();
-                    groupCache[key] = group;
-                    group.isCollapsed = collapseAll || (oldGroupCache[key] && oldGroupCache[key].isCollapsed);
+
+                    // If there is no store grouper and the groupField looks up a complex data type, the store will stringify it and
+                    // the group name will be '[object Object]'. To fix this, groupers can be defined in the feature config, so we'll
+                    // simply do a lookup here and re-group the store.
+                    //
+                    // Note that if a grouper wasn't defined on the feature that we'll just default to the old behavior and still try
+                    // to group.
+                    if (me.badGrouperKey === key && (featureGrouper = groupingFeature.getGrouper(groupField))) {
+                        // We must reset the value b/c store.group() will call into this method again!
+                        groupingFeature.startCollapsed = collapseAll;
+                        store.group(featureGrouper);
+                        return;
+                    }
+
+                    // If there is a previous metaGroup then use it, otherwise, return a new metaGroup.
+                    // TODO: Create a method in Grouping to create new metaGroups?
+                    metaGroup = metaGroupCache[key] = oldMetaGroupCache[key] || groupingFeature.getMetaGroup(key);
+
+                    // It's necessary to get the raw value of the group item which will then be passed to the column renderer.
+                    // The renderer callbacks are expectind the complete data  value, not a stringified value of a complex type,
+                    // so we cache this in the group's metaGroup for easy lookup.
+                    // See Grouping#setupRowData().
+                    metaGroup.raw = group.getAt(0).get(groupField);
+
+                    // Remove the group name from the list of all possible group names. This is how we'll know if any remaining groups
+                    // in the old cache should be retained.
+                    splice(groupNames, indexOf(groupNames, key), 1);
+
+                    isCollapsed = metaGroup.isCollapsed = collapseAll || metaGroup.isCollapsed;
 
                     // If group is collapsed, then represent it by one dummy row which is never visible, but which acts
                     // as a start and end group trigger.
-                    if (group.isCollapsed) {
-                        Model = store.getModel();
+                    if (isCollapsed) {
                         modelData = {};
                         modelData[groupField] = key;
-                        group.placeholder = groupPlaceholder = new Model(modelData);
+                        metaGroup.placeholder = groupPlaceholder = new Model(modelData);
                         groupPlaceholder.isNonData = groupPlaceholder.isCollapsedPlaceholder = true;
                         groupPlaceholder.group = group;
                         data.add(groupPlaceholder);
                     }
-
                     // Expanded group - add the group's child records.
                     else {
                         data.insert(me.data.length, group.items);
                     }
                 }
+
+                if (groupNames.length) {
+                    // The remainig group names in this list may refer to potential groups that have been filtered/sorted. If the group
+                    // name exists in the old cache, we must retain it b/c the groups could be recreated. See EXTJS-15755 for an example.
+                    // Anything left in the old cache can be discarded.
+                    for (i = 0, len = groupNames.length; i < len; i++) {
+                        groupName = groupNames[i];
+                        metaGroupCache[groupName] = oldMetaGroupCache[groupName];
+                    }
+                }
+
+                oldMetaGroupCache = null;
             } else {
                 data.add(store.getRange());
             }
@@ -118,17 +166,7 @@ Ext.define('Ext.grid.feature.GroupStore', {
     },
 
     isCollapsed: function(name) {
-        return this.groupingFeature.groupCache[name].isCollapsed; 
-    },
-
-    isInCollapsedGroup: function(record) {
-        var store = this.store,
-            groupData;
-
-        if (store.isGrouped() && (groupData = this.groupingFeature.groupCache[record.get(store.getGroupField())])) {
-            return groupData.isCollapsed || false;
-        }
-        return false;
+        return this.groupingFeature.getCache()[name].isCollapsed;
     },
 
     isLoading: function() {
@@ -197,22 +235,24 @@ Ext.define('Ext.grid.feature.GroupStore', {
 
     expandGroup: function(group) {
         var me = this,
-            startIdx, items;
+            groupingFeature = me.groupingFeature,
+            metaGroup, placeholder, startIdx, items;
 
         if (typeof group === 'string') {
-            group = me.groupingFeature.groupCache[group];
+            group = groupingFeature.getGroup(group);
         }
-        
+
         if (group) {
             items = group.items;
+            metaGroup = groupingFeature.getMetaGroup(group);
+            placeholder = metaGroup.placeholder;
         }
 
-        if (items.length && (startIdx = me.data.indexOf(group.placeholder)) !== -1) {
-
+        if (items.length && (startIdx = me.data.indexOf(placeholder)) !== -1) {
             // Any event handlers must see the new state
-            group.isCollapsed = false;
+            metaGroup.isCollapsed = false;
             me.isExpandingOrCollapsing = 1;
-            
+
             // Remove the collapsed group placeholder record
             me.data.removeAt(startIdx);
 
@@ -220,7 +260,7 @@ Ext.define('Ext.grid.feature.GroupStore', {
             me.data.insert(startIdx, group.items);
 
             // Update views
-            me.fireEvent('replace', me, startIdx, [group.placeholder], group.items);
+            me.fireEvent('replace', me, startIdx, [placeholder], group.items);
 
             me.fireEvent('groupexpand', me, group);
             me.isExpandingOrCollapsing = 0;
@@ -229,14 +269,15 @@ Ext.define('Ext.grid.feature.GroupStore', {
 
     collapseGroup: function(group) {
         var me = this,
+            groupingFeature = me.groupingFeature,
             startIdx,
             placeholder,
             len, items;
 
         if (typeof group === 'string') {
-            group = me.groupingFeature.groupCache[group];
+            group = groupingFeature.getGroup(group);
         }
-        
+
         if (group) {
             items = group.items;
         }
@@ -244,7 +285,7 @@ Ext.define('Ext.grid.feature.GroupStore', {
         if (items && (len = items.length) && (startIdx = me.data.indexOf(items[0])) !== -1) {
 
             // Any event handlers must see the new state
-            group.isCollapsed = true;
+            groupingFeature.getMetaGroup(group).isCollapsed = true;
             me.isExpandingOrCollapsing = 2;
 
             // Remove the group child records
@@ -262,7 +303,9 @@ Ext.define('Ext.grid.feature.GroupStore', {
     },
 
     getGroupPlaceholder: function(group) {
-        if (!group.placeholder) {
+        var metaGroup = this.groupingFeature.getMetaGroup(group);
+
+        if (!metaGroup.placeholder) {
             var store = this.store,
                 Model = store.getModel(),
                 modelData = {},
@@ -270,11 +313,12 @@ Ext.define('Ext.grid.feature.GroupStore', {
                 groupPlaceholder;
 
             modelData[store.getGroupField()] = key;
-            groupPlaceholder = group.placeholder = new Model(modelData);
+            groupPlaceholder = metaGroup.placeholder = new Model(modelData);
             groupPlaceholder.isNonData = groupPlaceholder.isCollapsedPlaceholder = true;
+            // TODO: do we need a ref to the group here?
             groupPlaceholder.group = group;
         }
-        return group.placeholder;
+        return metaGroup.placeholder;
     },
 
     // Find index of record in group store.
@@ -351,23 +395,24 @@ Ext.define('Ext.grid.feature.GroupStore', {
 
     onUpdate: function(store, record, operation, modifiedFieldNames) {
         var me = this,
-            groupInfo,
-            firstRec, lastRec, items;
+            groupingFeature = me.groupingFeature,
+            group, metaGroup, firstRec, lastRec, items;
 
         // The grouping field value has been modified.
         // This could either move a record from one group to another, or introduce a new group.
         // Either way, we have to refresh the grid
         if (store.isGrouped()) {
             // Updating a single record, attach the group to the record for Grouping.setupRowData to use.
-            groupInfo = record.group = me.groupingFeature.getRecordGroup(record);
+            group = record.group = groupingFeature.getGroup(record);
+            metaGroup = groupingFeature.getMetaGroup(record);
 
-            if (modifiedFieldNames && Ext.Array.contains(modifiedFieldNames, me.groupingFeature.getGroupField())) {
+            if (modifiedFieldNames && Ext.Array.contains(modifiedFieldNames, groupingFeature.getGroupField())) {
                 return me.onRefresh(me.store);
             }
 
-            // Fire an update event on the collapsed group placeholder record
-            if (groupInfo.isCollapsed) {
-                me.fireEvent('update', me, groupInfo.placeholder);
+            // Fire an update event on the collapsed metaGroup placeholder record
+            if (metaGroup.isCollapsed) {
+                me.fireEvent('update', me, metaGroup.placeholder);
             }
 
             // Not in a collapsed group, fire update event on the modified record
@@ -380,7 +425,7 @@ Ext.define('Ext.grid.feature.GroupStore', {
 
                 // Fire update event on first and last record in group (only once if a single row group)
                 // So that custom header TPL is applied, and the summary row is updated
-                items = groupInfo.items;
+                items = group.items;
                 firstRec = items[0];
                 lastRec = items[items.length - 1];
 
@@ -388,12 +433,12 @@ Ext.define('Ext.grid.feature.GroupStore', {
                 // This is to give interested Features the opportunity to update the first item (a wrapped group header + data row),
                 // and last item (a wrapped data row + group summary)
                 if (firstRec !== record) {
-                    firstRec.group = groupInfo;
+                    firstRec.group = group;
                     me.fireEvent('update', me, firstRec, 'edit', modifiedFieldNames);
                     delete firstRec.group;
                 }
-                if (lastRec !== record && lastRec !== firstRec && me.groupingFeature.showSummaryRow) {
-                    lastRec.group = groupInfo;
+                if (lastRec !== record && lastRec !== firstRec && groupingFeature.showSummaryRow) {
+                    lastRec.group = group;
                     me.fireEvent('update', me, lastRec, 'edit', modifiedFieldNames);
                     delete lastRec.group;
                 }

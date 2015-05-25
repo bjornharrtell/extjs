@@ -14,6 +14,12 @@ Ext.define('Ext.util.Floating', {
     focusOnToFront: true,
 
     /**
+     * @cfg {Boolean} [modal=false]
+     * True to make the floated component modal and mask everything behind it when displayed, false to display it without
+     * restricting access to other UI elements.
+     */
+
+    /**
      * @cfg {String/Boolean} shadow
      * Specifies whether the floating component should be given a shadow. Set to true to automatically create an
      * {@link Ext.Shadow}, or a string indicating the shadow's display {@link Ext.Shadow#mode}. Set to false to
@@ -53,7 +59,7 @@ Ext.define('Ext.util.Floating', {
      */
 
     /**
-     * @property {Boolean}
+     * @property {Boolean} floating
      * The value `true` indicates that this Component is floating.
      * @private
      * @readonly
@@ -74,9 +80,10 @@ Ext.define('Ext.util.Floating', {
      * This defaults to the global {@link Ext.WindowManager ZIndexManager} for floating Components that are
      * programatically {@link Ext.Component#method-render rendered}.
      *
-     * For {@link #floating} Components which are added to a Container, the ZIndexManager is acquired from the first
-     * ancestor Container found which is floating. If no floating ancestor is found, the global {@link Ext.WindowManager ZIndexManager} is
-     * used.
+     * For {@link Ext.Component#floating floating} Components which are added to a
+     * Container, the ZIndexManager is acquired from the first ancestor Container found
+     * which is floating. If no floating ancestor is found, the global
+     * {@link Ext.WindowManager ZIndexManager} is used.
      *
      * See {@link Ext.Component#floating} and {@link #zIndexParent}
      * @readonly
@@ -92,7 +99,7 @@ Ext.define('Ext.util.Floating', {
      * a {@link Ext.ZIndexManager ZIndexManager} which provides z-indexing services for all its descendant floating
      * Components.
      *
-     * Floating Components that are programatically {@link Ext.Component#method-render rendered} will not have a `zIndexParent`
+     * Floating Components that are programmatically {@link Ext.Component#method-render rendered} will not have a `zIndexParent`
      * property.
      *
      * For example, the dropdown {@link Ext.view.BoundList BoundList} of a ComboBox which is in a Window will have the
@@ -159,15 +166,12 @@ Ext.define('Ext.util.Floating', {
         // If modal, and focus navigation not being handled by the FocusManager,
         // catch tab navigation, and loop back in on tab off first or last item.
         if (me.modal && !(Ext.enableFocusManager)) {
-            me.mon(me.el, {
-                keydown: me.onKeyDown,
-                scope: me
-            });
+            me.el.on('keydown', me.onKeyDown, me);
         }
 
         // mousedown brings to front
         // Use capture to see the event first before any contained DD instance stop the event.
-        me.mon(me.el, {
+        me.el.on({
             mousedown: me.onMouseDown,
             scope: me,
             capture: true
@@ -179,6 +183,24 @@ Ext.define('Ext.util.Floating', {
         me.registerWithOwnerCt();
 
         me.initHierarchyEvents();
+    },
+
+    alignTo: function (element, position, offsets, animate) {
+        var me = this;
+
+        // Since floaters are rendered to the document.body, floaters could become marooned
+        // from its ownerRef if the ownerRef has been rendered into a container that overflows
+        // and then that container is scrolled.
+        if (!me._lastAlignToEl) {
+            Ext.on('scroll', me.onAlignToScroll, me);
+        }
+
+        // Let's stash these on the component/element in case it's aligned to something else
+        // in its little lifetime.
+        me._lastAlignToEl = element;
+        me._lastAlignToPos = position;
+
+        me.mixins.positionable.alignTo.call(me, element, position, offsets, animate);
     },
 
     initFloatConstrain: function () {
@@ -273,7 +295,7 @@ Ext.define('Ext.util.Floating', {
     },
 
     // @private
-    // Mousedown brings to front, and programatically grabs focus
+    // Mousedown brings to front, and programmatically grabs focus
     // *unless the mousedown was on a focusable element*
     onMouseDown: function (e) {
         var me = this,
@@ -395,7 +417,7 @@ Ext.define('Ext.util.Floating', {
      */
     doConstrain: function(constrainTo) {
         var me = this,
-            // Calculate the constrained poition.
+            // Calculate the constrained position.
             // calculateConstrainedPosition will provide a default constraint
             // region if there is no explicit constrainTo, *and* there is no floatParent owner Component.
             xy = me.calculateConstrainedPosition(constrainTo, null, true);
@@ -407,16 +429,17 @@ Ext.define('Ext.util.Floating', {
     },
 
     updateActiveCounter: function(activeCounter) {
-        var z = this.zIndexParent;
+        var zim = this.zIndexParent;
 
         // If we have a zIndexParent, it has to rebase its own zIndices
-        if (z && this.bringParentToFront !== false) {
-            z.setActiveCounter(++Ext.ZIndexManager.activeCounter);
+        if (zim && this.bringParentToFront !== false) {
+            zim.setActiveCounter(++Ext.ZIndexManager.activeCounter);
         }
 
         // Rebase the local zIndices
-        if (z = this.zIndexManager) {
-            z.onComponentUpdate(this);
+        zim = this.zIndexManager;
+        if (zim) {
+            zim.onComponentUpdate(this);
         }
     },
 
@@ -462,31 +485,32 @@ Ext.define('Ext.util.Floating', {
      * {@link Ext.Component#deactivate deactivate} event depending on which action occurred.
      *
      * @param {Boolean} [active=false] True to activate the Component, false to deactivate it.
-     * @param {Ext.Component} [newActive] If deactivating, the newly active Component which is taking over topmost zIndex position.
      * @param {Boolean} [doFocus] When activating, set to true to focus the component;
      * when deactivating, set to false to avoid returning focus to previous element.
      * 
      */
-    setActive: function(active, newActive, doFocus) {
-        var me = this;
+    setActive: function(active, doFocus) {
+        var me = this,
+            activeCmp;
 
         if (active) {
             if (me.el.shadow && !me.maximized) {
                 me.el.enableShadow(null, true);
             }
 
-            // We only do focus processing upon activate, which means theis component
+            // We only do focus processing upon activate, which means this component
             // has been brought to the front by its ZIndexManager
             if (doFocus) {
+                activeCmp = Ext.ComponentManager.getActiveComponent();
                 // Skip focusing if we already contain focused element
-                if (!me.el.contains(Ext.Element.getActiveElement())) {
+                if (!activeCmp || !activeCmp.up(me)) {
                     me.focus();
                 }
             }            
             me.fireEvent('activate', me);
         }
-        // Deactivate carries no operations. It may be that this component jas just moved down and another
-        // component has been brout to the top, so that will automatically receive focus.
+        // Deactivate carries no operations. It may be that this component has just moved down and another
+        // component has been brought to the top, so that will automatically receive focus.
         // If we have been hidden, Component#onHide handles reverting focus to the previousExternalFocus element.
         else {
             me.fireEvent('deactivate', me);
@@ -545,5 +569,37 @@ Ext.define('Ext.util.Floating', {
         newBox.x = newPosition[0];
         newBox.y = newPosition[1];
         me.setBox(newBox, animate);
+    },
+
+    privates: {
+        onFloatDestroy: function() {
+            this.clearAlignEl();
+        },
+
+        clearAlignEl: function() {
+            var me = this;
+
+            if (me._lastAlignToEl) {
+                Ext.un('scroll', me.onAlignToScroll, me);
+                me._lastAlignPos = me._lastAlignToEl = null;
+            }
+        },
+
+        onAlignToScroll: function (scroller) {
+            var me = this,
+                el = me._lastAlignToEl,
+                dom;
+
+            // Realign only if this element is not contained within the scrolling element.
+            if (el && !scroller.getElement().contains(me.el)) {
+                dom = el.isElement ? el.dom : el;
+
+                if (dom && !Ext.isGarbage(dom)) {
+                    me.alignTo(el, me._lastAlignToPos);
+                } else {
+                    me.clearAlignEl();
+                }
+            }
+        }
     }
 });

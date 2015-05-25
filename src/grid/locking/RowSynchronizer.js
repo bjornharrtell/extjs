@@ -75,9 +75,7 @@ Ext.define('Ext.grid.locking.RowSynchronizer', {
     },
 
     reset: function () {
-        var me = this,
-            dataEl = me.dataEl,
-            els = me.els,
+        var els = this.els,
             name;
 
         this.rowEl.style.height = '';

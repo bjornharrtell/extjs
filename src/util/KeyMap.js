@@ -222,7 +222,7 @@ Ext.define('Ext.util.KeyMap', {
             len;
 
         if (me.processing) {
-            me.bindings = bindings.slice(0);
+            me.bindings = me.bindings.slice(0);
         }
         
         if (Ext.isArray(binding)) {
@@ -317,23 +317,28 @@ Ext.define('Ext.util.KeyMap', {
             len = bindings.length;
 
             // Process the event
-            me.lastKeyEvent = event = me.processEvent.apply(me.processEventScope || me, arguments);
+            event = me.processEvent.apply(me.processEventScope || me, arguments);
 
-            // Ignore events from input fields if configured to do so
-            if (me.ignoreInputFields && Ext.fly(event.target).isInputField()) {
-                return;
-            }
+            // A custom processEvent implementation may return falsy to stop the KeyMap's processing
+            if (event) {
+                me.lastKeyEvent = event;
 
-            // If the processor does not return a keyEvent, we can't process it.
-            // Allow them to return false to cancel processing of the event
-            if (!event.getKey) {
-                return event;
+                // Ignore events from input fields if configured to do so
+                if (me.ignoreInputFields && Ext.fly(event.target).isInputField()) {
+                    return;
+                }
+
+                // If the processor does not return a keyEvent, we can't process it.
+                // Allow them to return false to cancel processing of the event
+                if (!event.getKey) {
+                    return event;
+                }
+                me.processing = true;
+                for (; i < len; ++i){
+                    me.processBinding(bindings[i], event);
+                }
+                me.processing = false;
             }
-            me.processing = true;
-            for (; i < len; ++i){
-                me.processBinding(bindings[i], event);
-            }
-            me.processing = false;
         }
     },
 
@@ -345,6 +350,8 @@ Ext.define('Ext.util.KeyMap', {
      * This may be useful when the {@link #target} is a Component with a complex event signature, where the event is not
      * the first parameter. Extra information from the event arguments may be injected into the event for use by the handler
      * functions before returning it.
+     *
+     * If `null` is returned the KeyMap stops processing the event.
      */
     processEvent: Ext.identityFn,
 

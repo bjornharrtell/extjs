@@ -55,11 +55,12 @@ Ext.define('Ext.button.Cycle', {
      * showText = true).
      */
     /**
-     * @cfg {Function} changeHandler
+     * @cfg {Function/String} [changeHandler=undefined]
      * A callback function that will be invoked each time the active menu item in the button's menu has changed. If this
      * callback is not supplied, the SplitButton will instead fire the {@link #change} event on active item change. The
      * changeHandler function will be called with the following argument list: (SplitButton this, Ext.menu.CheckItem
      * item)
+     * @declarativeHandler
      */
     /**
      * @cfg {String} forceIcon
@@ -130,7 +131,9 @@ Ext.define('Ext.button.Cycle', {
                 item.setChecked(true, false);
             }
             if (!suppressEvent) {
-                Ext.callback(me.changeHandler, me.scope, [me, item], 0, me);
+                if (changeHandler) {
+                    Ext.callback(changeHandler, me.scope, [me, item], 0, me);
+                }
                 me.fireEvent('change', me, item);
             }
         }

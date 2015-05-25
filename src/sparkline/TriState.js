@@ -42,18 +42,21 @@ Ext.define('Ext.sparkline.TriState', {
         zeroBarColor: '#999',
         
         /**
-         * @cfg {Object} [colorMap] An object which uses range specifiers as keys to indicate bar color values
-         * for range of values. A range specifier is of the form `[number]:[number]` indicating start and end range.
-         * Omitting aither means an open ended range. For example to render green bars on all values less than -1
-         * and red on values higher than 1 use:
+         * @cfg {Object} [colorMap] An object which uses range specifiers as keys to
+         * indicate bar color values for a range of values. A range specifier is
+         * specified in the form `[number]:[number]` indicating start and end range.
+         * Omitting either means an open ended range.
          *
-         *    {
-         *        // Open ended range, with max value -1
-         *        ":-1": "green",
+         * For example to render green bars on all values less than -1 and red on values
+         * higher than 1 you would use:
          *
-         *        // Open ended range, with min value 1
-         *        "1:": "red"
-         *    }
+         *     colorMap: {
+         *         // Open ended range, with max value -1
+         *         ":-1": "green",
+         *
+         *         // Open ended range, with min value 1
+         *         "1:": "red"
+         *     }
          */
         colorMap: {},
         

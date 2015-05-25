@@ -253,10 +253,10 @@ keyframes : {
             if (keyframes.hasOwnProperty(pct) && me.animKeyFramesRE.test(pct)) {
                 attr = {attrs: Ext.apply(keyframes[pct], to)};
                 // CSS3 spec allow for from/to to be specified.
-                if (pct == "from") {
+                if (pct === "from") {
                     pct = 0;
                 }
-                else if (pct == "to") {
+                else if (pct === "to") {
                     pct = 100;
                 }
                 // convert % values into integers
@@ -366,7 +366,7 @@ keyframes : {
     /**
      * @private
      * Perform lastFrame cleanup and handle iterations
-     * @returns a hash of the new attributes.
+     * @return a hash of the new attributes.
      */
     lastFrame: function() {
         var me = this,

@@ -15,13 +15,13 @@
  *
  *     @example
  *     Ext.create('Ext.data.Store', {
- *         storeId:'simpsonsStore',
- *         fields:['name', 'email', 'phone'],
+ *         storeId: 'simpsonsStore',
+ *         fields:[ 'name', 'email', 'phone'],
  *         data: [
- *             {"name":"Lisa", "email":"lisa@simpsons.com", "phone":"555-111-1224"},
- *             {"name":"Bart", "email":"bart@simpsons.com", "phone":"555-222-1234"},
- *             {"name":"Homer", "email":"homer@simpsons.com", "phone":"555-222-1244"},
- *             {"name":"Marge", "email":"marge@simpsons.com", "phone":"555-222-1254"}
+ *             { name: 'Lisa', email: 'lisa@simpsons.com', phone: '555-111-1224' },
+ *             { name: 'Bart', email: 'bart@simpsons.com', phone: '555-222-1234' },
+ *             { name: 'Homer', email: 'homer@simpsons.com', phone: '555-222-1244' },
+ *             { name: 'Marge', email: 'marge@simpsons.com', phone: '555-222-1254' }
  *         ]
  *     });
  *
@@ -29,7 +29,7 @@
  *         title: 'Simpsons',
  *         store: Ext.data.StoreManager.lookup('simpsonsStore'),
  *         columns: [
- *             {header: 'Name',  dataIndex: 'name', editor: 'textfield'},
+ *             {header: 'Name', dataIndex: 'name', editor: 'textfield'},
  *             {header: 'Email', dataIndex: 'email', flex:1,
  *                 editor: {
  *                     xtype: 'textfield',

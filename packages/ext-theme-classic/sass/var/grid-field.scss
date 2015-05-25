@@ -6,5 +6,6 @@ $grid-cell-spinner-trigger-vertical-background-image: 'form/spinner-small' !defa
  *
  * This defaults to `true`. It is required if either grid fields are being used,
  * or if a {@link Ext.grid.column.Widget WidgetColumn} is being used to house an input field.
+ * @member Ext.view.Table
  */
 $include-grid-cell-field-ui: true !default;

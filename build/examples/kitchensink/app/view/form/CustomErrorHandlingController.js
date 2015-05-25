@@ -29,16 +29,15 @@ Ext.define('KitchenSink.view.form.CustomErrorHandlingController', {
     
     updateErrorState: function(cmp, state) {
         var me = this,
-            view, form, errorCmp, fields, errors;
+            errorCmp = me.lookupReference('formErrorState'),
+            view, form, fields, errors;
         
         view = me.getView();
         form = view.getForm();
 
         // If we are called from the form's validitychange event, the state will be false if invalid.
         // If we are called from a field's errorchange event, the state will be the error message.
-        if (state === false || (typeof state === 'string' && state.length)) {
-            errorCmp = me.lookupReference('formErrorState');
-            
+        if (state === false || (typeof state === 'string')) {
             fields = form.getFields();
             errors = [];
             
@@ -50,12 +49,13 @@ Ext.define('KitchenSink.view.form.CustomErrorHandlingController', {
             
             errorCmp.setErrors(errors);
             me.hasBeenDirty = true;
+        } else if (state === true) {
+            errorCmp.setErrors();
         }
     },
 
     onTermsOfUseElementClick: function(e) {
-        var me = this,
-            target;
+        var target;
         
         target = e.getTarget('.terms');
         e.preventDefault();

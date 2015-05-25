@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.tip.QuickTip', {
     override: 'Ext.tip.QuickTip',
     

@@ -62,7 +62,8 @@ Ext.define('Ext.sparkline.Pie', {
     },
 
     getRegion: function(x, y) {
-        var shapeid = this.canvas.getShapeAt(x, y);
+        var ratio = window.devicePixelRatio || 1,
+            shapeid = this.canvas.getShapeAt(x * ratio, y * ratio);
         return (shapeid != null && this.shapes[shapeid] != null) ? this.shapes[shapeid] : null;
     },
 

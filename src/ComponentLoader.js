@@ -168,7 +168,7 @@ The function must return false is loading is not successful. Below is a sample o
             target = Ext.getCmp(target);
         }
 
-        if (me.target && me.target != target) {
+        if (me.target && me.target !== target) {
             me.abort();
         }
         me.target = target;

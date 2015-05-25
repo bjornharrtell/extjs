@@ -220,7 +220,7 @@ Ext.define('Ext.util.FocusableContainer', {
         },
         
         getFocusableFromEvent: function(e) {
-            var child = Ext.ComponentManager.byElement(e.getTarget());
+            var child = Ext.Component.fromElement(e.getTarget());
         
             //<debug>
             if (!child) {
@@ -301,7 +301,7 @@ Ext.define('Ext.util.FocusableContainer', {
                 // just because the item has not been rendered yet and its focusEl
                 // is not defined, so we don't bother to call isFocus and return
                 // the first potentially focusable child.
-                if (beforeRender || item.isFocusable()) {
+                if (beforeRender || (item.isFocusable && item.isFocusable())) {
                     return item;
                 }
             }
@@ -352,7 +352,7 @@ Ext.define('Ext.util.FocusableContainer', {
         },
         
         onFocusableContainerMousedown: function(e, target) {
-            var targetCmp = Ext.ComponentManager.byElement(target);
+            var targetCmp = Ext.Component.fromElement(target);
             
             // Capture the timestamp for the mousedown. If we're navigating into the container itself
             // via the mouse we don't want to default focus the first child like we would when using

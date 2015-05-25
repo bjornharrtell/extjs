@@ -197,7 +197,6 @@ Ext.define('KitchenSink.view.form.Checkout', {
                         xtype: 'combobox',
                         name: 'mailingState',
                         forceSelection: true,
-                        maxLength: 2,
                         enforceMaxLength: true,
                         listeners: {
                             scope: this,
@@ -275,7 +274,6 @@ Ext.define('KitchenSink.view.form.Checkout', {
                     }, {
                         xtype: 'combobox',
                         name: 'billingState',
-                        maxLength: 2,
                         enforceMaxLength: true,
                         style: 'opacity:.3',
                         fieldLabel: 'State',

@@ -51,7 +51,9 @@ Ext.define('Ext.fx.DrawPath', {
                 var params = [],
                     name = b.toLowerCase();
                 c.replace(me.pathValuesRE, function (a, b) {
-                    b && params.push(+b);
+                    if (b) {
+                        params.push(+b);
+                    }
                 });
                 if (name == "m" && params.length > 2) {
                     data.push([b].concat(Ext.Array.splice(params, 0, 2)));
@@ -135,6 +137,7 @@ Ext.define('Ext.fx.DrawPath', {
                     // MoveTo
                         mx = +pathSegment[1] + x;
                         my = +pathSegment[2] + y;
+                        // fall;
                     default:
                         j = 1;
                         ln2 = pathSegment.length;
@@ -170,6 +173,7 @@ Ext.define('Ext.fx.DrawPath', {
                     ln2 = pathSegment.length;
                     mx = pathSegment[ln2 - 2];
                     my = pathSegment[ln2 - 1];
+                    // fall;
                 default:
                     pathSegment = res[i];
                     ln2 = pathSegment.length;

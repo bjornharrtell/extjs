@@ -1,3 +1,7 @@
+/**
+ * @class Ext.sparkline.Shape
+ * @private
+ */
 Ext.define('Ext.sparkline.Shape', {
     constructor: function (target, id, type, args) {
         this.target = target;

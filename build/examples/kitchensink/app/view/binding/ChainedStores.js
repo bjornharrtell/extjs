@@ -41,6 +41,7 @@ Ext.define('KitchenSink.view.binding.ChainedStores', {
     items: [{
         xtype: 'grid',
         bind: '{everyone}',
+        reference: 'allPeopleGrid',
         title: 'All People',
         flex: 1,
         columns: [{
@@ -79,7 +80,13 @@ Ext.define('KitchenSink.view.binding.ChainedStores', {
             listeners: {
                 edit: 'onEditComplete'
             }
-        }]
+        }],
+        
+        viewConfig: {
+            listeners: {
+                beforecelldblclick: 'onBeforeCellDblclick'
+            }
+        }
     }, {
         xtype: 'grid',
         bind: {

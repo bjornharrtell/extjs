@@ -46,6 +46,7 @@ Ext.define('KitchenSink.view.binding.ComboChaining', {
         displayField: 'state',
         valueField: 'abbrev',
         queryMode: 'remote',
+        forceSelection: true,
         bind: {
             visible: '{country.value}',
             filters: {

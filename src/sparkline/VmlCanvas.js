@@ -4,37 +4,6 @@
 Ext.define('Ext.sparkline.VmlCanvas', {
     extend: 'Ext.sparkline.CanvasBase',
 
-    constructor: function(ownerSparkLine) {
-        var me = this;
-
-        me.owner = ownerSparkLine;
-        ownerSparkLine.element = {
-            tag: 'span',
-            reference: 'element',
-            listeners: {
-                mouseenter: 'onMouseEnter',
-                mouseleave: 'onMouseLeave',
-                mousemove: 'onMouseMove'
-            },
-            style: {
-                display: 'inline-block',
-                position: 'relative',
-                overflow: 'hidden',
-                margin: '0px',
-                padding: '0px',
-                verticalAlign: 'top',
-                cursor: 'default'
-            },
-            children: [{
-                tag: 'svml:group',
-                reference: 'groupEl',
-                coordorigin: '0 0',
-                coordsize: '0 0',
-                style: 'position:absolute;width:0;height:0;pointer-events:none'
-            }]
-        };
-    },
-
     setWidth: function(width) {
         var me = this;
 
@@ -201,7 +170,7 @@ Ext.define('Ext.sparkline.VmlCanvas', {
         this.group.dom.innerHTML = this.prerender.join('');
     }
 }, function() {
-    Ext.onReady(function() {
+    Ext.onInternalReady(function() {
         var doc = document;
     
         if (doc.namespaces && !doc.namespaces.svml) {

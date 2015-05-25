@@ -6,9 +6,9 @@ Ext.define('Ext.rtl.util.FocusableContainer', {
         // are not reversed in RTL like Tab, so pressing left arrow would move
         // focus to the right.
         moveChildFocus: function(e, forward) {
-            var forward = this.getInherited().rtl ? !forward : forward;
+            var fwd = this.getInherited().rtl ? !forward : forward;
         
-            return this.callParent([e, forward]);
+            return this.callParent([e, fwd]);
         }
     }
 });

@@ -77,7 +77,7 @@ Ext.define('Ext.util.Renderable', {
         '</tpl>',
         '<tpl if="left"><div id="{fgid}ML" data-ref="frameML" class="{frameCls}-ml {baseCls}-ml {baseCls}-{ui}-ml<tpl for="uiCls"> {parent.baseCls}-{parent.ui}-{.}-ml</tpl>{frameElCls}" role="presentation"></tpl>',
             '<tpl if="right"><div id="{fgid}MR" data-ref="frameMR" class="{frameCls}-mr {baseCls}-mr {baseCls}-{ui}-mr<tpl for="uiCls"> {parent.baseCls}-{parent.ui}-{.}-mr</tpl>{frameElCls}" role="presentation"></tpl>',
-                '<div id="{fgid}Body" data-ref="frameBody" class="{frameCls}-mc {baseCls}-mc {baseCls}-{ui}-mc<tpl for="uiCls"> {parent.baseCls}-{parent.ui}-{.}-mc</tpl>{frameElCls}" role="presentation">',
+                '<div id="{fgid}Body" data-ref="frameBody" class="{frameBodyCls} {frameCls}-mc {baseCls}-mc {baseCls}-{ui}-mc<tpl for="uiCls"> {parent.baseCls}-{parent.ui}-{.}-mc</tpl>{frameElCls}" role="presentation">',
                     '{%this.applyRenderTpl(out, values)%}',
                 '</div>',
             '<tpl if="right"></div></tpl>',
@@ -104,7 +104,7 @@ Ext.define('Ext.util.Renderable', {
             '</tpl>',
             '<tr role="presentation">',
                 '<tpl if="left"><td id="{fgid}ML" data-ref="frameML" class="{frameCls}-ml {baseCls}-ml {baseCls}-{ui}-ml<tpl for="uiCls"> {parent.baseCls}-{parent.ui}-{.}-ml</tpl>{frameElCls}" role="presentation"></td></tpl>',
-                '<td id="{fgid}Body" data-ref="frameBody" class="{frameCls}-mc {baseCls}-mc {baseCls}-{ui}-mc<tpl for="uiCls"> {parent.baseCls}-{parent.ui}-{.}-mc</tpl>{frameElCls}" style="{mcStyle}" role="presentation">',
+                '<td id="{fgid}Body" data-ref="frameBody" class="{frameBodyCls} {frameCls}-mc {baseCls}-mc {baseCls}-{ui}-mc<tpl for="uiCls"> {parent.baseCls}-{parent.ui}-{.}-mc</tpl>{frameElCls}" style="{mcStyle}" role="presentation">',
                     '{%this.applyRenderTpl(out, values)%}',
                 '</td>',
                 '<tpl if="right"><td id="{fgid}MR" data-ref="frameMR" class="{frameCls}-mr {baseCls}-mr {baseCls}-{ui}-mr<tpl for="uiCls"> {parent.baseCls}-{parent.ui}-{.}-mr</tpl>{frameElCls}" role="presentation"></td></tpl>',
@@ -290,8 +290,6 @@ Ext.define('Ext.util.Renderable', {
 
         if (me.disableOnRender) {
             me.onDisable();
-        } else if (me.enableOnRender) {
-            me.onEnable();
         }
         
         if (Ext.enableAria) {
@@ -329,7 +327,7 @@ Ext.define('Ext.util.Renderable', {
                 pos.y = xy[1] - pos.y;
             } else {
                 xy = me.el.getAlignToXY(me.alignTarget || me.container, alignSpec, alignOffset);
-                pos = me.container.translateXY(xy[0], xy[1]);
+                pos = me.el.translateXY(xy[0], xy[1]);
             }
             x = hasX ? x : pos.x;
             y = hasY ? y : pos.y;
@@ -396,11 +394,6 @@ Ext.define('Ext.util.Renderable', {
         me.initOverflow();
 
         me.setUI(me.ui);
-
-        if (me.disabled) {
-            // pass silent so the event doesn't fire the first time.
-            me.disable(true);
-        }
     },
 
     /**
@@ -432,10 +425,16 @@ Ext.define('Ext.util.Renderable', {
                 tag: 'div',
                 tpl: frameInfo ? me.initFramingTpl(frameInfo.table) : me.initRenderTpl()
             },
+            layoutTargetCls = me.layoutTargetCls,
             protoEl = me.protoEl,
             frameData;
 
         me.initStyles(protoEl);
+        // If we're not framing, then just add to the element, otherwise we need to add
+        // it to the frameBody, since it's our targetEl, but we don't have a handle on it yet.
+        if (layoutTargetCls && !frameInfo) {
+            protoEl.addCls(layoutTargetCls);
+        }
         protoEl.writeTo(config);
         protoEl.flush();
 
@@ -722,7 +721,7 @@ Ext.define('Ext.util.Renderable', {
             if (runLayout) {
                 comp.updateLayout();
             }
-            if (typeof comp.x == 'number' || typeof comp.y == 'number') {
+            if (typeof comp.x === 'number' || typeof comp.y === 'number') {
                 comp.setPosition(comp.x, comp.y);
             }
         }
@@ -777,7 +776,7 @@ Ext.define('Ext.util.Renderable', {
             for (i = 0; i < len; i++) {
                 ref = refs[i];
                 if (!cache[ref.id]) {
-                    new El(ref);
+                    new El(ref); // jshint ignore:line
                 }
             }
         },
@@ -1018,20 +1017,21 @@ Ext.define('Ext.util.Renderable', {
             //</feature>
 
             return {
-                $comp:      me,
-                fgid:       me.id + '-frame',
-                ui:         me.ui,
-                uiCls:      me.uiCls,
-                frameCls:   me.frameCls,
-                baseCls:    me.baseCls,
-                top:        !!frameInfo.top,
-                left:       !!frameInfo.left,
-                right:      !!frameInfo.right,
-                bottom:     !!frameInfo.bottom,
-                mcStyle: mcStyle,
+                $comp:        me,
+                fgid:         me.id + '-frame',
+                ui:           me.ui,
+                uiCls:        me.uiCls,
+                frameCls:     me.frameCls,
+                frameBodyCls: me.layoutTargetCls || '',
+                baseCls:      me.baseCls,
+                top:          !!frameInfo.top,
+                left:         !!frameInfo.left,
+                right:        !!frameInfo.right,
+                bottom:       !!frameInfo.bottom,
+                mcStyle:      mcStyle,
                 // can be optionally set by a subclass or override to be an extra class to
                 // be applied to all framing elements (used by RTL)
-                frameElCls: ''
+                frameElCls:   ''
             };
         },
 
@@ -1052,7 +1052,7 @@ Ext.define('Ext.util.Renderable', {
                 frameInfoCache = me.frameInfoCache,
                 cls = me.getFramingInfoCls() + '-frameInfo',
                 frameInfo = frameInfoCache[cls],
-                styleEl, info, frameTop, frameRight, frameBottom, frameLeft, frameMax,
+                styleEl, info, frameTop, frameRight, frameBottom, frameLeft,
                 borderTopWidth, borderRightWidth, borderBottomWidth, borderLeftWidth,
                 paddingTop, paddingRight, paddingBottom, paddingLeft;
 

@@ -75,6 +75,8 @@ Ext.define('Ext.layout.container.Table', {
     targetCls: Ext.baseCSSPrefix + 'table-layout-ct',
     tableCls: Ext.baseCSSPrefix + 'table-layout',
     cellCls: Ext.baseCSSPrefix + 'table-layout-cell',
+    
+    childEls: [ 'table', 'tbody' ],
 
     /**
      * @cfg {Object} tableAttrs
@@ -155,12 +157,12 @@ Ext.define('Ext.layout.container.Table', {
     renderChildren: function() {
         var me = this,
             items = me.getLayoutItems(),
-            tbody = me.owner.getTargetEl().child('table', true).tBodies[0],
+            tbody = me.tbody.dom,
             rows = tbody.rows,
-            i = 0,
             len = items.length,
             hiddenItems = me.getHiddenItems(),
-            cells, curCell, rowIdx, cellIdx, item, trEl, tdEl, itemCt, el;
+            cells, curCell, rowIdx, cellIdx, item, 
+            trEl, tdEl, i, cellId, oldId;
 
         // Calculate the correct cell structure for the current items
         cells = me.calculateCells(items);
@@ -168,11 +170,12 @@ Ext.define('Ext.layout.container.Table', {
         // Loop over each cell and compare to the current cells in the table, inserting/
         // removing/moving cells as needed, and making sure each item is rendered into
         // the correct cell.
-        for (; i < len; i++) {
+        for (i = 0; i < len; i++) {
             curCell = cells[i];
             rowIdx = curCell.rowIdx;
             cellIdx = curCell.cellIdx;
             item = items[i];
+            cellId = item.cellId || '';
 
             // If no row present, create and insert one
             trEl = rows[rowIdx];
@@ -184,17 +187,13 @@ Ext.define('Ext.layout.container.Table', {
             }
 
             // If no cell present, create and insert one
-            itemCt = tdEl = Ext.get(trEl.cells[cellIdx] || trEl.insertCell(cellIdx));
-            if (me.needsDivWrap()) { //create wrapper div if needed - see docs below
-                itemCt = tdEl.first() || tdEl.createChild({ tag: 'div', role: 'presentation' });
-                itemCt.setWidth(null);
-            }
+            tdEl = Ext.get(trEl.cells[cellIdx] || trEl.insertCell(cellIdx));
 
             // Render or move the component into the cell
             if (!item.rendered) {
-                me.renderItem(item, itemCt, 0);
-            } else if (!me.isValidParent(item, itemCt, rowIdx, cellIdx, tbody)) {
-                me.moveItem(item, itemCt, 0);
+                me.renderItem(item, tdEl, 0);
+            } else if (!me.isValidParent(item, tdEl, rowIdx, cellIdx, tbody)) {
+                me.moveItem(item, tdEl, 0);
             }
 
             // Set the cell properties
@@ -204,10 +203,16 @@ Ext.define('Ext.layout.container.Table', {
             if (item.tdAttrs) {
                 tdEl.set(item.tdAttrs);
             }
+
+            oldId = tdEl.getAttribute('data-cellId');
+            if ((oldId || cellId) && oldId !== cellId) {
+                tdEl.setId(cellId || Ext.id());
+            }
+
             tdEl.set({
                 colSpan: item.colspan || 1,
                 rowSpan: item.rowspan || 1,
-                id: item.cellId || '',
+                'data-cellId': cellId,
                 cls: me.cellCls + ' ' + (item.cellCls || '')
             });
 
@@ -236,7 +241,7 @@ Ext.define('Ext.layout.container.Table', {
     ensureInDocument: function(el){
         var dom = el.dom.parentNode;
         while (dom) {
-            if (dom.tagName.toUpperCase() == 'BODY') {
+            if (dom.tagName.toUpperCase() === 'BODY') {
                 return;
             }
             dom = dom.parentNode;
@@ -253,7 +258,7 @@ Ext.define('Ext.layout.container.Table', {
                 widthShrinkWrap = ownerContext.widthModel.shrinkWrap,
                 heightShrinkWrap = ownerContext.heightModel.shrinkWrap,
                 shrinkWrap = heightShrinkWrap || widthShrinkWrap,
-                table = shrinkWrap && targetContext.el.child('table', true),
+                table = shrinkWrap && this.table.dom,
                 targetPadding = shrinkWrap && targetContext.getPaddingInfo();
 
             if (widthShrinkWrap) {
@@ -262,22 +267,6 @@ Ext.define('Ext.layout.container.Table', {
 
             if (heightShrinkWrap) {
                 ownerContext.setContentHeight(table.offsetHeight + targetPadding.height, true);
-            }
-        }
-    },
-
-    finalizeLayout: function() {
-        if (this.needsDivWrap()) {
-            // set wrapper div width to match layed out item - see docs below
-            var items = this.getLayoutItems(),
-                i,
-                iLen  = items.length,
-                item;
-
-            for (i = 0; i < iLen; i++) {
-                item = items[i];
-
-                Ext.fly(item.el.dom.parentNode).setWidth(item.getWidth());
             }
         }
     },
@@ -342,23 +331,26 @@ Ext.define('Ext.layout.container.Table', {
     getRenderTree: function() {
         var me = this,
             items = me.getLayoutItems(),
-            cells,
             rows = [],
             result = Ext.apply({
                 tag: 'table',
+                id: me.owner.id + '-table',
+                "data-ref": 'table',
                 role: 'presentation',
                 cls: me.tableCls,
                 cellspacing: 0,
                 cellpadding: 0,
                 cn: {
                     tag: 'tbody',
+                    id: me.owner.id + '-tbody',
+                    "data-ref": 'tbody',
                     role: 'presentation',
                     cn: rows
                 }
             }, me.tableAttrs),
             tdAttrs = me.tdAttrs,
-            needsDivWrap = me.needsDivWrap(),
-            i, len = items.length, item, curCell, tr, rowIdx, cellIdx, cell;
+            len = items.length,
+            i, cells, item, curCell, tr, rowIdx, cellIdx, cell, cellId, props;
 
         // Calculate the correct cell structure for the current items
         cells = me.calculateCells(items);
@@ -369,6 +361,7 @@ Ext.define('Ext.layout.container.Table', {
             curCell = cells[i];
             rowIdx = curCell.rowIdx;
             cellIdx = curCell.cellIdx;
+            cellId = item.cellId || '';
 
             // If no row present, create and insert one
             tr = rows[rowIdx];
@@ -391,19 +384,19 @@ Ext.define('Ext.layout.container.Table', {
             if (tdAttrs) {
                 Ext.apply(cell, tdAttrs);
             }
-            Ext.apply(cell, {
+
+            props = {
                 colSpan: item.colspan || 1,
                 rowSpan: item.rowspan || 1,
-                id: item.cellId || '',
+                'data-cellId': cellId,
                 cls: me.cellCls + ' ' + (item.cellCls || '')
-            });
+            };
 
-            if (needsDivWrap) { //create wrapper div if needed - see docs below
-                cell = cell.cn = {
-                    tag: 'div',
-                    role: 'presentation'
-                };
+            if (cellId) {
+                props.id = cellId;
             }
+
+            Ext.apply(cell, props);
 
             me.configureItem(item);
             // The DomHelper config of the item is the cell's sole child
@@ -413,30 +406,10 @@ Ext.define('Ext.layout.container.Table', {
     },
 
     isValidParent: function(item, target, rowIdx, cellIdx) {
-        var tbody,
-            correctCell,
-            table;
-
-        // If we were called with the 3 arg signature just check that the parent table of the item is within the render target
+        // If we were called with the 3 arg signature just check that the item is within our table,
         if (arguments.length === 3) {
-            table = item.el.up('table');
-            return table && table.dom.parentNode === target.dom;
+            return this.table.isAncestor(item.el);
         }
-        tbody = this.owner.getTargetEl().child('table', true).tBodies[0];
-        correctCell = tbody.rows[rowIdx].cells[cellIdx];
-        return item.el.dom.parentNode === correctCell;
-    },
-
-    /**
-     * @private
-     * Opera 10.5 has a bug where if a table cell's child has box-sizing:border-box and padding, it
-     * will include that padding in the size of the cell, making it always larger than the
-     * shrink-wrapped size of its contents. To get around this we have to wrap the contents in a div
-     * and then set that div's width to match the item rendered within it afterLayout. This method
-     * determines whether we need the wrapper div; it currently does a straight UA sniff as this bug
-     * seems isolated to just Opera 10.5, but feature detection could be added here if needed.
-     */
-    needsDivWrap: function() {
-        return Ext.isOpera10_5;
+        return item.el.dom.parentNode === this.tbody.dom.rows[rowIdx].cells[cellIdx];
     }
 });

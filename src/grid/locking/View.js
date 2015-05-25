@@ -107,7 +107,7 @@ Ext.define('Ext.grid.locking.View', {
             itemmouseleave: me.onItemMouseLeave,
             itemmouseenter: me.onItemMouseEnter
         });
-        
+
         me.ownerGrid.on({
             render: me.onPanelRender,
             scope: me
@@ -116,6 +116,8 @@ Ext.define('Ext.grid.locking.View', {
         me.loadingText = normalView.loadingText;
         me.loadingCls = normalView.loadingCls;
         me.loadingUseMsg = normalView.loadingUseMsg;
+
+        me.itemSelector = me.getItemSelector();
 
         // Share the items arrey with the normal view.
         // Certain methods need access to the start/end/count
@@ -130,15 +132,17 @@ Ext.define('Ext.grid.locking.View', {
     // This is injected into the two child views as the bindStore implementation.
     // Subviews in a lockable asseembly do not bind to stores.
     subViewBindStore: function (dataSource) {
-        var selModel = this.getSelectionModel();
+        var me = this,
+            selModel = me.getSelectionModel();
 
         // SelectionModel must bind to the underlying store, not the dataSource (may be a FeatureStore)
-        // If dataSource is null we're unbinding, so don't bind the store
-        if (dataSource !== null) {
-            dataSource = this.store;
+        // If dataSource is null we're unbinding, so don't bind the store. If we're reconfiguring, then the
+        // dataSource we get here will be the store
+        if (dataSource !== null && !me.ownerGrid.reconfiguring) {
+            dataSource = me.store;
         }
         selModel.bindStore(dataSource);
-        selModel.bindComponent(this);
+        selModel.bindComponent(me);
     },
 
     // Called in the context of a child view when the first child view begins its layout run
@@ -226,6 +230,10 @@ Ext.define('Ext.grid.locking.View', {
         return this.normalView.getCellSelector();
     },
 
+    getItemSelector: function () {
+        return this.normalView.getItemSelector();
+    },
+
     getViewForColumn: function(column) {
         var view = this.lockedView,
             inLocked;
@@ -301,15 +309,17 @@ Ext.define('Ext.grid.locking.View', {
      * @since 3.4.0
      */
     onBindStore : function(store, initial, propName) {
-        var me = this;
+        var me = this,
+            lockedView = me.lockedView,
+            normalView = me.normalView;
 
         // If we have already achieved our first layout, refresh immediately.
         // If we have bound to the Store before the first layout, then onBoxReady will
         // call doFirstRefresh
-        if (me.normalView.componentLayoutCounter) {
+        if (normalView.componentLayoutCounter && !(lockedView.blockRefresh && normalView.blockRefresh)) {
             Ext.suspendLayouts();
-            me.normalView.doFirstRefresh(store);
-            me.lockedView.doFirstRefresh(store);
+            lockedView.doFirstRefresh(store);
+            normalView.doFirstRefresh(store);
             Ext.resumeLayouts(true);
         }
     },

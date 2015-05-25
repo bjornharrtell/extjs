@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.form.field.TextArea', {
     override: 'Ext.form.field.TextArea',
     

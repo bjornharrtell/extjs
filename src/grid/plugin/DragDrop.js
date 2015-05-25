@@ -33,20 +33,16 @@
  * beforedrop}` and `{@link #drop drop}`
  *
  *     @example
- *     Ext.create('Ext.data.Store', {
- *         storeId:'simpsonsStore',
- *         fields:['name'],
- *         data: [["Lisa"], ["Bart"], ["Homer"], ["Marge"]],
- *         proxy: {
- *             type: 'memory',
- *             reader: 'array'
- *         }
+ *     Ext.create('Ext.data.ArrayStore', {
+ *         storeId: 'simpsonsStore',
+ *         fields: ['name'],
+ *         data: [['Lisa'], ['Bart'], ['Homer'], ['Marge']]
  *     });
  *
  *     Ext.create('Ext.grid.Panel', {
  *         store: 'simpsonsStore',
  *         columns: [
- *             {header: 'Name',  dataIndex: 'name', flex: true}
+ *             {header: 'Name', dataIndex: 'name', flex: true}
  *         ],
  *         viewConfig: {
  *             plugins: {

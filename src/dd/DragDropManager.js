@@ -419,7 +419,7 @@ Ext.define('Ext.dd.DragDropManager', {
         var targets = this.getRelated(oDD, true),
             i, len;
         for (i=0, len=targets.length;i<len;++i) {
-            if (targets[i].id == oTargetDD.id) {
+            if (targets[i].id === oTargetDD.id) {
                 return true;
             }
         }
@@ -689,22 +689,14 @@ Ext.define('Ext.dd.DragDropManager', {
             mousePoint = me.currentPoint,
             currentX = mousePoint.x,
             currentY = mousePoint.y,
-            dragEl,
-            oldDragElTop,
-            overTarget,
-            overTargetEl,
             allTargets = [],
             oldOvers  = [],  // cache the previous dragOver array
             outEvts   = [],
             overEvts  = [],
             dropEvts  = [],
             enterEvts = [],
-            needsSort,
-            i,
-            len,
-            sGroup,
             zoom = isTouch ? document.documentElement.clientWidth / window.innerWidth : 1,
-            overDragEl;
+            dragEl, overTarget, overTargetEl, needsSort, i, len, sGroup, overDragEl;
 
         // If the user did the mouse up outside of the window, we could
         // get here even though we have ended the drag.
@@ -767,8 +759,7 @@ Ext.define('Ext.dd.DragDropManager', {
         // This is preparatory to seeing which one(s) we are currently over
         // Begin by iterating through the ddGroups of which the dragCurrent is a member
         for (sGroup in dragCurrent.groups) {
-
-            if ("string" != typeof sGroup) {
+            if ("string" !== typeof sGroup) {
                 continue;
             }
 
@@ -787,7 +778,7 @@ Ext.define('Ext.dd.DragDropManager', {
                     (overTarget.isTarget) &&
                     (!overTarget.isLocked()) &&
                     (Ext.fly(overTargetEl).isVisible(true)) &&
-                    ((overTarget != dragCurrent) || (dragCurrent.ignoreSelf === false))) {
+                    ((overTarget !== dragCurrent) || (dragCurrent.ignoreSelf === false))) {
 
                     // If notifyOccluded set, we use mouse position
                     if (me.notifyOccluded) {
@@ -952,7 +943,7 @@ Ext.define('Ext.dd.DragDropManager', {
         //} else if (dds.length == 1) {
 
 
-        if (len == 1) {
+        if (len === 1) {
             winner = dds[0];
         } else {
             // Loop through the targeted items
@@ -997,7 +988,7 @@ Ext.define('Ext.dd.DragDropManager', {
     refreshCache: function(groups) {
         var sGroup, i, oDD, loc;
         for (sGroup in groups) {
-            if ("string" != typeof sGroup) {
+            if ("string" !== typeof sGroup) {
                 continue;
             }
             for (i in this.ids[sGroup]) {
@@ -1278,9 +1269,9 @@ Ext.define('Ext.dd.DragDropManager', {
             var p = n2.parentNode,
                 s = n2.nextSibling;
 
-            if (s == n1) {
+            if (s === n1) {
                 p.insertBefore(n1, n2);
-            } else if (n2 == n1.nextSibling) {
+            } else if (n2 === n1.nextSibling) {
                 p.insertBefore(n2, n1);
             } else {
                 n1.parentNode.replaceChild(n2, n1);
@@ -1355,7 +1346,7 @@ Ext.define('Ext.dd.DragDropManager', {
      * Numeric array sort function
      * @param {Number} a
      * @param {Number} b
-     * @returns {Number} positive, negative or 0
+     * @return {Number} positive, negative or 0
      */
     numericSort: function(a, b) {
         return (a - b);
@@ -1386,7 +1377,7 @@ Ext.define('Ext.dd.DragDropManager', {
         return false;
     }
 }, function(DragDropManager) {
-    Ext.onReady(function() {
+    Ext.onInternalReady(function() {
         DragDropManager.addListeners();
     });
 });

@@ -16,7 +16,7 @@ Ext.define('Ext.form.field.FileButton', {
     preventDefault: false,
     
     // Button element *looks* focused but it should never really receive focus itself,
-    // and with it being a <div> we don't need to render tabindex attribute at all
+    // and with it being a <div></div> we don't need to render tabindex attribute at all
     tabIndex: null,
 
     autoEl: {
@@ -61,8 +61,8 @@ Ext.define('Ext.form.field.FileButton', {
         me.fileInputEl.on({
             scope: me,
             change: me.fireChange,
-            focus: me.onFocus,
-            blur: me.onBlur
+            focus: me.onFileFocus,
+            blur: me.onFileBlur
         });
     },
     
@@ -96,9 +96,33 @@ Ext.define('Ext.form.field.FileButton', {
         fileInputEl.on({
             scope: me,
             change: me.fireChange,
-            focus: me.onFocus,
-            blur: me.onBlur
+            focus: me.onFileFocus,
+            blur: me.onFileBlur
         });
+    },
+
+    onFileFocus: function(e) {
+        var ownerCt = this.ownerCt;
+        
+        if (!this.hasFocus) {
+            this.onFocus(e);
+        }
+        
+        if (ownerCt && !ownerCt.hasFocus) {
+            ownerCt.onFocus(e);
+        }
+    },
+
+    onFileBlur: function(e) {
+        var ownerCt = this.ownerCt;
+        
+        if (this.hasFocus) {
+            this.onBlur(e);
+        }
+        
+        if (ownerCt && ownerCt.hasFocus) {
+            ownerCt.onBlur(e);
+        }
     },
     
     reset: function(remove) {

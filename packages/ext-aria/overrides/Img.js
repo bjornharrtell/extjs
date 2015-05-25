@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.Img', {
     override: 'Ext.Img',
     

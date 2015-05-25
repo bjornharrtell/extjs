@@ -5,32 +5,23 @@
  *       @example
  *       var store = Ext.create('Ext.data.Store', {
  *           fields: ['name', 'email', 'phone'],
- *           data: {
- *               'items': [{
- *                   'name': 'Lisa',
- *                   "email": "lisa@simpsons.com",
- *                   "phone": "555-111-1224"
- *               }, {
- *                   'name': 'Bart',
- *                   "email": "bart@simpsons.com",
- *                   "phone": "555-222-1234"
- *               }, {
- *                   'name': 'Homer',
- *                   "email": "homer@simpsons.com",
- *                   "phone": "555-222-1244"
- *               }, {
- *                   'name': 'Marge',
- *                   "email": "marge@simpsons.com",
- *                   "phone": "555-222-1254"
- *               }]
- *           },
- *           proxy: {
- *               type: 'memory',
- *               reader: {
- *                   type: 'json',
- *                   rootProperty: 'items'
- *               }
- *           }
+ *           data: [{
+ *               name: 'Lisa',
+ *               email: 'lisa@simpsons.com',
+ *               phone: '555-111-1224'
+ *           }, {
+ *               name: 'Bart',
+ *               email: 'bart@simpsons.com',
+ *               phone: '555-222-1234'
+ *           }, {
+ *               name: 'Homer',
+ *               email: 'homer@simpsons.com',
+ *               phone: '555-222-1244'
+ *           }, {
+ *               name: 'Marge',
+ *               email: 'marge@simpsons.com',
+ *               phone: '555-222-1254'
+ *           }]
  *       });
  *
  *       Ext.create('Ext.grid.Panel', {
@@ -55,7 +46,6 @@
  *           }
  *       });
  *
- * 
  * The selection model will inject a header for the checkboxes in the first view
  * and according to the {@link #injectCheckbox} configuration.
  */
@@ -246,6 +236,7 @@ Ext.define('Ext.selection.CheckboxModel', {
             showCheck = me.showHeaderCheckbox !== false;     
 
         return {
+            xtype: 'gridcolumn',
             isCheckerHd: showCheck,
             text : '&#160;',
             clickTargetName: 'el',
@@ -403,7 +394,7 @@ Ext.define('Ext.selection.CheckboxModel', {
 
             if (!e.shiftKey && !e.ctrlKey && e.getTarget(me.checkSelector)) {
                 if (isSelected) {
-                    me.doDeselect(record, true);
+                    me.doDeselect(record);
                 } else {
                     me.doSelect(record, true);
                 }

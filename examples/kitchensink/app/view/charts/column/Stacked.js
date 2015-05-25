@@ -44,7 +44,6 @@ Ext.define('KitchenSink.view.charts.column.Stacked', {
                         }
                     }
                     chart.setTheme(themes[themeNames[++currentIndex % themeNames.length]]);
-                    chart.redraw();
                 }
             },
             {

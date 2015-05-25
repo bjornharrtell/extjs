@@ -103,7 +103,6 @@ Ext.define('KitchenSink.view.charts.combination.BindingTabs', {
                 zoomOnPanGesture: true
             },
             animation: false,
-            bind: '{priceData}',
             insetPadding: 40,
             axes: [{
                 type: 'numeric',
@@ -123,6 +122,7 @@ Ext.define('KitchenSink.view.charts.combination.BindingTabs', {
             }],
             series: {
                 type: 'bar',
+                bind: '{priceData}',
                 axis: 'left',
                 xField: 'month',
                 yField: 'price',

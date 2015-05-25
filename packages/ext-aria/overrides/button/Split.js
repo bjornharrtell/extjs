@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.button.Split', {
     override: 'Ext.button.Split'
     

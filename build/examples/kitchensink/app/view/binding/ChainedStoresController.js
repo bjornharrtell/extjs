@@ -1,6 +1,18 @@
 Ext.define('KitchenSink.view.binding.ChainedStoresController', {
     extend: 'Ext.app.ViewController',
     alias: 'controller.binding.chainedstores',
+    
+    onBeforeCellDblclick: function(view, cell, cellIndex, record, row, rowIndex, e) {
+        var grid, column;
+        
+        grid = this.lookupReference('allPeopleGrid');
+        column = grid.getColumns()[cellIndex];
+        
+        // Prevent editing plugin from activation on the row that has been removed
+        if (column.isXType('widgetcolumn')) {
+            return false;
+        }
+    },
 
     onRemoveClick: function(btn) {
         var rec = btn.getWidgetRecord();

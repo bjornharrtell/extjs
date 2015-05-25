@@ -143,7 +143,14 @@ Ext.define('Ext.layout.container.Card', {
      * true might improve performance.
      */
     deferredRender : false,
-    
+
+    // @private
+    // Gecko has a scroll bug where it will remember the scroll position of removed card panels and reapply
+    // that scroll position when a new card is added. We use this cache to remove the scroll position when
+    // the card is added to the layout and then reapply the actual position after the layout has resumed.
+    // See EXTJS-16173.
+    scrollableCache: (Ext.isGecko ? {} : null),
+
     getRenderTree: function () {
         var me = this,
             activeItem = me.getActiveItem();
@@ -200,7 +207,7 @@ Ext.define('Ext.layout.container.Card', {
 
     /**
      * Return the active (visible) component in the layout.
-     * @returns {Ext.Component}
+     * @return {Ext.Component}
      */
     getActiveItem: function() {
         var me = this,
@@ -267,7 +274,7 @@ Ext.define('Ext.layout.container.Card', {
 
     /**
      * Return the active (visible) component in the layout to the next card
-     * @returns {Ext.Component} The next component or false.
+     * @return {Ext.Component} The next component or false.
      */
     getNext: function() {
         var wrap = arguments[0],
@@ -289,7 +296,7 @@ Ext.define('Ext.layout.container.Card', {
 
     /**
      * Return the active (visible) component in the layout to the previous card
-     * @returns {Ext.Component} The previous component or false.
+     * @return {Ext.Component} The previous component or false.
      */
     getPrev: function() {
         var wrap = arguments[0],
@@ -331,11 +338,12 @@ Ext.define('Ext.layout.container.Card', {
      */
     setActiveItem: function(newCard) {
         var me = this,
+            scrollableCache = me.scrollableCache,
             owner = me.owner,
             oldCard = me.activeItem,
             rendered = owner.rendered,
-            newIndex,
-            focusNewCard;
+            newIndex, focusNewCard,
+            oldCardScrollable, cached, currentPosition;
 
         newCard = me.parseActiveItem(newCard);
         newIndex = owner.items.indexOf(newCard);
@@ -370,6 +378,19 @@ Ext.define('Ext.layout.container.Card', {
                 if (oldCard) {
                     if (me.hideInactive) {
                         focusNewCard = oldCard.el.contains(Ext.Element.getActiveElement());
+
+                        // Workaround for FF bug (see EXTJS-16173). We must reset the scroll positions here
+                        // before the old card and its targetEl is hidden and removed from the document.
+                        // Afterwards, it's too late and the bug will appear (the scroll position of the
+                        // removed card will be reapplied).
+                        if (scrollableCache && (oldCardScrollable = oldCard.scrollable)) {
+                            scrollableCache[oldCard.id] = {
+                                position: oldCardScrollable.getPosition()
+                            }
+
+                            oldCardScrollable.scrollTo(0, 0);
+                        }
+
                         oldCard.hide();
                         if (oldCard.hidden) {
                             oldCard.hiddenByLayout = true;
@@ -381,6 +402,7 @@ Ext.define('Ext.layout.container.Card', {
                         }
                     }
                 }
+
                 // Make sure the new card is shown
                 if (newCard.hidden) {
                     newCard.show();
@@ -404,7 +426,15 @@ Ext.define('Ext.layout.container.Card', {
                         newCard.focus();
                     }
                 }
+
                 Ext.resumeLayouts(true);
+
+                // Workaround for FF bug (see EXTJS-16173). Only now after the layout has resumed can
+                // we reapply the actual scroll position.
+                if (scrollableCache && (cached = scrollableCache[newCard.id])) {
+                    currentPosition = cached.position;
+                    newCard.scrollable.scrollTo(currentPosition.x, currentPosition.y);
+                }
             } else {
                 me.activeItem = newCard;
             }

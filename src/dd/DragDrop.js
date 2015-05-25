@@ -494,11 +494,21 @@ Ext.define('Ext.dd.DragDrop', {
             topSpace,
             leftSpace;
 
-        if (constrainDom == document.body) {
-            c = { x: s.left, y: s.top, width: Ext.Element.getViewportWidth(), height: Ext.Element.getViewportHeight()};
+        if (constrainDom === document.body) {
+            c = {
+                x: s.left,
+                y: s.top,
+                width: Ext.Element.getViewportWidth(),
+                height: Ext.Element.getViewportHeight()
+            };
         } else {
             xy = constrainEl.getXY();
-            c = {x : xy[0], y: xy[1], width: constrainDom.clientWidth, height: constrainDom.clientHeight};
+            c = {
+                x : xy[0],
+                y: xy[1],
+                width: constrainDom.clientWidth,
+                height: constrainDom.clientHeight
+            };
         }
 
         topSpace = ddBox.y - c.y;
@@ -797,7 +807,7 @@ Ext.define('Ext.dd.DragDrop', {
     handleMouseDown: function(e, oDD){
         var me = this;
 
-        if ((me.primaryButtonOnly && e.button != 0) || me.isLocked()) {
+        if ((me.primaryButtonOnly && e.button) || me.isLocked()) {
             return;
         }
 
@@ -820,7 +830,7 @@ Ext.define('Ext.dd.DragDrop', {
     clickValidator: function(e) {
         var target = e.getTarget();
         return ( this.isValidHandleChild(target) &&
-                    (this.id == this.handleElId ||
+                    (this.id === this.handleElId ||
                         this.DDMInstance.handleWasClicked(target, this.id)) );
     },
 
@@ -884,9 +894,13 @@ Ext.define('Ext.dd.DragDrop', {
      * re-enable
      */
     removeInvalidHandleClass: function(cssClass) {
-        for (var i=0, len=this.invalidHandleClasses.length; i<len; ++i) {
-            if (this.invalidHandleClasses[i] == cssClass) {
-                delete this.invalidHandleClasses[i];
+        var invalidHandleClasses = this.invalidHandleClasses,
+            len = invalidHandleClasses.length,
+            i;
+
+        for (i = 0; i < len; ++i) {
+            if (invalidHandleClasses[i] === cssClass) {
+                delete invalidHandleClasses[i];
             }
         }
     },

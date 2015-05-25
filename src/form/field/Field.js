@@ -87,7 +87,8 @@ Ext.define('Ext.form.field.Field', {
 
     /**
      * @cfg {String[]/String} valuePublishEvent
-     * The event name(s) to use to publish the {@link #value} {@link #bind} for this field.
+     * The event name(s) to use to publish the {@link #value}
+     * {@link Ext.form.field.Base#bind} for this field.
      * @since 5.0.1
      */
     valuePublishEvent: 'change',
@@ -106,7 +107,10 @@ Ext.define('Ext.form.field.Field', {
 
     /**
      * @event change
-     * Fires when the value of a field is changed via the {@link #setValue} method.
+     * Fires when the value of a field is changed. The value of a field is 
+     * checked for changes when the field's {@link #setValue} method 
+     * is called and when any of the events listed in 
+     * {@link Ext.form.field.Base#checkChangeEvents checkChangeEvents} are fired.
      * @param {Ext.form.field.Field} this
      * @param {Object} newValue The new value
      * @param {Object} oldValue The original value
@@ -169,17 +173,20 @@ Ext.define('Ext.form.field.Field', {
     initValue: function() {
         var me = this;
 
-        // Set the initial value - prevent validation on initial set
-        me.suspendCheckChange++;
-        me.setValue(me.value);
-        me.suspendCheckChange--;
+        // Set the initial value if we have one.
+        // Prevent validation on initial set.
+        if ('value' in me) {
+            me.suspendCheckChange++;
+            me.setValue(me.value);
+            me.suspendCheckChange--;
+        }
         
         /**
          * @property {Object} originalValue
          * The original value of the field as configured in the {@link #value} configuration, or as loaded by the last
          * form load operation if the form's {@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad} setting is `true`.
          */
-        me.originalValue = me.lastValue = me.getValue();
+        me.initialValue = me.originalValue = me.lastValue = me.getValue();
     },
 
     // Fields can be editors, and some editors may not have a name property that maps
@@ -295,7 +302,7 @@ Ext.define('Ext.form.field.Field', {
      * Resets the current field value to the originally loaded value and clears any validation messages. See {@link
      * Ext.form.Basic}.{@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad}
      */
-    reset : function(){
+    reset: function(){
         var me = this;
 
         me.beforeReset();
@@ -476,8 +483,12 @@ Ext.define('Ext.form.field.Field', {
      * @return {Boolean} True if the value is valid, else false
      */
     validate : function() {
-        var me = this,
-            isValid = me.isValid();
+        return this.checkValidityChange(this.isValid());
+    },
+
+    checkValidityChange: function(isValid) {
+        var me = this;
+
         if (isValid !== me.wasValid) {
             me.wasValid = isValid;
             me.fireEvent('validitychange', me, isValid);
@@ -528,15 +539,39 @@ Ext.define('Ext.form.field.Field', {
     },
 
     /**
-     * @method markInvalid
-     * Associate one or more error messages with this field. Components using this mixin should implement this method to
-     * update the component's rendering to display the messages.
+     * Display one or more error messages associated with this field, using 
+     * {@link #msgTarget} to determine how to display the messages and applying 
+     * {@link #invalidCls} to the field's UI element.
      *
-     * **Note**: this method does not cause the Field's {@link #validate} or {@link #isValid} methods to return `false`
-     * if the value does _pass_ validation. So simply marking a Field as invalid will not prevent submission of forms
+     *     var formPanel = Ext.create('Ext.form.Panel', {
+     *         title: 'Contact Info',
+     *         width: 300,
+     *         bodyPadding: 10,
+     *         renderTo: Ext.getBody(),
+     *         items: [{
+     *             xtype: 'textfield',
+     *             name: 'name',
+     *             id: 'nameId',
+     *             fieldLabel: 'Name'
+     *         }],
+     *         bbar: [{
+     *             text: 'Mark both fields invalid',
+     *             handler: function() {
+     *                 var nameField = formPanel.getForm().findField('name');
+     *                 nameField.markInvalid('Name invalid message');
+     *     
+     *                 // multiple error string syntax
+     *                 // nameField.markInvalid(['First message', 'Second message']);
+     *             }
+     *         }]
+     *     });
+     * 
+     * **Note**: this method does not cause the Field's {@link #validate} or 
+     * {@link #isValid} methods to return `false` if the value does _pass_ validation. 
+     * So simply marking a Field as invalid will not prevent submission of forms
      * submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
-     *
-     * @param {String/String[]} errors The error message(s) for the field.
+     * 
+     * @param {String/String[]} errors The validation message(s) to display.
      */
     markInvalid: Ext.emptyFn,
 
@@ -556,6 +591,17 @@ Ext.define('Ext.form.field.Field', {
         // otherwise it will mark the field invalid as soon as it is bound.
         if (oldValidation) {
             this.validate();    
+        }
+    },
+
+    privates: {
+        resetToInitialValue: function() {
+            var me = this,
+                originalValue = me.originalValue;
+
+            me.originalValue = me.initialValue;
+            me.reset();
+            me.originalValue = originalValue;
         }
     }
 });

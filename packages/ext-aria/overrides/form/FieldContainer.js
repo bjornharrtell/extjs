@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.form.FieldContainer', {
     override: 'Ext.form.FieldContainer',
 

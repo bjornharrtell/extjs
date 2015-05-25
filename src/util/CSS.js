@@ -17,6 +17,9 @@ Ext.define('Ext.util.CSS', function() {
 
         initialized: false,
 
+        /**
+         * @private
+         */
         constructor: function() {
             // Cache a reference to the singleton
             CSS = this;

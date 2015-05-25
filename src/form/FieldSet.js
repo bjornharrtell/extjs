@@ -1,6 +1,4 @@
 /**
- * @docauthor Jason Johnston <jason@sencha.com>
- *
  * A container for grouping sets of fields, rendered as a HTML `fieldset` element. The {@link #title}
  * config will be rendered as the fieldset's `legend`.
  *

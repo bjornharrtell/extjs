@@ -31,8 +31,9 @@ Ext.define('Ext.menu.CheckItem', {
      */
     
     /**
-     * @cfg {Function} checkHandler
+     * @cfg {Function/String} checkHandler
      * Alternative for the {@link #checkchange} event.  Gets called with the same parameters.
+     * @declarativeHandler
      */
 
     /**
@@ -163,7 +164,8 @@ Ext.define('Ext.menu.CheckItem', {
     },
 
     /**
-     * Reenables the checkbox functionality of this menu item after having been disabled by {@link #disableCheckChange}
+     * Re-enables the checkbox functionality of this menu item after having been 
+     * disabled by {@link #disableCheckChange}
      */
     enableCheckChange: function() {
         var me = this,
@@ -181,7 +183,7 @@ Ext.define('Ext.menu.CheckItem', {
         if (!me.disabled && !me.checkChangeDisabled && !(me.checked && me.group)) {
             me.setChecked(!me.checked);
 
-            // Clicked using SPACE or ENTER just unchecks.
+            // Clicked using SPACE or ENTER just un-checks.
             // RightArrow to invoke any submenu
             if (e.type === 'keydown' && me.menu) {
                 return false;
@@ -197,7 +199,7 @@ Ext.define('Ext.menu.CheckItem', {
 
     /**
      * Sets the checked state of the item
-     * @param {Boolean} checked True to check, false to uncheck
+     * @param {Boolean} checked True to check, false to un-check
      * @param {Boolean} [suppressEvents=false] True to prevent firing the checkchange events.
      */
     setChecked: function(checked, suppressEvents) {

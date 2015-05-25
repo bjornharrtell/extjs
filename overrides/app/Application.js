@@ -1,4 +1,4 @@
-// Ext
+/** */
 Ext.define('Ext.overrides.app.Application', {
     override: 'Ext.app.Application',
     uses: [
@@ -8,7 +8,8 @@ Ext.define('Ext.overrides.app.Application', {
     // @cmd-auto-dependency {aliasPrefix: "view.", mvc: true, requires: ["Ext.plugin.Viewport"]}
     /**
      * @cfg {Boolean/String} [autoCreateViewport=false]
-     * @deprecated 5.1
+     * @deprecated 5.1 Instead use {@link #mainView}
+     * @member Ext.app.Application
      */
     autoCreateViewport: false,
 
@@ -16,6 +17,7 @@ Ext.define('Ext.overrides.app.Application', {
         /**
          * @cfg {Boolean} enableQuickTips
          * True to automatically set up Ext.tip.QuickTip support.
+         * @member Ext.app.Application
          */
         enableQuickTips: true
     },

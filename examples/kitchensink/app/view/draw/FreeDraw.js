@@ -13,6 +13,14 @@ Ext.define('KitchenSink.view.draw.FreeDraw', {
     layout: 'fit',
     width: 650,
 
+    // <example>
+    // Content between example tags is omitted from code preview.
+    otherContent: [{
+        type: 'Component',
+        path: 'app/view/draw/FreeDrawComponent.js'
+    }],
+    // </example>
+
     lastEvent: 0,
 
     tbar: ['->', {

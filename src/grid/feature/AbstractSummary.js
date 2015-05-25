@@ -44,7 +44,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
         // Add a high priority interceptor which renders summary records simply
         // This will only see action ona bufferedRender situation where summary records are updated.
         me.view.addRowTpl(me.summaryRowTpl).summaryFeature = me;
-        
+
         // Define on the instance to store info needed by summary renderers.
         me.summaryData = {};
         me.groupInfo = {};
@@ -161,7 +161,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
     getSummary: function (store, type, field, group) {
         var isGrouped = !!group,
             item = isGrouped ? group : store;
-        
+
         if (type) {
             if (Ext.isFunction(type)) {
                 if (isGrouped) {
@@ -236,90 +236,5 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
         } else {
             summaryData[colId] = summaryValue;
         }
-    },
-
-    populateRecord: function (group, groupInfo, remoteData) {
-        var me = this,
-            view = me.grid.ownerLockable ? me.grid.ownerLockable.view : me.view,
-            store = me.view.getStore(),
-            record = me.getAggregateRecord(group),
-            // Use the full column set, regardless of locking
-            columns = view.headerCt.getGridColumns(),
-            len = columns.length,
-            groupName = group.getGroupKey(),
-            groupData, field, i, column, fieldName, summaryValue;
-
-        record.beginEdit();
-
-        if (remoteData) {
-            // Remote summary grouping provides the grouping totals so there's no need to
-            // iterate throught the columns to map the column's dataIndex to the field name.
-            // Instead, enumerate the grouping record and set the field in the aggregate
-            // record for each one.
-            groupData = remoteData[groupName];
-            for (field in groupData) {
-                if (groupData.hasOwnProperty(field)) {
-                    if (field !== record.idProperty) {
-                        record.set(field, groupData[field]);
-                    }
-                }
-            }
-        }
-
-        // Here we iterate through the columns with two objectives:
-        //    1. For local grouping, get the summary for each column and update the record.
-        //    2. For both local and remote grouping, set the summary data object
-        //       which is passed to the summaryRenderer (if defined).
-        for (i = 0; i < len; ++i) {
-            column = columns[i];
-            // Use the column id if there's no mapping, could be a calculated field
-            fieldName = column.dataIndex || column.getItemId();
-
-            // We need to capture the summary value because it could get overwritten when
-            // setting on the model if there is a convert() method on the model.
-            if (!remoteData) {
-                summaryValue = me.getSummary(store, column.summaryType, fieldName, group);
-                record.set(fieldName, summaryValue);
-            } else {
-                // For remote groupings, just get the value from the model.
-                summaryValue = record.get(column.dataIndex);
-            }
-
-            // Capture the columnId:value for the summaryRenderer in the summaryData object.
-            me.setSummaryData(record, column.getItemId(), summaryValue, groupName);
-        }
-
-        // Poke on the owner group for easy lookup in this.createRenderer().
-        record.ownerGroup = groupName;
-
-        record.endEdit(true);
-        record.commit();
-
-        return record;
-    },
-    
-    getGroupInfo: function(group) {
-        var groupInfo = this.groupInfo,
-            key = group.getGroupKey(),
-            item = groupInfo[key];
-        
-        if (!item) {
-            item = groupInfo[key] = {
-                lastGeneration: null,
-                aggregateRecord: new Ext.data.Model()
-            };
-        }
-        return item;
-    },
-
-    getAggregateRecord: function(group, forceNew) {
-        var rec;
-
-        if (forceNew === true || group.dirty || !group.aggregateRecord) {
-            rec = new Ext.data.Model();
-            group.aggregateRecord = rec;
-            rec.isNonData = rec.isSummary = true;
-        }
-        return group.aggregateRecord;
     }
 });

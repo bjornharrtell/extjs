@@ -11,13 +11,13 @@ Ext.define('Ext.rtl.Component', {
      */
 
     applyScrollable: function(scrollable, oldScrollable) {
-        var scrollable = this.callParent([scrollable, oldScrollable]);
+        var ret = this.callParent([scrollable, oldScrollable]);
 
-        if (scrollable && this.getInherited().rtl) {
-            scrollable.setRtl(true);
+        if (ret && this.getInherited().rtl) {
+            ret.setRtl(true);
         }
 
-        return scrollable;
+        return ret;
     },
 
     convertPositionSpec: function(posSpec) {
@@ -34,7 +34,7 @@ Ext.define('Ext.rtl.Component', {
         var doc = document,
             pos, scroll, extraX, extraY;
 
-        if (el.dom == doc.body || el.dom == doc) {
+        if (el.dom === doc.body || el.dom === doc) {
             // anchor the element using the same coordinate system as the viewport or body
             scroll = Ext.rootInheritedState.rtl ? el.rtlGetScroll() : el.getScroll();
             extraX = scroll.left;
@@ -169,7 +169,7 @@ Ext.define('Ext.rtl.Component', {
     },
     
     isOppositeRootDirection: function(){
-        return !this.getInherited().rtl !== !Ext.rootInheritedState.rtl;
+        return !this.getInherited().rtl !== !Ext.rootInheritedState.rtl; // jshint ignore:line
     },
 
     privates: {
@@ -189,7 +189,7 @@ Ext.define('Ext.rtl.Component', {
         }
     }
 }, function() {
-    Ext.onReady(function() {
+    Ext.onInternalReady(function() {
         // If the document or body has "direction:rtl" then we set the rtl flag in the
         // root hierarchy state so that the page-level coordinate system will be
         // right-based (similar to using a Viewport with "rtl: true").

@@ -27,19 +27,30 @@
         <if>
             <x-is-true value="${app.has.js.sdk}"/>
             <then>
-                <property name="manifest.bootstrap.js.exclude">
-                    exclude
-                        -tag=framework,package-sencha-core
-                </property>
                 <x-compile refid="${compiler.ref.id}">
                     <![CDATA[
-                        restore
-                            page
+                        include
+                            -all
                         and
-                        ${manifest.bootstrap.js.exclude}
+                        exclude
+                            -tag=framework,package-sencha-core
+                        and
+                        save
+                            bootstrap
                     ]]>
                 </x-compile>
             </then>
+            <else>
+                <x-compile refid="${compiler.ref.id}">
+                    <![CDATA[
+                        include
+                            -all
+                        and
+                        save
+                            bootstrap
+                    ]]>
+                </x-compile>
+            </else>
         </if>
 
         <x-get-relative-path from="${build.bootstrap.page.dir}"
@@ -62,7 +73,7 @@ Ext.manifest = Ext.manifest || "${build.json.bootstrap.rel.path}";
                 microload
                     -operation=manifest
                     -bootstrap
-                    -ignoreDisabled=false
+                    +ignoreDisabled
                     -exclude=${manifest.root.excludes}
                     -tpl={0}
                     -basePath=${metadata.bootstrap.base.path}

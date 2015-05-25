@@ -8,7 +8,8 @@ Ext.define('Ext.selection.TreeModel', {
     alias: 'selection.treemodel',
 
     /**
-     * @cfg {Boolean} pruneRemoved @hide
+     * @cfg {Boolean} pruneRemoved
+     * @hide
      */
     
     /**

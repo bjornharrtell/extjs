@@ -200,22 +200,26 @@ Ext.define('Ext.dd.DropZone', {
      * @template
      */
     notifyOver : function(dd, e, data){
-        var n = this.getTargetFromEvent(e);
-        if(!n) { // not over valid drop target
-            if(this.lastOverNode){
-                this.onNodeOut(this.lastOverNode, dd, e, data);
-                this.lastOverNode = null;
+        var me = this,
+            n = me.getTargetFromEvent(e);
+
+        if (!n) { // not over valid drop target
+            if (me.lastOverNode) {
+                me.onNodeOut(me.lastOverNode, dd, e, data);
+                me.lastOverNode = null;
             }
-            return this.onContainerOver(dd, e, data);
+            return me.onContainerOver(dd, e, data);
         }
-        if(this.lastOverNode != n){
-            if(this.lastOverNode){
-                this.onNodeOut(this.lastOverNode, dd, e, data);
+
+        if (me.lastOverNode !== n) {
+            if (me.lastOverNode) {
+                me.onNodeOut(me.lastOverNode, dd, e, data);
             }
-            this.onNodeEnter(n, dd, e, data);
-            this.lastOverNode = n;
+            me.onNodeEnter(n, dd, e, data);
+            me.lastOverNode = n;
         }
-        return this.onNodeOver(n, dd, e, data);
+
+        return me.onNodeOver(n, dd, e, data);
     },
 
     /**

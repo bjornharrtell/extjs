@@ -199,10 +199,7 @@ td.#{$prefix}frame-br {
 
 // TODO: remove outline from individual components that need it instead of resetting globally
 // *Really* TODO: use focus outline for its intended purpose: implementing ARIA. Instead of hacking focus outlines.
-.#{$prefix}webkit {
-    * {
-        &:focus {
-            outline:none;
-        }
-    }
+// This prevents the default outline added to focused elements by some browsers (ahem, webkit)
+:focus {
+    outline:none;
 }

@@ -56,7 +56,7 @@ Ext.define('Ext.layout.container.Dashboard', {
      * @private
      * Returns a filtered item list sans splitters
      * @param items
-     * @returns {Array|*}
+     * @return {Array|*}
      */
     getColumns : function(items) {
         var array = Ext.Array;

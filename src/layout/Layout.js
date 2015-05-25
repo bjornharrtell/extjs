@@ -104,14 +104,14 @@ Ext.define('Ext.layout.Layout', {
             context = me.context,
             changed;
 
-        if (me.lastWidthModel != ownerContext.widthModel) {
+        if (me.lastWidthModel !== ownerContext.widthModel) {
             if (me.lastWidthModel) {
                 changed = true;
             }
             me.lastWidthModel = ownerContext.widthModel;
         }
 
-        if (me.lastHeightModel != ownerContext.heightModel) {
+        if (me.lastHeightModel !== ownerContext.heightModel) {
             if (me.lastWidthModel) {
                 changed = true;
             }
@@ -402,7 +402,7 @@ Ext.define('Ext.layout.Layout', {
 
         // Test DOM nodes for equality using "===" : http://jsperf.com/dom-equality-test
         if (itemDom && targetDom) {
-            if (typeof position == 'number') {
+            if (typeof position === 'number') {
                 position = this.getPositionOffset(position);
                 return itemDom === targetDom.childNodes[position];
             }
@@ -471,7 +471,7 @@ Ext.define('Ext.layout.Layout', {
      */
     moveItem : function(item, target, position) {
         target = target.dom || target;
-        if (typeof position == 'number') {
+        if (typeof position === 'number') {
             position = target.childNodes[position];
         }
         target.insertBefore(item.el.dom, position || null);

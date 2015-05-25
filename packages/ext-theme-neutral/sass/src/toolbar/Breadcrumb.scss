@@ -13,10 +13,12 @@
  * The space between the breadcrumb buttons
  *
  * @param {number} [$ui-arrow-width=$breadcrumb-arrow-width]
- * The width of the breadcrumb arrows when {@link #split} is `false`
+ * The width of the breadcrumb arrows when
+ * {@link Ext.toolbar.Breadcrumb#useSplitButtons} is `false`
  *
  * @param {number} [$ui-split-width=$breadcrumb-split-width]
- * The width of breadcrumb arrows when {@link #split} is `true`
+ * The width of breadcrumb arrows when {@link Ext.toolbar.Breadcrumb#useSplitButtons} is
+ * `true`
  *
  * @param {boolean} [$ui-include-menu-active-arrow=$breadcrumb-include-menu-active-arrow]
  * `true` to include a separate background-image for menu arrows when a breadcrumb button's
@@ -81,6 +83,8 @@
  * `true` to use classic-style scroller buttons.  When `true` scroller buttons are given
  * their hover state by changing their background-position,  When `false` scroller buttons
  * are given their hover state by applying opacity.
+ *
+ * @member Ext.toolbar.Breadcrumb
  */
 @mixin extjs-breadcrumb-ui(
     $ui: null,

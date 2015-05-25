@@ -1,50 +1,5 @@
 /**
  * @class Ext.dom.Element
- * # Animations
- *
- * When an element is manipulated, by default there is no animation.
- *
- *     var el = Ext.get("my-div");
- *
- *     // no animation
- *     el.setWidth(100);
- *
- * specified as boolean (true) for default animation effects.
- *
- *     // default animation
- *     el.setWidth(100, true);
- *
- * To configure the effects, an object literal with animation options to use as the Element animation configuration
- * object can also be specified. Note that the supported Element animation configuration options are a subset of the
- * {@link Ext.fx.Anim} animation options specific to Fx effects. The supported Element animation configuration options
- * are:
- *
- *     Option    Default   Description
- *     --------- --------  ---------------------------------------------
- *     {@link Ext.fx.Anim#duration duration}  350       The duration of the animation in milliseconds
- *     {@link Ext.fx.Anim#easing easing}    easeOut   The easing method
- *     {@link Ext.fx.Anim#callback callback}  none      A function to execute when the anim completes
- *     {@link Ext.fx.Anim#scope scope}     this      The scope (this) of the callback function
- *
- * Usage:
- *
- *     // Element animation options object
- *     var opt = {
- *         {@link Ext.fx.Anim#duration duration}: 1000,
- *         {@link Ext.fx.Anim#easing easing}: 'elasticIn',
- *         {@link Ext.fx.Anim#callback callback}: this.foo,
- *         {@link Ext.fx.Anim#scope scope}: this
- *     };
- *     // animation with some options set
- *     el.setWidth(100, opt);
- *
- * The Element animation object being used for the animation will be set on the options object as "anim", which allows
- * you to stop or manipulate the animation. Here is an example:
- *
- *     // using the "anim" property to get the Anim object
- *     if(opt.anim.isAnimated()){
- *         opt.anim.stop();
- *     }
  */
 Ext.define('Ext.overrides.dom.Element', (function() {
     var Element, // we cannot do this yet "= Ext.dom.Element"
@@ -61,7 +16,6 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         VISIBILITY = 'visibility',
         DISPLAY = 'display',
         NONE = 'none',
-        HIDDEN = 'hidden',
         OFFSETS = 'offsets',
         ORIGINALDISPLAY = 'originalDisplay',
         VISMODE = 'visibilityMode',
@@ -97,7 +51,6 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         XMASKED = Ext.baseCSSPrefix + "masked",
         XMASKEDRELATIVE = Ext.baseCSSPrefix + "masked-relative",
         EXTELMASKMSG = Ext.baseCSSPrefix + "mask-msg",
-        mouseEnterLeaveRe = /^(?:mouseenter|mouseleave)$/,
         bodyRe = /^body/i,
         propertyCache = {},
         getDisplay = function(el) {
@@ -118,12 +71,44 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             }
             return visMode;
         },
-        garbageBin,
         emptyRange      = DOC.createRange ? DOC.createRange() : null,
         inputTags = {
             INPUT: true,
             TEXTAREA: true
         };
+
+    //<feature legacyBrowser>
+    if (Ext.isIE8) {
+        var removeNode = Ext.removeNode, // save a reference to the removeNode function defined in sencha-core
+            garbageBin = DOC.createElement('div'),
+            destroyQueue = [],
+
+            // prevent memory leaks in IE8
+            // see http://social.msdn.microsoft.com/Forums/ie/en-US/c76967f0-dcf8-47d0-8984-8fe1282a94f5/ie-appendchildremovechild-memory-problem?forum=iewebdevelopment
+            // This function is called to fully destroy an element on a timer so that code following the
+            // remove call can still access the element.
+            clearGarbage = Ext.Function.createBuffered(function() {
+                var len = destroyQueue.length,
+                    i;
+
+                for (i = 0; i < len; i++) {
+                    garbageBin.appendChild(destroyQueue[i]);
+                }
+                garbageBin.innerHTML = '';
+                destroyQueue.length = 0;
+            }, 10);
+
+        Ext.removeNode = function(node) {
+            node = node.dom || node;
+            removeNode(node);
+            destroyQueue[destroyQueue.length] = node;
+
+            // Will perform extra IE8 cleanup in 10 milliseconds
+            // see http://social.msdn.microsoft.com/Forums/ie/en-US/c76967f0-dcf8-47d0-8984-8fe1282a94f5/ie-appendchildremovechild-memory-problem?forum=iewebdevelopment
+            clearGarbage();
+        };
+    }
+    //</feature>
 
     return {
         override: 'Ext.dom.Element',
@@ -156,6 +141,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
              * while dom.getAttribute('tabIndex') will return the actual value.
              * IE9+ and all other browsers normalize attribute names to lowercase.
              *
+             * @static
              * @private
              */
             tabIndexAttributeName: Ext.isIE8 ? 'tabIndex' : 'tabindex',
@@ -352,7 +338,10 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             this.dom.style[xName] = '0px';
         },
 
-        // @private - process the passed fx configuration.
+        /**
+         * @private
+         * process the passed fx configuration.
+         */
         anim: function(config) {
             if (!Ext.isObject(config)) {
                 return (config) ? {} : false;
@@ -534,7 +523,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         /**
          * Removes Empty, or whitespace filled text nodes. Combines adjacent text nodes.
          * @param {Boolean} [forceReclean=false] By default the element keeps track if it has been cleaned already
-         * so you can call this over and over. However, if you update the element and need to force a reclean, you
+         * so you can call this over and over. However, if you update the element and need to force a re-clean, you
          * can pass true.
          */
         clean: function(forceReclean) {
@@ -575,7 +564,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         },
 
         /**
-         * Emptys this element. Removes all child nodes.
+         * Empties this element. Removes all child nodes.
          */
         empty: emptyRange ? function() {
             var dom = this.dom;
@@ -691,9 +680,12 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             // objects are equal
             if (dom && Ext.isIE8 && (dom.window != dom) && (dom.nodeType !== 9) &&
                     (dom.tagName !== 'BODY') && (dom.tagName !== 'HTML')) {
-                garbageBin = garbageBin || DOC.createElement('div');
-                garbageBin.appendChild(dom);
-                garbageBin.innerHTML = '';
+                destroyQueue[destroyQueue.length] = dom;
+
+
+                // Will perform extra IE8 cleanup in 10 milliseconds
+                // see http://social.msdn.microsoft.com/Forums/ie/en-US/c76967f0-dcf8-47d0-8984-8fe1282a94f5/ie-appendchildremovechild-memory-problem?forum=iewebdevelopment
+                clearGarbage();
             }
             //</feature>
 
@@ -816,7 +808,9 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             return me;
         },
 
-        // private
+        /**
+         * @private
+         */
         fixDisplay: function(){
             var me = this;
             if (me.isStyle(DISPLAY, NONE)) {
@@ -1270,7 +1264,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
         /**
          * Returns `true` if this Element is an input field, or is editable in any way.
-         * @returns {Boolean} `true` if this Element is an input field, or is editable in any way.
+         * @return {Boolean} `true` if this Element is an input field, or is editable in any way.
          */
         isInputField: function() {
             var dom = this.dom,
@@ -1800,11 +1794,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                        }
                        hd.appendChild(s);
                     } else if (match[2] && match[2].length > 0) {
-                        if (WIN.execScript) {
-                           WIN.execScript(match[2]);
-                        } else {
-                           WIN.eval(match[2]);
-                        }
+                        (WIN.execScript || WIN.eval)(match[2]); // jshint ignore:line
                     }
                 }
                 Ext.callback(callback, me);
@@ -1815,7 +1805,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
         /**
          * Set the opacity of the element
-         * @param {Number} opacity The new opacity. 0 = transparent, .5 = 50% visibile, 1 = fully visible, etc
+         * @param {Number} opacity The new opacity. 0 = transparent, .5 = 50% visible, 1 = fully visible, etc
          * @param {Boolean/Object} [animate] a standard Element animation config object or `true` for
          * the default animation (`{duration: 350, easing: 'ease-in'}`)
          * @return {Ext.dom.Element} this
@@ -2167,7 +2157,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                     }
                 });
                 wrapDomParentNode = wrap.dom.parentNode;
-                wrap.setPositioning(el.getPositioning(true));
+                wrap.setPositioning(el.getPositioning());
                 if (wrap.isStyle('position', 'static')) {
                     wrap.position('relative');
                 }
@@ -2397,6 +2387,45 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
         /**
          * Stops the specified event(s) from bubbling and optionally prevents the default action
+         * 
+         *     var store = Ext.create('Ext.data.Store', {
+         *         fields: ['name', 'email'],
+         *         data: [{
+         *             'name': 'Finn',
+         *             "email": "finn@adventuretime.com"
+         *         }]
+         *     });
+         *     
+         *     Ext.create('Ext.grid.Panel', {
+         *         title: 'Land of Ooo',
+         *         store: store,
+         *         columns: [{
+         *             text: 'Name',
+         *             dataIndex: 'name'
+         *         }, {
+         *             text: 'Email <img style="vertical-align:middle;" src="{some-help-image-src}" />',
+         *             dataIndex: 'email',
+         *             flex: 1,
+         *             listeners: {
+         *                 render: function(col) {
+         *                     // Swallow the click event when the click occurs on the
+         *                     // help icon - preventing the sorting of data by that
+         *                     // column and instead performing an action specific to
+         *                     // the help icon
+         *                     var img = col.getEl().down('img');
+         *                     img.swallowEvent(['click', 'mousedown'], true);
+         *                     col.on('click', function() {
+         *                         // logic to show a help dialog
+         *                         console.log('image click handler');
+         *                     }, col);
+         *                 }
+         *             }
+         *         }],
+         *         height: 200,
+         *         width: 400,
+         *         renderTo: document.body
+         *     });
+         *
          * @param {String/String[]} eventName an event / array of events to stop from bubbling
          * @param {Boolean} [preventDefault] true to prevent the default action too
          * @return {Ext.dom.Element} this
@@ -2520,7 +2549,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
          *
          * Synchronizes content of this Element with the content of the passed element.
          * 
-         * Style and CSS class are copied from source into this Element, and contents are synched
+         * Style and CSS class are copied from source into this Element, and contents are synced
          * recursively. If a child node is a text node, the textual data is copied.
          */
         syncContent: function(source) {
@@ -2542,7 +2571,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 dest.mergeAttributes(source, true);
 
                 // EXTJSIV-6803. IE's mergeAttributes appears not to make the source's "src" value available until after the image is ready.
-                // So programatically copy any src attribute.
+                // So programmatically copy any src attribute.
                 dest.src = source.src;
             } else {
                 newAttrs = source.attributes;
@@ -2741,10 +2770,12 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 }
             },
             
-            // @private
-            // The difference between findTabbableElements and selectTabbableElements
-            // is that find() will include `this` element itself if it is tabbable, while
-            // select() will only find tabbable children following querySelectorAll() logic.
+            /**
+             * @private
+             * The difference between findTabbableElements and selectTabbableElements
+             * is that find() will include `this` element itself if it is tabbable, while
+             * select() will only find tabbable children following querySelectorAll() logic.
+             */
             findTabbableElements: function(asDom, selector, /* private */ limit, backward) {
                 asDom = asDom != undefined ? asDom : true;
                 
@@ -2760,7 +2791,9 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 return selection;
             },
             
-            // @private
+            /**
+             * @private
+             */
             selectTabbableElements: function(asDom, selector, /* private */ limit, backward) {
                 var selection = [],
                     nodes, node, el, i, len, to, step, tabIndex;
@@ -2824,21 +2857,27 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 return selection;
             },
         
-            // @private
+            /**
+             * @private
+             */
             selectFirstTabbableElement: function(asDom, selector) {
                 var els = this.selectTabbableElements(asDom, selector, 1, false);
             
                 return els[0];
             },
         
-            // @private
+            /**
+             * @private
+             */
             selectLastTabbableElement: function(asDom, selector) {
                 var el = this.selectTabbableElements(true, selector, 1, true)[0];
             
                 return (asDom !== false) ? el : Ext.get(el);
             },
         
-            // @private
+            /**
+             * @private
+             */
             saveTabbableState: function(attribute) {
                 var tabbableSavedFlagAttribute = Ext.Element.tabbableSavedFlagAttribute,
                     dom = this.dom;
@@ -2869,7 +2908,9 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 return this;
             },
         
-            // @private
+            /**
+             * @private
+             */
             restoreTabbableState: function(attribute) {
                 var tabbableSavedFlagAttribute = Ext.Element.tabbableSavedFlagAttribute,
                     dom = this.dom,
@@ -2898,7 +2939,9 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 return this;
             },
         
-            // @private
+            /**
+             * @private
+             */
             saveChildrenTabbableState: function(attribute) {
                 var children, child, i, len;
                 
@@ -2914,7 +2957,9 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 return children;
             },
         
-            // @private
+            /**
+             * @private
+             */
             restoreChildrenTabbableState: function(attribute, children) {
                 var child, i, len;
                 
@@ -3113,7 +3158,8 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                     /**
                      * Calculates the x, y to center this element on the screen
                      * @return {Number[]} The x, y values [x, y]
-                     * @deprecated 5.0.0
+                     * @deprecated 5.0.0 Use {@link #getAlignToXY} instead.
+                     *     el.getAlignToXY(document, 'c-c');
                      */
                     getCenterXY: function(){
                         return this.getAlignToXY(DOC, 'c-c');
@@ -3124,7 +3170,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                      * when needed to simulate offsetHeight when offsets aren't available. This may not work on display:none elements
                      * if a height has not been set using CSS.
                      * @return {Number}
-                     * @deprecated 5.0.0
+                     * @deprecated 5.0.0 use {@link #getHeight} instead
                      */
                     getComputedHeight: function() {
                         return Math.max(this.dom.offsetHeight, this.dom.clientHeight) ||
@@ -3136,7 +3182,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                      * when needed to simulate offsetWidth when offsets aren't available. This may not work on display:none elements
                      * if a width has not been set using CSS.
                      * @return {Number}
-                     * @deprecated 5.0.0
+                     * @deprecated 5.0.0 use {@link #getWidth} instead.
                      */
                     getComputedWidth: function() {
                         return Math.max(this.dom.offsetWidth, this.dom.clientWidth) ||
@@ -3154,7 +3200,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                      * @return {Object} Object describing width and height.
                      * @return {Number} return.width
                      * @return {Number} return.height
-                     * @deprecated 5.0.0
+                     * @deprecated 5.0.0 Use {@link #getSize} instead.
                      */
                     getStyleSize: function() {
                         var me = this,
@@ -3188,7 +3234,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                     /**
                      * Returns true if this element uses the border-box-sizing model.  This method is
                      * deprecated as of version 5.0 because border-box sizing is forced upon all elements
-                     * via a stylesheet rule, and the browsers that do not support border-box (IE6/7 strict
+                     * via a style sheet rule, and the browsers that do not support border-box (IE6/7 strict
                      * mode) are no longer supported.
                      * @deprecated 5.0.0 
                      * @return {Boolean}
@@ -3226,8 +3272,8 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         trimRe = /^\s+|\s+$/g,
         styleHooks = proto.styleHooks,
         supports = Ext.supports,
-        removeNode, garbageBin, verticalStyleHooks90, verticalStyleHooks270, edges, k,
-        edge, borderWidth;
+        verticalStyleHooks90, verticalStyleHooks270, edges, k,
+        edge, borderWidth, getBorderWidth;
 
     proto._init(Element);
     delete proto._init;
@@ -3418,12 +3464,12 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
     // override getStyle for border-*-width
     if (Ext.isIE8) {
-        function getBorderWidth (dom, el, inline, style) {
+        getBorderWidth = function (dom, el, inline, style) {
             if (style[this.styleName] === 'none') {
                 return '0px';
             }
             return style[this.name];
-        }
+        };
 
         edges = ['Top','Right','Bottom','Left'];
         k = edges.length;
@@ -3443,14 +3489,14 @@ Ext.define('Ext.overrides.dom.Element', (function() {
     Ext.apply(Ext, {
         /**
          * `true` to automatically uncache orphaned Ext.Elements periodically. If set to
-         * `false`, the application will be required to clean up orpaned Ext.Elements and
+         * `false`, the application will be required to clean up orphaned Ext.Elements and
          * it's listeners as to not cause memory leakage.
          * @member Ext
          */
         enableGarbageCollector: true,
 
         // In sencha v5 isBorderBox is no longer needed since all supported browsers
-        // suppport border-box, but it is hard coded to true for backward compatibility
+        // support border-box, but it is hard coded to true for backward compatibility
         isBorderBox: true,
 
         /**
@@ -3465,7 +3511,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
          * @private
          * Returns an HTML div element into which {@link Ext.container.Container#method-remove removed} components
          * are placed so that their DOM elements are not garbage collected as detached Dom trees.
-         * @returns {Ext.dom.Element}
+         * @return {Ext.dom.Element}
          * @member Ext
          */
         getDetachedBody: function () {
@@ -3508,10 +3554,11 @@ Ext.define('Ext.overrides.dom.Element', (function() {
          *     });
          *
          * @param {Object} obj The list of behaviors to apply
+         * @member Ext
          */
         addBehaviors: function(o){
             if(!Ext.isReady){
-                Ext.onReady(function(){
+                Ext.onInternalReady(function(){
                     Ext.addBehaviors(o);
                 });
             } else {
@@ -3532,19 +3579,6 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             }
         }
     });
-
-    if (Ext.isIE8) {
-        // save a reference to the removeNode function defined in sencha-core
-        removeNode = Ext.removeNode;
-        Ext.removeNode = function(node) {
-            removeNode(node);
-            // prevent memory leaks in IE8
-            // see http://social.msdn.microsoft.com/Forums/ie/en-US/c76967f0-dcf8-47d0-8984-8fe1282a94f5/ie-appendchildremovechild-memory-problem?forum=iewebdevelopment
-            garbageBin = garbageBin || DOC.createElement('div');
-            garbageBin.appendChild(node);
-            garbageBin.innerHTML = '';
-        };
-    }
 
     if (Ext.isIE9m) {
         Ext.getElementById = function (id) {
@@ -3586,7 +3620,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                                 entry.destroy();
                             }
                         }
-                        ret = ret || new Ext.Element(el)
+                        ret = ret || new Ext.Element(el);
                     }
                 }
             }
@@ -3621,7 +3655,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                     type;
             if (ns) {
                 type = typeof d[ns + ":" + name];
-                if (type != 'undefined' && type != 'unknown') {
+                if (type !== 'undefined' && type !== 'unknown') {
                     return d[ns + ":" + name] || null;
                 }
                 return null;
@@ -3633,7 +3667,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         };
     }
 
-    Ext.onReady(function () {
+    Ext.onInternalReady(function () {
         var transparentRe = /^(?:transparent|(?:rgba[(](?:\s*\d+\s*[,]){3}\s*0\s*[)]))$/i,
             bodyCls = [],
             //htmlCls = [],
@@ -3667,7 +3701,8 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                     style.width = value;
 
                     if (needsFix) {
-                        dom.scrollWidth; // repaint
+                        // repaint
+                        dom.scrollWidth; // jshint ignore:line
                         style.display = origDisplay;
                     }
                 }
@@ -3686,7 +3721,8 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 origSetWidth.call(me, width, animate);
 
                 if (needsFix && !animate) {
-                    dom.scrollWidth; // repaint
+                    // repaint
+                    dom.scrollWidth; // jshint ignore:line
                     style.display = origDisplay;
                 }
                 return me;
@@ -3705,7 +3741,8 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 origSetSize.call(me, width, height, animate);
 
                 if (needsFix && !animate) {
-                    dom.scrollWidth; // repaint
+                    // repaint
+                    dom.scrollWidth; // jshint ignore:line
                     style.display = origDisplay;
                 }
                 return me;
@@ -3832,7 +3869,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
          * WebKit RightMargin bug. The work-around is to add "display: 'inline-block'" to
          * the element before calling getComputedStyle and then to restore its original
          * display value. The problem with this is that it corrupts the selection of an
-         * INPUT or TEXTAREA element (as in the "I-beam" goes away but ths focus remains).
+         * INPUT or TEXTAREA element (as in the "I-beam" goes away but the focus remains).
          * To cleanup after this, we need to capture the selection of any such element and
          * then restore it after we have restored the display style.
          *

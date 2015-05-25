@@ -63,7 +63,7 @@
  *  # Cell Editing and Cell Selection Model
  *
  * Note that if {@link Ext.grid.plugin.CellEditing cell editing} or the {@link Ext.selection.CellModel cell selection model} are going
- * to be used, then the {@link Ext.grid.feature.RowWrap RowWrap} feature, or {@link Ext.grid.plugin.RowExpander RowExpander} plugin MUST
+ * to be used, then the {@link Ext.grid.feature.RowBody RowBody} feature, or {@link Ext.grid.plugin.RowExpander RowExpander} plugin MUST
  * be used for intra-cell navigation to be correct.
  *
  */

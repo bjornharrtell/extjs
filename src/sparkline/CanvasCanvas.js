@@ -4,18 +4,34 @@
 Ext.define('Ext.sparkline.CanvasCanvas', {
     extend: 'Ext.sparkline.CanvasBase',
 
-    constructor: function(ownerSparkLine) {
-        this.owner = ownerSparkLine;
+    statics: {
+        contextOverrides: (function () {
+            var ratio = window.devicePixelRatio || 1;
+            return {
+                moveTo: function (x, y) {
+                    this.$moveTo(x * ratio, y * ratio);
+                },
+                lineTo: function (x, y) {
+                    this.$lineTo(x * ratio, y * ratio);
+                },
+                arc: function (x, y, radius, startAngle, endAngle, counterclockwise) {
+                    this.$arc(x * ratio, y * ratio, radius * ratio, startAngle, endAngle, counterclockwise);
+                },
+                clearRect: function (x, y, width, height) {
+                    this.$clearRect(x * ratio, y * ratio, width * ratio, height * ratio);
+                }
+            };
+        })()
     },
 
     setWidth: function(width) {
         this.callParent(arguments);
-        this.owner.element.dom.width = width;
+        this.owner.element.dom.width = width * (window.devicePixelRatio || 1);
     },
 
     setHeight: function(height) {
         this.callParent(arguments);
-        this.owner.element.dom.height = height;
+        this.owner.element.dom.height = height * (window.devicePixelRatio || 1);
     },
 
     onOwnerUpdate: function() {
@@ -29,7 +45,17 @@ Ext.define('Ext.sparkline.CanvasCanvas', {
     },
 
     _getContext: function (lineColor, fillColor, lineWidth) {
-        var context = this.el.dom.getContext('2d');
+        var context = this.el.dom.getContext('2d'),
+            overrides = Ext.sparkline.CanvasCanvas.contextOverrides,
+            name;
+
+        if (!this.context) {
+            for (name in overrides) {
+                context['$' + name] = context[name];
+            }
+            Ext.apply(context, overrides);
+            this.context = context;
+        }
         if (lineColor != null) {
             context.strokeStyle = lineColor;
         }

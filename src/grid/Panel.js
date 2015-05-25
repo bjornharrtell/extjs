@@ -1,35 +1,30 @@
 /**
- * Grids are an excellent way of showing large amounts of tabular data on the client side. Essentially a supercharged
- * `<table>`, GridPanel makes it easy to fetch, sort and filter large amounts of data.
+ * Grids are an excellent way of showing large amounts of tabular data on the client side.
+ * Essentially a supercharged `<table>`, GridPanel makes it easy to fetch, sort and filter
+ * large amounts of data.
  *
- * Grids are composed of two main pieces - a {@link Ext.data.Store Store} full of data and a set of columns to render.
+ * Grids are composed of two main pieces - a {@link Ext.data.Store Store} full of data and
+ * a set of columns to render.
  *
  * ## Basic GridPanel
  *
  *     @example
  *     Ext.create('Ext.data.Store', {
- *         storeId:'simpsonsStore',
- *         fields:['name', 'email', 'phone'],
- *         data:{'items':[
- *             { 'name': 'Lisa',  "email":"lisa@simpsons.com",  "phone":"555-111-1224"  },
- *             { 'name': 'Bart',  "email":"bart@simpsons.com",  "phone":"555-222-1234" },
- *             { 'name': 'Homer', "email":"homer@simpsons.com",  "phone":"555-222-1244"  },
- *             { 'name': 'Marge', "email":"marge@simpsons.com", "phone":"555-222-1254"  }
- *         ]},
- *         proxy: {
- *             type: 'memory',
- *             reader: {
- *                 type: 'json',
- *                 rootProperty: 'items'
- *             }
- *         }
+ *         storeId: 'simpsonsStore',
+ *         fields:[ 'name', 'email', 'phone'],
+ *         data: [
+ *             { name: 'Lisa', email: 'lisa@simpsons.com', phone: '555-111-1224' },
+ *             { name: 'Bart', email: 'bart@simpsons.com', phone: '555-222-1234' },
+ *             { name: 'Homer', email: 'homer@simpsons.com', phone: '555-222-1244' },
+ *             { name: 'Marge', email: 'marge@simpsons.com', phone: '555-222-1254' }
+ *         ]
  *     });
  *
  *     Ext.create('Ext.grid.Panel', {
  *         title: 'Simpsons',
  *         store: Ext.data.StoreManager.lookup('simpsonsStore'),
  *         columns: [
- *             { text: 'Name',  dataIndex: 'name' },
+ *             { text: 'Name', dataIndex: 'name' },
  *             { text: 'Email', dataIndex: 'email', flex: 1 },
  *             { text: 'Phone', dataIndex: 'phone' }
  *         ],
@@ -38,19 +33,27 @@
  *         renderTo: Ext.getBody()
  *     });
  *
- * The code above produces a simple grid with three columns. We specified a Store which will load JSON data inline.
- * In most apps we would be placing the grid inside another container and wouldn't need to use the
- * {@link #height}, {@link #width} and {@link #renderTo} configurations but they are included here to make it easy to get
- * up and running.
+ * The code above produces a simple grid with three columns. We specified a Store which
+ * will load JSON data inline.
+ * In most apps we would be placing the grid inside another container and wouldn't need to
+ * use the {@link #height}, {@link #width} and {@link #renderTo} configurations but they
+ * are included here to make it easy to get up and running.
  *
- * The grid we created above will contain a header bar with a title ('Simpsons'), a row of column headers directly underneath
- * and finally the grid rows under the headers.
+ * The grid we created above will contain a header bar with a title ('Simpsons'), a row of
+ * column headers directly underneath and finally the grid rows under the headers.
+ *
+ * **Height config with bufferedRenderer: true**
+ *
+ * The {@link #height} config must be set when creating a grid using
+ * {@link #bufferedRenderer bufferedRenderer}: true _and_ the grid's height is not managed
+ * by an owning container layout.  In Ext JS 5.x bufferedRendering is true by default.
  *
  * ## Configuring columns
  *
- * By default, each column is sortable and will toggle between ASC and DESC sorting when you click on its header. Each
- * column header is also reorderable by default, and each gains a drop-down menu with options to hide and show columns.
- * It's easy to configure each column - here we use the same example as above and just modify the columns config:
+ * By default, each column is sortable and will toggle between ASC and DESC sorting when
+ * you click on its header. Each column header is also reorderable by default, and each
+ * gains a drop-down menu with options to hide and show columns.  It's easy to configure
+ * each column - here we use the same example as above and just modify the columns config:
  *
  *     columns: [
  *         {
@@ -72,16 +75,19 @@
  *         }
  *     ]
  *
- * We turned off sorting and hiding on the 'Name' column so clicking its header now has no effect. We also made the Email
- * column hidden by default (it can be shown again by using the menu on any other column). We also set the Phone column to
- * a fixed with of 100px and flexed the Name column, which means it takes up all remaining width after the other columns
- * have been accounted for. See the {@link Ext.grid.column.Column column docs} for more details.
+ * We turned off sorting and hiding on the 'Name' column so clicking its header now has no
+ * effect. We also made the Email column hidden by default (it can be shown again by using
+ * the menu on any other column). We also set the Phone column to a fixed with of 100px
+ * and flexed the Name column, which means it takes up all remaining width after the other
+ * columns have been accounted for. See the {@link Ext.grid.column.Column column docs} for
+ * more details.
  *
  * ## Renderers
  *
- * As well as customizing columns, it's easy to alter the rendering of individual cells using renderers. A renderer is
- * tied to a particular column and is passed the value that would be rendered into each cell in that column. For example,
- * we could define a renderer function for the email column to turn each email address into a mailto link:
+ * As well as customizing columns, it's easy to alter the rendering of individual cells
+ * using renderers. A renderer is tied to a particular column and is passed the value that
+ * would be rendered into each cell in that column. For example, we could define a
+ * renderer function for the email column to turn each email address into a mailto link:
  *
  *     columns: [
  *         {
@@ -97,26 +103,49 @@
  *
  * ## Selection Models
  *
- * Sometimes all you want is to render data onto the screen for viewing, but usually it's necessary to interact with or
- * update that data. Grids use a concept called a Selection Model, which is simply a mechanism for selecting some part of
- * the data in the grid. The two main types of Selection Model are RowSelectionModel, where entire rows are selected, and
- * CellSelectionModel, where individual cells are selected.
+ * Sometimes you simply want to render data for viewing, but usually it's
+ * necessary to interact with or update that data. Grids use a concept called a Selection
+ * Model, which is simply a mechanism for selecting some part of the data in the grid. The
+ * two main types of Selection Model are RowSelectionModel, where entire rows are
+ * selected, and CellSelectionModel, where individual cells are selected.
  *
- * Grids use a Row Selection Model by default, but this is easy to customise like so:
+ * Grids use a Row Selection Model by default, but this is easy to customize like so:
  *
  *     Ext.create('Ext.grid.Panel', {
  *         selModel: 'cellmodel',
  *         store: ...
  *     });
  *
+ *
  * Specifying the `cellmodel` changes a couple of things. Firstly, clicking on a cell now
- * selects just that cell (using a {@link Ext.selection.RowModel rowmodel} will select the entire row), and secondly the
- * keyboard navigation will walk from cell to cell instead of row to row. Cell-based selection models are usually used in
- * conjunction with editing.
+ * selects just that cell (using a {@link Ext.selection.RowModel rowmodel} will select the
+ * entire row), and secondly the keyboard navigation will walk from cell to cell instead 
+ * of row to row. Cell-based selection models are usually used in conjunction with
+ * editing.
+ *
+ * You may also utilize selModel as a config object for an instance of {@link Ext.selection.Model}.
+ *
+ * For example:
+ *
+ *     selModel: {
+ *         selType: 'cellmodel',
+ *         mode   : 'MULTI'
+ *     }
+ *
+ * This allows you to modify additional selection model configurations such as:
+ *
+ * + {@link Ext.selection.Model#mode mode} - Specifies whether user may select multiple
+ * rows or single rows
+ * + {@link Ext.selection.Model#allowDeselect allowDeselect} - Specifies whether user may
+ * deselect records (when in SINGLE mode)
+ * + {@link Ext.selection.Model#ignoreRightMouseSelection ignoreRightMouseSelection} - Specifies
+ * whether user may ignore right clicks
+ * for selection purposes
  *
  * ## Sorting & Filtering
  *
- * Every grid is attached to a {@link Ext.data.Store Store}, which provides multi-sort and filtering capabilities. It's
+ * Every grid is attached to a {@link Ext.data.Store Store}, which provides multi-sort and
+ * filtering capabilities. It's
  * easy to set up a grid to be sorted from the start:
  *
  *     var myGrid = Ext.create('Ext.grid.Panel', {
@@ -130,8 +159,9 @@
  *         ]
  *     });
  *
- * Sorting at run time is easily accomplished by simply clicking each column header. If you need to perform sorting on
- * more than one field at run time it's easy to do so by adding new sorters to the store:
+ * Sorting at run time is easily accomplished by simply clicking each column header. If
+ * you need to perform sorting on more than one field at run time it's easy to do so by
+ * adding new sorters to the store:
  *
  *     myGrid.store.sort([
  *         { property: 'name',  direction: 'ASC' },
@@ -141,12 +171,14 @@
  * See {@link Ext.data.Store} for examples of filtering.
  *
  * ## State saving
- * 
- * When configured {@link #stateful}, grids save their column state (order and width) encapsulated within the default
- * Panel state of changed width and height and collapsed/expanded state.
  *
- * Each {@link #columns column} of the grid may be configured with a {@link Ext.grid.column.Column#stateId stateId} which
- * identifies that column locally within the grid.
+ * When configured {@link #stateful}, grids save their column state (order and width)
+ * encapsulated within the default Panel state of changed width and height and
+ * collapsed/expanded state.
+ *
+ * Each {@link #columns column} of the grid may be configured with a
+ * {@link Ext.grid.column.Column#stateId stateId} which identifies that column locally
+ * within the grid.
  *
  * ## Plugins and Features
  *

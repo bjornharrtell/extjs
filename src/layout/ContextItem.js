@@ -808,7 +808,7 @@ Ext.define('Ext.layout.ContextItem', {
                 propName = animateProps[j];
                 oldValue = animateFrom[propName];
                 newValue = me.peek(propName);
-                if (oldValue != newValue) {
+                if (oldValue !== newValue) {
                     propName = me.translateProps[propName]||propName;
                     anim.from[propName] = oldValue;
                     anim.to[propName] = newValue;
@@ -890,7 +890,7 @@ Ext.define('Ext.layout.ContextItem', {
                 }
 
                 el = src[nameOrEl];
-                if (typeof el == 'function') { // ex 'getTarget'
+                if (typeof el === 'function') { // ex 'getTarget'
                     el = el.call(src);
                     if (el === me.el) {
                         return this; // comp.getTarget() often returns comp.el
@@ -944,7 +944,7 @@ Ext.define('Ext.layout.ContextItem', {
     getMarginInfo: function () {
         var me = this,
             info = me.marginInfo,
-            comp, manageMargins, margins, ownerLayout, ownerLayoutId;
+            comp, manageMargins, ownerLayout, ownerLayoutId;
 
         if (!info) {
             if (!me.wrapsComponent) {
@@ -1103,7 +1103,7 @@ Ext.define('Ext.layout.ContextItem', {
                 values[altNames[i]] = styleCache[name];
                 ++hits;
 
-                if (i && hits==1) { // if (first hit was after some misses)
+                if (i && hits === 1) { // if (first hit was after some misses)
                     missing = styleNames.slice(0, i);
                     missingAltNames = altNames.slice(0, i);
                 }
@@ -1187,7 +1187,7 @@ Ext.define('Ext.layout.ContextItem', {
     },
 
     markDirty: function () {
-        if (++this.dirtyCount == 1) {
+        if (++this.dirtyCount === 1) {
             // our first dirty property... queue us for flush
             this.context.queueFlush(this);
         }
@@ -1213,7 +1213,7 @@ Ext.define('Ext.layout.ContextItem', {
         var type = typeof margins,
             ret;
 
-        if (type == 'string' || type == 'number') {
+        if (type === 'string' || type === 'number') {
             ret = comp.parseBox(margins);
         } else if (margins) {
             ret = { top: 0, right: 0, bottom: 0, left: 0 }; // base defaults
@@ -1298,7 +1298,7 @@ Ext.define('Ext.layout.ContextItem', {
                 }
 
                 el = src[nameOrEl];
-                if (typeof el == 'function') { // ex 'getTarget'
+                if (typeof el === 'function') { // ex 'getTarget'
                     el = el.call(src);
                     if (el === me.el) {
                         return this; // comp.getTarget() often returns comp.el
@@ -1405,7 +1405,7 @@ Ext.define('Ext.layout.ContextItem', {
      */
     setContentSize: function (width, height, measured) {
         return this.setContentWidth(width, measured) +
-               this.setContentHeight(height, measured) == 2;
+               this.setContentHeight(height, measured) === 2;
     },
 
     /**
@@ -1425,7 +1425,7 @@ Ext.define('Ext.layout.ContextItem', {
             valueType = typeof value,
             info;
 
-        if (valueType == 'undefined' || (valueType === 'number' && isNaN(value))) {
+        if (valueType === 'undefined' || (valueType === 'number' && isNaN(value))) {
             return 0;
         }
         if (me.props[propName] === value) {
@@ -1608,7 +1608,7 @@ Ext.define('Ext.layout.ContextItem', {
     },
 
     writeProps: function(dirtyProps, flushing) {
-        if (!(dirtyProps && typeof dirtyProps == 'object')) {
+        if (!(dirtyProps && typeof dirtyProps === 'object')) {
             //<debug>
             Ext.Logger.warn('writeProps expected dirtyProps to be an object');
             //</debug>
@@ -1718,7 +1718,7 @@ Ext.define('Ext.layout.ContextItem', {
         addBlock: function (name, layout, propName) {
             //Ext.log(this.id,'.',propName,' ',name,': ',this.context.getLayoutName(layout));
             (layout.blockedBy || (layout.blockedBy = {}))[
-                this.id+'.'+propName+(name.substring(0,3)=='dom' ? ':dom' : '')] = 1;
+                this.id+'.'+propName+(name.substring(0,3)==='dom' ? ':dom' : '')] = 1;
 
             return this.callParent(arguments);
         },
@@ -1728,7 +1728,7 @@ Ext.define('Ext.layout.ContextItem', {
                 boxChildren = this.boxChildren,
                 boxParents;
 
-            if (boxChildren && boxChildren.length == 1) {
+            if (boxChildren && boxChildren.length === 1) {
                 // the boxParent collection is created by the run override found in
                 // Ext.diag.layout.Context, but IE sometimes does not load that override, so
                 // we work around it for now
@@ -1762,7 +1762,7 @@ Ext.define('Ext.layout.ContextItem', {
                 ok,
                 setBy;
 
-            if (layout == me.target.ownerLayout) {
+            if (layout === me.target.ownerLayout) {
                 // the ownerLayout is only allowed to set calculated dimensions
                 ok = model.calculated;
             } else if (layout.isComponentLayout) {
@@ -1784,7 +1784,7 @@ Ext.define('Ext.layout.ContextItem', {
         clearBlocks: function (name, propName) {
             var collection = this[name],
                 blockedLayouts = collection && collection[propName],
-                key = this.id+'.'+propName+(name.substring(0,3)=='dom' ? ':dom' : ''),
+                key = this.id + '.' + propName + (name.substring(0,3)==='dom' ? ':dom' : ''),
                 layout, layoutId;
 
             if (blockedLayouts) {
@@ -1845,13 +1845,13 @@ Ext.define('Ext.layout.ContextItem', {
                 setByProps = me.setBy || (me.setBy = {});
                 if (!setByProps[propName]) {
                     setByProps[propName] = setBy;
-                } else if (setByProps[propName] != setBy) {
+                } else if (setByProps[propName] !== setBy) {
                     Ext.log({level: 'warn'}, 'BAD! ', fullName, ' set by ', setByProps[propName], ' and ', setBy);
                 }
             }
 
             if (me.context.logOn.setProp) {
-                if (typeof value != 'undefined' && !isNaN(value) && me.props[propName] !== value) {
+                if (typeof value !== 'undefined' && !isNaN(value) && me.props[propName] !== value) {
                     Ext.log('set ', fullName, ' = ', value, ' (', dirty, ')');
                 }
             }
@@ -1925,6 +1925,7 @@ Ext.define('Ext.layout.ContextItem', {
         'padding-left':         px,
 
         'line-height':          isDom,
-        display:                isDom
+        display:                isDom,
+        clear:                isDom
     };
 });

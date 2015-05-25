@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.grid.NavigationModel', {
     override: 'Ext.grid.NavigationModel',
     

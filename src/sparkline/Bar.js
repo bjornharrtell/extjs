@@ -38,7 +38,7 @@ Ext.define('Ext.sparkline.Bar', {
         
         /**
          * @cfg {String} [nullColor] The bar color for null values. Usually null values are omitted and not plotted. Setting
-         * this config causes a very thin bar to be plotted with the special color in the case thath null is a meaningful value in the series.
+         * this config causes a very thin bar to be plotted with the special color in the case that null is a meaningful value in the series.
          */
         nullColor: null,
         
@@ -75,7 +75,7 @@ Ext.define('Ext.sparkline.Bar', {
         chartRangeClip: false,
         
         /**
-         * @cfg {} []
+         * @inheritdoc Ext.sparkline.TriState
          */
         colorMap: null,
         
@@ -97,7 +97,9 @@ Ext.define('Ext.sparkline.Bar', {
     all: function(arr, val, ignoreNull) {
         var i;
         for (i = arr.length; i--; ) {
-            if (ignoreNull && arr[i] === null) continue;
+            if (ignoreNull && arr[i] === null) {
+                continue;
+            }
             if (arr[i] !== val) {
                 return false;
             }
@@ -216,7 +218,7 @@ Ext.define('Ext.sparkline.Bar', {
 
         if (min <= 0 && max >= 0 && zeroAxis) {
             xAxisOffset = 0;
-        } else if (zeroAxis == false) {
+        } else if (!zeroAxis) {
             xAxisOffset = min;
         } else if (min > 0) {
             xAxisOffset = min;

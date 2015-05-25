@@ -27,6 +27,30 @@ $splitter-active-opacity: .8 !default;
 $splitter-active-collapse-tool-opacity: .3 !default;
 
 /**
+ * @var {color}
+ * The color of the outline around the splitter when it is focused
+ */
+$splitter-focus-outline-color: $base-color !default;
+
+/**
+ * @var {string}
+ * The outline-style of the splitter when it is focused
+ */
+$splitter-focus-outline-style: solid !default;
+
+/**
+ * @var {number}
+ * The outline-width of the splitter when it is focused
+ */
+$splitter-focus-outline-width: 1px !default;
+
+/**
+ * @var {number}
+ * The outline-offset of the splitter when it is focused
+ */
+$splitter-focus-outline-offset: -$splitter-focus-outline-width !default;
+
+/**
  * @var {string}
  * The the type of cursor to display when the cursor is over the collapse tool
  */

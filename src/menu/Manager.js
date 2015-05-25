@@ -11,22 +11,80 @@ Ext.define('Ext.menu.Manager', {
     alternateClassName: 'Ext.menu.MenuMgr',
 
     uses: ['Ext.menu.Menu'],
-    
+
     groups: {},
 
+    visible: [],
+
     /**
-     * Hides all menus that are currently visible
+     * @private
+     */
+    constructor: function() {
+        var me = this;
+
+        // Lazily create the mousedown listener on first menu show
+        me.onShow = function () {
+            delete me.onShow; // remove this hook
+            // Use the global mousedown event that gets fired even if propagation is stopped
+            Ext.on('mousedown', me.checkActiveMenus, me);
+            return me.onShow.apply(me, arguments); // do the real thing
+        };
+    },
+
+    checkActiveMenus: function(e) {
+        var allMenus = this.visible,
+            len = allMenus.length,
+            i, menu;
+
+        if (len) {
+            // Clone here, we may modify this collection while the loop is active
+            allMenus = allMenus.slice();
+            for (i = 0; i < len; ++i) {
+                menu = allMenus[i];
+                if (!menu.owns(e)) {
+                    menu.hide();
+                }
+            }
+        }
+    },
+
+    /**
+     * {@link Ext.menu.Menu#afterShow} adds itself to the visible list here.
+     * @private
+     */
+    onShow: function(menu) {
+        if (menu.floating) {
+            Ext.Array.include(this.visible, menu);
+        }
+    },
+
+    /**
+     * {@link Ext.menu.Menu#onHide} removes itself from the visible list here.
+     * @private
+     */
+    onHide: function(menu) {
+        if (menu.floating) {
+            Ext.Array.remove(this.visible, menu);
+        }
+    },
+
+    /**
+     * Hides all floating menus that are currently visible
      * @return {Boolean} success True if any active menus were hidden.
      */
     hideAll: function() {
-        var allMenus = Ext.ComponentQuery.query('menu[floating]:not([hidden])'),
+        var allMenus = this.visible,
             len = allMenus.length,
-            i,
-            result = false;
+            result = false,
+            i;
 
-        for (i = 0; i < len; i++) {
-            allMenus[i].hide();
-            result = true;
+        if (len) {
+            // Clone here, we may modify this collection while the loop is active
+            allMenus = allMenus.slice();
+            for (i = 0; i < len; i++) {
+                allMenus[i].hide();
+                result = true;
+            }
         }
         return result;
     },

@@ -76,6 +76,39 @@ Ext.define('Ext.resizer.SplitterTracker', {
         splitter.addCls(splitter.baseCls + '-active');
     },
 
+    onResizeKeyDown: function(e) {
+        var me = this,
+            splitter = me.getSplitter(),
+            key = e.getKey(),
+            incrIdx = splitter.orientation === 'vertical' ? 0 : 1,
+            incr = key === e.UP || key === e.LEFT ? -1 : 1,
+            easing;
+
+        if (!me.active && me.onBeforeStart(e)) {
+            Ext.fly(e.target).on('keyup', me.onResizeKeyUp, me);
+            me.triggerStart(e);
+            me.onMouseDown(e);
+            me.startXY = splitter.getXY();
+            me.lastKeyDownXY = Ext.Array.slice(me.startXY);
+
+            // Movement increment eases to 4 over two seconds.
+            easing = me.easing = new Ext.fx.easing.Linear();
+            easing.setStartTime(Ext.Date.now());
+            easing.setStartValue(1);
+            easing.setEndValue(4);
+            easing.setDuration(2000);
+        }
+        if (me.active) {
+            me.lastKeyDownXY[incrIdx] = Math.round(me.lastKeyDownXY[incrIdx] + (incr * me.easing.getValue()));
+            me.lastXY = me.lastKeyDownXY;
+            splitter.setXY(me.getXY('dragTarget'));
+        }
+    },
+
+    onResizeKeyUp: function(e) {
+        this.onMouseUp(e);
+    },
+
     // calculate the constrain Region in which the splitter el may be moved.
     calculateConstrainRegion: function() {
         var me         = this,

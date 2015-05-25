@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.menu.CheckItem', {
     override: 'Ext.menu.CheckItem',
     
@@ -10,5 +11,12 @@ Ext.define('Ext.aria.menu.CheckItem', {
         attrs['aria-checked'] = me.menu ? 'mixed' : !!me.checked;
         
         return attrs;
+    },
+
+    setChecked: function(checked, suppressEvents) {
+        this.callParent([checked, suppressEvents]);
+        this.ariaUpdate({
+            'aria-checked': checked
+        });
     }
 });

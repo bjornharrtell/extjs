@@ -43,8 +43,8 @@ Ext.define('Ext.state.Provider', {
      * @return {Object} The state data
      */
     get : function(name, defaultValue){
-        return typeof this.state[name] == "undefined" ?
-            defaultValue : this.state[name];
+        var ret = this.state[name];
+        return ret === undefined ? defaultValue : ret;
     },
 
     /**
@@ -86,14 +86,9 @@ Ext.define('Ext.state.Provider', {
         var me = this,
             re = /^(a|n|d|b|s|o|e)\:(.*)$/,
             matches = re.exec(unescape(value)),
-            all,
-            type,
-            keyValue,
-            values,
-            vLen,
-            v;
+            all, type, keyValue, values, vLen, v;
             
-        if(!matches || !matches[1]){
+        if (!matches || !matches[1]) {
             return; // non state
         }
         
@@ -107,10 +102,10 @@ Ext.define('Ext.state.Provider', {
             case 'd':
                 return new Date(Date.parse(value));
             case 'b':
-                return (value == '1');
+                return (value === '1');
             case 'a':
                 all = [];
-                if(value != ''){
+                if (value) {
                     values = value.split('^');
                     vLen   = values.length;
 
@@ -122,7 +117,7 @@ Ext.define('Ext.state.Provider', {
                 return all;
            case 'o':
                 all = {};
-                if(value != ''){
+                if (value) {
                     values = value.split('^');
                     vLen   = values.length;
 
@@ -146,29 +141,27 @@ Ext.define('Ext.state.Provider', {
     encodeValue : function(value){
         var flat = '',
             i = 0,
-            enc,
-            len,
-            key;
+            enc, len, key;
             
         if (value == null) {
             return 'e:1';    
-        } else if(typeof value == 'number') {
+        } else if(typeof value === 'number') {
             enc = 'n:' + value;
-        } else if(typeof value == 'boolean') {
+        } else if(typeof value === 'boolean') {
             enc = 'b:' + (value ? '1' : '0');
         } else if(Ext.isDate(value)) {
             enc = 'd:' + value.toUTCString();
         } else if(Ext.isArray(value)) {
             for (len = value.length; i < len; i++) {
                 flat += this.encodeValue(value[i]);
-                if (i != len - 1) {
+                if (i !== len - 1) {
                     flat += '^';
                 }
             }
             enc = 'a:' + flat;
-        } else if (typeof value == 'object') {
+        } else if (typeof value === 'object') {
             for (key in value) {
-                if (typeof value[key] != 'function' && value[key] !== undefined) {
+                if (typeof value[key] !== 'function' && value[key] !== undefined) {
                     flat += key + '=' + this.encodeValue(value[key]) + '^';
                 }
             }

@@ -60,17 +60,17 @@ Ext.define('Ext.slider.Single', {
      * maxValue.
      * @param {Number} value The value to set the slider to. (This will be constrained within minValue and maxValue)
      * @param {Object/Boolean} [animate] `false` to not animate. `true` to use the default animation. This may also be an
-     * animate configuration object, see {@link #animate}. If this configuration is omitted, the {@link #animate} configuration
+     * animate configuration object, see {@link #cfg-animate}. If this configuration is omitted, the {@link #cfg-animate} configuration
      * will be used.
      */
     setValue: function(value, animate) {
         var args = arguments,
             len  = args.length;
 
-        // this is to maintain backwards compatiblity for sliders with only one thunb. Usually you must pass the thumb
+        // this is to maintain backwards compatibility for sliders with only one thumb. Usually you must pass the thumb
         // index to setValue, but if we only have one thumb we inject the index here first if given the multi-slider
         // signature without the required index. The index will always be 0 for a single slider
-        if (len == 1 || (len <= 3 && typeof args[1] != 'number')) {
+        if (len === 1 || (len <= 3 && typeof args[1] !== 'number')) {
             args = Ext.toArray(args);
             args.unshift(0);
         }

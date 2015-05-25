@@ -1,6 +1,7 @@
 /**
  * Creates a visual theme for text fields.  Note this mixin only provides styling
- * For the form field body, The label and error are styled by {@link #extjs-label}.
+ * For the form field body, The label and error are styled by
+ * {@link Ext.form.Labelable#css_mixin-extjs-label-ui}.
  *
  * @param {string} $ui
  * The name of the UI being created. Can not included spaces or special punctuation

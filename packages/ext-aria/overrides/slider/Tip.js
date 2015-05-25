@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.slider.Tip', {
     override: 'Ext.slider.Tip',
     

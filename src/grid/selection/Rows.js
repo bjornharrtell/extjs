@@ -79,7 +79,7 @@ Ext.define('Ext.grid.selection.Rows', {
     /**
      * Returns `true` if the passed {@link Ext.data.Model record} is selected.
      * @param {Ext.data.Model} record The record to test.
-     * @returns {Boolean} `true` if the passed {@link Ext.data.Model record} is selected.
+     * @return {Boolean} `true` if the passed {@link Ext.data.Model record} is selected.
      */
     contains: function (record) {
         if (!record || !record.isModel) {
@@ -118,7 +118,7 @@ Ext.define('Ext.grid.selection.Rows', {
 
     /**
      * Returns the number of records selected
-     * @returns {Number} The number of records selected.
+     * @return {Number} The number of records selected.
      */
     getCount: function() {
         var me = this,
@@ -139,7 +139,7 @@ Ext.define('Ext.grid.selection.Rows', {
 
     /**
      * Returns the records selected.
-     * @returns {Ext.data.Model[]} The records selected.
+     * @return {Ext.data.Model[]} The records selected.
      */
     getRecords: function() {
         var selectedRecords = this.selectedRecords;
@@ -233,6 +233,34 @@ Ext.define('Ext.grid.selection.Rows', {
                     }
                 });
             }
+        }
+    },
+
+    /**
+     * This method is called to indicate the start of multiple changes to the selected row set.
+     *
+     * Internally this method increments a counter that is decremented by `{@link #endUpdate}`. It
+     * is important, therefore, that if you call `beginUpdate` directly you match that
+     * call with a call to `endUpdate` or you will prevent the collection from updating
+     * properly.
+     */
+    beginUpdate: function() {
+        var selectedRecords = this.selectedRecords;
+        
+        if (selectedRecords) {
+            selectedRecords.beginUpdate();
+        }
+    },
+
+    /**
+     * This method is called after modifications are complete on a selected row set. For details
+     * see `{@link #beginUpdate}`.
+     */
+    endUpdate: function() {
+        var selectedRecords = this.selectedRecords;
+        
+        if (selectedRecords) {
+            selectedRecords.endUpdate();
         }
     },
 

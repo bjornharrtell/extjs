@@ -123,9 +123,6 @@ Ext.define('KitchenSink.view.charts.financial.Candlestick', {
                         fill: 'rgb(55,153,19)',
                         stroke: 'rgb(55,153,19)'
                     }
-                },
-                aggregator: {
-                    strategy: 'time'
                 }
             }
         ],

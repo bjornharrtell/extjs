@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.form.field.Number', {
     override: 'Ext.form.field.Number',
 

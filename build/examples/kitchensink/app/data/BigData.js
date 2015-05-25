@@ -6,8 +6,8 @@ Ext.define('KitchenSink.data.BigData', {
     function process (data) {
         for (var i = 0; i < data.length; ++i) {
             var d = data[i];
-            d.ratingLastYear = Math.round(d.rating[0] / 2);
-            d.ratingThisYear = Math.round(d.rating[d.rating.length - 1] / 2);
+            d.ratingLastYear = Math.max(Math.round(d.rating[0] / 2), 1);
+            d.ratingThisYear = Math.max(Math.round(d.rating[d.rating.length - 1] / 2), 1);
         }
         return data;
     }

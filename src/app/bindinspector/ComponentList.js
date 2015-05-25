@@ -84,8 +84,7 @@ Ext.define('Ext.app.bindinspector.ComponentList', {
                     clear: {
                         cls: Ext.baseCSSPrefix + 'form-clear-trigger',
                         handler: function(field) {
-                            var tree = field.up('treepanel'),
-                                store = tree.store;
+                            var tree = field.up('treepanel');
 
                             field.reset();
                             tree.clearComponentFilter();
@@ -146,7 +145,7 @@ Ext.define('Ext.app.bindinspector.ComponentList', {
                 text: 'Clear VM Filter',
                 // restores the original filter toolbar
                 handler: function () {
-                    console.log(this.up('#vmQueryResultsTb'));
+                    //console.log(this.up('#vmQueryResultsTb'));
                     var tb = this.up('#vmQueryResultsTb'),
                         componentList = tb.up('bindinspector-componentlist'),
                         queryTb = componentList.down('#queryFieldTb'),
@@ -316,7 +315,7 @@ Ext.define('Ext.app.bindinspector.ComponentList', {
                     var children = node.childNodes,
                         length = children && children.length,
                         visible = false,
-                        prop, j;
+                        j;
 
                     if (isQuery || valIsArray) {
                         visible = Ext.Array.contains(ids, node.get('id'));

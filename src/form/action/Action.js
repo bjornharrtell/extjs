@@ -61,20 +61,25 @@ Ext.define('Ext.form.action.Action', {
      */
 
     /**
-     * @cfg {Function} success
+     * @cfg {Function/String} success
      * The function to call when a valid success return packet is received.
      * @cfg {Ext.form.Basic} success.form The form that requested the action
      * @cfg {Ext.form.action.Action} success.action The Action class. The {@link #result} property of this object may
-     * be examined to perform custom postprocessing.
+     * be examined to perform custom post-processing.
+     * 
+     * @declarativeHandler
      */
 
     /**
-     * @cfg {Function} failure
-     * The function to call when a failure packet was received, or when an error ocurred in the Ajax communication.
+     * @cfg {Function/String} failure
+     * The function to call when a failure packet was received, or when an error 
+     * occurred in the Ajax communication.
      * @cfg {Ext.form.Basic} failure.form The form that requested the action
-     * @cfg {Ext.form.action.Action} failure.action The Action class. If an Ajax error ocurred, the failure type will
-     * be in {@link #failureType}. The {@link #result} property of this object may be examined to perform custom
-     * postprocessing.
+     * @cfg {Ext.form.action.Action} failure.action The Action class. If an Ajax error 
+     * occurred, the failure type will be in {@link #failureType}. The {@link #result} 
+     * property of this object may be examined to perform custom post-processing.
+     * 
+     * @declarativeHandler
      */
 
     /**

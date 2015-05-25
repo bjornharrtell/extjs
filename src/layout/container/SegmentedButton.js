@@ -1,3 +1,7 @@
+/**
+ * This class is used internally to manage the layout of `Ext.button.Segmented`.
+ * @private
+ */
 Ext.define('Ext.layout.container.SegmentedButton', {
     extend: 'Ext.layout.container.Container',
     alias: 'layout.segmentedbutton',
@@ -17,7 +21,7 @@ Ext.define('Ext.layout.container.SegmentedButton', {
                 result[i] = {
                     cls: me._btnRowCls,
                     cn: result[i]
-                }
+                };
             }
         }
 

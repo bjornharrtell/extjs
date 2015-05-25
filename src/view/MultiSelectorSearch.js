@@ -75,6 +75,16 @@ Ext.define('Ext.view.MultiSelectorSearch', {
     referenceHolder: true,
 
     /**
+     * @cfg {String} field
+     * A field from your grid's store that will be used for filtering your search results.
+     */
+
+    /**
+     * @cfg store
+     * @inheritdoc Ext.panel.Table#store
+     */
+
+    /**
      * @cfg {String} searchText
      * This text is displayed as the "emptyText" of the search `textfield`.
      */
@@ -127,9 +137,24 @@ Ext.define('Ext.view.MultiSelectorSearch', {
         }
 
         if (store.isLoading() || (store.loadCount === 0 && !store.getCount())) {
+
+            // If it is NOT a preloaded store, then unless a Session is being used,
+            // The newly loaded records will NOT match any in the ownerStore.
+            // So we must match them by ID in order to select the same dataset.
             store.on('load', function() {
-                if (!me.isDestroyed) {
-                    me.selectRecords(records);
+                var len = records.length,
+                    i,
+                    record,
+                    toSelect = [];
+
+                if (!me.destroyed) {
+                    for (i = 0; i < len; i++) {
+                        record = store.getById(records[i].getId());
+                        if (record) {
+                            toSelect.push(record);
+                        }
+                    }
+                    me.selectRecords(toSelect);
                 }
             }, null, {single: true});
         } else {

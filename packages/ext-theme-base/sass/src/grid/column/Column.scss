@@ -21,19 +21,29 @@
     }
 }
 
+// The default case for column headers is to have a fixed width. Auto width can only done
+// by specifying width: null which is rare
 .#{$prefix}column-header-text-container {
     width: 100%;
-    display: table
+    display: table;
+    table-layout: fixed;
+
+    &.#{$prefix}column-header-text-container-auto {
+        table-layout: auto;
+    }
 }
 
 .#{$prefix}column-header-text-wrapper {
     display: table-cell;
-    vertical-align:middle
+    vertical-align: middle;
 }
 
 .#{$prefix}column-header-text {
-    white-space: nowrap;
     background-repeat: no-repeat;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 @if $include-ie and $include-rtl {

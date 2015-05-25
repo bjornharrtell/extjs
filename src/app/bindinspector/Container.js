@@ -135,7 +135,7 @@ Ext.define('Ext.app.bindinspector.Container', {
                                 if (Ext.isArray(token)) {
                                     Ext.Array.forEach(token, function (t) {
                                         tokenStr.push(t);
-                                    })
+                                    });
                                 } else {
                                     tokenStr.push(token);
                                 }

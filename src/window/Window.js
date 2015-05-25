@@ -49,12 +49,6 @@ Ext.define('Ext.window.Window', {
      */
 
     /**
-     * @cfg {Boolean} [modal=false]
-     * True to make the window modal and mask everything behind it when displayed, false to display it without
-     * restricting access to other UI elements.
-     */
-
-    /**
      * @cfg {String/Ext.dom.Element} [animateTarget=null]
      * Id or element from which the window should animate while opening.
      */
@@ -204,7 +198,8 @@ Ext.define('Ext.window.Window', {
     constrainHeader: false,
 
     /**
-     * @cfg simpleDrag @hide
+     * @cfg simpleDrag
+     * @hide
      */
 
     /**
@@ -376,6 +371,23 @@ Ext.define('Ext.window.Window', {
         return elConfig;
     },
 
+    /**
+     * @protected
+     * Returns the focus holder element associated with this Window.
+     * By default, this is the Window's element; this can be overridden
+     * by setting {@link #defaultFocus} property.
+     *
+     * @return {Ext.dom.Element/Ext.Component} the focus holding element or Component.
+     */
+    getFocusEl: function() {
+        var me = this;
+
+        // If the legacy FocusManager is enabled, then we must not focus
+        // the defaultFocus child. We must focus the Window instead, to
+        // let FocusManager do its thing.
+        return Ext.enableFocusManager ? me.el : (me.getDefaultFocus() || me.el);
+    },
+
     // State Management
 
     // @private
@@ -477,7 +489,8 @@ Ext.define('Ext.window.Window', {
 
     // @private
     onEsc: function(k, e) {
-        var mgr = Ext['FocusManager'];
+        // hide the dependency from Cmd
+        var mgr = Ext['FocusManager']; // jshint ignore:line
 
         // Only process ESC if the FocusManager is not doing it
         if (!Ext.enableFocusManager || mgr.focusedCmp === this) {
@@ -510,8 +523,7 @@ Ext.define('Ext.window.Window', {
      */
     addTools: function() {
         var me = this,
-            tools = [],
-            noArgs = [];
+            tools = [];
 
         // Call Panel's addTools
         me.callParent();
@@ -557,7 +569,7 @@ Ext.define('Ext.window.Window', {
         // Being called as callback after going through the hide call below
         if (me.hidden) {
             me.fireEvent('close', me);
-            if (me.closeAction == 'destroy') {
+            if (me.closeAction === 'destroy') {
                 me.destroy();
             }
         } else {
@@ -671,11 +683,11 @@ Ext.define('Ext.window.Window', {
             me.expand(false);
             if (!me.hasSavedRestore) {
                 restore = me.restoreSize = {
-                    width: Ext.isNumber(width) ? width : null,
-                    height: Ext.isNumber(height) ? height : null
+                    width:  width ? width : null,
+                    height: height ? height : null
                 };
 
-                me.restorePos = me.getPosition(true);
+                me.restorePos = me.getPosition();
             }
 
             // Manipulate visibility of header tools if there is a header
@@ -874,23 +886,6 @@ Ext.define('Ext.window.Window', {
     },
 
     privates: {
-        /**
-         * @private
-         * Returns the focus holder element associated with this Window.
-         * By default, this is the Window's element; this can be overridden
-         * by setting {@link #defaultFocus} property.
-         *
-         * @return {Ext.dom.Element/Ext.Component} the focus holding element or Component.
-         */
-        getFocusEl: function() {
-            var me = this;
-
-            // If the legacy FocusManager is enabled, then we must not focus
-            // the defaultFocus child. We must focus the Window instead, to
-            // let FocusManager do its thing.
-            return Ext.enableFocusManager ? me.el : (me.getDefaultFocus() || me.el);
-        },
-
         // Override. Windows are always simple draggable, they do not use Ext.Panel.DDs
         // The dd property in a Window is always a ComponentDragger
         initDraggable: function() {

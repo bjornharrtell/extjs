@@ -145,7 +145,7 @@ Ext.define('Ext.sparkline.Base', {
         tooltipPrefix: '',
         
         /*
-         * @cfg {String} [tooltipPrefix] A string to append to each field displayed in a tooltip.
+         * @cfg {String} [tooltipSuffix] A string to append to each field displayed in a tooltip.
          */
         tooltipSuffix: '',
         
@@ -417,7 +417,7 @@ Ext.define('Ext.sparkline.Base', {
             entries = [],
             tipTpl = me.getTipTpl(),
             fields, showFields, showFieldsKey, newFields, fv,
-            formatter, fieldlen, j;
+            formatter, fieldlen, i, j;
 
         fields = me.getRegionFields(region);
         formatter = me.tooltipFormatter;
@@ -438,7 +438,7 @@ Ext.define('Ext.sparkline.Base', {
             newFields = [];
             for (i = fields.length; i--;) {
                 fv = fields[i][showFieldsKey];
-                if ((j = Ext.Array.indexOf(fv, showFields)) != -1) {
+                if ((j = Ext.Array.indexOf(fv, showFields)) !== -1) {
                     newFields[j] = fields[i];
                 }
             }
@@ -492,21 +492,21 @@ Ext.define('Ext.sparkline.Base', {
         delete this.redrawQueue[this.getId()];
         this.callParent();
     }
-}, function(cls) {
-    var proto = cls.prototype;
+}, function(SparklineBase) {
+    var proto = SparklineBase.prototype;
 
-    Ext.onReady(function() {
+    Ext.onInternalReady(function() {
         proto.tooltip = new Ext.tip.ToolTip({
             id: 'sparklines-tooltip',
             target: document.body,
-            delegate: '.' + cls.sparkLineTipClass,
+            delegate: '.' + SparklineBase.sparkLineTipClass,
             showDelay: 0,
             dismissDelay: 0,
             hideDelay: 400
         });
     });
 
-    cls.onClassCreated(cls);
+    SparklineBase.onClassCreated(SparklineBase);
     
     proto.processRedrawQueue = function () {
         var redrawQueue = proto.redrawQueue,
@@ -518,4 +518,33 @@ Ext.define('Ext.sparkline.Base', {
         proto.redrawQueue = {};
         proto.redrawTimer = 0;
     };
+
+    // If we are on a VML platform (IE8 - TODO: remove this when that retires)...
+    if (!Ext.supports.Canvas) {
+        SparklineBase.prototype.element = {
+            tag: 'span',
+            reference: 'element',
+            listeners: {
+                mouseenter: 'onMouseEnter',
+                mouseleave: 'onMouseLeave',
+                mousemove: 'onMouseMove'
+            },
+            style: {
+                display: 'inline-block',
+                position: 'relative',
+                overflow: 'hidden',
+                margin: '0px',
+                padding: '0px',
+                verticalAlign: 'top',
+                cursor: 'default'
+            },
+            children: [{
+                tag: 'svml:group',
+                reference: 'groupEl',
+                coordorigin: '0 0',
+                coordsize: '0 0',
+                style: 'position:absolute;width:0;height:0;pointer-events:none'
+            }]
+        };
+    }
 });

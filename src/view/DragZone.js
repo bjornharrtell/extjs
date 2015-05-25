@@ -58,7 +58,7 @@ Ext.define('Ext.view.DragZone', {
     },
 
     onValidDrop: function(target, e, id) {
-        this.callParent();
+        this.callParent([target, e, id]);
         // focus the view that the node was dropped onto so that keynav will be enabled.
         target.el.focus();
     },

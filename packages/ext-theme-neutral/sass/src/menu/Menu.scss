@@ -1,4 +1,4 @@
-/*
+/**
  * Creates a visual theme for a Menu.
  *
  * @param {string} $ui
@@ -40,6 +40,9 @@
  *
  * @param {string} [$ui-item-cursor=$menu-item-cursor]
  * The style of cursor to display when the cursor is over a {@link Ext.menu.Item Menu Item}
+ *
+ * @param {string} [$ui-item-disabled-cursor=$menu-item-disabled-cursor]
+ * The style of cursor to display when the cursor is over a disabled {@link Ext.menu.Item Menu Item}
  *
  * @param {color} [$ui-item-active-background-color=$menu-item-active-background-color]
  * The background-color of the active {@link Ext.menu.Item Menu Item}
@@ -149,15 +152,15 @@
  *
  * @param {number} [$ui-scroller-opacity=$menu-scroller-opacity]
  * The opacity of Menu scroller buttons. Only applicable when
- * {@link $menu-classic-scrollers} is `false`.
+ * {@link #$menu-classic-scrollers} is `false`.
  *
  * @param {number} [$ui-scroller-opacity-over=$menu-scroller-opacity-over]
  * The opacity of hovered Menu scroller buttons. Only applicable when
- * {@link $menu-classic-scrollers} is `false`.
+ * {@link #$menu-classic-scrollers} is `false`.
  *
  * @param {number} [$ui-scroller-opacity-pressed=$menu-scroller-opacity-pressed]
  * The opacity of pressed Menu scroller buttons. Only applicable when
- * {@link $menu-classic-scrollers} is `false`.
+ * {@link #$menu-classic-scrollers} is `false`.
  *
  * @param {number} [$ui-scroller-opacity-disabled=$menu-scroller-opacity-disabled]
  * The opacity of disabled Menu scroller buttons.
@@ -217,7 +220,8 @@
     $ui-scroller-opacity-over: $menu-scroller-opacity-over,
     $ui-scroller-opacity-pressed: $menu-scroller-opacity-pressed,
     $ui-scroller-opacity-disabled: $menu-scroller-opacity-disabled,
-    $ui-classic-scrollers: $menu-classic-scrollers
+    $ui-classic-scrollers: $menu-classic-scrollers,
+    $ui-item-disabled-cursor: $menu-item-disabled-cursor
 ) {
 
     $ui-item-arrow-top: round(($ui-item-height - vertical($ui-item-border-width) - $ui-item-arrow-height) / 2) !default;
@@ -274,6 +278,14 @@
                     background: $ui-item-active-background-color repeat-x left top;
                     background-image: slicer-background-image(menu-item-#{$ui}-active, 'menu/menu-item-#{$ui}-active-bg');
                 }
+            }
+        }
+
+        &.#{$prefix}menu-item-disabled {
+            cursor: $ui-item-disabled-cursor;
+
+            a {
+                cursor: $ui-item-disabled-cursor;
             }
         }
 
@@ -341,6 +353,10 @@
 
         &.#{$prefix}menu-item-indent-right-arrow {
             margin-right: $ui-item-indent-right-arrow;
+        }
+
+        .#{$prefix}menu-item-disabled & {
+            cursor: $ui-item-disabled-cursor;
         }
     }
 

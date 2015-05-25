@@ -32,7 +32,7 @@ Ext.define('KitchenSink.Application', {
         Ext.setGlyphFontFamily('Pictos');
         Ext.tip.QuickTipManager.init();
         
-        if (!Ext.microloaderTags.test) {
+        if (!Ext.platformTags.test) {
             Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
         }
     }

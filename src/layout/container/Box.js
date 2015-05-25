@@ -50,8 +50,8 @@ Ext.define('Ext.layout.container.Box', {
          * - **left** : Same as **begin**.
          * - **top** : Same as **begin**.
          * - **center** : Same as **middle**.
-         * - **right** : Samas as **end**.
-         * - **bottom** : Samas as **end**.
+         * - **right** : Same as **end**.
+         * - **bottom** : Same as **end**.
          */
         align: 'begin', // end, middle, stretch, strechmax
 
@@ -97,7 +97,7 @@ Ext.define('Ext.layout.container.Box', {
         overflowHandler: {
             $value: null,
             merge: function(newValue, oldValue) {
-                if (typeof newValue == 'string') {
+                if (typeof newValue === 'string') {
                     newValue = {
                         type: newValue
                     };
@@ -158,8 +158,13 @@ Ext.define('Ext.layout.container.Box', {
         vertical: false,
 
         /**
-         * @cfg {"round"/"floor"/"ceil"} [alignRoundingMethod='round'] The Math method to
-         * use for rounding fractional pixels when `{@link #align}:middle` is used.
+         * @cfg {"round"/"floor"/"ceil"} [alignRoundingMethod='round'] The Math method 
+         * to use for rounding fractional pixels when `{@link #align}:middle` is used.  
+         * The possible values are:
+         * 
+         *  - [round](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round)
+         *  - [floor](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor)
+         *  - [ceil](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil)
          */
         alignRoundingMethod: 'round'
     },
@@ -412,13 +417,10 @@ Ext.define('Ext.layout.container.Box', {
 
         ownerContext.ownerScrollable = scrollable = owner.getScrollable();
         if (scrollable) {
-            scrollPos = scrollable.getPosition();
-            ownerContext.scrollRestore = {};
             // If we have a scrollable, save the positions regardless of whether we can scroll in that direction
             // since the scrollable may be configured with x: false, y: false, which means it can only be
             // controlled programmatically
-            ownerContext.scrollRestore[names.x] = scrollPos[names.x];
-            ownerContext.scrollRestore[names.y] = scrollPos[names.y];
+            ownerContext.scrollRestore = scrollable.getPosition();
         }
 
         // Don't allow sizes burned on to the innerCt to influence measurements.
@@ -622,9 +624,7 @@ Ext.define('Ext.layout.container.Box', {
             needsScroll = state.needsScroll,
             canScroll = state.canScroll,
             plan = state.boxPlan || (state.boxPlan = {}),
-            overflowHandler = me.overflowHandler,
-            parallelShrinkWrap = ownerContext.parallelSizeModel.shrinkWrap,
-            perpendicularShrinkWrap = ownerContext.perpendicularSizeModel.shrinkWrap;
+            overflowHandler = me.overflowHandler;
 
         plan.targetSize = me.getContainerSize(ownerContext);
 
@@ -913,7 +913,7 @@ Ext.define('Ext.layout.container.Box', {
                 // 1) Not shrink wrapping height, so the height is not determined by the children
                 // 2) Constrain is set
                 // 3) The child item is shrink wrapping
-                // 4) It execeeds the max
+                // 4) It exceeds the max
                 if (!heightShrinkWrap && constrain && childContext[names.heightModel].shrinkWrap && childHeight > availHeight) {
                     childContext.invalidate({
                         before: onBeforeInvalidateChild,
@@ -971,7 +971,7 @@ Ext.define('Ext.layout.container.Box', {
                 ownerContext.targetContext.getPaddingInfo()[heightName]);
 
         // We have to publish the contentHeight with the additional scrollbarHeight
-        // to encourage our container to accomodate it, but we must remove the height
+        // to encourage our container to accommodate it, but we must remove the height
         // of the scrollbar as we go to sizing or centering the children.
         if (shrinkWrapParallelOverflow) {
             maxHeight -= scrollbarHeight;
@@ -1137,7 +1137,7 @@ Ext.define('Ext.layout.container.Box', {
             invalidateScrollX = ownerContext.invalidateScrollX,
             invalidateScrollY = ownerContext.invalidateScrollY,
             overflowHandler = me.overflowHandler,
-            restoreScroll = ownerContext.restoreScroll,
+            scrollRestore = ownerContext.scrollRestore,
             dom, el, overflowX, overflowY, styles, scroll, scrollable;
 
         if (overflowHandler) {
@@ -1175,7 +1175,7 @@ Ext.define('Ext.layout.container.Box', {
 
             if (invalidateScrollX || invalidateScrollY) { // if (some form of 'auto' in play)
                 // force a reflow...
-                dom.scrollWidth;
+                dom.scrollWidth; // jshint ignore:line
 
                 if (invalidateScrollX) {
                     styles.overflowX = overflowX; // restore inline style
@@ -1185,16 +1185,8 @@ Ext.define('Ext.layout.container.Box', {
                 }
             }
         }
-        if (restoreScroll) {
-            scrollable = ownerContext.ownerScrollable;
-            scroll = restoreScroll[names.x];
-            if (scroll) {
-                scrollable[names.setX](scroll);
-            }
-            scroll = restoreScroll[names.y];
-            if (scroll) {
-                scrollable[names.setY](scroll);
-            }
+        if (scrollRestore) {
+            ownerContext.ownerScrollable.scrollTo(scrollRestore.x, scrollRestore.y);
         }
     },
 

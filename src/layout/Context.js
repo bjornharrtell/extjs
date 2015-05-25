@@ -181,7 +181,7 @@
  *
  * Notes:
  *
- * **A.** This is a call from the {@link #run} method to the {@link #runCycle} method.
+ * **A.** This is a call from the {@link #run} method to the {@link #run} method.
  * Each layout in the queue will have its {@link Ext.layout.Layout#calculate calculate}
  * method called.
  *
@@ -297,6 +297,17 @@ Ext.define('Ext.layout.Context', {
      */
     state: 0,
 
+    /**
+     * @property {Number} cycleWatchDog
+     * This value is used to detect layouts that cannot progress by checking the amount of
+     * cycles processed. The value should be large enough to satisfy all but exceptionally large
+     * layout structures. When the amount of cycles is reached, the layout will fail. This should
+     * only be used for debugging, layout failures should be considered as an exceptional occurrence.
+     * @private
+     * @since 5.1.1
+     */
+    cycleWatchDog: 200,
+
     constructor: function (config) {
         var me = this;
 
@@ -382,7 +393,7 @@ Ext.define('Ext.layout.Context', {
                     for (k = 0; k < klen; ++k) {
                         entry = oldQueue[k];
                         temp = entry.item.target;
-                        if (temp != comp && !temp.up(comp)) {
+                        if (temp !== comp && !temp.up(comp)) {
                             newQueue.push(entry);
                         }
                     }
@@ -925,7 +936,7 @@ Ext.define('Ext.layout.Context', {
                 return; // oldComp contains comp, so this invalidate is redundant
             }
 
-            if (oldComp == comp) {
+            if (oldComp === comp) {
                 // if already in the queue, update the options...
                 if (!(oldOptions = old.options)) {
                     old.options = options;
@@ -1082,7 +1093,7 @@ Ext.define('Ext.layout.Context', {
     run: function () {
         var me = this,
             flushed = false,
-            watchDog = 100;
+            watchDog = me.cycleWatchDog;
         
         me.purgeInvalidates();
         me.flushInvalidates();
@@ -1216,7 +1227,8 @@ Ext.define('Ext.layout.Context', {
             if (layout.finalizeLayout) {
                 me.queueFinalize(layout);
             }
-        } else if (!layout.pending && !layout.invalid && !(layout.blockCount + layout.triggerCount - layout.firedTriggers)) {
+        } else if (!layout.pending && !layout.invalid &&
+                  !(layout.blockCount + layout.triggerCount - layout.firedTriggers)) { // jshint ignore:line
             // A layout that is not done and has no blocks or triggers that will queue it
             // automatically, must be queued now:
             me.queueLayout(layout);
@@ -1327,7 +1339,7 @@ Ext.define('Ext.layout.Context', {
                 }
             }
 
-            if (me.remainingLayouts != expected) {
+            if (me.remainingLayouts !== expected) {
                 Ext.Error.raise({
                     msg: 'Bookkeeping error me.remainingLayouts'
                 });
@@ -1592,7 +1604,7 @@ Ext.define('Ext.layout.Context', {
 
         run: function () {
             var me = this,
-                ret, time, key, value, i, layout,
+                ret, time, key, i, layout,
                 boxParent, children, n,
                 reported, unreported,
                 calcs, total,

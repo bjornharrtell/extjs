@@ -1,3 +1,7 @@
+/**
+ * @class Ext.sparkline.CanvasBase
+ * @private
+ */
 Ext.define('Ext.sparkline.CanvasBase', {
     requires: [
         'Ext.sparkline.Shape'
@@ -6,6 +10,10 @@ Ext.define('Ext.sparkline.CanvasBase', {
     shapeCount: 0,
 
     _pxregex: /(\d+)(px)?\s*$/i,
+
+    constructor: function(ownerSparkLine) {
+        this.owner = ownerSparkLine;
+    },
 
     setWidth: function(width) {
         this.pixelWidth = width;
@@ -50,7 +58,9 @@ Ext.define('Ext.sparkline.CanvasBase', {
      * Clear and reset the canvas
      */
     reset: function () {
-        alert('reset not implemented');
+        //<debug>
+        Ext.Error.raise('reset not implemented');
+        //</debug>
     },
 
     /*
@@ -63,44 +73,56 @@ Ext.define('Ext.sparkline.CanvasBase', {
     },
 
     /*
-        * Add a shape to the end of the render queue
-        */
+     * Add a shape to the end of the render queue
+     */
     appendShape: function (shape) {
-        alert('appendShape not implemented');
+        //<debug>
+        Ext.Error.raise('appendShape not implemented');
+        //</debug>
     },
 
     /*
-        * Replace one shape with another
-        */
+     * Replace one shape with another
+     */
     replaceWithShape: function (shapeid, shape) {
-        alert('replaceWithShape not implemented');
+        //<debug>
+        Ext.Error.raise('replaceWithShape not implemented');
+        //</debug>
     },
 
     /*
-        * Insert one shape after another in the render queue
-        */
+     * Insert one shape after another in the render queue
+     */
     insertAfterShape: function (shapeid, shape) {
-        alert('insertAfterShape not implemented');
+        //<debug>
+        Ext.Error.raise('insertAfterShape not implemented');
+        //</debug>
     },
 
     /*
-        * Remove a shape from the queue
-        */
+     * Remove a shape from the queue
+     */
     removeShapeId: function (shapeid) {
-        alert('removeShapeId not implemented');
+        //<debug>
+        Ext.Error.raise('removeShapeId not implemented');
+        //</debug>
     },
 
     /*
-        * Find a shape at the specified x/y co-ordinates
-        */
+     * Find a shape at the specified x/y co-ordinates
+     */
     getShapeAt: function (x, y) {
-        alert('getShapeAt not implemented');
+        //<debug>
+        Ext.Error.raise('getShapeAt not implemented');
+        //</debug>
     },
 
     /*
-        * Render all queued shapes onto the canvas
-        */
+     * Render all queued shapes onto the canvas
+     */
     render: function () {
-        alert('render not implemented');
+        //<debug>
+        Ext.Error.raise('render not implemented');
+        //</debug>
     }
 });

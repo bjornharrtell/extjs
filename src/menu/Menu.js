@@ -167,6 +167,7 @@ Ext.define('Ext.menu.Menu', {
     defaultFocus: ':focusable',
 
     // private
+    menuClickBuffer: 0,
     baseCls: Ext.baseCSSPrefix + 'menu',
     _iconSeparatorCls: Ext.baseCSSPrefix + 'menu-icon-separator',
     _itemCmpCls: Ext.baseCSSPrefix + 'menu-item-cmp',
@@ -211,7 +212,22 @@ Ext.define('Ext.menu.Menu', {
         var me = this,
             cls = [Ext.baseCSSPrefix + 'menu'],
             bodyCls = me.bodyCls ? [me.bodyCls] : [],
-            isFloating = me.floating !== false;
+            isFloating = me.floating !== false,
+            listeners = {
+                element: 'el',
+                click: me.onClick,
+                mouseover: me.onMouseOver,
+                scope: me
+            };
+
+        if (Ext.supports.Touch) {
+            listeners.pointerdown = me.onMouseOver;
+        }
+        me.on(listeners);
+        me.on({
+            beforeshow: me.onBeforeShow,
+            scope: me
+        });
 
         // Menu classes
         if (me.plain) {
@@ -268,23 +284,25 @@ Ext.define('Ext.menu.Menu', {
 
     onBoxReady: function() {
         var me = this,
-            listeners = {
-                click: me.onClick,
-                mouseover: me.onMouseOver,
-                scope: me
-            },
             iconSeparatorCls = me._iconSeparatorCls;
 
-        if (Ext.supports.Touch) {
-            listeners.pointerdown = me.onMouseOver;
-        }
+        me.focusableKeyNav.map.processEvent = function(e) {
+            // ESC may be from input fields, and FocusableContainers ignore keys from 
+            // input fields. We do not want to ignore ESC. ESC hide menus.
+            if (e.keyCode === e.ESC) {
+                e.target = me.el.dom;
+            }
+            return e;
+        };
 
-        // Handle character shotrcuts
+       // Handle ESC key
         me.focusableKeyNav.map.addBinding([{
             key: 27,
             handler: me.onEscapeKey,
             scope: me
-        }, {
+        }, 
+         // Handle character shotrcuts
+        {
             key: /[\w]/,
             handler: me.onShortcutKey,
             scope: me,
@@ -304,12 +322,10 @@ Ext.define('Ext.menu.Menu', {
             });
         }
 
-        me.mon(me.el, listeners);
-
         // Modern IE browsers have click events translated to PointerEvents, and b/c of this the
         // event isn't being canceled like it needs to be. So, we need to add an extra listener.
         if (Ext.supports.MSPointerEvents || Ext.supports.PointerEvents) {
-            me.mon(me.el, {
+            me.el.on({
                 scope: me,
                 click: me.preventClick,
                 translate: false
@@ -324,12 +340,15 @@ Ext.define('Ext.menu.Menu', {
 
         me.callParent([e]);
         me.mixins.focusablecontainer.onFocusLeave.call(me, e);
-        me.hide();
+        if (me.floating) {
+            me.hide();
+        }
     },
 
     /**
+     * @param {Ext.Component} item The child item to test for focusability.
      * Returns whether a menu item can be activated or not.
-     * @return {Boolean}
+     * @return {Boolean} `true` if the passed item is focusable.
      */
     canActivateItem: function(item) {
         return item && item.isFocusable();
@@ -616,6 +635,13 @@ Ext.define('Ext.menu.Menu', {
         }
     },
 
+    onBeforeShow: function() {
+        // Do not allow show immediately after a hide
+        if (Ext.Date.getElapsed(this.lastHide) < this.menuClickBuffer) {
+            return false;
+        }
+    },
+
     beforeShow: function() {
         var me = this,
             activeEl,
@@ -624,6 +650,9 @@ Ext.define('Ext.menu.Menu', {
         // Constrain the height to the containing element's viewable area
         if (me.floating) {
 
+            if (!me.hasFloatMenuParent() && !me.allowOtherMenus) {
+                Ext.menu.Manager.hideAll();
+            }
             // Only register a focusAnchor to return to on hide if the active element is not the document
             // If there's no focusAnchor, we return to the ownerCmp, or first focusable ancestor.
             activeEl = Ext.Element.getActiveElement();
@@ -635,31 +664,13 @@ Ext.define('Ext.menu.Menu', {
         }
 
         me.callParent(arguments);
-
-        // Add a touch start listener to check for taps outside the menu.
-        // iOS in particular does not trigger blur on document tap, so
-        // we have to check for taps outside this menu.
-        if (Ext.supports.Touch) {
-            me.tapListener = Ext.getBody().on({
-                touchstart: me.onBodyTap,
-                scope: me,
-                destroyable: true
-            });
-        }
-    },
-
-    onBodyTap: function(e) {
-        // Tap outside of this menu tree - hide.
-        if (!this.owns(e)) {
-            this.tapListener.destroy();
-            this.hide();
-        }
     },
 
     afterShow: function() {
         var me = this;
 
         me.callParent(arguments);
+        Ext.menu.Manager.onShow(me);
 
         // Restore configured maxHeight
         if (me.floating && me.autoFocus) {
@@ -682,12 +693,45 @@ Ext.define('Ext.menu.Menu', {
                 me.previousFocus = focusTarget;
             }
         }
-        this.callParent([animateTarget, cb, scope]);
+        me.callParent([animateTarget, cb, scope]);
+        me.lastHide = Ext.Date.now();
+        Ext.menu.Manager.onHide(me);
     },
 
     preventClick: function (e) {
-        if (!this.getItemFromEvent(e).href) {
+        var item = this.getItemFromEvent(e);
+        if (item && !item.href) {
             e.preventDefault();
+        }
+    },
+
+    privates: {
+        hasFloatMenuParent: function() {
+            return this.parentMenu || this.up('menu[floating=true]');
+        },
+
+        setOwnerCmp: function(comp, instanced) {
+            var me = this;
+
+            me.parentMenu = comp.isMenuItem ? comp : null;
+            me.ownerCmp = comp;
+            me.registerWithOwnerCt();
+
+            delete me.hierarchicallyHidden;
+            if (me.inheritedState && instanced) {
+                me.invalidateInheritedState();
+            }
+
+            if (me.reference) {
+                me.fixReference();
+            }
+
+            // We have been added to a container, we may have child references
+            // or be a reference ourself. At this point we have no way of knowing if 
+            // our references are correct, so trigger a fix.
+            if (instanced) {
+                Ext.ComponentManager.markReferencesDirty();
+            }
         }
     }
 });

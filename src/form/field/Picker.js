@@ -192,7 +192,8 @@ Ext.define('Ext.form.field.Picker', {
                 destroyable: true
             });
             
-            Ext.on('resize', me.alignPicker, me);
+            // Buffer is used to allow any layouts to complete before we align
+            Ext.on('resize', me.alignPicker, me, {buffer: 1});
             me.fireEvent('expand', me);
             me.onExpand();
         }
@@ -205,12 +206,11 @@ Ext.define('Ext.form.field.Picker', {
      * @protected
      */
     alignPicker: function() {
-        var me = this,
-            picker = me.getPicker();
+        if (!this.isDestroyed) {
+            var picker = this.getPicker();
 
-        if (picker.isVisible()) {
-            if (picker.isFloating()) {
-                me.doAlign();
+            if (picker.isVisible() && picker.isFloating()) {
+                this.doAlign();
             }
         }
     },
@@ -289,9 +289,11 @@ Ext.define('Ext.form.field.Picker', {
             picker = me.picker;
 
         if (!picker) {
+            me.creatingPicker = true;
             me.picker = picker = me.createPicker();
             // For upward component searches.
             picker.ownerCmp = me;
+            delete me.creatingPicker;
         }
 
         return me.picker;

@@ -405,7 +405,7 @@ Ext.define('Ext.grid.property.Grid', {
         var me = this,
             v, oldValue;
 
-        if (me.rendered && operation == Ext.data.Model.EDIT) {
+        if (me.rendered && operation === Ext.data.Model.EDIT) {
             v = record.get(me.valueField);
             oldValue = record.modified.value;
             if (me.fireEvent('beforepropertychange', me.source, record.getId(), v, oldValue) !== false) {
@@ -426,9 +426,9 @@ Ext.define('Ext.grid.property.Grid', {
         var me = this,
             valueColumn = me.ownerCt.valueColumn;
 
-        if (direction == 'left') {
+        if (direction === 'left') {
             direction = 'up';
-        } else if (direction == 'right') {
+        } else if (direction === 'right') {
             direction = 'down';
         }
         pos = Ext.view.Table.prototype.walkCells.call(me, pos, direction, e, preventWrap, verifierFn, scope);
@@ -467,7 +467,8 @@ Ext.define('Ext.grid.property.Grid', {
                     editor = editors.number;
                     break;
                 case 'boolean':
-                    editor = me.editors['boolean'];
+                    // Cannot be ".boolean" - YUI hates using reserved words like that
+                    editor = me.editors['boolean']; // jshint ignore:line
                     break;
                 default:
                     editor = editors.string;
@@ -477,7 +478,8 @@ Ext.define('Ext.grid.property.Grid', {
         } else if (Ext.isNumber(val)) {
             editor = editors.number;
         } else if (Ext.isBoolean(val)) {
-            editor = editors['boolean'];
+            // Cannot be ".boolean" - YUI hates using reserved words like that
+            editor = editors['boolean']; // jshint ignore:line
         } else {
             editor = editors.string;
         }
@@ -541,6 +543,17 @@ Ext.define('Ext.grid.property.Grid', {
      */
     getSource: function() {
         return this.propStore.getSource();
+    },
+
+    /**
+     * Gets the value of a property.
+     * @param {String} prop The name of the property.
+     * @return {Object} The property value. `null` if there is no value.
+     *
+     * @since 5.1.1
+     */
+    getProperty: function(prop) {
+        return this.propStore.getProperty(prop);
     },
 
     /**

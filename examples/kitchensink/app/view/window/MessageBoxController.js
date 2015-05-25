@@ -52,6 +52,7 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
 
         // Fake progress fn
         fn = function() {
+            me.timer = null;
             ++i;
             if (i === 12) {
                 Ext.MessageBox.hide();
@@ -59,10 +60,10 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
             } else {
                 var val = i / 11;
                 Ext.MessageBox.updateProgress(val, Math.round(100 * val) + '% completed');
-                setTimeout(fn, 500);
+                me.timer = Ext.defer(fn, 500);
             }
         };
-        setTimeout(fn, 500);
+        me.timer = Ext.defer(fn, 500);
 
     },
 
@@ -70,17 +71,18 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
         Ext.MessageBox.show({
             msg: 'Saving your data, please wait...',
             progressText: 'Saving...',
-            width:300,
+            width: 300,
             wait: {
-                interval:200
+                interval: 200
             },
             animateTarget: btn
         });
 
         var me = this;
-        setTimeout(function(){
+        me.timer = Ext.defer(function(){
             //This simulates a long-running operation like a database save or XHR call.
             //In real code, this would be in a callback function.
+            me.timer = null;
             Ext.MessageBox.hide();
             me.showToast('Your fake data was saved!', 'Done');
         }, 8000);
@@ -138,6 +140,9 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
     },
 
     destroy: function() {
+        if (this.timer) {
+            window.clearTimeout(this.timer);
+        }
         Ext.Msg.hide();
         this.callParent();
     }

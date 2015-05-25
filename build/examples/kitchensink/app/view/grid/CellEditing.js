@@ -141,7 +141,7 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
                 }]
             }],
             selModel: {
-                selType: 'cellmodel'
+                type: 'cellmodel'
             },
             tbar: [{
                 text: 'Add Plant',

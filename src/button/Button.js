@@ -1,7 +1,5 @@
 /**
- * @docauthor Robert Dougan <rob@sencha.com>
- *
- * Create simple buttons with this component. Customisations include {@link #iconAlign aligned}
+ * Create simple buttons with this component. Customizations include {@link #iconAlign aligned}
  * {@link #iconCls icons}, {@link #cfg-menu dropdown menus}, {@link #tooltip tooltips}
  * and {@link #scale sizing options}. Specify a {@link #handler handler} to run code when
  * a user clicks the button, or use {@link #listeners listeners} for other events such as
@@ -231,10 +229,13 @@ Ext.define('Ext.button.Button', {
      */
 
     /**
-     * @cfg {Function} handler
+     * @cfg {Function/String} handler
      * A function called when the button is clicked (can be used instead of click event).
-     * @cfg {Ext.button.Button} handler.button This button.
-     * @cfg {Ext.event.Event} handler.e The click event.
+     * 
+     * See also {@link #clickEvent}
+     * @param {Ext.button.Button} button This button.
+     * @param {Ext.event.Event} e The click event.
+     * @declarativeHandler
      */
 
     /**
@@ -260,6 +261,12 @@ Ext.define('Ext.button.Button', {
      */
 
     /**
+     * @cfg padding
+     * @inheritdoc
+     * @removed Use the $button-*-padding CSS Vars within a custom theme instead.
+     */
+
+    /**
      * @cfg {Boolean} [pressed=false]
      * True to start pressed (only if enableToggle = true)
      */
@@ -278,7 +285,8 @@ Ext.define('Ext.button.Button', {
 
     /**
      * @cfg {Number} tabIndex
-     * Set a DOM tabIndex for this button.
+     * Sets a DOM tabIndex for this button. tabIndex may be set to `-1` in order to remove
+     * the button from the tab rotation.
      */
     tabIndex: 0,
 
@@ -295,10 +303,11 @@ Ext.define('Ext.button.Button', {
     enableToggle: false,
 
     /**
-     * @cfg {Function} toggleHandler
+     * @cfg {Function/String} toggleHandler
      * Function called when a Button with {@link #enableToggle} set to true is clicked.
      * @cfg {Ext.button.Button} toggleHandler.button This button.
      * @cfg {Boolean} toggleHandler.state The next state of the Button, true means pressed.
+     * @declarativeHandler
      */
 
     /**
@@ -432,7 +441,6 @@ Ext.define('Ext.button.Button', {
     },
     
     // private
-    menuClickBuffer: 250,
     _btnWrapCls: Ext.baseCSSPrefix + 'btn-wrap',
     _btnCls: Ext.baseCSSPrefix + 'btn-button',
     _baseIconCls: Ext.baseCSSPrefix + 'btn-icon-el',
@@ -758,7 +766,8 @@ Ext.define('Ext.button.Button', {
      */
     setMenu: function (menu, destroyMenu, /* private */ initial) {
         var me = this,
-            oldMenu = me.menu;
+            oldMenu = me.menu,
+            instanced;
 
         if (oldMenu && !initial) {
             if (destroyMenu !== false && me.destroyMenu) {
@@ -768,6 +777,7 @@ Ext.define('Ext.button.Button', {
         }
 
         if (menu) {
+            instanced = menu.isMenu;
             // Retrieve menu by id or instantiate instance if needed.
             menu = Ext.menu.Manager.get(menu, {
                 // Use ownerCmp as the upward link. Menus *must have no ownerCt* - they are global floaters.
@@ -776,7 +786,14 @@ Ext.define('Ext.button.Button', {
             });
             // We need to forcibly set this here because we could be passed an existing menu, which means
             // the config above won't get applied during creation.
-            menu.ownerCmp = me;
+            menu.setOwnerCmp(me, instanced);
+
+            // Menu can't reshow within 250ms of being hidden.
+            // Likewise, must set here in case an instantiated Menu is passed.
+            // This is so that clicking on this button when the menu is visible
+            // leaves the menu hidden. Mousedown hides it, and the click caused by
+            // mouseup should not reshow.
+            menu.menuClickBuffer = 250;
 
             me.mon(menu, {
                 scope: me,
@@ -1019,7 +1036,8 @@ Ext.define('Ext.button.Button', {
      *     });
      *
      * When clicked, this button will open a new window with the url http://www.sencha.com/?foo=bar&company=Sencha because
-     * the button wased configured with the {@link #baseParams} to have `foo` = `'bar'` and then used {@link #setParams} to set the `company` parameter to `'Sencha'`.
+     * the button was configured with the {@link #baseParams} to have `foo` = `'bar'` 
+     * and then used {@link #setParams} to set the `company` parameter to `'Sencha'`.
      *
      * **Only valid if the Button was originally configured with a {@link #href}**
      *
@@ -1291,24 +1309,22 @@ Ext.define('Ext.button.Button', {
         return this;
     },
 
-    applyText: function(text) {
+    updateText: function(text, oldText) {
         // Coerce to string. Maybe set to a numeric value.
         text = text == null ? '' : String(text);
+        oldText = oldText || '';
+
         var me = this,
             btnInnerEl = me.btnInnerEl,
-            btnEl = me.btnEl,
-            oldText = me.text || '';
+            btnEl = me.btnEl;
 
-        if (text !== oldText) {
-            me.text = text;
-            if (me.rendered) {
-                btnInnerEl.setHtml(text || '&#160;');
-                btnEl[text ? 'addCls' : 'removeCls'](me._textCls);
-                btnEl[text ? 'removeCls' : 'addCls'](me._noTextCls);
-                me.updateLayout();
-            }
-            me.fireEvent('textchange', me, oldText, text);
+        if (me.rendered) {
+            btnInnerEl.setHtml(text || '&#160;');
+            btnEl[text ? 'addCls' : 'removeCls'](me._textCls);
+            btnEl[text ? 'removeCls' : 'addCls'](me._noTextCls);
+            me.updateLayout();
         }
+        me.fireEvent('textchange', me, oldText, text);
     },
 
     /**
@@ -1357,9 +1373,8 @@ Ext.define('Ext.button.Button', {
     },
 
     maybeShowMenu: function(e) {
-        var me = this;
-        if (me.menu && !me.ignoreNextClick) {
-            me.showMenu(e);
+        if (this.menu) {
+            this.showMenu(e);
         }
     },
 
@@ -1694,7 +1709,17 @@ Ext.define('Ext.button.Button', {
             // In IE the use of unselectable on the button's elements causes the element
             // to not receive focus, even when it is directly clicked.
             // On Touch devices, we need to explicitly focus on touchstart.
-            me.getFocusEl().focus();
+            Ext.defer(function() {
+                // Deferred to give other mousedown handlers the chance to preventDefault
+                if (!e.defaultPrevented) {
+                    var focusEl = me.getFocusEl();
+                    
+                    // The component might be destroyed by this time
+                    if (focusEl) {
+                        focusEl.focus();
+                    }
+                }
+            }, 1);
         }
 
         if (!me.disabled && e.button === 0) {
@@ -1718,26 +1743,16 @@ Ext.define('Ext.button.Button', {
     // @private
     onMenuShow: function() {
         var me = this;
-        me.ignoreNextClick = 0;
         me.addCls(me._menuActiveCls);
         me.fireEvent('menushow', me, me.menu);
     },
 
     // @private
     onMenuHide: function(e) {
-        var me = this,
-            menuClickBuffer = me.menuClickBuffer;
+        var me = this;
 
         me.removeCls(me._menuActiveCls);
-        if (menuClickBuffer) {
-            me.ignoreNextClick = Ext.defer(me.restoreClick, menuClickBuffer, me);
-        }
         me.fireEvent('menuhide', me, me.menu);
-    },
-
-    // @private
-    restoreClick: function() {
-        this.ignoreNextClick = 0;
     },
 
     // @private
@@ -1796,7 +1811,8 @@ Ext.define('Ext.button.Button', {
          * @private
          * @override
          * Needed for when widget is rendered into a grid cell. The class to add to the cell element.
-         * Override needed to add scale to the mix which is poart of the ui name in the mixin and the CSS rule
+         * Override needed to add scale to the mix which is part of the ui name in the 
+         * mixin and the CSS rule.
          */
         getTdCls: function() {
             return Ext.baseCSSPrefix + 'button-' + this.ui + '-' + this.scale + '-cell';

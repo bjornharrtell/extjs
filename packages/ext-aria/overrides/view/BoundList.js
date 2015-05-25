@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.view.BoundList', {
     override: 'Ext.view.BoundList',
 

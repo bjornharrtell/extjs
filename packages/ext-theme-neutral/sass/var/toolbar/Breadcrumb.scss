@@ -21,13 +21,13 @@ $breadcrumb-button-spacing: 0px !default;
 
 /**
  * @var {number}
- * The width of breadcrumb arrows when {@link #split} is `false`
+ * The width of breadcrumb arrows when {@link #useSplitButtons} is `false`
  */
 $breadcrumb-arrow-width: $button-small-split-width !default;
 
 /**
  * @var {number}
- * The width of breadcrumb arrows when {@link #split} is `true`
+ * The width of breadcrumb arrows when {@link #useSplitButtons} is `true`
  */
 $breadcrumb-split-width: $button-small-split-width !default;
 
@@ -120,28 +120,28 @@ $breadcrumb-scroller-cursor-disabled: $toolbar-scroller-cursor-disabled !default
 /**
  * @var {number}
  * The opacity of Breadcrumb scroller buttons. Only applicable when
- * {@link $breadcrumb-classic-scrollers} is `false`.
+ * {@link #$breadcrumb-classic-scrollers} is `false`.
  */
 $breadcrumb-scroller-opacity: $toolbar-scroller-opacity !default;
 
 /**
  * @var {number}
  * The opacity of hovered Breadcrumb scroller buttons. Only applicable when
- * {@link $breadcrumb-classic-scrollers} is `false`.
+ * {@link #$breadcrumb-classic-scrollers} is `false`.
  */
 $breadcrumb-scroller-opacity-over: $toolbar-scroller-opacity-over !default;
 
 /**
  * @var {number}
  * The opacity of pressed Breadcrumb scroller buttons. Only applicable when
- * {@link $breadcrumb-classic-scrollers} is `false`.
+ * {@link #$breadcrumb-classic-scrollers} is `false`.
  */
 $breadcrumb-scroller-opacity-pressed: $toolbar-scroller-opacity-pressed !default;
 
 /**
  * @var {number}
  * The opacity of disabled Breadcrumb scroller buttons. Only applicable when
- * {@link $breadcrumb-classic-scrollers} is `false`.
+ * {@link #$breadcrumb-classic-scrollers} is `false`.
  */
 $breadcrumb-scroller-opacity-disabled: $toolbar-scroller-opacity-disabled !default;
 

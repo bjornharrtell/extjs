@@ -14,7 +14,6 @@ The following types of objects can be animated:
 - {@link Ext.fx.target.Element Elements}
 - {@link Ext.fx.target.Sprite Sprites}
 
- * @markdown
  * @abstract
  */
 Ext.define('Ext.fx.target.Target', {

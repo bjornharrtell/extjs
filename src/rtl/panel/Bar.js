@@ -33,7 +33,7 @@ Ext.define('Ext.rtl.panel.Bar', {
             var me = this,
                 dock = me.dock;
 
-            return me.isParentRtl() ? me.rtlPositions[dock] : dock
+            return me.isParentRtl() ? me.rtlPositions[dock] : dock;
         }
     }
 });

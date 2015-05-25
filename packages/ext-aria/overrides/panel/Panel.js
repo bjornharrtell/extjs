@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.panel.Panel', {
     override: 'Ext.panel.Panel',
     

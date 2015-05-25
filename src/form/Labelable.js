@@ -17,8 +17,6 @@
  * or a derivation thereof to properly size and position the label and message according to the component config.
  * They must also call the {@link #initLabelable} method during component initialization to ensure the mixin gets
  * set up correctly.
- *
- * @docauthor Jason Johnston <jason@sencha.com>
  */
 Ext.define("Ext.form.Labelable", {
     extend: 'Ext.Mixin',
@@ -75,7 +73,7 @@ Ext.define("Ext.form.Labelable", {
     labelableRenderTpl: [
         '{beforeLabelTpl}',
         '<label id="{id}-labelEl" data-ref="labelEl" class="{labelCls} {labelCls}-{ui} {labelClsExtra} ',
-                '{unselectableCls}" style="{labelStyle}"<tpl if="inputId">',
+                '{childElCls} {unselectableCls}" style="{labelStyle}"<tpl if="inputId">',
                 ' for="{inputId}"</tpl> {labelAttrTpl}>',
             '<span class="{labelInnerCls} {labelInnerCls}-{ui}" style="{labelInnerStyle}">',
             '{beforeLabelTextTpl}',
@@ -435,7 +433,7 @@ Ext.define("Ext.form.Labelable", {
                     beforeshow: function() {
                         this.minWidth = Ext.fly(this.anchorTarget).getWidth();
                     }
-                }
+                };
             }
             tip = this.tip = Ext.create('Ext.tip.QuickTip', cfg);
             copy = Ext.apply({}, tip.tagConfig);
@@ -475,8 +473,15 @@ Ext.define("Ext.form.Labelable", {
             me.extraMargins = Ext.Element.parseBox(padding);
         }
 
+        // IE8 hack for https://sencha.jira.com/browse/EXTJS-17536.
+        // Need to force a relayout of the display:table form item.
+        // TODO: Remove when IE8 retires.
+        if (Ext.isIE8) {
+            me.restoreDisplay = Ext.Function.createDelayed(me.doRestoreDisplay, 0, me);
+        }
+
         if (!me.activeErrorsTpl) {
-            if (me.msgTarget == 'title') {
+            if (me.msgTarget === 'title') {
                 me.activeErrorsTpl = me.plaintextActiveErrorsTpl;
             } else {
                 me.activeErrorsTpl = me.htmlActiveErrorsTpl;
@@ -588,7 +593,7 @@ Ext.define("Ext.form.Labelable", {
             value = this[name];
 
             if (value) {
-                if (typeof value != 'string') {
+                if (typeof value !== 'string') {
                     if (!value.isTemplate) {
                         value = Ext.XTemplate.getTpl(this, name);
                     }
@@ -870,34 +875,55 @@ Ext.define("Ext.form.Labelable", {
         var me = this,
             errorWrapEl = me.errorWrapEl,
             msgTarget = me.msgTarget,
-            targetEl;
+            targetEl,
+            restoreDisplay = me.restoreDisplay;
 
-        delete me.activeError;
-        delete me.activeErrors;
-        me.renderActiveError();
+        if (me.hasActiveError()) {
+            delete me.activeError;
+            delete me.activeErrors;
+            me.renderActiveError();
 
-        if (me.rendered) {
-            if (msgTarget === 'qtip') {
-                me.getActionEl().dom.removeAttribute('data-errorqtip');
-            } else if (msgTarget === 'title') {
-                me.getActionEl().dom.removeAttribute('title');
-            }
+            if (me.rendered) {
+                if (msgTarget === 'qtip') {
+                    me.getActionEl().dom.removeAttribute('data-errorqtip');
+                } else if (msgTarget === 'title') {
+                    me.getActionEl().dom.removeAttribute('title');
+                }
 
-            if (!me.msgTargets[msgTarget]) {
-                targetEl = Ext.get(msgTarget);
+                if (!me.msgTargets[msgTarget]) {
+                    targetEl = Ext.get(msgTarget);
 
-                if (targetEl) {
-                    targetEl.dom.innerHTML = '';
+                    if (targetEl) {
+                        targetEl.dom.innerHTML = '';
+                    }
+                }
+
+                if (errorWrapEl) {
+                    errorWrapEl.hide();
+                    if (msgTarget === 'side' && me.autoFitErrors) {
+                        me.labelEl.removeCls(me.topLabelSideErrorCls);
+                    }
+                    me.updateLayout();
+
+                    // IE8 hack for https://sencha.jira.com/browse/EXTJS-17536.
+                    // Need to force a relayout of the display:table form item.
+                    // TODO: Remove when IE8 retires.
+                    if (restoreDisplay) {
+                        me.el.dom.style.display = 'block';
+                        me.restoreDisplay();
+                    }
                 }
             }
+        }
+    },
 
-            if (errorWrapEl) {
-                errorWrapEl.hide();
-                if (msgTarget === 'side' && me.autoFitErrors) {
-                    me.labelEl.removeCls(me.topLabelSideErrorCls);
-                }
-                me.updateLayout();
-            }
+    doRestoreDisplay: function() {
+        // IE8 hack for https://sencha.jira.com/browse/EXTJS-17536.
+        // Need to force a relayout of the display:table form item.
+        // TODO: Remove this method when IE8 retires.
+        var el = this.el;
+        if (el && el.dom) {
+            el.dom.style.display = '';
         }
     },
 

@@ -75,7 +75,8 @@ Ext.define('KitchenSink.view.charts.column3d.Stacked100', {
                 renderer: function(record, item) {
                     var index = Ext.Array.indexOf(item.series.getYField(), item.field),
                         browser = item.series.getTitle()[index];
-                    this.setHtml(browser + ' for ' + record.get('month') + ': ' + record.get(item.field) + '%');
+                    this.setHtml(browser + ' for ' + record.get('month') + ': ' +
+                        Ext.util.Format.number(item.sprite.attr.dataY[item.index] - item.sprite.attr.dataStartY[item.index], '0.##') + '%');
                 }
             }
         }],

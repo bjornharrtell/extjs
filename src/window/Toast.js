@@ -76,9 +76,21 @@ Ext.define('Ext.window.Toast', {
 
     /**
      * @cfg {"br"/"bl"/"tr"/"tl"/"t"/"l"/"b"/"r"} [align="br"]
-     * Specifies the basic alignment of the toast message with its `anchor`. This controls
-     * many aspects of the toast animation as well. For fine grain control of the final
-     * placement of the toast and its `anchor` you may set `anchorAlign` *as well*.
+     * Specifies the basic alignment of the toast message with its {@link #anchor}. This 
+     * controls many aspects of the toast animation as well. For fine grain control of 
+     * the final placement of the toast and its `anchor` you may set 
+     * {@link #anchorAlign} as well.
+     * 
+     * Possible values:
+     * 
+     *  - br - bottom-right
+     *  - bl - bottom-left
+     *  - tr - top-right
+     *  - tl - top-left
+     *  - t  - top
+     *  - l  - left
+     *  - b  - bottom
+     *  - r  - right
      */
     align: 'br',
 
@@ -606,5 +618,5 @@ function (Toast) {
         toast = new Toast(config);
         toast.show();
         return toast;
-    }
+    };
 });

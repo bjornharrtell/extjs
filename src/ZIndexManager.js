@@ -16,7 +16,8 @@ Ext.define('Ext.ZIndexManager', {
 
     requires: [
         'Ext.util.SorterCollection',
-        'Ext.util.FilterCollection'
+        'Ext.util.FilterCollection',
+        'Ext.GlobalEvents'
     ],
 
     statics: {
@@ -24,6 +25,9 @@ Ext.define('Ext.ZIndexManager', {
         activeCounter: 0
     },
 
+    /**
+     * @private
+     */
     constructor: function(container) {
         var me = this;
 
@@ -68,7 +72,7 @@ Ext.define('Ext.ZIndexManager', {
 
             // This is the ZIndexManager for an Ext.container.Container, base its zseed on the zIndex of the Container's element
             if (container.isContainer) {
-                container.on('resize', me._onContainerResize, me);
+                container.on('resize', me.onContainerResize, me);
                 me.zseed = Ext.Number.from(me.rendered ? container.getEl().getStyle('zIndex') : undefined, me.getNextZSeed());
                 // The containing element we will be dealing with (eg masking) is the content target
                 me.targetEl = container.getTargetEl();
@@ -76,7 +80,7 @@ Ext.define('Ext.ZIndexManager', {
             }
             // This is the ZIndexManager for a DOM element
             else {
-                Ext.on('resize', me._onContainerResize, me);
+                Ext.on('resize', me.onContainerResize, me);
                 me.zseed = me.getNextZSeed();
                 me.targetEl = Ext.get(container);
             }
@@ -85,8 +89,8 @@ Ext.define('Ext.ZIndexManager', {
         // DOM must be ready to collect that ref.
         else {
             me.zseed = me.getNextZSeed();
-            Ext.onReady(function() {
-                Ext.on('resize', me._onContainerResize, me);
+            Ext.onInternalReady(function() {
+                Ext.on('resize', me.onContainerResize, me);
                 me.targetEl = Ext.getBody();
             });
         }
@@ -165,7 +169,7 @@ Ext.define('Ext.ZIndexManager', {
                 // Make sure the component or its descendants *can* be focused, too.
                 doFocus = topVisible.modal || ((!oldFront || oldFront.isVisible()) && ((topVisible.focusOnToFront && !topVisible.preventFocusOnActivate))) &&
                           topVisible.isFocusable(true);
-                topVisible.setActive(true, null, doFocus);
+                topVisible.setActive(true, doFocus);
             }
         }
 
@@ -174,11 +178,9 @@ Ext.define('Ext.ZIndexManager', {
 
         // If we encountered a modal in our reassigment, ensure our modal mask is just below it.
         if (topModal) {
-            me._showModalMask(topModal);
-        }
-        // Otherwise, ensure the modal mask is hidden
-        else {
-            me._hideModalMask();
+            me.showModalMask(topModal);
+        } else {
+            me.hideModalMask();
         }
         return zIndex;
     },
@@ -211,137 +213,6 @@ Ext.define('Ext.ZIndexManager', {
         if (comp.isFloating() && !this.hidingAll && (zIndexStack.getSource() || zIndexStack).contains(comp)) {
             zIndexStack.itemChanged(comp, 'hidden');
             zIndexStack.sort();
-        }
-    },
-
-    _showModalMask: function(comp) {
-        var me = this,
-            compEl = comp.el,
-            zIndex = compEl.getStyle('zIndex') - 4,
-            maskTarget = comp.floatParent ? comp.floatParent.getTargetEl() : comp.container,
-            mask = me.mask,
-            shim = me.maskShim,
-            viewSize, tabbableAttr, tempTabbableAttr, tabbables;
-
-        if (!mask) {
-            // Create the mask at zero size so that it does not affect upcoming target measurements.
-            mask = me.mask = Ext.getBody().createChild({
-                //<debug>
-                // tell the spec runner to ignore this element when checking if the dom is clean 
-                'data-sticky': true,
-                //</debug>
-                role: 'presentation',
-                cls: Ext.baseCSSPrefix + 'mask',
-                style: 'height:0;width:0'
-            });
-            mask.setVisibilityMode(Ext.Element.DISPLAY);
-            mask.on('click', me._onMaskClick, me);
-        }
-        
-        // If the mask is already shown, hide it before showing again
-        // to ensure underlying elements' tabbability is restored
-        else {
-            me._hideModalMask();
-        }
-
-        mask.maskTarget = maskTarget;
-        viewSize = me._getMaskBox();
-
-        if (shim) {
-            shim.setStyle('zIndex', zIndex);
-            shim.show();
-            shim.setBox(viewSize);
-        }
-        mask.setStyle('zIndex', zIndex);
-        
-        tabbableAttr = 'data-savedtabindex-' + maskTarget.getId();
-        tempTabbableAttr = tabbableAttr + '-temp';
-        
-        // Since there is no fast and reliable way of finding elements above or below
-        // a given z-index, we just cheat and prevent tabbable elements within the
-        // topmost component from being made untabbable.
-        tabbables = compEl.findTabbableElements();
-        
-        if (tabbables.length) {
-            compEl.saveTabbableState(tempTabbableAttr);
-            compEl.saveChildrenTabbableState(tempTabbableAttr);
-        }
-        
-        maskTarget.saveTabbableState(tabbableAttr);
-        maskTarget.saveChildrenTabbableState(tabbableAttr);
-        
-        // Now restore the tabbables within the component itself. We don't have to
-        // repeat this when the mask is hidden.
-        if (tabbables.length) {
-            compEl.restoreChildrenTabbableState(tempTabbableAttr);
-            compEl.restoreTabbableState(tempTabbableAttr);
-        }
-
-        mask.show();
-        mask.setBox(viewSize);
-    },
-
-    _hideModalMask: function() {
-        var mask = this.mask,
-            maskShim = this.maskShim,
-            maskTarget, tabbableAttr;
-
-        if (mask && mask.isVisible()) {
-            maskTarget = mask.maskTarget;
-            tabbableAttr = 'data-savedtabindex-' + maskTarget.getId();
-            maskTarget.restoreChildrenTabbableState(tabbableAttr);
-            maskTarget.restoreTabbableState(tabbableAttr);
-            
-            mask.maskTarget = undefined;
-            mask.hide();
-            if (maskShim) {
-                maskShim.hide();
-            }
-        }
-    },
-
-    _onMaskClick: function() {
-        if (this.front) {
-            this.front.focus();
-        }
-    },
-
-    _getMaskBox: function(){
-        var maskTarget = this.mask.maskTarget;
-        if (maskTarget.dom === document.body) {
-            return {
-                height: Math.max(document.body.scrollHeight, Ext.dom.Element.getDocumentHeight()),
-                width: Math.max(document.body.scrollWidth, document.documentElement.clientWidth),
-                x: 0,
-                y: 0
-            };
-        } else {
-            return maskTarget.getBox();
-        } 
-    },
-
-    _onContainerResize: function() {
-        var me = this,
-            mask = me.mask,
-            maskShim = me.maskShim,
-            viewSize;
-
-        if (mask && mask.isVisible()) {
-
-            // At the new container size, the mask might be *causing* the scrollbar, so to find the valid
-            // client size to mask, we must temporarily unmask the parent node.
-            mask.hide();
-            if (maskShim) {
-                maskShim.hide();
-            }
-
-            viewSize = me._getMaskBox();
-            if (maskShim) {
-                maskShim.setSize(viewSize);
-                maskShim.show();
-            }
-            mask.setSize(viewSize);
-            mask.show();
         }
     },
 
@@ -458,7 +329,7 @@ Ext.define('Ext.ZIndexManager', {
         for (i = 0; i < len; i++) {
             all[i].hide();
         }
-        this.hidingAll = true;
+        this.hidingAll = false;
     },
 
     /**
@@ -597,6 +468,139 @@ Ext.define('Ext.ZIndexManager', {
 
         Ext.destroy(me.mask, me.maskShim, me.zIndexStack, me.globalListeners);
         me.zIndexStack = me.container = me.targetEl = me.globalListeners = null;
+    },
+
+    privates: {
+        getMaskBox: function() {
+            var maskTarget = this.mask.maskTarget;
+
+            if (maskTarget.dom === document.body) {
+                // If we're masking the body, subtract the border/padding so we don't cause scrollbar.
+                return {
+                    height: Math.max(document.body.scrollHeight, Ext.dom.Element.getDocumentHeight()),
+                    width: Math.max(document.body.scrollWidth, document.documentElement.clientWidth),
+                    x: 0,
+                    y: 0
+                };
+            } else {
+                return maskTarget.getBox();
+            } 
+        },
+
+        hideModalMask: function() {
+            var mask = this.mask,
+                maskShim = this.maskShim,
+                maskTarget, tabbableAttr;
+
+            if (mask && mask.isVisible()) {
+                maskTarget = mask.maskTarget;
+                tabbableAttr = 'data-savedtabindex-' + maskTarget.getId();
+                maskTarget.restoreChildrenTabbableState(tabbableAttr);
+                maskTarget.restoreTabbableState(tabbableAttr);
+                
+                mask.maskTarget = undefined;
+                mask.hide();
+                if (maskShim) {
+                    maskShim.hide();
+                }
+            }
+        },
+
+        onContainerResize: function() {
+            var me = this,
+                mask = me.mask,
+                maskShim = me.maskShim,
+                viewSize;
+
+            if (mask && mask.isVisible()) {
+
+                // At the new container size, the mask might be *causing* the scrollbar, so to find the valid
+                // client size to mask, we must temporarily unmask the parent node.
+                mask.hide();
+                if (maskShim) {
+                    maskShim.hide();
+                }
+
+                viewSize = me.getMaskBox();
+                if (maskShim) {
+                    maskShim.setSize(viewSize);
+                    maskShim.show();
+                }
+                mask.setSize(viewSize);
+                mask.show();
+            }
+        },
+
+        onMaskClick: function() {
+            if (this.front) {
+                this.front.focus();
+            }
+        },
+
+        showModalMask: function(comp) {
+            var me = this,
+                compEl = comp.el,
+                zIndex = compEl.getStyle('zIndex') - 4,
+                maskTarget = comp.floatParent ? comp.floatParent.getTargetEl() : comp.container,
+                mask = me.mask,
+                shim = me.maskShim,
+                viewSize, tabbableAttr, tempTabbableAttr, tabbables;
+
+            if (!mask) {
+                // Create the mask at zero size so that it does not affect upcoming target measurements.
+                me.mask = mask = Ext.getBody().createChild({
+                    //<debug>
+                    // tell the spec runner to ignore this element when checking if the dom is clean 
+                    'data-sticky': true,
+                    //</debug>
+                    role: 'presentation',
+                    cls: Ext.baseCSSPrefix + 'mask ' + Ext.baseCSSPrefix + 'border-box',
+                    style: 'height:0;width:0'
+                });
+                mask.setVisibilityMode(Ext.Element.DISPLAY);
+                mask.on('click', me.onMaskClick, me);
+            } else {
+                // If the mask is already shown, hide it before showing again
+                // to ensure underlying elements' tabbability is restored
+                me.hideModalMask();
+            }
+
+            mask.maskTarget = maskTarget;
+            viewSize = me.getMaskBox();
+
+            if (shim) {
+                shim.setStyle('zIndex', zIndex);
+                shim.show();
+                shim.setBox(viewSize);
+            }
+            mask.setStyle('zIndex', zIndex);
+            
+            tabbableAttr = 'data-savedtabindex-' + maskTarget.getId();
+            tempTabbableAttr = tabbableAttr + '-temp';
+            
+            // Since there is no fast and reliable way of finding elements above or below
+            // a given z-index, we just cheat and prevent tabbable elements within the
+            // topmost component from being made untabbable.
+            tabbables = compEl.findTabbableElements();
+            
+            if (tabbables.length) {
+                compEl.saveTabbableState(tempTabbableAttr);
+                compEl.saveChildrenTabbableState(tempTabbableAttr);
+            }
+            
+            maskTarget.saveTabbableState(tabbableAttr);
+            maskTarget.saveChildrenTabbableState(tabbableAttr);
+            
+            // Now restore the tabbables within the component itself. We don't have to
+            // repeat this when the mask is hidden.
+            if (tabbables.length) {
+                compEl.restoreChildrenTabbableState(tempTabbableAttr);
+                compEl.restoreTabbableState(tempTabbableAttr);
+            }
+
+            mask.show();
+            mask.setBox(viewSize);
+        }    
     }
 }, function() {
     /**

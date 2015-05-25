@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.Component', {
     override: 'Ext.Component',
 

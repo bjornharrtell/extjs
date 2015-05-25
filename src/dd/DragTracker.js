@@ -73,6 +73,11 @@ Ext.define('Ext.dd.DragTracker', {
     autoStart: false,
 
     /**
+     * @cfg {Ext.dom.Element/HTMLElement/String} el
+     * The target element or ID of the element on which the DragTracker will be initialized.
+     */
+
+    /**
      * @cfg {String} delegate
      * A CSS selector which identifies child elements within the DragTracker's encapsulating
      * Element which are the tracked elements. This limits tracking to only begin when the matching elements are mousedowned.
@@ -181,7 +186,7 @@ Ext.define('Ext.dd.DragTracker', {
 
     /**
      * Initializes the DragTracker on a given element.
-     * @param {Ext.dom.Element/HTMLElement} el The element
+     * @param {Ext.dom.Element/HTMLElement/String} el The element or element ID
      */
     initEl: function(el) {
         var me = this,
@@ -220,6 +225,16 @@ Ext.define('Ext.dd.DragTracker', {
             });
         }
         me.mon(me.handle, me.handleListeners);
+
+        // Accessibility
+        me.keyNav = new Ext.util.KeyNav({
+            target: el,
+            up: me.onResizeKeyDown,
+            left: me.onResizeKeyDown,
+            right: me.onResizeKeyDown,
+            down: me.onResizeKeyDown,
+            scope: me
+        });
     },
 
     disable: function() {
@@ -431,7 +446,7 @@ Ext.define('Ext.dd.DragTracker', {
             me.fireEvent('dragend', me, e);
         }
         // Private property calculated when first required and only cached during a drag
-        me._constrainRegion =  null
+        me._constrainRegion = null;
     },
 
     triggerStart: function(e) {
@@ -508,7 +523,7 @@ Ext.define('Ext.dd.DragTracker', {
 
     /**
      * @private
-     * @returns {Ext.dom.Element} The DragTracker's encapsulating element.
+     * @return {Ext.dom.Element} The DragTracker's encapsulating element.
      */
     getDragCt : function(){
         return this.el;
@@ -557,7 +572,7 @@ Ext.define('Ext.dd.DragTracker', {
      *
      * @param {String} constrainMode (Optional) If omitted the true mouse position is returned. May be passed
      * as `point` or `dragTarget`. See above.
-     * @returns {Number[]} The `X, Y` offset from the mousedown point, optionally constrained.
+     * @return {Number[]} The `X, Y` offset from the mousedown point, optionally constrained.
      */
     getOffset : function(constrain){
         var xy = this.getXY(constrain),

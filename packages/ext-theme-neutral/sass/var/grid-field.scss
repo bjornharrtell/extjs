@@ -56,8 +56,10 @@ $grid-cell-field-font-family: $grid-row-cell-font-family !default;
  * @var {boolean}
  * True to include the "grid-cell" form field UIs input fields rendered in the context of a grid cell.
  *
- * This defaults to `true`. It is required if either {@link Ext.grid.plugin.Editor grid editors} are being used,
- * or if a {@link Ext.grid.column.Widget WidgetColumn} is being used to house an input field.
+ * This defaults to `true`. It is required if either grid editors
+ * ({@link Ext.grid.plugin.CellEditing cell} or {@link Ext.grid.plugin.RowEditing row})
+ * are being used, or if a {@link Ext.grid.column.Widget WidgetColumn} is being used to
+ * house an input field.
  */
 $include-grid-cell-field-ui: false !default;
 
@@ -101,13 +103,13 @@ $grid-cell-text-field-color: $grid-cell-field-color !default;
 
 /**
  * @var {color}
- * The background color of a text field's input element when endered in the context of a grid cell
+ * The background color of a text field's input element when entered in the context of a grid cell
  */
 $grid-cell-text-field-background-color: $form-text-field-background-color !default;
 
 /**
  * @var {number/list}
- * The border width of text fields endered in the context of a grid cell
+ * The border width of text fields entered in the context of a grid cell
  */
 $grid-cell-text-field-border-width: $form-text-field-border-width !default;
 

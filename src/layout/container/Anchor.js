@@ -55,8 +55,8 @@ Ext.define('Ext.layout.container.Anchor', {
     /**
      * @cfg {String} anchor
      *
-     * This configuation option is to be applied to **child `items`** of a container managed by
-     * this layout (ie. configured with `layout:'anchor'`).
+     * This configuration option is to be applied to **child `items`** of a container managed 
+     * by an {@link Ext.layout.container.Anchor Anchor Layout}.
      *
      * This value is what tells the layout how an item should be anchored to the container. `items`
      * added to an AnchorLayout accept an anchoring-specific config property of **anchor** which is a string
@@ -119,7 +119,7 @@ Ext.define('Ext.layout.container.Anchor', {
     beginLayoutCycle: function (ownerContext) {
         var me = this,
             dimensions = 0,
-            anchorSpec, childContext, childItems, i, length, target;
+            anchorSpec, childContext, childItems, i, length;
 
         me.callParent(arguments);
 
@@ -132,13 +132,13 @@ Ext.define('Ext.layout.container.Anchor', {
 
             if (anchorSpec) {
                 if (childContext.widthModel.calculated && anchorSpec.right) {
-                    dimensions |= 1;
+                    dimensions |= 1; // jshint ignore:line
                 }
                 if (childContext.heightModel.calculated && anchorSpec.bottom) {
-                    dimensions |= 2;
+                    dimensions |= 2; // jshint ignore:line
                 }
 
-                if (dimensions == 3) { // if (both dimensions in play)
+                if (dimensions === 3) { // if (both dimensions in play)
                     break;
                 }
             }
@@ -159,7 +159,7 @@ Ext.define('Ext.layout.container.Anchor', {
             gotWidth = containerSize.gotWidth,
             ownerHeight = containerSize.height,
             ownerWidth = containerSize.width,
-            knownDimensions = (gotWidth ? 1 : 0) | (gotHeight ? 2 : 0),
+            knownDimensions = (gotWidth ? 1 : 0) | (gotHeight ? 2 : 0), // jshint ignore:line
             anchorDimensions = ownerContext.anchorDimensions,
             anchorSpec, childContext, childMargins, height, i, width;
 
@@ -193,7 +193,7 @@ Ext.define('Ext.layout.container.Anchor', {
         }
 
         // If all required dimensions are known, we're done
-        return (knownDimensions & anchorDimensions) === anchorDimensions;
+        return (knownDimensions & anchorDimensions) === anchorDimensions; // jshint ignore:line
     },
 
     //<debug>
@@ -252,14 +252,14 @@ Ext.define('Ext.layout.container.Anchor', {
     },
 
     parseAnchor: function(a, start, cstart) {
-        if (a && a != 'none') {
+        if (a && a !== 'none') {
             var factory = this.anchorFactory,
                 delta;
 
             if (this.parseAnchorRE.test(a)) {
                 return factory.standard(cstart - start);
             }    
-            if (a.indexOf('%') != -1) {
+            if (a.indexOf('%') !== -1) {
                 return factory.ratio(parseFloat(a.replace('%', '')) * 0.01);
             }    
             delta = parseInt(a, 10);
@@ -301,7 +301,7 @@ Ext.define('Ext.layout.container.Anchor', {
          * @member Ext.container.Container
          */ 
         if (owner.anchorSize) {
-            if (typeof owner.anchorSize == 'number') {
+            if (typeof owner.anchorSize === 'number') {
                 anchorWidth = owner.anchorSize;
             } else {
                 anchorWidth = owner.anchorSize.width;

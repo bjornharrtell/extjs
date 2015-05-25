@@ -85,9 +85,7 @@ Ext.define('Ext.layout.container.CheckboxGroup', {
                     // autoFlex: true will automatically calculate % widths
                     // autoFlex: false allows the table to decide (shrinkWrap, in effect)
                     // on a per-column basis
-                    cwidth = autoFlex
-                        ? (1 / numCols * 100) + '%'
-                        : '';
+                    cwidth = autoFlex ? (1 / numCols * 100) + '%' : '';
                     columns[i].style.width = cwidth;
                     flexedCols++;
                 }

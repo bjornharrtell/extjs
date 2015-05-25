@@ -1,7 +1,7 @@
 <?php
 // this is an example server-side proxy to load feeds
 $feed = $_REQUEST['feed'];
-if ($feed != '' && strpos($feed, 'http') === 0) {
+if (!empty($feed) && preg_match('#((https?)://(\S*?\.\S*?))([\s)\[\]{},;"\':<]|\.\s|$)#i', $feed)) {
     header('Content-Type: text/xml');
     $xml = file_get_contents($feed);
 

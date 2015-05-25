@@ -1,27 +1,55 @@
 /**
+ * The list grid filter allows you to create a filter selection that limits results
+ * to values matching an element in a list.  The filter can be set programmatically or via 
+ * user input with a configurable {@link Ext.form.field.Checkbox check box field} in the filter section 
+ * of the column header.
+ * 
  * List filters are able to be preloaded/backed by an Ext.data.Store to load
- * their options the first time they are shown.
+ * their options the first time they are shown.  They are also able to create their own 
+ * list of values from  all unique values of the specified {@link #dataIndex} field in 
+ * the store at first time of filter invocation.
  *
- * List filters are also able to create their own list of values from  all unique values of
- * the specified {@link #dataIndex} field in the store at first time of filter invocation.
+ * Example List Filter Usage:
  *
- * Example Usage:
- *
- *     var filters = Ext.create('Ext.grid.Panel', {
- *         ...
+ *     @example
+ *     var shows = Ext.create('Ext.data.Store', {
+ *         fields: ['id','show','rating'],
+ *         data: [
+ *             {id: 0, show: 'Battlestar Galactica', rating: 2},
+ *             {id: 1, show: 'Doctor Who', rating: 4},
+ *             {id: 2, show: 'Farscape', rating: 3},
+ *             {id: 3, show: 'Firefly', rating: 4},
+ *             {id: 4, show: 'Star Trek', rating: 1},
+ *             {id: 5, show: 'Star Wars: Christmas Special', rating: 5}
+ *         ]
+ *     });
+ *   
+ *     Ext.create('Ext.grid.Panel', {
+ *         renderTo: Ext.getBody(),
+ *         title: 'Sci-Fi Television',
+ *         height: 250,
+ *         width: 350,
+ *         store: shows,
+ *         plugins: 'gridfilters',
  *         columns: [{
- *             text: 'Size',
- *             dataIndex: 'size',
- *
+ *             dataIndex: 'id',
+ *             text: 'ID',
+ *             width: 50
+ *         },{
+ *             dataIndex: 'show',
+ *             text: 'Show',
+ *             flex: 1                  
+ *         },{
+ *             dataIndex: 'rating',
+ *             text: 'Rating',
+ *             width: 75,
  *             filter: {
  *                 type: 'list',
- *                 // options will be used as data to implicitly creates an ArrayStore
- *                 options: ['extra small', 'small', 'medium', 'large', 'extra large']
+ *                 value: 5                      
  *             }
- *         }],
- *         ...
+ *         }]
  *     });
- * 
+ *
  * ## Options
  * 
  * There are three means to determine the list of options to present to the user:
@@ -40,6 +68,21 @@
  * In all of these modes, a store is created that is synchronized with the menu items.
  * The records in this store have `{@link #cfg-idField}` and `{@link #cfg-labelField}`
  * fields that get populated from which ever source was provided.
+ * 
+ *     var filters = Ext.create('Ext.grid.Panel', {
+ *         ...
+ *         columns: [{
+ *             text: 'Size',
+ *             dataIndex: 'size',
+ *
+ *             filter: {
+ *                 type: 'list',
+ *                 // options will be used as data to implicitly creates an ArrayStore
+ *                 options: ['extra small', 'small', 'medium', 'large', 'extra large']
+ *             }
+ *         }],
+ *         ...
+ *     });
  */
 Ext.define('Ext.grid.filters.filter.List', {
     extend: 'Ext.grid.filters.filter.SingleFilter',
@@ -49,19 +92,18 @@ Ext.define('Ext.grid.filters.filter.List', {
 
     operator: 'in',
 
-    itemDefaults: {
-        checked: false,
-        hideOnClick: false
-    },
-
     /**
      * @cfg {Object} [itemDefaults]
-     * See the {@link Ext.grid.filters.Base#cfg-itemDefaults documentation} for the base class for
-     * details.
+     * See the {@link Ext.grid.filters.filter.Base#cfg-itemDefaults documentation} for
+     * the base class for details.
      * 
      * In the case of this class, however, note that the `checked` config should **not** be
      * specified.
      */
+    itemDefaults: {
+        checked: false,
+        hideOnClick: false
+    },
 
     /**
      * @cfg {Array} [options]
@@ -126,11 +168,13 @@ Ext.define('Ext.grid.filters.filter.List', {
      */
     labelIndex: null,
 
+    //<locale>
     /**
-     * @cfg {String} paramPrefix
-     * Defaults to 'Loading...'.
+     * @cfg {String} [loadingText="Loading..."]
+     * The text that is displayed while the configured store is loading.
      */
     loadingText: 'Loading...',
+    //</locale>
 
     /**
      * @cfg {Boolean} loadOnShow
@@ -265,7 +309,7 @@ Ext.define('Ext.grid.filters.filter.List', {
             idField = me.idField,
             labelField = me.labelField,
             optionsStore = false,
-            storeData, o, record, i, len, value, filter;
+            storeData, o, i, len, value;
 
         if (isStore) {
             if (options !== me.getGridStore()) {
@@ -486,8 +530,7 @@ Ext.define('Ext.grid.filters.filter.List', {
     setStoreFilter: function (options) {
         var me = this,
             value = me.value,
-            filter = me.filter,
-            contains, i, len, val, list;
+            filter = me.filter;
 
         // If there are user-provided values we trust that they are valid (an empty array IS valid!).
         if (value) {

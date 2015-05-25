@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.window.Window', {
     override: 'Ext.window.Window',
     

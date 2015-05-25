@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.view.View', {
     override: 'Ext.view.View',
 

@@ -3148,11 +3148,16 @@ jasmine.Spec.prototype.removeAllSpies = function() {
             children = body && body.childNodes || [],
             len = children.length,
             badNodes = [],
-            i = 0;
+            badIds = [],
+            i = 0,
+            child, ids;
 
         for (; i < len; i++) {
-            if (children[i].nodeType === 3 || !children[i].getAttribute('data-sticky')) {
-                badNodes.push(children[i]);
+            child = children[i];
+
+            if (child.nodeType === 3 || !child.getAttribute('data-sticky')) {
+                badIds.push(child.tagName + '#' + child.id);
+                badNodes.push(child);
             }
         }
 
@@ -3161,7 +3166,15 @@ jasmine.Spec.prototype.removeAllSpies = function() {
         }
 
         if (badNodes.length) {
-            this.fail('document.body contains childNodes after spec execution');
+            ids = badIds.join(', ');
+
+            Ext.log({
+                dump: badNodes,
+                level: 'error',
+                msg: 'CLEAN UP YOUR DOM LEAKS!! --> ' + ids
+            });
+
+            this.fail('document.body contains childNodes after spec execution --> ' + ids);
         }
     };
 
@@ -4135,6 +4148,27 @@ jasmine.waitForFocus = jasmine.waitsForFocus = function(cmp, desc, timeout) {
     );
 };
 
+jasmine.waitForBlur = jasmine.waitsForBlur = function(cmp, desc, timeout) {
+    var dom = cmp.isComponent ? cmp.getFocusEl().dom
+            : cmp.isElement   ? cmp.dom
+            :                   cmp;
+    
+    if (!desc) {
+        desc = dom.id + ' to blur';
+    }
+
+    // Default to Jasmine's default timeout.
+    timeout = timeout || 5000;
+
+    waitsFor(
+        function() {
+            return document.activeElement !== dom;
+        },
+        desc,
+        timeout
+    );
+};
+
 // In IE (all of 'em), focus/blur events are asynchronous. To us it means
 // not only that we have to wait for the actual element to focus but
 // also for its container-injected focus handler to fire; and since
@@ -4159,6 +4193,16 @@ jasmine.focusAndWait = function(cmp, waitFor) {
     });
 
     jasmine.waitForFocus(waitFor || cmp);
+
+    jasmine.waitAWhile();
+};
+
+jasmine.blurAndWait = function(cmp, waitFor) {
+    runs(function() {
+        cmp.blur();
+    });
+
+    jasmine.waitForBlur(waitFor || cmp);
 
     jasmine.waitAWhile();
 };

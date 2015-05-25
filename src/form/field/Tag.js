@@ -1,7 +1,38 @@
 /**
- * The `tagfield` is a combo box improved for multiple value editing, selection and easy
- * management.
+ * `tagfield` provides a combobox that removes the hassle of dealing with long and unruly select 
+ * options. The selected list is visually maintained in the value display area instead of 
+ * within the picker itself. Users may easily add or remove `tags` from the 
+ * display value area.
  *
+ *       @example
+ *       var shows = Ext.create('Ext.data.Store', {
+ *           fields: ['id','show'],
+ *           data: [
+ *               {id: 0, show: 'Battlestar Galactica'},
+ *               {id: 1, show: 'Doctor Who'},
+ *               {id: 2, show: 'Farscape'},
+ *               {id: 3, show: 'Firefly'},
+ *               {id: 4, show: 'Star Trek'},
+ *               {id: 5, show: 'Star Wars: Christmas Special'}
+ *           ]
+ *        });
+ *
+ *       Ext.create('Ext.form.Panel', {
+ *           renderTo: Ext.getBody(),
+ *           title: 'Sci-Fi Television',
+ *           height: 200,
+ *           width: 500,
+ *           items: [{
+ *               xtype: 'tagfield',
+ *               fieldLabel: 'Select a Show',
+ *               store: shows,
+ *               displayField: 'show',
+ *               valueField: 'id',
+ *               queryMode: 'local',
+ *               filterPickList: true
+ *           }]
+ *       });  
+ *       
  * ### History
  *
  * Inspired by the [SuperBoxSelect component for ExtJS 3](http://technomedia.co.uk/SuperBoxSelect/examples3.html),
@@ -21,6 +52,15 @@ Ext.define('Ext.form.field.Tag', {
     ],
 
     xtype: 'tagfield',
+
+    noWrap: false,
+
+    /**
+     * @cfg allowOnlyWhitespace
+     * @hide
+     * Currently unsupported since the value of a tagfield is an array of values and shouldn't ever be a string.
+     */
+
     /**
      * @cfg {String} valueParam
      * The name of the parameter used to load unknown records into the store. If left unspecified, {@link #valueField}
@@ -47,8 +87,16 @@ Ext.define('Ext.form.field.Tag', {
     /**
      * @cfg {String/Ext.XTemplate} labelTpl
      * The {@link Ext.XTemplate XTemplate} to use for the inner
-     * markup of the labelled items. Defaults to the configured {@link #displayField}
+     * markup of the labeled items. Defaults to the configured {@link #displayField}.
      */
+    
+    /**
+     * @cfg {String/Ext.XTemplate} tipTpl
+     * The {@link Ext.XTemplate XTemplate} to use for the tip of the labeled items. 
+     *
+     * @since  5.1.1
+     */
+    tipTpl: undefined,
 
     /**
      * @cfg
@@ -179,9 +227,10 @@ Ext.define('Ext.form.field.Tag', {
 
     /**
      * @private
+     * @cfg
      */
     fieldSubTpl: [
-        '<div id="{cmpId}-listWrapper" data-ref="listWrapper" class="' + Ext.baseCSSPrefix + 'tagfield {fieldCls} {typeCls} {typeCls}-{ui} style="{wrapperStyle}">',
+        '<div id="{cmpId}-listWrapper" data-ref="listWrapper" class="' + Ext.baseCSSPrefix + 'tagfield {fieldCls} {typeCls} {typeCls}-{ui}" style="{wrapperStyle}">',
             '<ul id="{cmpId}-itemList" data-ref="itemList" class="' + Ext.baseCSSPrefix + 'tagfield-list{itemListCls}">',
                 '<li id="{cmpId}-inputElCt" data-ref="inputElCt" class="' + Ext.baseCSSPrefix + 'tagfield-input">',
                     '<div id="{cmpId}-emptyEl" data-ref="emptyEl" class="{emptyCls}">{emptyText}</div>',
@@ -212,6 +261,13 @@ Ext.define('Ext.form.field.Tag', {
      */
     emptyInputCls: Ext.baseCSSPrefix + 'tagfield-emptyinput',
 
+    // @private
+    clearValueOnEmpty: false,
+
+    tagItemCls: Ext.baseCSSPrefix + 'tagfield-item',
+    tagItemTextCls: Ext.baseCSSPrefix + 'tagfield-item-text',
+    tagItemCloseCls: Ext.baseCSSPrefix + 'tagfield-item-close',
+
     tagItemSelector: '.' + Ext.baseCSSPrefix + 'tagfield-item',
     tagItemCloseSelector: '.' + Ext.baseCSSPrefix + 'tagfield-item-close',
     tagSelectedCls: Ext.baseCSSPrefix + 'tagfield-item-selected',
@@ -233,6 +289,9 @@ Ext.define('Ext.form.field.Tag', {
         }
 
         me.typeAhead = false;
+        if (me.value == null) {
+            me.value = [];
+        }
 
         // This is the selection model for selecting tags in the tag list. NOT the dropdown BoundList.
         // Create the selModel before calling parent, we need it to be available
@@ -287,7 +346,9 @@ Ext.define('Ext.form.field.Tag', {
         if (store) {
             // We collect picked records in a value store so that a selection model can track selection
             me.valueStore = new Ext.data.Store({
-                model: store.getModel()
+                model: store.getModel(),
+                // We may have the empty store here, so just ignore empty models
+                useModelWarning: false
             });
             me.selectionModel.bindStore(me.valueStore);
 
@@ -322,7 +383,7 @@ Ext.define('Ext.form.field.Tag', {
             me.valueStore = null;
         }
 
-        if (me.filterPickList) {
+        if (me.filterPickList && !store.isDestroyed) {
             me.changingFilters = true;
             store.removeFilter(me.listFilter);
             me.changingFilters = false;
@@ -354,6 +415,7 @@ Ext.define('Ext.form.field.Tag', {
             valueStore.resumeEvents();
         }
         Ext.resumeLayouts(true);
+        me.alignPicker();
     },
 
     checkValueOnDataChange: Ext.emptyFn,
@@ -381,13 +443,13 @@ Ext.define('Ext.form.field.Tag', {
             emptyInputCls = me.emptyInputCls,
             isEmpty = emptyText && data.value.length < 1,
             growMin = me.growMin,
-            growMax = me.growMax;
+            growMax = me.growMax,
+            wrapperStyle = '';
 
         data.value = '';
         data.emptyText = isEmpty ? emptyText : '';
         data.emptyCls = isEmpty ? me.emptyCls : emptyInputCls;
         data.inputElCls = isEmpty ? emptyInputCls : '';
-        data.wrapperStyle = '';
         data.itemListCls = '';
 
         if (me.grow) {
@@ -398,6 +460,8 @@ Ext.define('Ext.form.field.Tag', {
                 wrapperStyle += 'max-height:' + growMax + 'px;';
             }
         }
+
+        data.wrapperStyle = wrapperStyle;
 
         if (me.stacked === true) {
             data.itemListCls += ' ' + Ext.baseCSSPrefix + 'tagfield-stacked';
@@ -464,7 +528,7 @@ Ext.define('Ext.form.field.Tag', {
     },
 
     /**
-     * Handles keyDown processing of key-based selection of labelled items.
+     * Handles keyDown processing of key-based selection of labeled items.
      * Supported keyboard controls:
      *
      * - If pick list is expanded
@@ -562,8 +626,8 @@ Ext.define('Ext.form.field.Tag', {
     },
 
     /**
-     * Handles auto-selection and creation of labelled items based on this field's
-     * delimiter, as well as the keyUp processing of key-based selection of labelled items.
+     * Handles auto-selection and creation of labeled items based on this field's
+     * delimiter, as well as the keyUp processing of key-based selection of labeled items.
      * @protected
      */
     onKeyUp: function(e, t) {
@@ -616,7 +680,7 @@ Ext.define('Ext.form.field.Tag', {
     },
 
     /**
-     * Delegation control for selecting and removing labelled items or triggering list collapse/expansion
+     * Delegation control for selecting and removing labeled items or triggering list collapse/expansion
      * @protected
      */
     onItemListClick: function(e) {
@@ -657,8 +721,8 @@ Ext.define('Ext.form.field.Tag', {
     },
 
     /**
-     * Build the markup for the labelled items. Template must be built on demand due to ComboBox initComponent
-     * lifecycle for the creation of on-demand stores (to account for automatic valueField/displayField setting)
+     * Build the markup for the labeled items. Template must be built on demand due to ComboBox initComponent
+     * life cycle for the creation of on-demand stores (to account for automatic valueField/displayField setting)
      * @private
      */
     getMultiSelectItemMarkup: function() {
@@ -672,18 +736,22 @@ Ext.define('Ext.form.field.Tag', {
             }
             me.labelTpl = me.getTpl('labelTpl');
 
+            if (me.tipTpl) {
+                me.tipTpl = me.getTpl('tipTpl');
+            }
+
             me.multiSelectItemTpl = new Ext.XTemplate([
                 '<tpl for=".">',
-                    '<li data-selectionIndex="{[xindex - 1]}" data-recordId="{internalId}" data-value="{[this.getItemValue(values)]}" class="' + cssPrefix + 'tagfield-item',
+                    '<li data-selectionIndex="{[xindex - 1]}" data-recordId="{internalId}" class="' + me.tagItemCls,
                     '<tpl if="this.isSelected(values)">',
                     ' ' + me.tagSelectedCls,
                     '</tpl>',
                     '{%',
                         'values = values.data;',
                     '%}',
-                    '" qtip="{' + me.displayField + '}">' ,
-                    '<div class="' + cssPrefix + 'tagfield-item-text">{[this.getItemLabel(values)]}</div>',
-                    '<div class="' + cssPrefix + 'tagfield-item-close"></div>' ,
+                    me.tipTpl ? '" data-qtip="{[this.getTip(values)]}">' : '">',
+                    '<div class="' + me.tagItemTextCls + '">{[this.getItemLabel(values)]}</div>',
+                    '<div class="' + me.tagItemCloseCls + '"></div>' ,
                     '</li>' ,
                 '</tpl>',
                 {
@@ -691,10 +759,10 @@ Ext.define('Ext.form.field.Tag', {
                         return me.selectionModel.isSelected(rec);
                     },
                     getItemLabel: function(values) {
-                        return me.labelTpl.apply(values);
+                        return Ext.String.htmlEncode(me.labelTpl.apply(values));
                     },
-                    getItemValue: function(rec) {
-                        return rec.get(valueField);
+                    getTip: function(values) {
+                        return Ext.String.htmlEncode(me.tipTpl.apply(values));
                     },
                     strict: true
                 }
@@ -708,7 +776,7 @@ Ext.define('Ext.form.field.Tag', {
     },
 
     /**
-     * Update the labelled items rendering
+     * Update the labeled items rendering
      * @private
      */
     applyMultiselectItemMarkup: function() {
@@ -723,14 +791,14 @@ Ext.define('Ext.form.field.Tag', {
     },
 
     /**
-     * Returns the record from valueStore for the labelled item node
+     * Returns the record from valueStore for the labeled item node
      */
     getRecordByListItemNode: function(itemEl) {
         return this.valueCollection.items[Number(itemEl.getAttribute('data-selectionIndex'))];
     },
 
     /**
-     * Toggle of labelled item selection by node reference
+     * Toggle of labeled item selection by node reference
      */
     toggleSelectionByListItemNode: function(itemEl, keepExisting) {
         var me = this,
@@ -747,7 +815,7 @@ Ext.define('Ext.form.field.Tag', {
     },
 
     /**
-     * Removal of labelled item by node reference
+     * Removal of labeled item by node reference
      */
     removeByListItemNode: function(itemEl) {
         var me = this,
@@ -772,32 +840,21 @@ Ext.define('Ext.form.field.Tag', {
      */
     getRawValue: function() {
         var me = this,
-            inputEl = me.inputEl,
-            result;
+            records = me.getValueRecords(),
+            values = [],
+            i, len;
 
-        me.inputEl = false;
-        result = me.callParent(arguments);
-        me.inputEl = inputEl;
-        return result;
+        for (i = 0, len = records.length; i < len; i++) {
+            values.push(records[i].data[me.displayField]);
+        }
+
+        return values.join(',');
     },
 
-    /**
-     * @inheritdoc
-     * Intercept calls to setRawValue to pretend there is no inputEl for rawValue handling,
-     * so that we can use inputEl for user input of just the current value.
-     */
     setRawValue: function(value) {
-        var me = this,
-            inputEl = me.inputEl,
-            result;
-
-        me.inputEl = false;
-        result = me.callParent([value]);
-        me.inputEl = inputEl;
-
-        return result;
+        // setRawValue is not supported for tagfield.
+        return;
     },
-
 
     /**
      * Removes a value or values from the current value of the field
@@ -831,7 +888,7 @@ Ext.define('Ext.form.field.Tag', {
     },
 
     /**
-     * Sets the specified value(s) into the field. The following value formats are recognised:
+     * Sets the specified value(s) into the field. The following value formats are recognized:
      *
      * - Single Values
      *
@@ -949,7 +1006,7 @@ Ext.define('Ext.form.field.Tag', {
             valueArray[i] = valueArray[i].get(me.valueField);
         }
 
-        // Set the value of this field. If we are multiselecting, then that is an array.
+        // Set the value of this field. If we are multi-selecting, then that is an array.
         me.setHiddenValue(valueArray);
         me.value = me.multiSelect ? valueArray : valueArray[0];
         if (!Ext.isDefined(me.value)) {

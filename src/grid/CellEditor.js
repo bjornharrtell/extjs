@@ -127,9 +127,9 @@ Ext.define('Ext.grid.CellEditor', {
         }
     },
 
-    startEdit: function(record, columnHeader) {
+    startEdit: function(boundEl, value) {
         this.context = this.editingPlugin.context;
-        this.callParent([record, columnHeader]);
+        this.callParent([boundEl, value]);
     },
 
     /**
@@ -171,29 +171,8 @@ Ext.define('Ext.grid.CellEditor', {
      * Shows the grid cell inner element when a cell editor is hidden
      */
     onHide: function() {
-        var me = this,
-            context = me.context,
-            focusContext;
-
-        me.restoreCell();
-
-        if (context && me.el.contains(Ext.Element.getActiveElement())) {
-            focusContext = context.clone();
-
-            // If, after hiding, focus has not been programatically moved to another target
-            // (eg, we are in a TAB event listener, and move to edit the next cell)
-            // then revert focus back to the corresponding grid cell.
-            Ext.on({
-                idle: function() {
-                    if (Ext.Element.getActiveElement() === document.body) {
-                        context.view.getNavigationModel().setPosition(focusContext, null, null, null, true);
-                    }
-                },
-                single: true
-            });
-            me.context = null;
-        }
-        me.callParent(arguments);
+        this.restoreCell();
+        this.callParent(arguments);
     },
 
     restoreCell: function() {

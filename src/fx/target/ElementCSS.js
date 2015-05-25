@@ -20,15 +20,14 @@ Ext.define('Ext.fx.target.ElementCSS', {
                 easing: []
             },
             ln = targetData.length,
-            attributes,
-            attrs,
-            attr,
-            easing,
-            duration,
-            o,
-            i,
-            j,
-            ln2;
+            cleanerFn = function() {
+                this.setStyle(Ext.supports.CSS3Prefix + 'TransitionProperty', null);
+                this.setStyle(Ext.supports.CSS3Prefix + 'TransitionDuration', null);
+                this.setStyle(Ext.supports.CSS3Prefix + 'TransitionTimingFunction', null);
+            },
+            single = { single: true },
+            attributes, attrs, attr, easing, duration, o, i, j, ln2;
+
         for (i = 0; i < ln; i++) {
             attrs = targetData[i];
             duration = attrs.duration;
@@ -44,9 +43,11 @@ Ext.define('Ext.fx.target.ElementCSS', {
                 }
             }
         }
+
         attributes = cssArr.attrs.join(',');
         duration = cssArr.duration.join(',');
         easing = cssArr.easing.join(', ');
+
         for (i = 0; i < ln; i++) {
             attrs = targetData[i].attrs;
             for (attr in attrs) {
@@ -64,11 +65,7 @@ Ext.define('Ext.fx.target.ElementCSS', {
                     }
                     else {
                         // Remove transition properties when completed.
-                        o[0].on(Ext.supports.CSS3TransitionEnd, function() {
-                            this.setStyle(Ext.supports.CSS3Prefix + 'TransitionProperty', null);
-                            this.setStyle(Ext.supports.CSS3Prefix + 'TransitionDuration', null);
-                            this.setStyle(Ext.supports.CSS3Prefix + 'TransitionTimingFunction', null);
-                        }, o[0], { single: true });
+                        o[0].on(Ext.supports.CSS3TransitionEnd, cleanerFn, o[0], single);
                     }
                 }
             }

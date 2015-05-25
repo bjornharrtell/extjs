@@ -154,7 +154,7 @@
         </if>
 
         <x-shell reloadprofile="true" dir="${app.phonegap.config.path}">
-            phonegap ${phonegap.cli.options} remote login --username='${phonegap.build.remote.username}' --password='${phonegap.build.remote.password}'
+            phonegap ${phonegap.cli.options} remote login --username="${phonegap.build.remote.username}" --password="${phonegap.build.remote.password}"
         </x-shell>
     </target>
 

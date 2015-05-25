@@ -387,10 +387,11 @@ Ext.define('Ext.plugin.AbstractClipboard', {
 
         pasteClipboardData: function (format) {
             var me = this,
+                clippy = window.clipboardData,
                 area, focusEl;
 
-            if (window.clipboardData && clipboardData.getData) {
-                 me.doPaste(format, clipboardData.getData("text"));
+            if (clippy && clippy.getData) {
+                 me.doPaste(format, clippy.getData("text"));
             } else {
                 focusEl = Ext.Element.getActiveElement();
                 area = me.getHiddenTextArea().dom;
@@ -413,8 +414,10 @@ Ext.define('Ext.plugin.AbstractClipboard', {
         },
 
         setClipboardData: function (data) {
-            if (window.clipboardData && clipboardData.setData) {
-                clipboardData.setData("text", data);
+            var clippy = window.clipboardData;
+
+            if (clippy && clippy.setData) {
+                clippy.setData("text", data);
             } else {
                 var me = this,
                     area = me.getHiddenTextArea().dom,
@@ -458,7 +461,7 @@ Ext.define('Ext.plugin.AbstractClipboard', {
             // 1: memory
             // 2: system
             // 3: both
-            return me.allFormats = map;
+            return me.allFormats = map; // jshint ignore:line
         },
 
         updateMemory: function () {

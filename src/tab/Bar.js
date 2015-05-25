@@ -31,7 +31,7 @@ Ext.define('Ext.tab.Bar', {
          * @cfg {'default'/0/1/2} tabRotation
          * The rotation of the tabs.  Can be one of the following values:
          *
-         * - `null` - use the default rotation, depending on the dock position (see below)
+         * - `default` - use the default rotation, depending on the dock position (see below)
          * - `0` - no rotation
          * - `1` - rotate 90deg clockwise
          * - `2` - rotate 90deg counter-clockwise
@@ -52,6 +52,9 @@ Ext.define('Ext.tab.Bar', {
          */
         tabStretchMax: true,
         
+        // NB: This option is named this way for the intent, but in fact activation
+        // happens in arrow key handler, not in focus handler. In IE focus events are
+        // asynchronous, so activation happens before the tab's focus handler is fired.
         /**
          * @cfg {Boolean} [activateOnFocus=true]
          * `true` to follow WAI-ARIA requirement and activate tab when it is navigated to
@@ -59,9 +62,6 @@ Ext.define('Ext.tab.Bar', {
          * is disabled, users will have to use arrow keys to focus a tab, and then press
          * Space key to activate it.
          */
-        // NB: This option is named this way for the intent, but in fact activation
-        // happens in arrow key handler, not in focus handler. In IE focus events are
-        // asynchronous, so activation happens before the tab's focus handler is fired.
         activateOnFocus: true
     },
 
@@ -73,6 +73,15 @@ Ext.define('Ext.tab.Bar', {
      * True to not show the full background on the tabbar
      */
     plain: false,
+
+    /**
+     * @cfg {Boolean} ensureActiveVisibleOnChange
+     * `true` to ensure the active tab is scrolled into view when the tab changes, the text, the
+     * icon or the glyph. This is only applicable if using an overflow scroller.
+     *
+     * @since 5.1.1
+     */
+    ensureActiveVisibleOnChange: true,
     
     ariaRole: 'tablist',
 
@@ -128,8 +137,7 @@ Ext.define('Ext.tab.Bar', {
         var me = this,
             initialLayout = me.initialConfig.layout,
             initialAlign = initialLayout && initialLayout.align,
-            initialOverflowHandler = initialLayout && initialLayout.overflowHandler,
-            layout;
+            initialOverflowHandler = initialLayout && initialLayout.overflowHandler;
 
         if (me.plain) {
             me.addCls(me.baseCls + '-plain');
@@ -148,6 +156,37 @@ Ext.define('Ext.tab.Bar', {
             element: 'el',
             scope: me
         });
+    },
+
+    /**
+     * Ensure the passed tab is visible if using overflow scrolling 
+     * @param {Ext.tab.Tab/Ext.Component/Number} [tab] The tab, item in the owning {@link Ext.tab.Panel} or
+     * the index of the item to scroll to. Defaults to the active tab.
+     */
+    ensureTabVisible: function(tab) {
+        var me = this,
+            tabPanel = me.tabPanel,
+            overflowHandler = me.layout.overflowHandler;
+
+        if (me.rendered && overflowHandler && me.tooNarrow && overflowHandler.scrollToItem) {
+            if (tab || tab === 0) {
+                if (!tab.isTab) {
+                    if (Ext.isNumber(tab)) {
+                        tab = this.items.getAt(tab);
+                    } else if (tab.isComponent && tabPanel && tabPanel.items.contains(tab)) {
+                        tab = tab.tab;
+                    }
+                }
+            }
+
+            if (!tab) {
+                tab = me.activeTab;
+            }
+
+            if (tab) {
+                overflowHandler.scrollToItem(tab);
+            }
+        }
     },
 
     initRenderData: function() {
@@ -233,6 +272,21 @@ Ext.define('Ext.tab.Bar', {
         this.callParent(arguments);
     },
 
+    onAdd: function(tab, pos) {
+        var fn = this.onTabContentChange;
+
+        if (this.ensureActiveVisibleOnChange) {
+            tab.barListeners = tab.on({
+                scope: this,
+                destroyable: true,
+                glyphchange: fn,
+                iconchange: fn,
+                textchange: fn
+            });
+        }
+        this.callParent([tab, pos]);
+    },
+
     onAdded: function(container, pos, instanced) {
         if (container.isHeader) {
             this.addCls(container.baseCls + '-' + container.ui + '-tab-bar');
@@ -240,13 +294,22 @@ Ext.define('Ext.tab.Bar', {
         this.callParent([container, pos, instanced]);
     },
 
-    onRemove: function(tab) {
+    onRemove: function(tab, destroying) {
         var me = this;
+
+        // If we're not destroying, no need to do this here since they will
+        // be cleaned up
+        if (me.ensureActiveVisibleOnChange) {
+            if (!destroying) {
+                tab.barListeners.destroy();
+            }
+            tab.barListeners = null;
+        }
 
         if (tab === me.previousTab) {
             me.previousTab = null;
         }
-        me.callParent(arguments);
+        me.callParent([tab, destroying]);
     },
 
     onRemoved: function(destroying) {
@@ -256,6 +319,12 @@ Ext.define('Ext.tab.Bar', {
             this.removeCls(ownerCt.baseCls + '-' + ownerCt.ui + '-tab-bar');
         }
         this.callParent([destroying]);
+    },
+
+    onTabContentChange: function(tab) {
+        if (tab === this.activeTab) {
+            this.ensureTabVisible(tab);
+        }
     },
 
     afterComponentLayout: function(width) {
@@ -563,7 +632,6 @@ Ext.define('Ext.tab.Bar', {
 
         onClick: function(e, target) {
             var me = this,
-                tabPanel = me.tabPanel,
                 tabEl, tab, isCloseClick, tabInfo;
 
             if (e.getTarget('.' + Ext.baseCSSPrefix + 'box-scroller')) {

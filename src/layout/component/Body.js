@@ -48,7 +48,7 @@ Ext.define('Ext.layout.component.Body', {
     calculateOwnerHeightFromContentHeight: function (ownerContext, contentHeight) {
         var height = this.callParent(arguments);
 
-        if (ownerContext.targetContext != ownerContext) {
+        if (ownerContext.targetContext !== ownerContext) {
             height += ownerContext.getPaddingInfo().height;
         }
 
@@ -58,7 +58,7 @@ Ext.define('Ext.layout.component.Body', {
     calculateOwnerWidthFromContentWidth: function (ownerContext, contentWidth) {
         var width = this.callParent(arguments);
 
-        if (ownerContext.targetContext != ownerContext) {
+        if (ownerContext.targetContext !== ownerContext) {
             width += ownerContext.getPaddingInfo().width;
         }
 
@@ -77,7 +77,7 @@ Ext.define('Ext.layout.component.Body', {
         var innerHeight = height - ownerContext.getFrameInfo().height,
             targetContext = ownerContext.targetContext;
 
-        if (targetContext != ownerContext) {
+        if (targetContext !== ownerContext) {
             innerHeight -= ownerContext.getPaddingInfo().height;
         }
 
@@ -89,7 +89,7 @@ Ext.define('Ext.layout.component.Body', {
         var innerWidth = width - ownerContext.getFrameInfo().width,
             targetContext = ownerContext.targetContext;
 
-        if (targetContext != ownerContext) {
+        if (targetContext !== ownerContext) {
             innerWidth -= ownerContext.getPaddingInfo().width;
         }
 

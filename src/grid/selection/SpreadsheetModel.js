@@ -15,24 +15,13 @@
  *
  *     @example
  *     var store = Ext.create('Ext.data.Store', {
- *         fields: [ 'name', 'email', 'phone' ],
- *
- *         data: {
- *             items: [
- *                 { name: 'Lisa',  email: 'lisa@simpsons.com',  phone: '555-111-1224' },
- *                 { name: 'Bart',  email: 'bart@simpsons.com',  phone: '555-222-1234' },
- *                 { name: 'Homer', email: 'homer@simpsons.com', phone: '555-222-1244' },
- *                 { name: 'Marge', email: 'marge@simpsons.com', phone: '555-222-1254' }
- *             ]
- *         },
- *
- *         proxy: {
- *             type: 'memory',
- *             reader: {
- *                 type: 'json',
- *                 root: 'items'
- *             }
- *         }
+ *         fields: ['name', 'email', 'phone'],
+ *         data: [
+ *             { name: 'Lisa', email: 'lisa@simpsons.com', phone: '555-111-1224' },
+ *             { name: 'Bart', email: 'bart@simpsons.com', phone: '555-222-1234' },
+ *             { name: 'Homer', email: 'homer@simpsons.com', phone: '555-222-1244' },
+ *             { name: 'Marge', email: 'marge@simpsons.com', phone: '555-222-1254' }
+ *         ]
  *     });
  *
  *     Ext.create('Ext.grid.Panel', {
@@ -40,13 +29,11 @@
  *         store: store,
  *         width: 400,
  *         renderTo: Ext.getBody(),
- *
  *         columns: [
- *             { text: 'Name',  dataIndex: 'name'  },
+ *             { text: 'Name', dataIndex: 'name' },
  *             { text: 'Email', dataIndex: 'email', flex: 1 },
  *             { text: 'Phone', dataIndex: 'phone' }
  *         ],
- *
  *         selModel: {
  *            type: 'spreadsheet'
  *         }
@@ -385,8 +372,8 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
      *  rowIdx - row index
      *  column - {@link Ext.grid.column.Column Column} under which the cell is located.
      *  record - {@link Ext.data.Model} Record from which the cell derives its data.
-     *  view - The view. If this selection model is for a locking grid, this will be the outermost view, the {@link Ext.grid.loacking.View}
-     *  which encapsulates the sub grids. Column indices are relatibve to the outermost view's visible column set.
+     *  view - The view. If this selection model is for a locking grid, this will be the outermost view, the {@link Ext.grid.locking.View}
+     *  which encapsulates the sub grids. Column indices are relative to the outermost view's visible column set.
      *
      * @param {Number} record Record for which to select the cell, or row index.
      * @param {Number} column Grid column header, or column index.
@@ -493,7 +480,7 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
      *         }
      *     });
      *
-     *     vaar grid = Ext.create('Ext.grid.Panel', {
+     *     var grid = Ext.create('Ext.grid.Panel', {
      *         title    : 'Simpsons',
      *         store    : store,
      *         width    : 400,
@@ -619,7 +606,7 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
     /**
      * Select one or more rows.
      * @param rows {Ext.data.Model[]} Records to select.
-     * @param {Boolean} [keepSelection=false] Pass `true` to leep previous selection.
+     * @param {Boolean} [keepSelection=false] Pass `true` to keep previous selection.
      * @param {Boolean} [suppressEvent] Pass `true` to prevent firing the
      * `{@link #selectionchange}` event.
      */
@@ -654,7 +641,7 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
     /**
      * Selects a column.
      * @param {Ext.grid.column.Column} column Column to select.
-     * @param {Boolean} [keepSelection=false] Pass `true` to leep previous selection.
+     * @param {Boolean} [keepSelection=false] Pass `true` to keep previous selection.
      * @param {Boolean} [suppressEvent] Pass `true` to prevent firing the
      * `{@link #selectionchange}` event.
      */
@@ -1054,7 +1041,7 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
 
         /**
          * Called when the grid's Navigation model detects navigation events (`mousedown`, `click` and certain `keydown` events).
-         * @param {Ext.event.EVent} navigateEvent The event which caused navigation.
+         * @param {Ext.event.Event} navigateEvent The event which caused navigation.
          * @private
          */
         onNavigate: function(navigateEvent) {
@@ -1074,6 +1061,11 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
 
             // CTRL/Arrow just navigates, does not select
             if (keyEvent.ctrlKey && (keyCode === keyEvent.UP || keyCode === keyEvent.LEFT || keyCode === keyEvent.RIGHT || keyCode === keyEvent.DOWN)) {
+                return;
+            }
+
+            // Click is the mouseup at the end of a multi-cell select swipe; reject.
+            if (sel && sel.isCells && sel.getCount() > 1 && keyEvent.type === 'click') {
                 return;
             }
 
@@ -1354,6 +1346,7 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
                 }
                 if (!rowSelect && sel && sel.isRows) {
                     sel.clear();
+                    me.fireSelectionChange();
                 }
             }
         },
@@ -1375,6 +1368,7 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
             }
             if (!columnSelect && sel && sel.isColumns) {
                 sel.clear();
+                me.fireSelectionChange();
             }
             if (columnSelect) {
                 me.view.ownerGrid.addCls(me.columnSelectCls);
@@ -1392,6 +1386,7 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
 
             if (!cellSelect && sel && sel.isCells) {
                 sel.clear();
+                me.fireSelectionChange();
             }
         },
 
@@ -1423,10 +1418,10 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
                 len = records.length,
                 i,
                 record,
-                selected = sel.selectedRecords;
+                selected = sel && sel.selectedRecords;
 
-            // Check for return of already selected records
-            if (sel && sel.isRows && selected) {
+            // Check for return of already selected records.
+            if (selected && sel.isRows) {
                 for (i = 0; i < len; i++) {
                     record = records[i];
                     if (selected.get(record.id)) {

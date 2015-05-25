@@ -1,8 +1,22 @@
 /**
- * Container which holds headers and is docked at the top or bottom of a TablePanel.
- * The HeaderContainer drives resizing/moving/hiding of columns within the TableView.
- * As headers are hidden, moved or resized the headercontainer is responsible for
- * triggering changes within the view.
+ * Headercontainer is a docked container (_`top` or `bottom` only_) that holds the
+ * headers ({@link Ext.grid.column.Column grid columns}) of a
+ * {@link Ext.grid.Panel grid} or {@link Ext.tree.Panel tree}.  The headercontainer
+ * handles resizing, moving, and hiding columns.  As columns are hidden, moved or
+ * resized, the headercontainer triggers changes within the grid or tree's
+ * {@link Ext.view.Table view}.  You will not generally need to instantiate this class
+ * directly.
+ *
+ * You may use the
+ * {@link Ext.panel.Table#method-getHeaderContainer getHeaderContainer()}
+ * accessor method to access the tree or grid's headercontainer.
+ *
+ * Grids and trees also have an alias to the two more useful headercontainer methods:
+ *
+ *  - **{@link Ext.panel.Table#method-getColumns getColumns}** - aliases
+ * {@link Ext.grid.header.Container#getGridColumns}
+ *  - **{@link Ext.panel.Table#method-getVisibleColumns getVisibleColumns}** - aliases
+ * {@link Ext.grid.header.Container#getVisibleGridColumns}
  */
 Ext.define('Ext.grid.header.Container', {
     extend: 'Ext.container.Container',
@@ -99,6 +113,8 @@ Ext.define('Ext.grid.header.Container', {
     // Disable FocusableContainer behavior by default, since we only want it
     // to be enabled for the root header container (we'll set the flag in initComponent)
     enableFocusableContainer: false,
+
+    childHideCount: 0,
 
     /**
      * @property {Boolean} isGroupHeader
@@ -366,7 +382,7 @@ Ext.define('Ext.grid.header.Container', {
 
         // If this is top level, listen for events to delegate to descendant headers.
         if (!me.isColumn && !me.isGroupHeader) {
-            onHeaderCtEvent = me.onHeaderCtEvent,
+            onHeaderCtEvent = me.onHeaderCtEvent;
             listeners = {
                 click: onHeaderCtEvent,
                 dblclick: onHeaderCtEvent,
@@ -931,20 +947,6 @@ Ext.define('Ext.grid.header.Container', {
         me.fireEvent('columnschanged', this);
     },
 
-    /**
-     * Temporarily lock the headerCt. This makes it so that clicking on headers
-     * don't trigger actions like sorting or opening of the header menu. This is
-     * done because extraneous events may be fired on the headers after interacting
-     * with a drag drop operation.
-     * @private
-     */
-    tempLock: function() {
-        this.ddLock = true;
-        Ext.Function.defer(function() {
-            this.ddLock = false;
-        }, 200, this);
-    },
-
     onHeaderResize: function(header, w) {
         var me = this,
             gridSection = me.ownerCt;
@@ -957,7 +959,7 @@ Ext.define('Ext.grid.header.Container', {
 
     onHeaderClick: function(header, e, t) {
         var me = this,
-            selModel = header.getView().getSelectionModel()
+            selModel = header.getView().getSelectionModel();
 
         header.fireEvent('headerclick', me, header, e, t);
         if (me.fireEvent('headerclick', me, header, e, t) !== false) {
@@ -1025,6 +1027,11 @@ Ext.define('Ext.grid.header.Container', {
         // Pointer-invoked menus do not auto focus, key invoked ones do.
         menu.autoFocus = !clickEvent || !clickEvent.pointerType;
         menu.showBy(t, 'tl-bl?');
+
+        // Menu show was vetoed by event handler - clear context
+        if (!menu.isVisible()) {
+            this.onMenuHide(menu);
+        }
     },
 
     hideMenu: function() {
@@ -1036,12 +1043,6 @@ Ext.define('Ext.grid.header.Container', {
     // remove the trigger open class when the menu is hidden
     onMenuHide: function(menu) {
         menu.activeHeader.setMenuActive(false);
-    },
-
-    moveHeader: function(fromIdx, toIdx) {
-        // An automatically expiring lock
-        this.tempLock();
-        this.move(fromIdx, toIdx);
     },
 
     purgeHeaderCtCache: function (headerCt) {
@@ -1134,7 +1135,7 @@ Ext.define('Ext.grid.header.Container', {
     /**
      * Returns an array of menu items to be placed into the shared menu
      * across all headers in this header container.
-     * @returns {Array} menuItems
+     * @return {Array} menuItems
      */
     getMenuItems: function() {
         var me = this,
@@ -1262,9 +1263,13 @@ Ext.define('Ext.grid.header.Container', {
     },
 
     /**
-     * Returns an array of the **visible** columns in the grid. This goes down to the lowest column header
-     * level, and does not return **grouped** headers which contain sub headers.
-     * @returns {Array}
+     * Returns an array of the **visible** columns in the grid. This goes down to the
+     * lowest column header level, and does not return **grouped** headers which contain
+     * sub headers.
+     *
+     * See also {@link Ext.grid.header.Container#getGridColumns}
+     * @return {Ext.grid.column.Column[]} columns An array of visible columns.  Returns
+     * an empty array if no visible columns are found.
      */
     getVisibleGridColumns: function() {
         var me = this,
@@ -1307,15 +1312,23 @@ Ext.define('Ext.grid.header.Container', {
     },
 
     /**
-     * Returns an array of all columns which appear in the grid's View. This goes down to the leaf column header
-     * level, and does not return **grouped** headers which contain sub headers.
+     * @method getGridColumns
+     * Returns an array of all columns which exist in the grid's View, visible or not.
+     * This goes down to the leaf column header level, and does not return **grouped**
+     * headers which contain sub headers.
      *
-     * It includes hidden headers even though they are not rendered. This is for collection of menu items for the column hide/show menu.
+     * It includes hidden headers even though they are not rendered. This is for
+     * collection of menu items for the column hide/show menu.
      *
-     * Headers which have a hidden ancestor have a `hiddenAncestor: true` property injected so that descendants are known to be hidden without interrogating
-     * that header's ownerCt axis for a hidden ancestor.
-     * @returns {Array}
+     * Headers which have a hidden ancestor have a `hiddenAncestor: true` property
+     * injected so that descendants are known to be hidden without interrogating that
+     * header's ownerCt axis for a hidden ancestor.
+     *
+     * See also {@link Ext.grid.header.Container#getVisibleGridColumns}
+     * @return {Ext.grid.column.Column[]} columns An array of columns.  Returns an
+     * empty array if no columns are found.
      */
+    /** @ignore */
     getGridColumns: function(/* private - used in recursion*/inResult, hiddenAncestor) {
         if (!inResult && this.gridDataColumns) {
             return this.gridDataColumns;
@@ -1548,6 +1561,14 @@ Ext.define('Ext.grid.header.Container', {
     },
 
     privates: {
+        beginChildHide: function() {
+            ++this.childHideCount;
+        },
+
+        endChildHide: function() {
+            --this.childHideCount;
+        },
+
         getFocusables: function() {
             return this.isRootHeader ?
                 this.getVisibleGridColumns() :
@@ -1572,19 +1593,31 @@ Ext.define('Ext.grid.header.Container', {
         showHeaderMenu: function(e) {
             var column = this.getFocusableFromEvent(e);
 
-            if (column && column.triggerEl) {
+            // DownArrow event must be from a column, not a Component within the column (eg filter fields)
+            if (column && column.isColumn && column.triggerEl) {
                 this.onHeaderTriggerClick(column, e, column.triggerEl);
             }
         },
 
         onHeaderActivate: function(e) {
-            var column = this.getFocusableFromEvent(e);
+            var column = this.getFocusableFromEvent(e),
+                view,
+                lastFocused;
 
-            if (column) {
+            // Remember that not every descendant of a headerCt is a column! It could be a child component of a column.
+            if (column && column.isColumn) {
+                view = column.getView();
+
                 // Sort the column is configured that way.
-                // sortOnClick may be set to false by SpreadsheelSelectionModel to allow click to select a column. 
+                // sortOnClick may be set to false by SpreadsheelSelectionModel to allow click to select a column.
                 if (column.sortable && this.sortOnClick) {
+                    lastFocused = view.getNavigationModel().getLastFocused();
                     column.toggleSortState();
+
+                    // After keyboard sort, bring last focused record into view
+                    if (lastFocused) {
+                        view.ownerCt.ensureVisible(lastFocused.record);
+                    }
                 }
                 // onHeaderClick is a necessary part of accessibility processing, sortable or not.
                 this.onHeaderClick(column, e, column.el);
@@ -1592,7 +1625,7 @@ Ext.define('Ext.grid.header.Container', {
         },
 
         onFocusableContainerMousedown: function(e, target) {
-            var targetCmp = Ext.ComponentManager.byElement(target);
+            var targetCmp = Ext.Component.fromElement(target);
 
             if (targetCmp === this) {
                 e.preventDefault();

@@ -76,6 +76,9 @@ Ext.define('Ext.layout.container.Column', {
 
     targetCls: Ext.baseCSSPrefix + 'column-layout-ct',
 
+    // The clear value to force floats to wrap back to zero
+    clearSide: 'left',
+
     // Columns with a columnWidth have their width managed.
     columnWidthSizePolicy: {
         readsWidth: 0,
@@ -93,7 +96,7 @@ Ext.define('Ext.layout.container.Column', {
     setsItemSize: true,
     needsItemSize: true,
     
-    isItemShrinkWrap: function(ownerContext){
+    isItemShrinkWrap: function(item) {
         return true;
     },
 
@@ -112,6 +115,7 @@ Ext.define('Ext.layout.container.Column', {
 
     calculateItems: function (ownerContext, containerSize) {
         var me = this,
+            columnCount = me.columnCount,
             targetContext = ownerContext.targetContext,
             items = ownerContext.childItems,
             len = items.length,
@@ -136,6 +140,28 @@ Ext.define('Ext.layout.container.Column', {
         // if they are not ready...
         for (i = 0; i < len; ++i) {
             itemContext = items[i];
+
+            // Ensure that each row start clears to start of row.
+            // Tall items would block it as below.
+            // "Item 4" requires clear:left to begin at column zero.
+            // +------------------------------- +
+            // |+--------+ +--------+ +--------+|
+            // ||        | |        | |        ||
+            // || Item 1 | | Item 2 | | Item 3 ||
+            // ||        | +--------+ +--------+|
+            // ||        | +--------+           |
+            // |+--------+ |        |           |
+            // |           | Item 4 |           |
+            // |           |        |           |
+            // |           +--------+           |
+            // +--------------------------------+
+            if (columnCount) {
+                if (i % columnCount) {
+                    itemContext.setProp('clear', null);
+                } else {
+                    itemContext.setProp('clear', me.clearSide);
+                }
+            }
 
             // this is needed below for non-calculated columns, but is also needed in the
             // next loop for calculated columns... this way we only call getMarginInfo in

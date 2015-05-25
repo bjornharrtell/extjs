@@ -88,7 +88,7 @@ Ext.onReady(function() {
         localAjaxSimulator: simlet
     });
 
-    function createStore (numFields, buffered, groupSize) {
+    function createStore (numFields, buffered, pageSize, groupSize) {
         var fields = [],
             i, storeConfig,
             result,
@@ -102,6 +102,7 @@ Ext.onReady(function() {
         storeConfig = {
             storeId: 'infinite-scroll-store-' + (storeCount++),
             remoteSort: buffered,
+            pageSize: pageSize,
             
             fields: fields,
             proxy: {
@@ -221,7 +222,7 @@ Ext.onReady(function() {
         split: true,
         bodyPadding: 5,
         layout: 'form',
-        height: 375,
+        shrinkWrap: 3,
         defaults: {
             labelWidth: 205
         },
@@ -334,7 +335,10 @@ Ext.onReady(function() {
             maxValue: 1000,
             listeners: {
                 change: function(f, newVal, oldVal) {
-                    grid.verticalScroller.scrollToLoadBuffer = newVal;
+                    Ext.grid.plugin.BufferedRenderer.prototype.scrollToLoadBuffer = newVal;
+                    if (grid) {
+                        grid.view.bufferedRenderer.scrollToLoadBuffer = newVal;
+                    }
                 }
             },
             disabled: true
@@ -460,9 +464,8 @@ Ext.onReady(function() {
         }
 
         simlet.numRecords = rowCount;
-        store = createStore(numFields, buffered, groupSize);
+        store = createStore(numFields, buffered, controls.down('#pageSize').getValue(), groupSize);
 
-        store.pageSize = controls.down('#pageSize').getValue();
         store.trailingBufferZone = controls.down('#storeTrailingBufferZone').getValue();
         store.leadingBufferZone = controls.down('#storeLeadingBufferZone').getValue();
         store.data.maxSize = store.purgePageCount = controls.down('#purgePageCount').getValue();
@@ -521,7 +524,7 @@ Ext.onReady(function() {
             layout: 'border',
             region: 'west',
             bodyBorder: false,
-            width: 290,
+            width: 420,
             split: true,
             minWidth: 290,
             items: [ controls, logPanel ]
@@ -571,5 +574,5 @@ Ext.onReady(function() {
                 labelWidth: 70
             }]
         })]
-    })
+    });
 });

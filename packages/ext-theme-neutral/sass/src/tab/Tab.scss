@@ -1554,7 +1554,7 @@
 
         // inner el requires max-width in order for ellipsis to work.
         max-width: 100%;
-
+        
         .#{$prefix}tab-icon-right > &,
         .#{$prefix}tab-icon-left > & {
             // since calc is only supported in IE9+ ellipsis will not work in IE8 when
@@ -1652,6 +1652,7 @@
                 right: 0;
                 bottom: 0;
                 left: 0;
+                pointer-events: none;
 
                 $outline-color: if(not is-null($ui-body-outline-color-focus), $ui-body-outline-color-focus, $color);
                 $outline-style: if(not is-null($ui-body-outline-style-focus), $ui-body-outline-style-focus, dotted);

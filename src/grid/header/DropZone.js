@@ -245,6 +245,7 @@ Ext.define('Ext.grid.header.DropZone', {
             dropPosition = dropLocation.pos,
             targetHeader = dropLocation.header,
             fromCt = dragHeader.ownerCt,
+            fromCtRoot =  fromCt.getRootHeaderCt(),
             toCt = targetHeader.ownerCt,
             // Use the full column manager here, the indices we want are for moving the actual items in the container.
             // The HeaderContainer translates this to visible columns for informing the view and firing events.
@@ -355,7 +356,7 @@ Ext.define('Ext.grid.header.DropZone', {
 
             // We need to always fire a columnmove event. Check for an .ownerCt first in case this is a
             // grouped header.
-            (fromCt.ownerCt || fromCt).fireEvent('columnmove', fromCt, dragHeader, visibleFromIdx, visibleToIdx);
+            fromCtRoot.fireEvent('columnmove', fromCt, dragHeader, visibleFromIdx, visibleToIdx);
 
             fromCt.isDDMoveInGrid = toCt.isDDMoveInGrid = false;
 

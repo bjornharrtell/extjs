@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.button.Button', {
     override: 'Ext.button.Button',
     

@@ -96,6 +96,12 @@ $form-field-border-style: solid !default;
 /**
  * @var {color} $form-field-focus-border-color
  * Border color for focused form fields.
+ *
+ * In the default Neptune color scheme this is the same as $base-highlight-color
+ * but it does not change automatically when one changes the $base-color.  This is because
+ * checkboxes and radio buttons have this focus color hard coded into their background
+ * images.  If this color is changed, you should also modify checkbox and radio button
+ * background images to match
  */
 $form-field-focus-border-color: $base-color !default;
 
@@ -841,10 +847,11 @@ $include-text-field-toolbar-ui: $include-field-toolbar-ui !default;
 /**
  * @var {boolean}
  * True to use vertically oriented triggers. False to use horizontally oriented triggers.
- * Themes that set this property to true must also override the {@link #triggerVertical}
- * config to match. Defaults to true.  When 'vertical' orientation is used, the background image
- * for both triggers is 'form/spinner'.  When 'horizontal' is used, the triggers use separate
- * background images - 'form/spinner-up', and 'form/spinner-down'.
+ * Themes that set this property to true must also override the
+ * {@link Ext.form.trigger.Spinner#vertical} config to match. Defaults to true.  When
+ * 'vertical' orientation is used, the background image for both triggers is
+ * 'form/spinner'.  When 'horizontal' is used, the triggers use separate background
+ * images - 'form/spinner-up', and 'form/spinner-down'.
  */
 $spinner-trigger-vertical: true !default;
 

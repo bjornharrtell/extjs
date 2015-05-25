@@ -14,4 +14,4 @@ Ext.define('KitchenSink.view.charts.bar3d.NegativeController', {
         }
     }
 
-})
+});

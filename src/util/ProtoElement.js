@@ -165,7 +165,7 @@ Ext.define('Ext.util.ProtoElement', function () {
             var me = this,
                 style = me.style || (me.style = {});
 
-            if (typeof prop == 'string') {
+            if (typeof prop === 'string') {
                 if (arguments.length === 1) {
                     me.setStyle(Ext.Element.parseStyles(prop));
                 } else {

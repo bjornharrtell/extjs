@@ -1,6 +1,4 @@
 /**
- * @docauthor Jason Johnston <jason@sencha.com>
- *
  * Produces a standalone `<label />` element which can be inserted into a form and be associated with a field
  * in that form using the {@link #forId} property.
  * 

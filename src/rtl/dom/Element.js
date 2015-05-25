@@ -15,15 +15,15 @@ Ext.define('Ext.rtl.dom.Element', {
     pxRe: /^\d+(?:\.\d*)?px$/i,
    
     statics: { 
-        rtlParseBox: function(box){
-            var box = Ext.Element.parseBox(box),
+        rtlParseBox: function (box) {
+            var ret = Ext.Element.parseBox(box),
                 temp;
                
-            temp = box.left;
-            box.left = box.right;
-            box.right = temp;
+            temp = ret.left;
+            ret.left = ret.right;
+            ret.right = temp;
             
-            return box;
+            return ret;
         },
 
         rtlUnitizeBox: function(box, units){
@@ -159,7 +159,7 @@ Ext.define('Ext.rtl.dom.Element', {
             left = Math.abs(scroll.left),
             isDocOrBody = (dom === doc || dom === body);
 
-        if (isDocOrBody ? (3 & me._rtlDocScrollFlag) : (me._rtlScrollFlag === 1)) {
+        if (isDocOrBody ? (3 & me._rtlDocScrollFlag) : (me._rtlScrollFlag === 1)) { // jshint ignore:line
             // If the browser reports scrollLeft as the number of pixels from left
             // (same as ltr) we need to convert it to a rtl position by subtracting it
             // from scrollWidth
@@ -194,7 +194,7 @@ Ext.define('Ext.rtl.dom.Element', {
     rtlScrollBy: function(deltaX, deltaY, animate) {
         var me = this,
             dom = me.dom,
-            left, maxScroll;
+            left;
 
         // Extract args if deltas were passed as an Array.
         if (deltaX.length) {
@@ -502,14 +502,14 @@ Ext.define('Ext.rtl.dom.Element', {
             bodyStyle.direction = 'ltr';
             // read the scroll width before setting the direction back to "".
             // This forces webkit to update its computed direction style to ltr
-            body.scrollWidth;
+            body.scrollWidth; // jshint ignore:line
         }
         // set direction back to its original value
         bodyStyle.direction = direction;
         Element.prototype._rtlDocScrollFlag = flag;
     }
 
-    Ext.onReady(function () {
+    Ext.onInternalReady(function () {
         // This function attaches to onReady with a priority of 1000 so that we can
         // detect how the browser reports scrollLeft by manipulating the document/body
         // before any components have been rendered to the page.  

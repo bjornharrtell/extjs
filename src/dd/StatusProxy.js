@@ -60,7 +60,7 @@ Ext.define('Ext.dd.StatusProxy', {
      */
     setStatus : function(cssClass){
         cssClass = cssClass || this.dropNotAllowed;
-        if (this.dropStatus != cssClass) {
+        if (this.dropStatus !== cssClass) {
             this.el.replaceCls(this.dropStatus, cssClass);
             this.dropStatus = cssClass;
         }
@@ -87,7 +87,7 @@ Ext.define('Ext.dd.StatusProxy', {
      * DOM node to append as the child of the ghost element (in which case the innerHTML will be cleared first).
      */
     update : function(html){
-        if (typeof html == "string") {
+        if (typeof html === "string") {
             this.ghost.setHtml(html);
         } else {
             this.ghost.setHtml('');
@@ -174,7 +174,7 @@ Ext.define('Ext.dd.StatusProxy', {
     
         me.hide(true);
         me.el.removeCls(me.repairCls);
-        if (typeof me.callback == "function") {
+        if (typeof me.callback === "function") {
             me.callback.call(me.scope || me);
         }
         delete me.callback;

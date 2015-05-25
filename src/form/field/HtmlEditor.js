@@ -298,6 +298,11 @@ Ext.define('Ext.form.field.HtmlEditor', {
             align: 'stretch'
         };
 
+        // No value set, we must report empty string
+        if (me.value == null) {
+            me.value = '';
+        }
+
         me.callParent(arguments);
         me.initField();
     },
@@ -601,15 +606,15 @@ Ext.define('Ext.form.field.HtmlEditor', {
         // - Opera inserts <P> tags on Return key, so P margins must be removed to avoid double line-height.
         // - On browsers other than IE, the font is not inherited by the IFRAME so it must be specified.
         return Ext.String.format(
-               '<!DOCTYPE html>'
-               + '<html><head><style type="text/css">'
-               + (Ext.isOpera ? 'p{margin:0;}' : '')
-               + 'body{border:0;margin:0;padding:{0}px;direction:' + (me.rtl ? 'rtl;' : 'ltr;')
-               + (Ext.isIE8 ? Ext.emptyString : 'min-')
-               + 'height:{1}px;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:text;background-color:white;'
-               + (Ext.isIE ? '' : 'font-size:12px;font-family:{2}')
-               + '}</style></head><body></body></html>'
-            , me.iframePad, h, me.defaultFont);
+               '<!DOCTYPE html>' +
+               '<html><head><style type="text/css">' +
+               (Ext.isOpera ? 'p{margin:0;}' : '') +
+               'body{border:0;margin:0;padding:{0}px;direction:' + (me.rtl ? 'rtl;' : 'ltr;') +
+               (Ext.isIE8 ? Ext.emptyString : 'min-') +
+               'height:{1}px;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:text;background-color:white;' +
+               (Ext.isIE ? '' : 'font-size:12px;font-family:{2}') +
+               '}</style></head><body></body></html>',
+            me.iframePad, h, me.defaultFont);
     },
 
     // @private
@@ -891,7 +896,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
             body = me.getEditorBody();
             html = body.innerHTML;
             textElDom = me.textareaEl.dom;
-            
+
             if (Ext.isWebKit) {
                 bodyStyle = body.getAttribute('style'); // Safari puts text-align styles on the body element!
                 match = bodyStyle.match(me.textAlignRE);
@@ -899,16 +904,16 @@ Ext.define('Ext.form.field.HtmlEditor', {
                     html = '<div style="' + match[0] + '">' + html + '</div>';
                 }
             }
-            
+
             html = me.cleanHtml(html);
-            
+
             if (me.fireEvent('beforesync', me, html) !== false) {
                 // Gecko inserts single <br> tag when input is empty
                 // and user toggles source mode. See https://sencha.jira.com/browse/EXTJSIV-8542
                 if (Ext.isGecko && textElDom.value === '' && html === '<br>') {
                     html = '';
                 }
-                
+
                 if (textElDom.value !== html) {
                     textElDom.value = html;
                     changed = true;
@@ -999,6 +1004,15 @@ Ext.define('Ext.form.field.HtmlEditor', {
         }
 
         dbody = me.getEditorBody();
+
+        // IE has a null reference when it first comes online.
+        if (!dbody) {
+            setTimeout(function () {
+                me.initEditor();
+            }, 10);
+            return;
+        }
+
         ss = me.textareaEl.getStyle(['font-size', 'font-family', 'background-image', 'background-repeat', 'background-color', 'color']);
 
         ss['background-attachment'] = 'fixed'; // w3c
@@ -1051,10 +1065,11 @@ Ext.define('Ext.form.field.HtmlEditor', {
             }
 
             if (me.fixKeys) {
-                docEl.on('keydown', me.fixKeys, me);
+                docEl.on('keydown', me.fixKeys, me, {delegated: false});
             }
+
             if (me.fixKeysAfter) {
-                docEl.on('keyup', me.fixKeysAfter, me);
+                docEl.on('keyup', me.fixKeysAfter, me, {delegated: false});
             }
 
             if (Ext.isIE9) {
@@ -1427,7 +1442,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
         var tag;
 
         if (Ext.isIE) {
-            return function(e){
+            return function (e) {
                 var me = this,
                     k = e.getKey(),
                     doc = me.getDoc(),
@@ -1443,7 +1458,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
                                 range.collapse(true);
                                 range.pasteHTML('&#160;&#160;&#160;&#160;');
                             }
-                            
+
                             me.deferFocus();
                         }
                     }
@@ -1495,9 +1510,9 @@ Ext.define('Ext.form.field.HtmlEditor', {
     }()),
     
     // @private
-    fixKeysAfter: (function() {
+    fixKeysAfter: (function () {
         if (Ext.isIE) {
-            return function(e) {
+            return function (e) {
                 var me = this,
                     k = e.getKey(),
                     doc = me.getDoc(),

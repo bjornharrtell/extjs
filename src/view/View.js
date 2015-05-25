@@ -567,9 +567,10 @@ Ext.define('Ext.view.View', {
         // that can cause View element scroll unless the event is from an input field.
         // We MUST prevent browser's default action on SPACE which is to focus the event's target element.
         // Focusing causes the browser to attempt to scroll the element into view.
-        
-        if (isKeyEvent && ((e.getKey() === e.SPACE && !Ext.fly(e.target).isInputField()) || e.isNavKeyPress(true))) {
-            e.preventDefault();
+        if (isKeyEvent && !Ext.fly(e.target).isInputField()) {
+            if (e.getKey() === e.SPACE || e.isNavKeyPress(true)) {
+                e.preventDefault();
+            }
         }
     },
 
@@ -840,7 +841,9 @@ Ext.define('Ext.view.View', {
             dataSource = me[propertyName],
             selModel = me.getSelectionModel();
 
-        if (dataSource && dataSource.isFeatureStore) {
+        // Note that configured features with stores will already have been processed by this point,
+        // so let's not do it again when coming online!
+        if (dataSource && dataSource.isFeatureStore && me.rendered) {
             selModel.bindStore(dataSource.store);
             selModel.bindComponent(me);
             // Feature stores will call their own implementation of .bindStore().

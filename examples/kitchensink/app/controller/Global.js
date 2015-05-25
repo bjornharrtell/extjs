@@ -349,7 +349,7 @@ Ext.define('KitchenSink.controller.Global', {
 
         // If not using breadcrumb nav, drive the app through the tree's normal selection listener
         // This ensures that the tree is scrolled correctly with the correct node highlighted.
-        if (navigationTree && navigationTree.isVisible()) {
+        if (navigationTree && navigationTree.isVisible() && !navigationTree.collapsed) {
             navigationTree.ensureVisible(node, {
                 select: true,
                 focus: true

@@ -38,6 +38,7 @@ Ext.define('Ext.menu.Item', {
      * @property {Boolean} activated
      * Whether or not this item is currently activated
      */
+    activated: false,
 
     /**
      * @property {Ext.menu.Menu} parentMenu
@@ -231,10 +232,11 @@ Ext.define('Ext.menu.Item', {
      */
 
     /**
-     * @cfg {Function} handler
+     * @cfg {Function/String} handler
      * A function called when the menu item is clicked (can be used instead of {@link #click} event).
      * @cfg {Ext.menu.Item} handler.item The item that was clicked
-     * @cfg {Ext.event.Event} handler.e The underyling {@link Ext.event.Event}.
+     * @cfg {Ext.event.Event} handler.e The underlying {@link Ext.event.Event}.
+     * @declarativeHandler
      */
 
     /**
@@ -247,12 +249,12 @@ Ext.define('Ext.menu.Item', {
      * @event click
      * Fires when this item is clicked
      * @param {Ext.menu.Item} item The item that was clicked
-     * @param {Ext.event.Event} e The underyling {@link Ext.event.Event}.
+     * @param {Ext.event.Event} e The underlying {@link Ext.event.Event}.
      */
 
     /**
      * @event deactivate
-     * Fires when this tiem is deactivated
+     * Fires when this item is deactivated
      * @param {Ext.menu.Item} item The deactivated item
      */
 
@@ -290,13 +292,15 @@ Ext.define('Ext.menu.Item', {
 
         me.callParent([e]);
 
-        if (!me.plain) {
-            me.addCls(me.activeCls);
-        }
+        if (!me.disabled) {
+            if (!me.plain) {
+                me.addCls(me.activeCls);
+            }
 
-        me.activated = true;
-        if (me.hasListeners.activate) {
-            me.fireEvent('activate', me);
+            me.activated = true;
+            if (me.hasListeners.activate) {
+                me.fireEvent('activate', me);
+            }
         }
     },
 
@@ -309,7 +313,6 @@ Ext.define('Ext.menu.Item', {
             if (!me.plain) {
                 me.removeCls(me.activeCls);
             }
-
             me.doHideMenu();
             me.activated = false;
             if (me.hasListeners.deactivate) {
@@ -321,13 +324,10 @@ Ext.define('Ext.menu.Item', {
     doHideMenu: function() {
         var menu = this.menu;
 
+        this.cancelDeferExpand();
         if (menu && menu.isVisible()) {
             menu.hide();
         }
-    },
-
-    cancelDeferHide: function(){
-        clearTimeout(this.hideMenuTimer);
     },
 
     /**
@@ -336,8 +336,7 @@ Ext.define('Ext.menu.Item', {
      * Walks up the refOwner axis to find topmost floating Menu and hides that.
      */
     deferHideParentMenus: function() {
-        var topMenu = this.getRefOwner(),
-            owner;
+        var topMenu = this.getRefOwner();
 
         if (topMenu.floating) {
             topMenu.bubble(function(parent) {
@@ -348,6 +347,7 @@ Ext.define('Ext.menu.Item', {
                     topMenu = parent;
                 }
             });
+
             topMenu.hide();
         }
     },
@@ -355,18 +355,21 @@ Ext.define('Ext.menu.Item', {
     expandMenu: function(event, delay) {
         var me = this;
 
-        if (me.menu) {
+        if (me.activated && me.menu) {
 
             // hideOnClick makes no sense when there's a child menu
             me.hideOnClick = false;
 
             me.cancelDeferHide();
+
+            // Allow configuration of zero to perform immediate expansion.
+            delay = delay == null ? me.menuExpandDelay : delay;
             if (delay === 0) {
                 me.doExpandMenu(event);
             } else {
-                clearTimeout(me.expandMenuTimer);
+                me.cancelDeferExpand();
                 // Delay can't be 0 by this point
-                me.expandMenuTimer = Ext.defer(me.doExpandMenu, delay || me.menuExpandDelay, me, [event]);
+                me.expandMenuTimer = Ext.defer(me.doExpandMenu, delay, me, [event]);
             }
         }
     },
@@ -375,7 +378,7 @@ Ext.define('Ext.menu.Item', {
         var me = this,
             menu = me.menu;
 
-        if (me.activated && (!menu.rendered || !menu.isVisible())) {
+        if (!menu.isVisible()) {
             me.parentMenu.activeChild = menu;
             menu.ownerCmp = me;
             menu.parentMenu = me.parentMenu;
@@ -406,7 +409,7 @@ Ext.define('Ext.menu.Item', {
         var me = this;
 
         if (me.menu) {
-            clearTimeout(me.expandMenuTimer);
+            me.cancelDeferExpand();
             me.hideMenuTimer = Ext.defer(me.doHideMenu, Ext.isNumber(delay) ? delay : me.menuHideDelay, me);
         }
     },
@@ -456,9 +459,10 @@ Ext.define('Ext.menu.Item', {
         }
 
         if (me.hideOnClick) {
-            // on mobile webkit, when the menu item has an href, a longpress will trigger
-            // the touch callout menu to show.  If this is the case, the tap event object's
-            // browser event type will be 'touchcancel', and we do not want to hide the menu.
+            // on mobile webkit, when the menu item has an href, a longpress will 
+            // trigger the touch call-out menu to show.  If this is the case, the tap 
+            // event object's browser event type will be 'touchcancel', and we do not 
+            // want to hide the menu.
             
             // items with submenus are activated by touchstart on mobile browsers, so
             // we cannot hide the menu on "tap"
@@ -530,7 +534,7 @@ Ext.define('Ext.menu.Item', {
     onDestroy: function() {
         var me = this;
 
-        clearTimeout(me.expandMenuTimer);
+        me.cancelDeferExpand();
         me.cancelDeferHide();
         clearTimeout(me.deferHideParentMenusTimer);
 
@@ -619,6 +623,14 @@ Ext.define('Ext.menu.Item', {
     },
 
     /**
+     * Get the attached sub-menu for this item.
+     * @return {Ext.menu.Menu} The sub-menu. `null` if it doesn't exist.
+     */
+    getMenu: function() {
+        return this.menu || null;
+    },
+
+    /**
      * Set a child menu for this item. See the {@link #cfg-menu} configuration.
      * @param {Ext.menu.Menu/Object} menu A menu, or menu configuration. null may be
      * passed to remove the menu.
@@ -629,7 +641,8 @@ Ext.define('Ext.menu.Item', {
     setMenu: function(menu, destroyMenu) {
         var me = this,
             oldMenu = me.menu,
-            arrowEl = me.arrowEl;
+            arrowEl = me.arrowEl,
+            instanced;
 
         if (oldMenu) {
             oldMenu.ownerCmp = oldMenu.parentMenu = null;
@@ -639,13 +652,14 @@ Ext.define('Ext.menu.Item', {
             }
         }
         if (menu) {
+            instanced = menu.isMenu;
             menu = me.menu = Ext.menu.Manager.get(menu, {
                 ownerCmp: me,
                 focusOnToFront: false
             });
             // We need to forcibly set this here because we could be passed an existing menu, which means
             // the config above won't get applied during creation.
-            menu.ownerCmp = me;
+            menu.setOwnerCmp(me, instanced);
         } else {
             menu = me.menu = null;
         }
@@ -721,7 +735,7 @@ Ext.define('Ext.menu.Item', {
     },
 
     getTipAttr: function(){
-        return this.tooltipType == 'qtip' ? 'data-qtip' : 'title';
+        return this.tooltipType === 'qtip' ? 'data-qtip' : 'title';
     },
 
     //private
@@ -766,6 +780,14 @@ Ext.define('Ext.menu.Item', {
     },
 
     privates: {
+        cancelDeferExpand: function() {
+            window.clearTimeout(this.expandMenuTimer);
+        },
+
+        cancelDeferHide: function(){
+            window.clearTimeout(this.hideMenuTimer);
+        },
+
         getFocusEl: function() {
             return this.itemEl;
         }

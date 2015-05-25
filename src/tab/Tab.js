@@ -17,8 +17,14 @@ Ext.define('Ext.tab.Tab', {
      */
     isTab: true,
     
-    // Unlike Buttons, Tabs should not be focusable by default
-    tabIndex: -1,
+    /**
+     * @cfg {Number} tabIndex
+     * Sets a DOM tabIndex for this tab. Tab's tabIndex is automatically managed by the framework
+     * and doesn't generally require modification.  
+     *
+     * tabIndex on tab defaults to -1.
+     */
+     tabIndex: -1,
 
     baseCls: Ext.baseCSSPrefix + 'tab',
     closeElOverCls: Ext.baseCSSPrefix + 'tab-close-btn-over',
@@ -192,7 +198,6 @@ Ext.define('Ext.tab.Tab', {
 
     syncRotationAndPosition: function() {
         var me = this,
-            positions = me._positions,
             rotateClasses = me._rotateClasses,
             position = me.getTabPosition(),
             rotation = me.getActualRotation(),
@@ -203,7 +208,7 @@ Ext.define('Ext.tab.Tab', {
 
         if (oldRotateCls !== rotateCls) {
             if (oldRotateCls) {
-                me.removeCls(oldRotateCls)
+                me.removeCls(oldRotateCls);
             }
             if (rotateCls) {
                 me.addCls(rotateCls);
@@ -351,7 +356,7 @@ Ext.define('Ext.tab.Tab', {
         // Closable must be true if no args
         closable = (!arguments.length || !!closable);
 
-        if (me.closable != closable) {
+        if (me.closable !== closable) {
             me.closable = closable;
 
             // set property on the user-facing item ('card'):

@@ -62,7 +62,7 @@ Ext.define('Ext.state.CookieProvider', {
     set : function(name, value){
         var me = this;
 
-        if(typeof value == "undefined" || value === null){
+        if (typeof value === "undefined" || value === null) {
             me.clear(name);
             return;
         }
@@ -90,7 +90,7 @@ Ext.define('Ext.state.CookieProvider', {
         while((matches = re.exec(c)) != null){
             name = matches[1];
             value = matches[2];
-            if (name && name.substring(0, len) == prefix){
+            if (name && name.substring(0, len) === prefix){
                 cookies[name.substr(len)] = this.decodeValue(value);
             }
         }
@@ -105,7 +105,7 @@ Ext.define('Ext.state.CookieProvider', {
            ((me.expires == null) ? "" : ("; expires=" + me.expires.toUTCString())) +
            ((me.path == null) ? "" : ("; path=" + me.path)) +
            ((me.domain == null) ? "" : ("; domain=" + me.domain)) +
-           ((me.secure == true) ? "; secure" : "");
+           (me.secure ? "; secure" : "");
     },
 
     // private
@@ -115,6 +115,6 @@ Ext.define('Ext.state.CookieProvider', {
         document.cookie = me.prefix + name + "=null; expires=Thu, 01-Jan-1970 00:00:01 GMT" +
            ((me.path == null) ? "" : ("; path=" + me.path)) +
            ((me.domain == null) ? "" : ("; domain=" + me.domain)) +
-           ((me.secure == true) ? "; secure" : "");
+           (me.secure ? "; secure" : "");
     }
 });

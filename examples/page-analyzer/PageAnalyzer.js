@@ -747,11 +747,14 @@ Ext.define('PageAnalyzer.MainForm', {
     },
 
     getCompNodeForElem: function(el, root, refName) {
+        var isDoc = (el.dom.nodeType === 9),
+            hidden = isDoc ? false : !el.isVisible(true);
+
         root = root ? root.el : el;
         return new PageAnalyzer.models.ComponentTreeNode({
             text: refName,
-            width: el.getWidth(),
-            height: el.getHeight(),
+            width: isDoc? Ext.Element.getViewportWidth() : el.getWidth(),
+            height: isDoc ? Ext.Element.getViewportHeight() : el.getHeight(),
             x: root ? (el.getX() - root.getX()) : el.getX(),
             y: root ? (el.getY() - root.getY()) : el.getY(),
             cssClass: el.dom ? el.dom.className : undefined,
@@ -759,8 +762,8 @@ Ext.define('PageAnalyzer.MainForm', {
             isContainer: false,
             isComponent: false,
             isElement: true,
-            hidden: !el.isVisible(true),
-            iconCls: el.isVisible(true) ? 'pgan-visible-element' : 'pgan-hidden-element'
+            hidden: hidden,
+            iconCls: !hidden ? 'pgan-visible-element' : 'pgan-hidden-element'
         });
     },
 
@@ -839,11 +842,9 @@ Ext.define('PageAnalyzer.MainForm', {
     },
 
     getTopLevelComponents: function () {
-        var me = this,
-            all = me.target.Ext.ComponentManager.all.getArray(),
-            top = [];
+        var top = [];
 
-        Ext.each(all, function(comp){
+        Ext.ComponentManager.each(function(id, comp) {
             if(!comp.ownerCt) {
                 top.push(comp);
             }
@@ -948,7 +949,7 @@ Ext.define('PageAnalyzer.MainForm', {
     },
 
     getHrefMinusHash: function() {
-        var href = location.href.replace(Ext.History.getHash(), '');
+        var href = location.href.replace('#' + Ext.History.getHash(), '');
         return href;
     },
 

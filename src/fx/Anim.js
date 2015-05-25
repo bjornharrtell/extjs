@@ -62,12 +62,13 @@ Ext.define('Ext.fx.Anim', {
     isAnimation: true,
 
     /**
-     * @cfg {Function} callback
+     * @cfg {Function/String} callback
      * A function to be run after the animation has completed.
+     * @declarativeHandler
      */
 
     /**
-     * @cfg {Function} scope
+     * @cfg {Object} scope
      * The scope that the {@link #callback} function will be called with
      */
     
@@ -175,7 +176,7 @@ Ext.define('Ext.fx.Anim', {
 
     /**
      * Flag to determine if the animation is paused. Only set this to true if you need to
-     * keep the Anim instance around to be unpaused later; otherwise call {@link #end}.
+     * keep the Anim instance around to be un-paused later; otherwise call {@link #end}.
      * @property paused
      * @type Boolean
      */
@@ -301,7 +302,7 @@ Ext.define('Ext.fx.Anim', {
         // If not a pre-defined curve, try a cubic-bezier
         if (!me.easingFn) {
             me.easingFn = String(me.easing).match(me.bezierRE);
-            if (me.easingFn && me.easingFn.length == 5) {
+            if (me.easingFn && me.easingFn.length === 5) {
                 curve = me.easingFn;
                 me.easingFn = Ext.fx.CubicBezier.cubicBezier(+curve[1], +curve[2], +curve[3], +curve[4]);
             }
@@ -412,7 +413,7 @@ Ext.define('Ext.fx.Anim', {
     /**
      * @private
      * Calculate attribute value at the passed timestamp.
-     * @returns a hash of the new attributes.
+     * @return a hash of the new attributes.
      */
     runAnim: function(elapsedTime) {
         var me = this,
@@ -446,7 +447,7 @@ Ext.define('Ext.fx.Anim', {
     /**
      * @private
      * Perform lastFrame cleanup and handle iterations
-     * @returns a hash of the new attributes.
+     * @return a hash of the new attributes.
      */
     lastFrame: function() {
         var me = this,
@@ -474,7 +475,7 @@ Ext.define('Ext.fx.Anim', {
 
     /**
      * Fire afteranimate event and end the animation. Usually called automatically when the
-     * animation reaches its final frame, but can also be called manually to pre-emptively
+     * animation reaches its final frame, but can also be called manually to preemptively
      * stop and destroy the running animation.
      */
     end: function() {

@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.overrides.event.Event', {
     override: 'Ext.event.Event',
 
@@ -177,7 +178,7 @@ Ext.define('Ext.overrides.event.Event', {
         // MouseEvents
 
         function createMouseEventDispatcher (type, detail) {
-            var cancelable = (type != 'mousemove');
+            var cancelable = (type !== 'mousemove');
             return function (targetEl, srcEvent) {
                 var xy = srcEvent.getXY(),
                     e = API.createMouseEvent(targetEl.ownerDocument, type, true, cancelable,
@@ -238,6 +239,7 @@ Ext.define('Ext.overrides.event.Event', {
     preventDefault: function() {
         var me = this,
             event = me.browserEvent,
+            parentEvent = me.parentEvent,
             unselectable, target;
 
 
@@ -245,6 +247,14 @@ Ext.define('Ext.overrides.event.Event', {
         // invalidated, so we can't delve into the details of it. If so,
         // just fall out gracefully and don't attempt to do anything.
         if (typeof event.type !== 'unknown') {
+            me.defaultPrevented = true;
+
+            // if the event was created by prototype-chaining a new object to an existing event
+            // instance, we need to make sure the parent event is defaultPrevented as well.
+            if (parentEvent) {
+                parentEvent.defaultPrevented = true;
+            }
+
             if (event.preventDefault) {
                 event.preventDefault();
             } else {
@@ -339,6 +349,7 @@ Ext.define('Ext.overrides.event.Event', {
         Event.override({
             statics: {
                 /**
+                 * @member Ext.event.Event
                  * When events are attached using IE's attachEvent API instead of
                  * addEventListener accessing any members of an event object asynchronously
                  * results in "Member not found" error.  To work around this we fabricate
@@ -379,6 +390,7 @@ Ext.define('Ext.overrides.event.Event', {
             mouseEnterRe: /(mouseover|mouseenter)/,
 
             /**
+             * @member Ext.event.Event
              * @inheritdoc Ext.event.Event#static-enableIEAsync
              * @private
              */

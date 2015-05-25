@@ -1,12 +1,12 @@
 Ext.define('KitchenSink.view.ThemeSwitcher', function() {
-    var theme = location.href.match(/theme=([\w-]+)/),
-        locale = location.href.match(/locale=([\w-]+)/);
+    var theme = location.href.match(/theme=([\w\-]+)/),
+        locale = location.href.match(/locale=([\w\-]+)/);
 
-    theme = (theme && theme[1]) || (Ext.microloaderTags.desktop ? 'crisp' : 'crisp-touch');
+    theme = (theme && theme[1]) || (Ext.platformTags.desktop ? 'crisp' : 'crisp-touch');
     locale = locale && locale[1] || 'en';
 
     if (!Ext.themeName && !!theme) {
-        var m = theme.match(/^([\w-]+)-(?:he)$/);
+        var m = theme.match(/^([\w\-]+)-(?:he)$/);
         Ext.themeName = m ? m[1] : theme;
     }
 

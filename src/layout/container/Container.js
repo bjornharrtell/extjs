@@ -280,7 +280,7 @@ Ext.define('Ext.layout.container.Container', {
         if (!ownerContext.widthModel.shrinkWrap) {
             ++needed;
             width = inDom ? targetContext.getDomProp('width') : targetContext.getProp('width');
-            gotWidth = (typeof width == 'number');
+            gotWidth = (typeof width === 'number');
             if (gotWidth) {
                 ++got;
                 width -= frameInfo.width + padding.width;
@@ -293,7 +293,7 @@ Ext.define('Ext.layout.container.Container', {
         if (!ownerContext.heightModel.shrinkWrap) {
             ++needed;
             height = inDom ? targetContext.getDomProp('height') : targetContext.getProp('height');
-            gotHeight = (typeof height == 'number');
+            gotHeight = (typeof height === 'number');
             if (gotHeight) {
                 ++got;
                 height -= frameInfo.height + padding.height;
@@ -308,7 +308,7 @@ Ext.define('Ext.layout.container.Container', {
             height: height,
             needed: needed,
             got: got,
-            gotAll: got == needed,
+            gotAll: got === needed,
             gotWidth: gotWidth,
             gotHeight: gotHeight
         };
@@ -444,8 +444,8 @@ Ext.define('Ext.layout.container.Container', {
 
     getScrollbarsNeeded: function (width, height, contentWidth, contentHeight) {
         var scrollbarSize = Ext.getScrollbarSize(),
-            hasWidth = typeof width == 'number',
-            hasHeight = typeof height == 'number',
+            hasWidth = typeof width === 'number',
+            hasHeight = typeof height === 'number',
             needHorz = 0,
             needVert = 0;
 
@@ -508,15 +508,21 @@ Ext.define('Ext.layout.container.Container', {
     moveItemBefore: function (item, before) {
         var owner = this.owner,
             items = owner.items,
+            index = items.indexOf(item),
             toIndex;
 
         if (item === before) {
             return item;
         }
 
-        toIndex = before ?
-            items.indexOf(before) :
-            items.length;
+        if (before) {
+            toIndex =  items.indexOf(before);
+            if (index > -1 && index < toIndex) {
+                --toIndex;
+            }
+        } else {
+            toIndex = items.length;
+        }
 
         return owner.insert(toIndex, item);
     },

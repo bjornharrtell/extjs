@@ -22,12 +22,15 @@
  * To create custom VTypes:
  *
  *     // custom Vtype for vtype:'time'
- *     var timeTest = /^([1-9]|1[0-9]):([0-5][0-9])(\s[a|p]m)$/i;
- *     Ext.apply(Ext.form.field.VTypes, {
- *         //  vtype validation function
- *         time: function(val, field) {
- *             return timeTest.test(val);
+ *     Ext.define('Override.form.field.VTypes', {
+ *         override: 'Ext.form.field.VTypes',
+ *
+ *         // vtype validation function
+ *         time: function(value) {
+ *             return this.timeRe.test(value);
  *         },
+ *         // RegExp for the value to be tested against within the validation function
+ *         timeRe: /^([1-9]|1[0-9]):([0-5][0-9])(\s[a|p]m)$/i,
  *         // vtype Text property: The error text to display when the validation function returns false
  *         timeText: 'Not a valid time.  Must be in the format "12:34 PM".',
  *         // vtype Mask property: The keystroke filter mask
@@ -50,16 +53,20 @@
  * Another example of a custom validator:
  *
  *     // custom Vtype for vtype:'IPAddress'
- *     Ext.apply(Ext.form.field.VTypes, {
- *         IPAddress:  function(v) {
- *             return /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v);
+ *     Ext.define('Override.form.field.VTypes', {
+ *         override: 'Ext.form.field.VTypes',
+ *
+ *         IPAddress:  function(value) {
+ *             return this.IPAddressRe.test(value);
  *         },
+ *         IPAddressRe: /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/,
  *         IPAddressText: 'Must be a numeric IP address',
  *         IPAddressMask: /[\d\.]/i
  *     });
  *
- * It's important to note that using {@link Ext#apply Ext.apply()} means that the custom validator function
- * as well as `Text` and `Mask` fields are added as properties of the `Ext.form.field.VTypes` singleton.
+ * It's important to note that using {@link Ext#define Ext.define()} with the {@link Ext.Class#override override} property
+ * means that the custom validator function as well as `Text` and `Mask` fields are added as properties
+ * of the `Ext.form.field.VTypes` singleton.
  */
 Ext.define('Ext.form.field.VTypes', (function(){
     // closure these in so they are only created once.

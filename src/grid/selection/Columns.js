@@ -85,7 +85,7 @@ Ext.define('Ext.grid.selection.Columns', {
     /**
      * Returns `true` if the passed {@link Ext.grid.column.Column column} is selected.
      * @param {Ext.grid.column.Column} column The column to test.
-     * @returns {Boolean} `true` if the passed {@link Ext.grid.column.Column column} is selected.
+     * @return {Boolean} `true` if the passed {@link Ext.grid.column.Column column} is selected.
      */
     contains: function(column) {
         var selectedColumns = this.selectedColumns;
@@ -99,7 +99,7 @@ Ext.define('Ext.grid.selection.Columns', {
 
     /**
      * Returns the number of columns selected.
-     * @returns {Number} The number of columns selected.
+     * @return {Number} The number of columns selected.
      */
     getCount: function() {
         var selectedColumns = this.selectedColumns;
@@ -108,7 +108,7 @@ Ext.define('Ext.grid.selection.Columns', {
 
     /**
      * Returns the columns selected.
-     * @returns {Ext.grid.column.Column[]} The columns selected.
+     * @return {Ext.grid.column.Column[]} The columns selected.
      */
     getColumns: function() {
         return this.selectedColumns || [];

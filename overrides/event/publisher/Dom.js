@@ -2,14 +2,12 @@
 Ext.define('Ext.overrides.event.publisher.Dom', {
     override: 'Ext.event.publisher.Dom'
 
-}, function() {
-    var DomPublisher = Ext.event.publisher.Dom,
-        prototype = DomPublisher.prototype,
-        docBody = document.body,
-        prototype, onDirectEvent;
-
+}, function (DomPublisher) {
     if (Ext.isIE9m) {
-        prototype = DomPublisher.prototype;
+        var docBody = document.body,
+            prototype = DomPublisher.prototype,
+            onDirectEvent, onDirectCaptureEvent;
+
         prototype.target = document;
         prototype.directBoundListeners = {};
 

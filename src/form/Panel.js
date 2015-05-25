@@ -1,6 +1,4 @@
 /**
- * @docauthor Jason Johnston <jason@sencha.com>
- * 
  * FormPanel provides a standard container for forms. It is essentially a standard {@link Ext.panel.Panel} which
  * automatically creates a {@link Ext.form.Basic BasicForm} for managing any {@link Ext.form.field.Field}
  * objects that are added as descendants of the panel. It also includes conveniences for configuring and
@@ -148,33 +146,75 @@ Ext.define('Ext.form.Panel', {
     ariaRole: 'form',
     
     basicFormConfigs: [
-        /** @cfg @inheritdoc Ext.form.Basic#api */
-        'api', 
-        /** @cfg @inheritdoc Ext.form.Basic#baseParams */
-        'baseParams', 
-        /** @cfg @inheritdoc Ext.form.Basic#errorReader */
-        'errorReader', 
-        /** @cfg @inheritdoc Ext.form.Basic#jsonSubmit */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#api
+         */
+        'api',
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#baseParams
+         */
+        'baseParams',
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#errorReader
+         */
+        'errorReader',
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#jsonSubmit
+         */
         'jsonSubmit',
-        /** @cfg @inheritdoc Ext.form.Basic#method */
-        'method', 
-        /** @cfg @inheritdoc Ext.form.Basic#paramOrder */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#method
+         */
+        'method',
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#paramOrder
+         */
         'paramOrder',
-        /** @cfg @inheritdoc Ext.form.Basic#paramsAsHash */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#paramsAsHash
+         */
         'paramsAsHash',
-        /** @cfg @inheritdoc Ext.form.Basic#reader */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#reader
+         */
         'reader',
-        /** @cfg @inheritdoc Ext.form.Basic#standardSubmit */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#standardSubmit
+         */
         'standardSubmit',
-        /** @cfg @inheritdoc Ext.form.Basic#timeout */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#timeout
+         */
         'timeout',
-        /** @cfg @inheritdoc Ext.form.Basic#trackResetOnLoad */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#trackResetOnLoad
+         */
         'trackResetOnLoad',
-        /** @cfg @inheritdoc Ext.form.Basic#url */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#url
+         */
         'url',
-        /** @cfg @inheritdoc Ext.form.Basic#waitMsgTarget */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#waitMsgTarget
+         */
         'waitMsgTarget',
-        /** @cfg @inheritdoc Ext.form.Basic#waitTitle */
+        /**
+         * @cfg
+         * @inheritdoc Ext.form.Basic#waitTitle
+         */
         'waitTitle'
     ],
 

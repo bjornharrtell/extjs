@@ -41,6 +41,23 @@
  *             } 
  *         }
  *     });
+ * 
+ * Showing Ext.Msg while it's already shown will cause the visible instance to be 
+ * overwritten with the newly passed config.  While this may be the desired outcome, you 
+ * can also create a new MessageBox that can exist alongside the Ext.Msg 
+ * singleton instance.
+ * 
+ *     @example
+ *     var myMsg = Ext.create('Ext.window.MessageBox', {
+ *         // set closeAction to 'destroy' if this instance is not
+ *         // intended to be reused by the application
+ *         closeAction: 'destroy'
+ *     }).show({
+ *         title: 'Custom MessageBox Instance',
+ *         message: 'I can exist along with Ext.Msg'
+ *     });
+ *     
+ *     Ext.Msg.alert('Overlapping', 'Ext.Msg instance');
  */
 Ext.define('Ext.window.MessageBox', {
     extend: 'Ext.window.Window',
@@ -251,6 +268,9 @@ Ext.define('Ext.window.MessageBox', {
         me.callParent(arguments);
     },
 
+    /**
+     * @private
+     */
     constructor: function(cfg) {
         var me = this;
 
@@ -374,12 +394,14 @@ Ext.define('Ext.window.MessageBox', {
             headerCfg = header && !header.isHeader,
             message = cfg && (cfg.message || cfg.msg),
             resizeTracker, width, height, i, textArea,
-            textField, msg, progressBar, msgButtons;
+            textField, msg, progressBar, msgButtons, wait;
 
         // Restore default buttonText before reconfiguring.
         me.updateButtonText();
 
         me.cfg = cfg = cfg || {};
+
+        wait = cfg.wait;
         if (cfg.width) {
             width = cfg.width;
         }
@@ -456,7 +478,7 @@ Ext.define('Ext.window.MessageBox', {
         }
 
         // Hide or show the close tool
-        me.closable = cfg.closable !== false && !cfg.wait;
+        me.closable = cfg.closable !== false && !wait;
 
         // We need to redefine `header` because me.setIconCls() could create a Header instance.
         header = me.header;
@@ -515,11 +537,11 @@ Ext.define('Ext.window.MessageBox', {
 
         // Hide or show the progress bar
         progressBar = me.progressBar;
-        if (cfg.progress || cfg.wait) {
+        if (cfg.progress || wait) {
             progressBar.show();
             me.updateProgress(0, cfg.progressText);
-            if (cfg.wait === true) {
-                progressBar.wait(cfg.waitConfig);
+            if (wait) {
+                progressBar.wait(wait === true ? cfg.waitConfig : wait);
             }
         } else {
             progressBar.hide();
@@ -569,7 +591,7 @@ Ext.define('Ext.window.MessageBox', {
                     if (me.cfg && me.cfg.buttonText) {
                         buttons = buttons | Math.pow(2, Ext.Array.indexOf(me.buttonIds, btnId));
                     }
-                    if (btn.text != buttonText[btnId]) {
+                    if (btn.text !== buttonText[btnId]) {
                         btn.setText(buttonText[btnId]);
                     }
                 }
@@ -712,8 +734,8 @@ Ext.define('Ext.window.MessageBox', {
      * @param {String} config.value
      * The string value to set into the active textbox element if displayed
      *
-     * @param {Boolean} config.wait
-     * True to display a progress bar (defaults to false)
+     * @param {Object/Boolean} [config.wait=false]
+     * `true` to display a progress bar, or a configuration for {@link Ext.ProgressBar#wait}.
      *
      * @param {Object} config.waitConfig
      * A {@link Ext.ProgressBar#wait} config object (applies only if wait = true)
@@ -974,7 +996,7 @@ Ext.define('Ext.window.MessageBox', {
      */
     // We want to defer creating Ext.MessageBox and Ext.Msg instances
     // until overrides have been applied.
-    Ext.onReady(function() {
+    Ext.onInternalReady(function() {
         Ext.MessageBox = Ext.Msg = new MessageBox();
     });
 });

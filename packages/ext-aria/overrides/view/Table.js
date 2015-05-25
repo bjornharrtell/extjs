@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.view.Table', {
     override: 'Ext.view.Table',
     

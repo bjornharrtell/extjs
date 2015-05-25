@@ -15,6 +15,8 @@ Ext.define('Ext.grid.ColumnComponentLayout', {
         paddingBottom: ''
     },
 
+    columnAutoCls: Ext.baseCSSPrefix + 'column-header-text-container-auto',
+
     beginLayout: function(ownerContext) {
         this.callParent(arguments);
         ownerContext.titleContext = ownerContext.getEl('titleEl');
@@ -22,15 +24,16 @@ Ext.define('Ext.grid.ColumnComponentLayout', {
 
     beginLayoutCycle: function(ownerContext) {
         var me = this,
-            owner = me.owner;
+            owner = me.owner,
+            shrinkWrap = ownerContext.widthModel.shrinkWrap;
 
         me.callParent(arguments);
 
         // If shrinkwrapping, allow content width to stretch the element
-        if (ownerContext.widthModel.shrinkWrap) {
+        if (shrinkWrap) {
             owner.el.setWidth('');
         }
-
+        owner.textContainerEl[shrinkWrap ? 'addCls' : 'removeCls'](me.columnAutoCls);
         owner.titleEl.setStyle(me._paddingReset);
     },
 
@@ -115,10 +118,11 @@ Ext.define('Ext.grid.ColumnComponentLayout', {
     
     getTriggerOffset: function(owner, ownerContext) {
         var width = 0;
+        
         if (ownerContext.widthModel.shrinkWrap && !owner.menuDisabled) {
             // If we have any children underneath, then we already have space reserved
             if (owner.query('>:not([hidden])').length === 0) {
-                width = owner.self.triggerElWidth;
+                width = owner.getTriggerElWidth();
             }
         }
         return width;

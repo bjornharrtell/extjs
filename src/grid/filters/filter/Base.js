@@ -40,7 +40,8 @@ Ext.define('Ext.grid.filters.filter.Base', {
 
     /**
      * @property {Boolean} active
-     * True if this filter is active.  Use setActive() to alter after configuration.
+     * True if this filter is active. Use setActive() to alter after configuration. If
+     * you set a value, the filter will be actived automatically.
      */
     /**
      * @cfg {Boolean} active
@@ -80,19 +81,19 @@ Ext.define('Ext.grid.filters.filter.Base', {
     /**
      * @event activate
      * Fires when an inactive filter becomes active
-     * @param {Ext.grid.filters.filter.Filter} this
+     * @param {Ext.grid.filters.Filters} this
      */
 
     /**
      * @event deactivate
      * Fires when an active filter becomes inactive
-     * @param {Ext.grid.filters.filter.Filter} this
+     * @param {Ext.grid.filters.Filters} this
      */
 
     /**
      * @event update
      * Fires when a filter configuration has changed
-     * @param {Ext.grid.filters.filter.Filter} this The filter object.
+     * @param {Ext.grid.filters.Filters} this The filter object.
      */
 
     /**
@@ -128,7 +129,7 @@ Ext.define('Ext.grid.filters.filter.Base', {
     },
 
     // Note that some derived classes may need to do specific processing and will have its own version of this method
-    // beforing calling parent (see the List filter).
+    // before calling parent (see the List filter).
     getFilterConfig: function(config, key) {
         config.id = this.getBaseIdPrefix();
 
@@ -154,6 +155,13 @@ Ext.define('Ext.grid.filters.filter.Base', {
      */
     createMenu: function () {
         this.menu = Ext.widget(this.getMenuConfig());
+    },
+
+    getActiveState: function (config, value) {
+        // An `active` config must take precedence over a `value` config.
+        var active = config.active;
+
+        return (active !== undefined) ? active : value !== undefined;
     },
 
     getBaseIdPrefix: function () {
@@ -186,16 +194,23 @@ Ext.define('Ext.grid.filters.filter.Base', {
         var me = this,
             updateBuffer = me.updateBuffer;
 
-        // If the change came from a form field (not a menu CheckItem)...
-        if (field.isFormField && e.getKey() === e.RETURN && field.isValid()) {
-            me.menu.hide();
-            return;
+        //<debug>
+        if (!field.isFormField) {
+            Ext.Error.raise('`field` should be a form field instance.');
         }
+        //</debug>
 
-        if (updateBuffer) {
-            me.task.delay(updateBuffer, null, null, [me.getValue(field)]);
-        } else {
-            me.setValue(me.getValue(field));
+        if (field.isValid()) {
+            if (e.getKey() === e.RETURN) {
+                me.menu.hide();
+                return;
+            }
+
+            if (updateBuffer) {
+                me.task.delay(updateBuffer, null, null, [me.getValue(field)]);
+            } else {
+                me.setValue(me.getValue(field));
+            }
         }
     },
 
@@ -232,14 +247,6 @@ Ext.define('Ext.grid.filters.filter.Base', {
      */
 
     /**
-     * @method
-     * Template method to be implemented by all subclasses that is to
-     * return true if the filter has enough configuration information to be activated.
-     * Defaults to always returning true.
-     * @return {Boolean}
-     */
-
-    /**
      * Sets the status of the filter and fires the appropriate events.
      * @param {Boolean} active The new filter state.
      * @param {String} key The filter key for columns that support multiple filters.
@@ -273,7 +280,7 @@ Ext.define('Ext.grid.filters.filter.Base', {
                 menuItem.setChecked(active);
             }
 
-            me.setColumnActive(active)
+            me.setColumnActive(active);
             // TODO: fire activate/deactivate
         }
     },

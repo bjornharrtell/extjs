@@ -258,21 +258,21 @@ $toolbar-scroller-cursor-disabled: default !default;
 /**
  * @var {number}
  * The opacity of Toolbar scroller buttons. Only applicable when
- * {@link $toolbar-classic-scrollers} is `false`.
+ * {@link #$toolbar-classic-scrollers} is `false`.
  */
 $toolbar-scroller-opacity: 0.6 !default;
 
 /**
  * @var {number}
  * The opacity of hovered Toolbar scroller buttons. Only applicable when
- * {@link $toolbar-classic-scrollers} is `false`.
+ * {@link #$toolbar-classic-scrollers} is `false`.
  */
 $toolbar-scroller-opacity-over: 0.8 !default;
 
 /**
  * @var {number}
  * The opacity of pressed Toolbar scroller buttons. Only applicable when
- * {@link $toolbar-classic-scrollers} is `false`.
+ * {@link #$toolbar-classic-scrollers} is `false`.
  */
 $toolbar-scroller-opacity-pressed: 1 !default;
 

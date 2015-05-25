@@ -25,3 +25,11 @@
     border: 0;
     padding: 0;
 }
+
+// If we're using framing on modern browsers, they are
+// part of the border/border-radius, but we also need to show
+// the collapsed splitter. In that case, just hide the panel so it
+// doesn't interfere with the positioning
+.#{$prefix}panel-collapsed-mini {
+    visibility: hidden;
+}

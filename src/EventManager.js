@@ -2,7 +2,7 @@
  * @class Ext.EventManager
  * Registers event handlers on DOM elements.
  * 
- * This class is deprecated.  Please use the Ext.dom.Element api to atach listeners to
+ * This class is deprecated.  Please use the Ext.dom.Element api to attach listeners to
  * DOM Elements.  For example:
  * 
  *     var element = Ext.get('myId');
@@ -77,7 +77,7 @@ Ext.define('Ext.EventManager', {
      * @param {Function} fn      The handler function the window resize event invokes.
      * @param {Object}   scope   The scope (<code>this</code> reference) in which the handler function executes. Defaults to the browser window.
      * @param {Boolean}  [options] Options object as passed to {@link Ext.dom.Element#addListener}
-     * @deprecated 5.0.0
+     * @deprecated 5.0.0 Use {@link Ext#method-on Ext.on}('resize', fn) to attach a window resize listener.
      */
     onWindowResize: function(fn, scope, options) {
         //<debug>
@@ -308,8 +308,8 @@ Ext.define('Ext.EventManager', {
         event = event.browserEvent || event;
         var x = event.pageX,
             y = event.pageY,
-            docEl = doc.documentElement,
-            body = doc.body;
+            docEl = document.documentElement,
+            body = document.body;
 
         // pageX/pageY not available (undefined, not null), use clientX/clientY instead
         if (!x && x !== 0) {
@@ -345,7 +345,7 @@ Ext.define('Ext.EventManager', {
             "Call getTarget() directly on the Ext.event.Event instance instead.");
         //</debug>
         event = event.browserEvent || event;
-        return EventManager.resolveTextNode(event.target || event.srcElement);
+        return Ext.EventManager.resolveTextNode(event.target || event.srcElement);
     },
 
     // technically no need to browser sniff this, however it makes
@@ -364,13 +364,13 @@ Ext.define('Ext.EventManager', {
                 // work around firefox bug, https://bugzilla.mozilla.org/show_bug.cgi?id=101197
                 var s = HTMLElement.prototype.toString.call(node);
                 if (s !== '[xpconnect wrapped native prototype]' && s !== '[object XULElement]') {
-                    return node.nodeType == 3 ? node.parentNode: node;
+                    return node.nodeType === 3 ? node.parentNode: node;
                 }
             }
         }
         :
         function(node) {
-            return node && node.nodeType == 3 ? node.parentNode: node;
+            return node && node.nodeType === 3 ? node.parentNode: node;
         }
 }, function(EventManager) {
     /**

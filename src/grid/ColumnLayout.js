@@ -363,7 +363,7 @@ Ext.define('Ext.grid.ColumnLayout', {
                 height: height,
                 needed: needed,
                 got: got,
-                gotAll: got == needed,
+                gotAll: got === needed,
                 gotWidth: gotWidth,
                 gotHeight: gotHeight
             };

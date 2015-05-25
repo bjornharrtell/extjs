@@ -90,8 +90,6 @@
  *         }],
  *         renderTo: Ext.getBody()
  *     });
- * 
- * @docauthor Jason Johnston <jason@sencha.com>
  */
 Ext.define('Ext.form.FieldContainer', {
     extend: 'Ext.container.Container',

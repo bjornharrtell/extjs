@@ -16,15 +16,46 @@
  * - {@link #updateEl}
  *
  * Sample usage:
- *
+ * 
+ *     @example
+ *     var form = Ext.create('Ext.form.Panel', {
+ *         renderTo: Ext.getBody(),
+ *         width: 380,
+ *         height: 400,
+ *         title: 'User Details',
+ *         bodyPadding: 10,
+ *         items: [{
+ *             html: 'Double-Click on the header title, this, or the field label to edit',
+ *             height:30
+ *         },{
+ *             fieldLabel: 'First Name',
+ *             name: 'firstname',
+ *             xtype: 'textfield'
+ *         }]
+ *     });
+ *     
  *     var editor = new Ext.Editor({
- *         updateEl: true, // update the innerHTML of the bound element when editing completes
+ *         // update the innerHTML of the bound element 
+ *         // when editing completes
+ *         updateEl: true,
+ *         alignment: 'l-l',
+ *         autoSize: {
+ *             width: 'boundEl'
+ *         },
  *         field: {
  *             xtype: 'textfield'
  *         }
  *     });
- *     var el = Ext.get('my-text'); // The element to 'edit'
- *     editor.startEdit(el); // The value of the field will be taken as the innerHTML of the element.
+ *     
+ *     form.header.getTitle().textEl.on('dblclick', function(e, t) {
+ *         editor.startEdit(t);
+ *     });
+ *     
+ *     form.getTargetEl().on('dblclick', function(e, t) {
+ *         editor.startEdit(t);
+ *         // Manually focus, since clicking on the label will focus the text field
+ *         editor.field.focus(50, true);
+ *     });
  *
  * {@img Ext.Editor/Ext.Editor.png Ext.Editor component}
  *

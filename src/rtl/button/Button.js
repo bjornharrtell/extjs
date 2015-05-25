@@ -5,8 +5,8 @@ Ext.define('Ext.rtl.button.Button', {
         var me = this,
             region = me._triggerRegion;
 
-        if (!Ext.rootInheritedState.rtl !== !this.getInherited().rtl
-            && me.arrowAlign === 'right') {
+        if (!Ext.rootInheritedState.rtl !== !this.getInherited().rtl && // jshint ignore:line
+                me.arrowAlign === 'right') {
             region.begin = 0;
             region.end = me.btnEl.getX() - me.el.getX();
         } else {

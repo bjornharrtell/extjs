@@ -31,7 +31,12 @@ Ext.define('Ext.util.Cookies', {
             domain = (argc > 4) ? argv[4] : null,
             secure = (argc > 5) ? argv[5] : false;
             
-        document.cookie = name + "=" + escape(value) + ((expires === null) ? "" : ("; expires=" + expires.toUTCString())) + ((path === null) ? "" : ("; path=" + path)) + ((domain === null) ? "" : ("; domain=" + domain)) + ((secure === true) ? "; secure" : "");
+        document.cookie = name + "=" +
+            escape(value) +
+            ((expires === null) ? "" : ("; expires=" + expires.toUTCString())) +
+            ((path === null) ? "" : ("; path=" + path)) +
+            ((domain === null) ? "" : ("; domain=" + domain)) +
+            ((secure === true) ? "; secure" : "");
     },
 
     /**

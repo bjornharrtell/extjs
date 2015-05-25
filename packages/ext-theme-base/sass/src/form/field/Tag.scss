@@ -10,12 +10,12 @@
     overflow-y: auto;
 }
 
-.#{$prefix}tagfield ul.#{$prefix}tagfield-list {
+.#{$prefix}tagfield .#{$prefix}tagfield-list {
     padding: 1px 3px;
     margin: 0;
 }
 
-ul.#{$prefix}tagfield-list.#{$prefix}tagfield-singleselect {
+.#{$prefix}tagfield-list.#{$prefix}tagfield-singleselect {
     white-space: nowrap;
     overflow: hidden;
 }

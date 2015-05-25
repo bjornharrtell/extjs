@@ -7,6 +7,7 @@ Ext.define('Ext.rtl.scroll.Scroller', {
          * `true` to enable scrolling of "right-to-left" content.  This is typically
          * configured automatically by an {@link Ext.Component} based on its inherited
          * {@link Ext.Component#rtl rtl} state
+         * @member Ext.scroll.Scroller
          */
         rtl: null
     },

@@ -71,8 +71,7 @@
  * # Examples
  *
  * Here is a basic TabPanel rendered to the body. This also shows the useful configuration {@link #activeTab},
- * which allows you to set the active tab on render. If you do not set an {@link #activeTab}, no tabs will be
- * active by default.
+ * which allows you to set the active tab on render.
  *
  *     @example
  *     Ext.create('Ext.tab.Panel', {
@@ -317,8 +316,12 @@ Ext.define('Ext.tab.Panel', {
 
         /**
          * @cfg {"top"/"bottom"/"left"/"right"} tabPosition
-         * The position where the tab strip should be rendered. Can be `top`, `bottom`,
-         * `left` or `right`
+         * The position where the tab strip should be rendered. Possible values are: 
+         * 
+         *  - top
+         *  - bottom
+         *  - left
+         *  - right
          */
         tabPosition : 'top',
 
@@ -352,8 +355,8 @@ Ext.define('Ext.tab.Panel', {
      * @cfg {Number} tabBarHeaderPosition
      * If specified, the {@link #tabBar} will be rendered as an item of the TabPanel's
      * Header and the specified `tabBarHeaderPosition` will be used as the Panel header's
-     * {@link #itemPosition}.  If not specified, the {@link #tabBar} will be rendered
-     * as a docked item at {@link #tabPosition}
+     * {@link Ext.panel.Header#itemPosition}.  If not specified, the {@link #tabBar}
+     * will be rendered as a docked item at {@link #tabPosition}.
      */
 
     /**
@@ -363,7 +366,7 @@ Ext.define('Ext.tab.Panel', {
 
     /**
      * @cfg {String/Number/Ext.Component} activeTab
-     * The tab to activate initially. Either an ID, index or the tab component itself.
+     * The tab to activate initially. Either an ID, index or the tab component itself. If null, no tab will be set as active.
      */
 
 
@@ -448,8 +451,6 @@ Ext.define('Ext.tab.Panel', {
         var me = this,
             // Default to 0 if undefined and not null!
             activeTab = me.activeTab !== null ? (me.activeTab || 0) : null,
-            tabPosition = me.getTabPosition(),
-            tabRotation = me.getTabRotation(),
             dockedItems = me.dockedItems,
             header = me.header,
             tabBarHeaderPosition = me.tabBarHeaderPosition,
@@ -487,6 +488,17 @@ Ext.define('Ext.tab.Panel', {
             tabBar.setActiveTab(activeTab.tab, true);
         }
     },
+    
+    /**
+     * @method getTabBar
+     * Returns the {@link Ext.tab.Bar} associated with this tabPanel.
+     * @return {Ext.tab.Bar} The tabBar for this tabPanel
+     */
+    
+    /**
+     * @method setTabBar
+     * @hide
+     */
 
     onRender: function() {
         var items = this.items.items,
@@ -529,7 +541,7 @@ Ext.define('Ext.tab.Panel', {
             }
 
             if (previous === card || me.fireEvent('beforetabchange', me, card, previous) === false) {
-                Ext.resumeLayouts();
+                Ext.resumeLayouts(true);
                 return previous;
             }
 
@@ -583,7 +595,7 @@ Ext.define('Ext.tab.Panel', {
         if (result && me.items.indexOf(result) !== -1) {
             me.activeTab = result;
         } else {
-            me.activeTab = null;
+            me.activeTab = undefined;
         }
 
         return me.activeTab;
@@ -599,7 +611,7 @@ Ext.define('Ext.tab.Panel', {
             ui: me.ui,
             dock: dock,
             tabRotation: me.getTabRotation(),
-            vertical: (dock == 'left' || dock == 'right'),
+            vertical: (dock === 'left' || dock === 'right'),
             plain: me.plain,
             tabStretchMax: me.getTabStretchMax(),
             tabPanel: me
@@ -702,6 +714,18 @@ Ext.define('Ext.tab.Panel', {
         // config (which tells the layout not to set an active item), as this is a valid value to mean 'do not set an active tab'.
         if (me.rendered && me.loader && me.activeTab === undefined && me.layout.activeItem !== null) {
             me.setActiveTab(0);
+        }
+    },
+
+    onMove: function(item, fromIdx, toIdx) {
+        var tabBar = this.getTabBar();
+
+        this.callParent([item, fromIdx, toIdx]);
+
+        // If the move of the item.tab triggered the movement of the child Panel,
+        // then we're done.
+        if (tabBar.items.indexOf(item.tab) !== toIdx) {
+            tabBar.move(item.tab, toIdx);
         }
     },
 

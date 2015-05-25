@@ -70,12 +70,9 @@ Ext.define('KitchenSink.view.form.FieldContainer', {
         title: 'Details',
         collapsible: true,
         defaults: {
-            labelWidth: 89,
+            labelWidth: 90,
             anchor: '100%',
-            layout: {
-                type: 'hbox',
-                defaultMargins: {top: 0, right: 5, bottom: 0, left: 0}
-            }
+            layout: 'hbox'
         },
         items: [{
             xtype: 'fieldcontainer',
@@ -83,26 +80,30 @@ Ext.define('KitchenSink.view.form.FieldContainer', {
             combineErrors: true,
             msgTarget: 'under',
             defaults: {
-                hideLabel: true
+                hideLabel: true,
+                enforceMaxLength: true,
+                maskRe: /[0-9.]/
             },
             items: [
-                {xtype: 'displayfield', value: '('},
-                {xtype: 'textfield',    fieldLabel: 'Phone 1', name: 'phone-1', width: 45, allowBlank: false},
-                {xtype: 'displayfield', value: ')'},
-                {xtype: 'textfield',    fieldLabel: 'Phone 2', name: 'phone-2', width: 45, allowBlank: false, margin: '0 5 0 0'},
+                {xtype: 'displayfield', value: '(', margin: '0 2 0 0'},
+                {xtype: 'textfield',    fieldLabel: 'Phone 1', name: 'phone-1', width: 45, allowBlank: false, maxLength: 3},
+                {xtype: 'displayfield', value: ')', margin: '0 5 0 2'},
+                {xtype: 'textfield',    fieldLabel: 'Phone 2', name: 'phone-2', width: 45, allowBlank: false, margin: '0 5 0 0', maxLength: 3},
                 {xtype: 'displayfield', value: '-'},
-                {xtype: 'textfield',    fieldLabel: 'Phone 3', name: 'phone-3', width: 60, allowBlank: false}
+                {xtype: 'textfield',    fieldLabel: 'Phone 3', name: 'phone-3', width: 60, allowBlank: false, margin: '0 0 0 5', maxLength: 4}
             ]
         }, {
             xtype: 'fieldcontainer',
             fieldLabel: 'Time worked',
             combineErrors: false,
             defaults: {
-                hideLabel: true
+                hideLabel: true,
+                margin: '0 5 0 0'
             },
             items: [{
                name : 'hours',
                xtype: 'numberfield',
+               minValue: 0,
                width: 95,
                allowBlank: false
            }, {
@@ -111,6 +112,7 @@ Ext.define('KitchenSink.view.form.FieldContainer', {
            }, {
                name : 'minutes',
                xtype: 'numberfield',
+               minValue: 0,
                width: 95,
                allowBlank: false
            }, {
@@ -123,7 +125,8 @@ Ext.define('KitchenSink.view.form.FieldContainer', {
             msgTarget: 'side',
             fieldLabel: 'Full Name',
             defaults: {
-                hideLabel: true
+                hideLabel: true,
+                margin: '0 5 0 0'
             },
             items: [{
                 //the width of this field in the HBox layout is set directly

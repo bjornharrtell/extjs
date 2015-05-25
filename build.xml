@@ -38,7 +38,7 @@
     <target name="-before-init">
         <property name="pkg.excludes"
                   value="examples/build/**/*,
-                         test/**/*,
+                         test_internal/**/*,
                          attic/**/*,
                          deployment_workspace/**/*,
                          docs/**/*,
@@ -175,7 +175,7 @@
         <property file="${package.dir}/version.properties"/>
     </target>
 
-    <target name="-apply-version-stamp" if="build.version">
+    <target name="-apply-version-stamp" if="enable.version.stamp">
         <x-property-file file="${package.dir}/cmd/sencha.cfg">
             <entry type="string" key="framework.version" operation="="
                    value="${build.version}"/>

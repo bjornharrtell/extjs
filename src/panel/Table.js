@@ -8,6 +8,8 @@
  *  - a View
  *  - a Store
  *  - Ext.grid.header.Container
+ * 
+ * @mixins Ext.grid.locking.Lockable
  */
 Ext.define('Ext.panel.Table', {
     extend: 'Ext.panel.Panel',
@@ -49,7 +51,7 @@ Ext.define('Ext.panel.Table', {
     twoWayBindable: ['selection'],
 
     /**
-     * @cfg [autoLoad=false]
+     * @cfg {Boolean} [autoLoad=false]
      * Use `true` to load the store as soon as this component is fully constructed. It is
      * best to initiate the store load this way to allow this component and potentially
      * its plugins (such as `{@link Ext.grid.filters.Filters}` to be ready to load.
@@ -95,6 +97,11 @@ Ext.define('Ext.panel.Table', {
      * True to indicate that a view has been injected into the panel.
      */
     hasView: false,
+
+    /**
+     * @property items
+     * @hide
+     */
 
     /**
      * @cfg {String} viewType
@@ -145,8 +152,38 @@ Ext.define('Ext.panel.Table', {
      */
 
     /**
-     * @cfg {Ext.data.Store} store (required)
-     * The {@link Ext.data.Store Store} the grid should use as its data source.
+     * @cfg {Ext.data.Store/String/Object} store (required)
+     * The data source to which the grid / tree is bound. Acceptable values for this 
+     * property are:
+     *
+     *   - **any {@link Ext.data.Store Store} class / subclass**
+     *   - **an {@link Ext.data.Store#storeId ID of a store}**
+     *   - **a {@link Ext.data.Store Store} config object**.  When passing a config you can 
+     *   specify the store type by alias.  Passing a config object with a store type will 
+     *   dynamically create a new store of that type when the grid / tree is instantiated.
+     *
+     * For example:
+     * 
+     *     Ext.define('MyApp.store.Customers', {
+     *         extend: 'Ext.data.Store',
+     *         alias: 'store.customerstore',
+     *         fields: ['name']
+     *     });
+     *     
+     *     Ext.create({
+     *         xtype: 'gridpanel',
+     *         renderTo: document.body,
+     *         store: {
+     *             type: 'customerstore',
+     *             data: [{
+     *                 name: 'Foo'
+     *             }]
+     *         },
+     *         columns: [{
+     *             text: 'Name',
+     *             dataIndex: 'name'
+     *         }]
+     *     });
      */
 
     /**
@@ -166,7 +203,7 @@ Ext.define('Ext.panel.Table', {
      */
 
     /**
-     * @cfg {Ext.grid.column.Column[]/Object} columns (required)
+     * @cfg {Ext.grid.column.Column[]/Object} columns
      * An array of {@link Ext.grid.column.Column column} definition objects which define all columns that appear in this
      * grid. Each column definition provides the header text for the column, and a definition of where the data for that
      * column comes from.
@@ -337,7 +374,7 @@ Ext.define('Ext.panel.Table', {
      * @cfg {Boolean} [bufferedRenderer=true]
      * Buffered rendering is enabled by default.
      * 
-     * Configure as `false` to disable buffered rendering. See {@link #Ext.grid.plugin.BufferedRenderer}.
+     * Configure as `false` to disable buffered rendering. See {@link Ext.grid.plugin.BufferedRenderer}.
      *
      * @since 5.0.0
      */
@@ -536,7 +573,7 @@ Ext.define('Ext.panel.Table', {
         if (!me.hasView) {
 
             // If the Store is paging blocks of the dataset in, then it can only be sorted remotely.
-            if (store.isBufferedStore && !store.remoteSort) {
+            if (store.isBufferedStore && !store.getRemoteSort()) {
                 for (i = 0, len = columns.length; i < len; i++) {
                     columns[i].sortable = false;
                 }
@@ -586,7 +623,11 @@ Ext.define('Ext.panel.Table', {
         // Whatever kind of View we have, be it a TableView, or a LockingView, we are interested in the selection model
         me.selModel = me.view.getSelectionModel();
         if (me.selModel.isRowModel) {
-            me.selModel.on('selectionchange', me.updateBindSelection, me);
+            me.selModel.on({
+                scope: me,
+                lastselectedchanged: me.updateBindSelection,
+                selectionchange: me.updateBindSelection
+            });
         }
 
         // Relay events from the View whether it be a LockingView, or a regular GridView
@@ -940,6 +981,32 @@ Ext.define('Ext.panel.Table', {
         me.callParent(arguments);
     },
 
+    /**
+     * Gets the {@link Ext.grid.header.Container headercontainer} for this grid / tree.
+     * @return {Ext.grid.header.Container} headercontainer
+     *
+     * **Note:** While a locked grid / tree will return an instance of
+     * {@link Ext.grid.locking.HeaderContainer} you will code to the
+     * {@link Ext.grid.header.Container} API.
+     */
+    getHeaderContainer: function () {
+        return this.getView().getHeaderCt();
+    },
+
+    /**
+     * @inheritdoc Ext.grid.header.Container#getGridColumns
+     */
+    getColumns: function () {
+        return this.getHeaderContainer().getGridColumns();
+    },
+
+    /**
+     * @inheritdoc Ext.grid.header.Container#getVisibleGridColumns
+     */
+    getVisibleColumns: function () {
+        return this.getHeaderContainer().getVisibleGridColumns();
+    },
+
     focus: function() {
         // TablePanel is not focusable, but allow a call to delegate into the view
         this.getView().focus();
@@ -1066,7 +1133,7 @@ Ext.define('Ext.panel.Table', {
 
         // Old stored sort state. Deprecated and will die out.
         if (sorter) {
-            if (store.remoteSort) {
+            if (store.getRemoteSort()) {
                 // Pass false to prevent a sort from occurring.
                 store.sort({
                     property: sorter.property,
@@ -1242,7 +1309,7 @@ Ext.define('Ext.panel.Table', {
      *                          which does not contain that record.
      * @param {Boolean}         options.callback.success `true` if acquiring the record's view node was successful.
      * @param {Ext.data.Model}  options.callback.record If successful, the target record.
-     * @param {HtmlElement}     options.callback.node If successful, the record's view node.
+     * @param {HTMLElement}     options.callback.node If successful, the record's view node.
      * @param {Object}          [options.scope] The scope (`this` reference) in which the callback function is executed.
      */
     ensureVisible: function(record, options) {
@@ -1304,15 +1371,20 @@ Ext.define('Ext.panel.Table', {
     },
 
     // Section onHeaderHide is invoked after view.
-    onHeaderHide: function(headerCt, header) {
-        if (this.view.refreshCounter) {
-            this.view.refreshView();
+    onHeaderHide: function(headerCt, header, complete) {
+        var view = this.view;
+        // The headerCt may be hiding multiple children if a leaf level column
+        // causes a parent (and possibly other parents) to be hidden. Only run the refresh
+        // once we're done
+        if (!headerCt.childHideCount && view.refreshCounter) {
+            view.refreshView();
         }
     },
 
     onHeaderShow: function(headerCt, header) {
-        if (this.view.refreshCounter) {
-            this.view.refreshView();
+        var view = this.view;
+        if (view.refreshCounter) {
+            view.refreshView();
         }
     },
 
@@ -1560,20 +1632,34 @@ Ext.define('Ext.panel.Table', {
     },
 
     /**
-     * Reconfigures the grid / tree with a new store/columns. Either the store or the 
-     * columns can be omitted if you don't wish to change them.
+     * Reconfigures the grid or tree with a new store and/or columns. Stores and columns 
+     * may also be passed as params.
      *
-     * The {@link #enableLocking} config should be set to `true` before the reconfigure 
-     * method is executed if locked columns are intended to be used.
+     *     grid.reconfigure(store, columns);
      *
-     * @param {Ext.data.Store} [store] The new store. You can pass `null` if no new store.
+     * Additionally, you can pass just a store or columns.
+     *
+     *     tree.reconfigure(store);
+     *     // or
+     *     grid.reconfigure(columns);
+     *     // or
+     *     tree.reconfigure(null, columns);
+     *
+     * If you're using locked columns, the {@link #enableLocking} config should be set 
+     * to `true` before the reconfigure method is executed.
+     *
+     * @param {Ext.data.Store/Object} [store] The new store instance or store config. You can 
+     * pass `null` if no new store.
      * @param {Object[]} [columns] An array of column configs
      */
     reconfigure: function(store, columns) {
         var me = this,
             oldStore = me.store,
             headerCt = me.headerCt,
-            oldColumns = headerCt ? headerCt.items.getRange() : me.columns;
+            lockable = me.lockable,
+            oldColumns = headerCt ? headerCt.items.getRange() : me.columns,
+            view = me.getView(),
+            block, refreshCounter;
 
         // Allow optional store argument to be fully omitted, and the columns argument to be solo
         if (arguments.length === 1 && Ext.isArray(store)) {
@@ -1587,30 +1673,48 @@ Ext.define('Ext.panel.Table', {
         }
 
         me.reconfiguring = true;
+        if (store) {
+            store = Ext.StoreManager.lookup(store);
+        }
         me.fireEvent('beforereconfigure', me, store, columns, oldStore, oldColumns);
 
         Ext.suspendLayouts();
 
-        if (me.lockable) {
+        if (lockable) {
             me.reconfigureLockable(store, columns);
         } else {
+            // Prevent the view from refreshing until we have resumed layouts and any columns are rendered
+            block = view.blockRefresh;
+            view.blockRefresh = true;
+
+            // The following test compares the result of an assignment of the store var with the oldStore var.
+            // This saves a large amount of code.
+            //
+            // Note that we need to process the store first in case one or more passed columns (if there are any)
+            // have active gridfilters with values which would filter the currently-bound store.
+            if (store && store !== oldStore) {
+                me.unbindStore();
+                me.bindStore(store);
+            }
+
             if (columns) {
                 // new columns, delete scroll pos
                 delete me.scrollXPos;
                 headerCt.removeAll();
                 headerCt.add(columns);
             }
-            // The following test compares the result of an assignment of the store var with the oldStore var
-            // This saves a large amount of code.
-            if (store && (store = Ext.StoreManager.lookup(store)) !== oldStore) {
-                me.unbindStore();
-                me.bindStore(store);
-            } else {
-                me.getView().refreshView();
-            }
+
+            view.blockRefresh = block;
+            refreshCounter = view.refreshCounter;
         }
 
         Ext.resumeLayouts(true);
+        if (lockable) {
+            me.afterReconfigureLockable();
+        } else if (view.refreshCounter === refreshCounter) {
+            // If the layout resumption didn't trigger the view to refresh, do it here
+            view.refreshView();
+        }
 
         me.fireEvent('reconfigure', me, store, columns, oldStore, oldColumns);
         delete me.reconfiguring;
@@ -1671,6 +1775,10 @@ Ext.define('Ext.panel.Table', {
                 doFocus,
                 view = me.getView(),
                 domNode = view.getNode(record);
+
+            if (!me.rendered || !view.refreshCounter) {
+                return;
+            }
 
             if (options) {
                 callback = options.callback;

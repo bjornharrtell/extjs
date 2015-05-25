@@ -29,6 +29,9 @@ Ext.define('Ext.fx.Manager', {
 
     /* End Definitions */
 
+    /**
+     * @private
+     */
     constructor: function() {
         var me = this;
         me.items = new Ext.util.MixedCollection();
@@ -190,15 +193,16 @@ Ext.define('Ext.fx.Manager', {
             if (anim.isRunning()) {
                 //Ext.log('      running anim ', anim.target.id);
                 me.runAnim(anim);
+            }
             //<debug>
-            } else if (!me.useCSS3) {
+            //else if (!me.useCSS3) {
                 // When using CSS3 transitions the animations get paused since they are not
                 // needed once the transition is handed over to the browser, so we can
                 // ignore this case. However if we are doing JS animations and something is
                 // paused here it's possibly unintentional.
                 //Ext.log(' (i)  anim ', anim.id, ' is active but not running...');
+            //}
             //</debug>
-            }
         }
 
         // Apply all the pending changes to their targets
@@ -222,7 +226,7 @@ Ext.define('Ext.fx.Manager', {
             return;
         }
         var me = this,
-            useCSS3 = me.useCSS3 && anim.target.type == 'element',
+            useCSS3 = me.useCSS3 && anim.target.type === 'element',
             elapsedTime = me.timestamp - anim.startTime,
             lastFrame = (elapsedTime >= anim.duration),
             target, o;

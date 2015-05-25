@@ -162,20 +162,20 @@ function () {
     //-------------------------------------------------------------------------------
     // These are the 4 fundamental size models.
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'calculated'
     });
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'configured',
         names: { width: 'width', height: 'height' }
     });
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'natural'
     });
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'shrinkWrap'
     });
 
@@ -183,40 +183,40 @@ function () {
     // These are the size models are flavors of the above but with some extra detail
     // about their dynamic use.
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'calculatedFromConfigured',
         configured: true,
         calculatedFrom: true,
         names: { width: 'width', height: 'height' }
     });
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'calculatedFromNatural',
         natural: true,
         calculatedFrom: true
     });
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'calculatedFromShrinkWrap',
         shrinkWrap: true,
         calculatedFrom: true
     });
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'constrainedMax',
         configured: true,
         constrained: true,
         names: { width: 'maxWidth', height: 'maxHeight' }
     });
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'constrainedMin',
         configured: true,
         constrained: true,
         names: { width: 'minWidth', height: 'minHeight' }
     });
 
-    new SizeModel({
+    new SizeModel({ // jshint ignore:line
         name: 'constrainedDock',
         configured: true,
         constrained: true,

@@ -1,6 +1,4 @@
 /**
- * @docauthor Jason Johnston <jason@sencha.com>
- *
  * A numeric text field that provides automatic keystroke filtering to disallow non-numeric characters,
  * and numeric validation to limit the value to a range of valid numbers. The range of acceptable number
  * values can be controlled by setting the {@link #minValue} and {@link #maxValue} configs, and fractional
@@ -219,6 +217,27 @@ Ext.define('Ext.form.field.Number', {
 
         me.setMinValue(me.minValue);
         me.setMaxValue(me.maxValue);
+    },
+
+    setValue: function(value) {
+        var me = this,
+            bind, valueBind;
+
+        // This portion of the code is to prevent a binding from stomping over
+        // the typed value. Say we have decimalPrecision 4 and the user types
+        // 1.23456. The value of the field will be set as 1.2346 and published to
+        // the viewmodel, which will trigger the binding to fire and setValue to
+        // be called on the field, which would then set the value (and rawValue) to
+        // 1.2346. Instead, if we have focus and the value is the same, just leave
+        // the rawValue alone
+        if (me.hasFocus) {
+            bind = me.getBind();
+            valueBind = bind && bind.value;
+            if (valueBind && valueBind.syncing && value === me.value) {
+                return me;
+            }
+        }
+        return me.callParent([value]);
     },
 
     /**

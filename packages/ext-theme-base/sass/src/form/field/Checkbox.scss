@@ -50,6 +50,12 @@ the height of a multi-line element */
 // that there is no box label, the following class is applied to the wrapper around the inputEl.
 // See EXTJSIV-10302 and EXTJSIV-10977.
 // TODO: can we remove this in v5?
-.#{$prefix}form-cb-wrap-inner-no-box-label > .#{$prefix}form-cb {
-    position: static;
+.#{$prefix}form-cb-wrap-inner-no-box-label {
+    > .#{$prefix}form-cb {
+        position: static;
+    }
+
+    > .#{$prefix}form-cb-label {
+        display: none;
+    }
 }

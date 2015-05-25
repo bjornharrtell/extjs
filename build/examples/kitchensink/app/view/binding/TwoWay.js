@@ -7,9 +7,18 @@ Ext.define('KitchenSink.view.binding.TwoWay', {
     extend: 'Ext.panel.Panel',
     alias: 'widget.binding-two-way',
 
+    //<example>
+    requires: ['KitchenSink.view.binding.TwoWayController'],
+    otherContent: [{
+        type: 'ViewController',
+        path: 'app/view/binding/TwoWayController.js'
+    }],
+    //</example>
+
     width: 300,
     bodyPadding: 10,
 
+    controller: 'binding.twoway',
     viewModel: {
         data: {
             title: 'The title'
@@ -26,5 +35,10 @@ Ext.define('KitchenSink.view.binding.TwoWay', {
         labelWidth: 50,
         // The default config for textfield in a bind is "value" (two-way):
         bind: '{title}'
-    }
+    },
+
+    tbar: [{
+        text: 'Random Title',
+        handler: 'onTitleButtonClick'
+    }]
 });

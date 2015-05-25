@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.panel.Tool', {
     override: 'Ext.panel.Tool',
     

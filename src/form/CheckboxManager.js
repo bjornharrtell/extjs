@@ -8,7 +8,7 @@ Ext.define('Ext.form.CheckboxManager', {
 
     getByName: function(name, formId) {
         return this.filterBy(function(item) {
-            return item.name == name && item.getFormId() == formId;
+            return item.name === name && item.getFormId() === formId;
         });
     }
 });

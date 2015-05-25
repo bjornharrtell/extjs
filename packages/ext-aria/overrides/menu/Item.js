@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.menu.Item', {
     override: 'Ext.menu.Item',
     

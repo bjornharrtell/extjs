@@ -16,28 +16,21 @@
  *
  *     @example
  *     Ext.create('Ext.data.Store', {
- *         storeId:'simpsonsStore',
- *         fields:['name', 'email', 'phone'],
- *         data:{'items':[
- *             {"name":"Lisa", "email":"lisa@simpsons.com", "phone":"555-111-1224"},
- *             {"name":"Bart", "email":"bart@simpsons.com", "phone":"555-222-1234"},
- *             {"name":"Homer", "email":"homer@simpsons.com", "phone":"555-222-1244"},
- *             {"name":"Marge", "email":"marge@simpsons.com", "phone":"555-222-1254"}
- *         ]},
- *         proxy: {
- *             type: 'memory',
- *             reader: {
- *                 type: 'json',
- *                 rootProperty: 'items'
- *             }
- *         }
+ *         storeId: 'simpsonsStore',
+ *         fields:[ 'name', 'email', 'phone'],
+ *         data: [
+ *             { name: 'Lisa', email: 'lisa@simpsons.com', phone: '555-111-1224' },
+ *             { name: 'Bart', email: 'bart@simpsons.com', phone: '555-222-1234' },
+ *             { name: 'Homer', email: 'homer@simpsons.com', phone: '555-222-1244' },
+ *             { name: 'Marge', email: 'marge@simpsons.com', phone: '555-222-1254' }
+ *         ]
  *     });
  *
  *     Ext.create('Ext.grid.Panel', {
  *         title: 'Simpsons',
  *         store: Ext.data.StoreManager.lookup('simpsonsStore'),
  *         columns: [
- *             {header: 'Name',  dataIndex: 'name', editor: 'textfield'},
+ *             {header: 'Name', dataIndex: 'name', editor: 'textfield'},
  *             {header: 'Email', dataIndex: 'email', flex:1,
  *                 editor: {
  *                     xtype: 'textfield',
@@ -163,7 +156,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
 
         me.callParent(arguments);
 
-        // Share editor apparatus with lockingPartner becuse columns may move from side to side
+        // Share editor apparatus with lockingPartner because columns may move from side to side
         if (lockingPartner) {
             if (lockingPartner.editors) {
                 me.editors = lockingPartner.editors;
@@ -356,11 +349,6 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         }
 
         me.setEditingContext(context);
-        me.setActiveEditor(ed);
-        me.setActiveRecord(record);
-        me.setActiveColumn(columnHeader);
-
-        selectMode = sm.getSelectionMode();
 
         // We focus the cell before beginning the edit.
         // In 99% of cases, this will be a no-op because editing will have been triggered
@@ -369,6 +357,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         // the focusenter event caused by focusing the editor field will attempt
         // to delegate focus to a descendant cell, and that will terminate editing.
         // Keep existing records (see EXTJSIV-7897)!
+        selectMode = sm.getSelectionMode();
         if (!sm.isCellSelected(view, record, columnHeader) && (selectMode !== 'MULTI' || !sm.getSelection().length || (sm.getSelection().length === 1 && sm.isSelected(record)))) {
             sm.selectByPosition({
                 row: record,
@@ -383,13 +372,23 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         }
 
         // The lastFocused position will be set above,
-        // Now we must temporairily clear the current focus position during the edit.
-        // Otherwise a refresh during edit will kill the editor by restorinhg focus.
+        // Now we must temporarily clear the current focus position during the edit.
+        // Otherwise a refresh during edit will kill the editor by restoring focus.
         view.getNavigationModel().setPosition();
         ed.startEdit(view.getCell(record, columnHeader), value, context);
 
-        me.editing = true;
-        me.scroll = view.el.getScroll();
+        // Set contextual information if we began editing (can be vetoed by events)
+        if (ed.editing) {
+            me.setActiveEditor(ed);
+            me.setActiveRecord(record);
+            me.setActiveColumn(columnHeader);
+            me.editing = true;
+            me.scroll = view.el.getScroll();
+        }
+        // Restore focus if we did not begin editing
+        else {
+            view.getNavigationModel().setPosition(context, null, null, null, true);
+        }
     },
 
     completeEdit: function(remainVisible) {
@@ -471,7 +470,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
             // collection, if the grid happens to be used inside a form
             editor.field.excludeForm = true;
 
-            // If the editor is new to this grid, then add it to the grid, and ensure it tells us about its lifecycle.
+            // If the editor is new to this grid, then add it to the grid, and ensure it tells us about its life cycle.
             if (editor.ownerCt !== editorOwner) {
                 editorOwner.add(editor);
                 editor.on({
@@ -504,7 +503,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         var me = this,
             context = me.context,
             editor,
-            // Editor is ownered by top level grid if we are editing one side of a locking system
+            // Editor is owned by top level grid if we are editing one side of a locking system
             editorOwner = me.grid.ownerLockable || me.grid;
 
         // If the column was being edited, when plucked out of the grid, cancel the edit.
@@ -545,9 +544,9 @@ Ext.define('Ext.grid.plugin.CellEditing', {
 
     /**
      * Called from the specialkey event of an active editor when a control key is pressed
-     * @param {type} ed The Editor
-     * @param {type} field The Editor's input field
-     * @param {type} e the key event.
+     * @param {Ext.form.field.Field} ed The Editor
+     * @param {HTMLElement} field The Editor's input field
+     * @param {Ext.event.Event} e the key event.
      * 
      */
     onSpecialKey: function(ed, field, e) {
@@ -555,6 +554,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
  
         if (e.getKey() === e.TAB) {
             e.stopEvent();
+            e.position = this.context;
 
             if (ed) {
                 // Allow the field to act on tabs before onEditorTab, which ends
@@ -662,7 +662,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         }
         
         // Coerce the edit column to the closest visible column. This typically
-        // only needs to be done when called programatically, since the position
+        // only needs to be done when called programmatically, since the position
         // is handled by walkCells, which is called before this is invoked.
         index = cm.getHeaderIndex(position.column);
         position.column = cm.getVisibleHeaderClosestToIndex(index);

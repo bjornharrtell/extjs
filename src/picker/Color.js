@@ -87,7 +87,7 @@ Ext.define('Ext.picker.Color', {
     ],
 
     /**
-     * @cfg {Function} handler
+     * @cfg {Function/String} handler
      * A function that will handle the select event of this picker. The handler is passed the following parameters:
      *
      * - `picker` : ColorPicker
@@ -97,6 +97,8 @@ Ext.define('Ext.picker.Color', {
      * - `color` : String
      *
      *   The 6-digit color hex code (without the # symbol).
+     * 
+     * @declarativeHandler
      */
 
     /**
@@ -201,7 +203,7 @@ Ext.define('Ext.picker.Color', {
         }
 
 
-        if (color != value || me.allowReselect) {
+        if (color !== value || me.allowReselect) {
             el = me.el;
 
             if (me.value) {

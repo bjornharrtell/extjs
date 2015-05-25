@@ -1,6 +1,4 @@
 /**
- * @docauthor Jason Johnston <jason@sencha.com>
- *
  * Provides a date input field with a {@link Ext.picker.Date date picker} dropdown and automatic date
  * validation.
  *
@@ -53,7 +51,7 @@
  *             name: 'date',
  *             // The value matches the format; will be parsed and displayed using that format.
  *             format: 'm d Y',
- *             value: '2 4 1978'
+ *             value: '02 04 1978'
  *         }, {
  *             xtype: 'datefield',
  *             anchor: '100%',
@@ -63,7 +61,7 @@
  *             // using the altFormat and displayed using the format.
  *             format: 'm d Y',
  *             altFormats: 'm,d,Y|m.d.Y',
- *             value: '2.4.1978'
+ *             value: '02.04.1978'
  *         }]
  *     });
  */

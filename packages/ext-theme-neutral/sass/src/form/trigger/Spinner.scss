@@ -1,7 +1,7 @@
 /**
  * Creates a visual theme for spinner field triggers.  Note this mixin only provides
  * styling for the spinner trigger buttons. The text field portion of the styling must be
- * created using {@link #extjs-text-field-ui}
+ * created using {@link Ext.form.field.Text#css_mixin-extjs-text-field-ui}
  *
  * @param {string} $ui
  * The name of the UI being created. Can not included spaces or special punctuation
@@ -15,7 +15,7 @@
  *
  * @param {number} [$ui-field-height=$form-text-field-height]
  * The height of the text field that the trigger must fit within.  This does not set the
- * height of the field, only the height of the triggers.  When {@link #$ui-trigger-vertical}
+ * height of the field, only the height of the triggers.  When {@link #css_mixin-extjs-spinner-trigger-ui $ui-trigger-vertical}
  * is true, the available height within the field borders is divided evenly between the
  * two triggers.
  *

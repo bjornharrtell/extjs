@@ -1581,12 +1581,6 @@ $button-grid-cell-line-height: $button-small-line-height !default;
 $button-grid-cell-icon-size: $button-small-icon-size !default;
 
 /**
- * @var {number}
- * The space between a grid cell button's icon and text
- */
-$button-grid-cell-icon-spacing: $button-small-icon-spacing !default;
-
-/**
  * @var {color}
  * The border-color for the `cell` button UI
  */
@@ -1888,13 +1882,13 @@ $button-grid-cell-glyph-color: $button-grid-cell-color !default;
 $button-grid-cell-glyph-opacity: $button-default-glyph-opacity !default;
 
 /**
- * @var {number} $button-opacity-disabled
+ * @var {number} $button-grid-cell-opacity-disabled
  * opacity to apply to the button's main element when the button is disabled
  */
 $button-grid-cell-opacity-disabled: $button-opacity-disabled !default;
 
 /**
- * @var {number} $button-inner-opacity-disabled
+ * @var {number} $button-grid-cell-inner-opacity-disabled
  * opacity to apply to the button's inner elements (icon and text) when the buton is disabled
  */
 $button-grid-cell-inner-opacity-disabled: $button-inner-opacity-disabled !default;

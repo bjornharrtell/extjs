@@ -32,7 +32,7 @@ Ext.define('Ext.grid.plugin.Editing', {
 
     /**
      * @cfg {String} triggerEvent
-     * The event which triggers editing. Supercedes the {@link #clicksToEdit} configuration. Maybe one of:
+     * The event which triggers editing. Supersedes the {@link #clicksToEdit} configuration. May be one of:
      *
      *  * cellclick
      *  * celldblclick
@@ -150,7 +150,7 @@ Ext.define('Ext.grid.plugin.Editing', {
     constructor: function(config) {
         var me = this;
 
-        me.callParent(arguments);
+        me.callParent([config]);
         me.mixins.observable.constructor.call(me);
         // TODO: Deprecated, remove in 5.0
         me.on("edit", function(editor, e) {
@@ -167,16 +167,20 @@ Ext.define('Ext.grid.plugin.Editing', {
         me.initEvents();
 
         // Set up fields at render and reconfigure time
-        me.mon(grid, {
-            beforereconfigure: me.onBeforeReconfigure,
-            reconfigure: me.onReconfigure,
-            scope: me,
-            beforerender: {
-                fn: me.onReconfigure,
-                single: true,
-                scope: me
-            }
-        });
+        if (grid.rendered) {
+            me.setup();
+        } else {
+            me.mon(grid, {
+                beforereconfigure: me.onBeforeReconfigure,
+                reconfigure: me.onReconfigure,
+                scope: me,
+                beforerender: {
+                    fn: me.onBeforeRender,
+                    single: true,
+                    scope: me
+                }
+            });
+        }
 
         grid.relayEvents(me, me.relayedEvents);
 
@@ -190,10 +194,6 @@ Ext.define('Ext.grid.plugin.Editing', {
         grid.editingPlugin = grid.view.editingPlugin = me;
     },
 
-    resolveListenerScope: function(defaultScope) {
-        return this.grid.resolveListenerScope(defaultScope);
-    },
-    
     onBeforeReconfigure: function() {
         this.reconfiguring = true;
     },
@@ -203,10 +203,18 @@ Ext.define('Ext.grid.plugin.Editing', {
      * @protected
      */
     onReconfigure: function() {
+        this.setup();
+        delete this.reconfiguring;
+    },
+
+    onBeforeRender: function() {
+        this.setup();
+    },
+
+    setup: function() {
         // In a Lockable assembly, the owner's view aggregates all grid columns across both sides.
         // We grab all columns here.
         this.initFieldAccessors(this.grid.getTopLevelColumnManager().getColumns());
-        delete this.reconfiguring;
     },
 
     /**
@@ -243,28 +251,31 @@ Ext.define('Ext.grid.plugin.Editing', {
             columns = [columns];
         }
 
-        var me   = this,
+        var me = this,
             c,
             cLen = columns.length,
+            getEditor = function(record, defaultField) {
+                return me.getColumnField(this, defaultField);
+            },
+            hasEditor = function() {
+                return me.hasColumnField(this);
+            },
+            setEditor = function(field) {
+                me.setColumnField(this, field);
+            },
             column;
 
         for (c = 0; c < cLen; c++) {
             column = columns[c];
 
             if (!column.getEditor) {
-                column.getEditor = function(record, defaultField) {
-                    return me.getColumnField(this, defaultField);
-                };
+                column.getEditor = getEditor;
             }
             if (!column.hasEditor) {
-                column.hasEditor = function() {
-                    return me.hasColumnField(this);
-                };
+                column.hasEditor = hasEditor;
             }
             if (!column.setEditor) {
-                column.setEditor = function(field) {
-                    me.setColumnField(this, field);
-                };
+                column.setEditor = setEditor;
             }
         }
     },
@@ -570,7 +581,7 @@ Ext.define('Ext.grid.plugin.Editing', {
      * Collects all information necessary for any subclasses to perform their editing functions.
      * @param {Ext.data.Model/Number} record The record or record index to edit.
      * @param {Ext.grid.column.Column/Number} columnHeader The column of column index to edit.
-     * @returns {Ext.grid.CellContext/undefined} The editing context based upon the passed record and column
+     * @return {Ext.grid.CellContext/undefined} The editing context based upon the passed record and column
      */
     getEditingContext: function(record, columnHeader) {
         var me = this,

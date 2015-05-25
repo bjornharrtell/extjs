@@ -191,6 +191,10 @@ Ext.define('Ext.form.field.Time', {
         me.store = Ext.picker.Time.createStore(me.format, me.increment);
 
         me.callParent();
+
+        // Ensure time constraints are applied to the store.
+        // TimePicker does this on create.
+        me.getPicker();
     },
 
     /**
@@ -461,14 +465,23 @@ Ext.define('Ext.form.field.Time', {
     },
 
     setValue: function (v) {
-        // Store MUST be created for parent setValue to function.
-        this.getPicker();
+        var me = this;
 
-        if (Ext.isDate(v)) {
-            v = this.getInitDate(v.getHours(), v.getMinutes(), v.getSeconds());
+        // The timefield can get in a loop when creating its picker. For instance, when creating the picker, the
+        // timepicker will add a filter (see TimePicker#updateList) which will then trigger the checkValueOnChange
+        // listener which in turn calls into here, rinse and repeat.
+        if (me.creatingPicker) {
+            return;
         }
 
-        return this.callParent([v]);
+        // Store MUST be created for parent setValue to function.
+        me.getPicker();
+
+        if (Ext.isDate(v)) {
+            v = me.getInitDate(v.getHours(), v.getMinutes(), v.getSeconds());
+        }
+
+        return me.callParent([v]);
     },
 
     getValue: function () {

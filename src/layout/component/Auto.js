@@ -149,7 +149,7 @@ Ext.define('Ext.layout.component.Auto', {
         } else {
             constrainedHeight = Ext.Number.constrain(height, owner.minHeight, owner.maxHeight);
 
-            if (constrainedHeight == height) {
+            if (constrainedHeight === height) {
                 dirty = me.setHeightInDom;
             } else {
                 heightModel = me.sizeModels[
@@ -181,7 +181,7 @@ Ext.define('Ext.layout.component.Auto', {
         } else {
             constrainedWidth = Ext.Number.constrain(width, owner.minWidth, owner.maxWidth);
 
-            if (constrainedWidth == width) {
+            if (constrainedWidth === width) {
                 dirty = me.setWidthInDom;
             } else {
                 widthModel = me.sizeModels[

@@ -60,8 +60,6 @@
  *             }
  *         }]
  *     });
- *
- * @docauthor Jason Johnston <jason@sencha.com>
  */
 Ext.define('Ext.form.Basic', {
     extend: 'Ext.util.Observable',
@@ -239,7 +237,7 @@ Ext.define('Ext.form.Basic', {
     /**
      * @cfg {String} url
      * The URL to use for form actions if one isn't supplied in the
-     * {@link #doAction doAction} options.
+     * {@link Ext.form.Basic#doAction doAction} options.
      */
 
     /**
@@ -313,8 +311,9 @@ Ext.define('Ext.form.Basic', {
 
     /**
      * @cfg {Boolean} trackResetOnLoad
-     * If set to true, {@link #method-reset}() resets to the last loaded or {@link #method-setValues}() data instead of
-     * when the form was first created.
+     * If set to true, {@link #method-reset}() resets to the last loaded or
+     * {@link Ext.form.Basic#setValues}() data instead of when the form was first
+     * created.
      */
     trackResetOnLoad: false,
 
@@ -623,7 +622,7 @@ Ext.define('Ext.form.Basic', {
      * The action object contains these properties of interest:
      *
      *  - {@link Ext.form.action.Action#response response}
-     *  - {@link Ext.form.action.Action#result result} - interrogate for custom postprocessing
+     *  - {@link Ext.form.action.Action#result result} - interrogate for custom post-processing
      *  - {@link Ext.form.action.Action#type type}
      *
      * @param {Function} options.failure
@@ -634,7 +633,7 @@ Ext.define('Ext.form.Basic', {
      *
      * - {@link Ext.form.action.Action#failureType failureType}
      * - {@link Ext.form.action.Action#response response}
-     * - {@link Ext.form.action.Action#result result} - interrogate for custom postprocessing
+     * - {@link Ext.form.action.Action#result result} - interrogate for custom post-processing
      * - {@link Ext.form.action.Action#type type}
      *
      * @param {Object} options.scope
@@ -886,11 +885,74 @@ Ext.define('Ext.form.Basic', {
 
 
     /**
-     * Mark fields in this form invalid in bulk.
-     * @param {Object/Object[]/Ext.data.Errors} errors
-     * Either an array in the form `[{id:'fieldId', msg:'The message'}, ...]`,
-     * an object hash of `{id: msg, id2: msg2}`, or a {@link Ext.data.Errors} object.
-     * @return {Ext.form.Basic} this
+     * This method allows you to mark one or more fields in a form as invalid along with 
+     * one or more invalid messages per field.
+     * 
+     *     var formPanel = Ext.create('Ext.form.Panel', {
+     *         title: 'Contact Info',
+     *         width: 300,
+     *         bodyPadding: 10,
+     *         renderTo: Ext.getBody(),
+     *         items: [{
+     *             xtype: 'textfield',
+     *             name: 'name',
+     *             id: 'nameId',
+     *             fieldLabel: 'Name'
+     *         }, {
+     *             xtype: 'textfield',
+     *             name: 'email',
+     *             id: 'emailId',
+     *             fieldLabel: 'Email Address'
+     *         }],
+     *         bbar: [{
+     *             text: 'Mark both fields invalid',
+     *             handler: function() {
+     *                 formPanel.getForm().markInvalid([{
+     *                     field: 'name',
+     *                     message: 'Name invalid message'
+     *                 }, {
+     *                     field: 'email',
+     *                     message: ['First invalid message', 'Second message']
+     *                 }]);
+     *             }
+     *         }]
+     *     });
+     * 
+     * **Note**: this method does not cause the Field's {@link #validate} or 
+     * {@link #isValid} methods to return `false` if the value does _pass_ validation. 
+     * So simply marking a Field as invalid will not prevent submission of forms
+     * submitted with the {@link Ext.form.action.Submit#clientValidation} option set.
+     * 
+     * For additional information on how the fields are marked invalid see field's 
+     * {@link Ext.form.field.Base#markInvalid markInvalid} method.
+     * 
+     * @param {Object/Object[]} errors
+     * The errors param may be in one of two forms: Object[] or Object
+     * 
+     * - **Array:** An array of Objects with the following keys:
+     *     - _field_ ({@link String}): The {@link Ext.form.field.Base#name name} or 
+     * {@link Ext.form.field.Base#id id} of the form field to receive the error message
+     *     - _message_ ({@link String}/{@link String}[]): The error message or an array 
+     * of messages
+     * 
+     * Example Array syntax:
+     * 
+     *     form.markInvalid([{
+     *         field: 'email', // the field name
+     *         message: 'Error message'
+     *     }]);
+     * 
+     * - **Object:** An Object hash with key/value pairs where the key is the field name 
+     * or field ID and the value is the message or array of messages to display.
+     * 
+     * Example Object syntax:
+     * 
+     *     form.markInvalid({
+     *         name: 'Err. message',
+     *         emailId: ['Error1', 'Error 2']
+     *     });
+     * 
+     * @return {Ext.form.Basic} basicForm The Ext.form.Basic instance
      */
     markInvalid: function(errors) {
         var me = this,
@@ -909,7 +971,7 @@ Ext.define('Ext.form.Basic', {
 
             for (e = 0; e < eLen; e++) {
                 error = errors[e];
-                mark(error.id, error.msg);
+                mark(error.id || error.field, error.msg || error.message);
             }
         } else if (errors instanceof Ext.data.ErrorCollection) {
             eLen  = errors.items.length;

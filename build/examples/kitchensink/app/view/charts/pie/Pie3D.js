@@ -7,65 +7,62 @@
 Ext.define('KitchenSink.view.charts.pie.Pie3D', {
     extend: 'Ext.Panel',
     xtype: 'pie-3d',
-
+    controller: 'pie-3d',
     requires: [
         'Ext.chart.PolarChart'
     ],
+    // <example>
+    // Content between example tags is omitted from code preview.
+    otherContent: [{
+        type: 'Controller',
+        path: 'app/view/charts/pie/Pie3DController.js'
+    }, {
+        type: 'Store',
+        path: 'app/store/Pie.js'
+    }],
+    // </example>
 
     layout: 'fit',
-
     width: 650,
 
     tbar: [
         '->',
         {
             text: 'Refresh',
-            handler: function () {
-                var chart = this.up('panel').down('polar'),
-                    store = chart.getStore();
-                chart.setAnimation({
-                    duration: 500,
-                    easing: 'easeInOut'
-                });
-                store.refreshData();
+            handler: 'onRefresh'
+        },
+        {
+            xtype: 'segmentedbutton',
+            defaults: {
+                width: 80
+            },
+            items: [{
+                text: 'Opaque',
+                pressed: true
+            }, {
+                text: 'Translucent'
+            }],
+            listeners: {
+                toggle: 'onStyleToggle'
             }
         },
         {
             text: 'Switch Theme',
-            handler: function () {
-                var panel = this.up().up(),
-                    chart = panel.down('polar'),
-                    currentThemeClass = Ext.getClassName(chart.getTheme()),
-                    themes = Ext.chart.theme,
-                    themeNames = [],
-                    currentIndex = 0,
-                    name;
-
-                for (name in themes) {
-                    if (Ext.getClassName(themes[name]) === currentThemeClass) {
-                        currentIndex = themeNames.length;
-                    }
-                    if (name !== 'Base' && name.indexOf('Gradients') < 0) {
-                        themeNames.push(name);
-                    }
-                }
-                chart.setTheme(themes[themeNames[++currentIndex % themeNames.length]]);
-                chart.redraw();
-            }
+            handler: 'onThemeSwitch'
         }
     ],
 
     items: [{
         xtype: 'polar',
+        reference: 'chart',
+        innerPadding: 20,
         width: '100%',
         height: 500,
         color: ['red', 'green', 'blue'],
         store: {
             type: 'pie'
         },
-        id: 'pie-chart-3d',
         theme: 'Category1',
-        background: 'white',
         interactions: 'rotatePie3d',
         animation: {
             duration: 500,
@@ -78,8 +75,7 @@ Ext.define('KitchenSink.view.charts.pie.Pie3D', {
                 donut: 30,
                 distortion: 0.6,
                 style: {
-                    strokeStyle: 'white',
-                    opacity: 0.90
+                    strokeOpacity: 0.2
                 }
             }
         ]

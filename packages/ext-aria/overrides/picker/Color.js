@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.picker.Color', {
     override: 'Ext.picker.Color',
     

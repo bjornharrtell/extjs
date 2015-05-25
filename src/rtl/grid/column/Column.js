@@ -1,15 +1,17 @@
 Ext.define('Ext.rtl.grid.column.Column', {
     override: 'Ext.grid.column.Column',
 
-    isOnLeftEdge: function(e) {
-        return (!this.getInherited().rtl !== !Ext.rootInheritedState.rtl) ?
-            (this.getX() + this.getWidth() - e.getXY()[0] <= this.handleWidth) :
-            this.callParent(arguments);
+    isAtStartEdge: function(e, margin) {
+        var me = this;
+        return (!me.getInherited().rtl !== !Ext.rootInheritedState.rtl) ? // jshint ignore:line
+            (me.getX() + me.getWidth() - e.getXY()[0] <= me.handleWidth) :
+            me.callParent([e, margin]);
     },
 
-    isOnRightEdge: function(e) {
-        return (!this.getInherited().rtl !== !Ext.rootInheritedState.rtl) ?
-            (e.getXY()[0] - this.getX() <= this.handleWidth) : this.callParent(arguments);
+    isAtEndEdge: function(e, margin) {
+        var me = this;
+        return (!me.getInherited().rtl !== !Ext.rootInheritedState.rtl) ? // jshint ignore:line
+            (e.getXY()[0] - me.getX() <= me.handleWidth) : me.callParent([e, margin]);
     }
 
 });

@@ -87,32 +87,38 @@ Ext.define('Ext.ElementLoader', {
     scripts: false,
 
     /**
-     * @cfg {Function} success
+     * @cfg {Function/String} success
      * A function to be called when a load request is successful.
      * Will be called with the following config parameters:
      *
      * - this - The ElementLoader instance.
      * - response - The response object.
      * - options - Ajax options.
+     * 
+     * @declarativeHandler
      */
 
     /**
-     * @cfg {Function} failure A function to be called when a load request fails.
+     * @cfg {Function/String} failure A function to be called when a load request fails.
      * Will be called with the following config parameters:
      *
      * - this - The ElementLoader instance.
      * - response - The response object.
      * - options - Ajax options.
+     * 
+     * @declarativeHandler
      */
 
     /**
-     * @cfg {Function} callback A function to be called when a load request finishes.
+     * @cfg {Function/String} callback A function to be called when a load request finishes.
      * Will be called with the following config parameters:
      *
      * - this - The ElementLoader instance.
      * - success - True if successful request.
      * - response - The response object.
      * - options - Ajax options.
+     * 
+     * @declarativeHandler
      */
 
     /**
@@ -193,12 +199,15 @@ Ext.define('Ext.ElementLoader', {
      * Note that if the target is changed, any active requests will be aborted.
      * @param {String/HTMLElement/Ext.dom.Element} target The element or its ID.
      */
-    setTarget: function(target){
+    setTarget: function (target) {
         var me = this;
+
         target = Ext.get(target);
-        if (me.target && me.target != target) {
+
+        if (me.target && me.target !== target) {
             me.abort();
         }
+
         me.target = target;
     },
 

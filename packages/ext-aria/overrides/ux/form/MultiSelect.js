@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.ux.form.MultiSelect', {
     override: 'Ext.ux.form.MultiSelect',
     

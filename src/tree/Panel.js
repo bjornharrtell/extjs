@@ -1,7 +1,7 @@
 /**
  * The TreePanel provides tree-structured UI representation of tree-structured data.
  * A TreePanel must be bound to a {@link Ext.data.TreeStore}.
- * 
+ *
  * TreePanels support multiple columns through the {@link #columns} configuration.
  *
  * By default a TreePanel contains a single column which uses the `text` Field of
@@ -14,12 +14,12 @@
  *         root: {
  *             expanded: true,
  *             children: [
- *                 { text: "detention", leaf: true },
- *                 { text: "homework", expanded: true, children: [
- *                     { text: "book report", leaf: true },
- *                     { text: "algebra", leaf: true}
+ *                 { text: 'detention', leaf: true },
+ *                 { text: 'homework', expanded: true, children: [
+ *                     { text: 'book report', leaf: true },
+ *                     { text: 'algebra', leaf: true}
  *                 ] },
- *                 { text: "buy lottery tickets", leaf: true }
+ *                 { text: 'buy lottery tickets', leaf: true }
  *             ]
  *         }
  *     });
@@ -195,7 +195,7 @@
  * 
  * Note that nodes have several more {@link Ext.data.Model#cfg-fields fields} in order to describe their state within the hierarchy.
  *
- * If you add store listeners to the {@link Ext.data.Store#event-update update} event, then you will recieve notification when any of this state changes.
+ * If you add store listeners to the {@link Ext.data.Store#event-update update} event, then you will receive notification when any of this state changes.
  * You should check the array of modified field names passed to the listener to decide whether the listener should take action or ignore the event.
  */
 Ext.define('Ext.tree.Panel', {
@@ -363,7 +363,7 @@ Ext.define('Ext.tree.Panel', {
         // Store must have the same idea about root visibility as us BEFORE callParent binds it.
         store.setRootVisible(me.rootVisible);
 
-        // If there is no rootnode defined, then create one.
+        // If there is no root node defined, then create one.
         if (!store.getRoot()) {
             store.setRoot({});
         }
@@ -377,7 +377,8 @@ Ext.define('Ext.tree.Panel', {
             navigationModel: 'tree'
         }, me.viewConfig);
 
-        // If the user specifies the headers collection manually then dont inject our own
+        // If the user specifies the headers collection manually then don't inject our
+        // own
         if (!me.columns) {
             if (me.initialConfig.hideHeaders === undefined) {
                 me.hideHeaders = true;
@@ -705,7 +706,7 @@ Ext.define('Ext.tree.Panel', {
      * @param {Function}        [options.callback] A function to execute when the expand finishes.
      * @param {Boolean}         options.callback.success `true` if the node expansion was successful.
      * @param {Ext.data.Model}  options.callback.record If successful, the target record.
-     * @param {HtmlElement}     options.callback.node If successful, the record's view node. If unsuccessful, the
+     * @param {HTMLElement}     options.callback.node If successful, the record's view node. If unsuccessful, the
      *                          last view node encountered while expanding the path.
      * @param {Object}          [options.scope] The scope (`this` reference) in which the callback function is executed.
      */
@@ -817,7 +818,7 @@ Ext.define('Ext.tree.Panel', {
      * @param {Function}        [options.callback] A function to execute when the expand finishes.
      * @param {Boolean}         options.callback.success `true` if the node expansion was successful.
      * @param {Ext.data.Model}  options.callback.record If successful, the target record.
-     * @param {HtmlElement}     options.callback.node If successful, the record's view node. If unsuccessful, the
+     * @param {HTMLElement}     options.callback.node If successful, the record's view node. If unsuccessful, the
      *                          last view node encountered while expanding the path.
      * @param {Object}          [options.scope] The scope (`this` reference) in which the callback function is executed.
      */
@@ -870,7 +871,7 @@ Ext.define('Ext.tree.Panel', {
                 if (parentNode && !parentNode.isExpanded()) {
                     parentNode.expand();
                 }
-                // Pass the target node as the 4th parameter so the calback doesn't have to look it up
+                // Pass the target node as the 4th parameter so the callback doesn't have to look it up
                 onLastExpanded(true, null, null, node);
             } else {
                 Ext.callback(callback, scope || me, [false, null]);
@@ -889,7 +890,7 @@ Ext.define('Ext.tree.Panel', {
      * @param {Boolean}                 callback.success `true` if the node expansion was successful.
      * @param {Ext.data.NodeInterface}  callback.lastNode If successful, the target node. If unsuccessful, the
      *                                  last tree node encountered while expanding the path.
-     * @param {HtmlElement}             options.callback.node If successful, the record's view node.
+     * @param {HTMLElement}             callback.node If successful, the record's view node.
      * @param {Object}                  [scope] The scope of the callback function
      */
     selectPath: function(path, field, separator, callback, scope) {

@@ -1,3 +1,4 @@
+/** */
 Ext.define('Ext.aria.form.field.Base', {
     override: 'Ext.form.field.Base',
     
