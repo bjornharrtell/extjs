@@ -1,0 +1,12 @@
+.x-mask {
+    opacity: $mask-opacity;
+    background-color: $mask-background-color;
+
+    @if ($mask-page-opacity != $mask-opacity) or
+            ($mask-page-background-color != $mask-background-color) {
+        #ext-viewport > .x-body > & {
+            opacity: $mask-page-opacity;
+            background-color: $mask-page-background-color;
+        }
+    }
+}

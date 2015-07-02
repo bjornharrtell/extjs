@@ -1,0 +1,141 @@
+.wizards {
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-thin {
+        font-weight: 300;
+    }
+
+    .text-lg {
+        font-size: 1.2em;
+    }
+
+    .text-bold {
+        font-weight: 700;
+    }
+
+    h3 {
+        font-size: 24px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    .box-vmiddle-wrap{
+        content: '';
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+        margin-left: -15px;
+    }
+
+    .box-vmiddle {
+        display: inline-block;
+        max-width: 500px;
+        vertical-align: middle;
+        margin-bottom: 15px;
+    }
+
+    .icon-wrap-lg {
+        height: 100px;
+        width: 100px;
+        padding: 1.2em;
+    }
+    .icon-wrap {
+        display: inline-block;
+        border-radius: 2px;
+    }
+
+    .icon-wrap i {
+        display: block;
+        line-height: 1em;
+        text-align: center;
+        position: relative;
+        width: 1em;
+        vertical-align: middle;
+    }
+
+
+    .bg-trans-light, .bg-trans-light a {
+        color: inherit;
+        text-decoration: none;
+    }
+    .bg-trans-light {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .icon-circle {
+        border-radius: 50%;
+    }
+
+    .btn-lg{
+        padding: 10px 16px;
+    }
+
+    .btn-lg.btn-labeled {
+        font-size: 16px;
+    }
+    .btn-labeled, .btn-labeled.fa {
+        overflow: hidden;
+    }
+    .bg-primary, .bg-primary a {
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .wizardprogressbar .x-btn-disabled.x-btn-default-toolbar-small {
+        opacity: 1 !important;
+    }
+
+    .bg-primary {
+        background-color: $wizard-primary-background-color;
+
+        padding-top: 24px;
+
+        p {
+            padding: 0 15px;
+        }
+    }
+
+    .x-panel{
+        background: #fff;
+    }
+
+    .wizardone {
+        .active {
+            .x-btn-icon-el, .x-btn-inner {
+                color: $wizard-primary-background-color;
+            }
+        }
+
+    }
+
+    .wizardtwo {
+
+        .active {
+            background: $wizard-two-button-background-color !important; //IE8
+            background-color: $wizard-two-button-background-color;
+            .x-btn-icon-el, .x-btn-inner {
+                color: #fff;
+            }
+        }
+
+    }
+
+    .wizardthree {
+        .wizardprogressbar {
+            .active {
+                .x-btn-icon-el, .x-btn-inner{
+                    color: #000;
+                }
+            }
+
+            background-color: $wizard-three-button-background-color;
+            color: #fff;
+
+            .x-btn-icon-el, .x-btn-inner {
+                color: #fff;
+            }
+        }
+    }
+}

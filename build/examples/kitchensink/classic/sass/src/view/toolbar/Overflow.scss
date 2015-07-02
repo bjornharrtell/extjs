@@ -1,0 +1,61 @@
+@if $theme-name == 'theme-classic' or $theme-name == 'theme-gray' {
+    .toolbar-overflow-paste {
+        background-image: url(images/icons/fam/paste_plain.png);
+    }
+
+    .toolbar-overflow-cut {
+        background-image: url(images/icons/fam/cut.png);
+    }
+
+    .toolbar-overflow-copy {
+        background-image: url(images/icons/fam/page_copy.png);
+    }
+
+    .toolbar-overflow-format {
+        background-image: url(images/icons/fam/paintbrush.png);
+    }
+
+    .toolbar-overflow-list {
+        background-image: url(images/icons/fam/text_list_bullets.png);
+    }
+} @else {
+    .toolbar-overflow-paste:before {
+        font-family: FontAwesome;
+        content: $fa-var-paste;
+    }
+
+    .toolbar-overflow-cut:before {
+        font-family: FontAwesome;
+        content: $fa-var-cut;
+    }
+
+    .toolbar-overflow-copy:before {
+        font-family: FontAwesome;
+        content: $fa-var-copy;
+    }
+
+    .toolbar-overflow-format:before {
+        font-family: FontAwesome;
+        content: $fa-var-file-o;
+    }
+
+    .toolbar-overflow-list:before {
+        font-family: FontAwesome;
+        content: $fa-var-list;
+    }
+}
+
+.toolbar-overflow-bold:before {
+    font-family: FontAwesome;
+    content: $fa-var-bold;
+}
+
+.toolbar-overflow-underline:before {
+    font-family: FontAwesome;
+    content: $fa-var-underline;
+}
+
+.toolbar-overflow-italic:before {
+    font-family: FontAwesome;
+    content: $fa-var-italic;
+}

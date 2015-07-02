@@ -1,0 +1,11 @@
+@if $theme-name == 'theme-classic' or $theme-name == 'theme-gray' {
+    .lineardata-tree-area-info {
+        background-image: url(images/icons/fam/information.png);
+    }
+} @else {
+    .lineardata-tree-area-info:before {
+        font: 16px/1 FontAwesome;
+        content: $fa-var-info-circle;
+    }
+}
+

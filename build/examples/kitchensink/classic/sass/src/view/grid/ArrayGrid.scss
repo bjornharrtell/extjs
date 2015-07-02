@@ -1,0 +1,27 @@
+@if $theme-name == 'theme-classic' or $theme-name == 'theme-gray' {
+    .array-grid-buy-col {
+        background-image: url(images/icons/fam/accept.png);
+    }
+    .array-grid-sell-col {
+        background-image: url(images/icons/fam/delete.gif);
+    }
+    .array-grid-alert-col {
+        background-image: url(images/icons/fam/error.png);
+    }
+} @else {
+    .array-grid-buy-col:before {
+        font: 18px/1 FontAwesome;
+        color: $green-icon-color;
+        content: $fa-var-check-circle;
+    }
+    .array-grid-sell-col:before {
+        font: 18px/1 FontAwesome;
+        color: $red-icon-color;
+        content: $fa-var-minus-circle;
+    }
+    .array-grid-alert-col:before {
+        font: 18px/1 FontAwesome;
+        color: $yellow-icon-color;
+        content: $fa-var-exclamation-triangle;
+    }
+}

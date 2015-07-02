@@ -1,0 +1,110 @@
+.x-list {
+    overflow: hidden;
+
+    .x-scroll-scroller {
+        max-width: 100%;
+    }
+
+    .x-list-inner {
+        width: 100% !important;
+    }
+
+    .x-list-scrolldock-hidden {
+        display: none;
+    }
+
+    .x-list-item {
+        position: absolute !important;
+        left: 0;
+        top: 0;
+        width: 100%;
+
+        > .x-dock {
+            height: auto;
+        }
+
+        .x-dock-horizontal {
+            border-top: 1px solid #ccc;
+        }
+
+
+
+        &.x-list-item-relative {
+            position: relative !important;
+        }
+    }
+
+    .x-list-header {
+        &.x-list-item-relative {
+            position:  relative !important;
+        }
+    }
+
+    .x-list-emptytext {
+        text-align: center;
+        pointer-events: none;
+        font-color: #333333;
+        @include st-box();
+        @include st-box-orient(vertical);
+        @include st-box-pack(center);
+    }
+
+    .x-list-scrolldockitem {
+        position: absolute !important;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+
+// Provides ability to capture events on the list
+.x-ie .x-list-grouped .x-translatable-container {
+  .x-list-item, .x-list-header {
+    &:before {
+      content: ". .";
+      color: transparent;
+      position: absolute;
+      left: 0px;
+      word-spacing: 3000px;
+      opacity: 0;
+    }
+  }
+}
+
+.x-list-header {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    z-index: 2 !important;
+}
+
+.x-ios .x-list-header {
+    @include transform(translate3d(0, 0, 0));
+}
+
+.x-list-grouped .x-list-item.x-list-header-wrap .x-dock-horizontal,
+.x-list-grouped .x-list-item-tpl.x-list-header-wrap {
+    border-top: 0;
+}
+
+.x-list-inlineblock {
+    .x-list-item {
+        display: inline-block;
+    }
+}
+
+.x-list-nowrap {
+    .x-list-inner {
+        width: auto;
+    }
+
+    .x-list-container {
+        white-space: nowrap !important;
+    }
+}
+
+.x-list-item-dragging {
+    border-bottom: 1px solid #ccc;
+    background: #fff !important;
+    z-index: 1;
+}

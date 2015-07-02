@@ -1,0 +1,113 @@
+@include sencha-toolbar-ui('sencha', #06517E, matte);
+.x-toolbar-sencha .x-title {
+    text-shadow: 0 1px 0 rgba(0,0,0,.8);
+}
+
+//buttons
+@include sencha-button-ui('sencha', #2E9A3E, matte);
+
+// contacts
+.x-contacts {
+    .x-list-item > .x-innerhtml {
+        font-weight: bold;
+        line-height: 18px;
+				min-height: 61px;
+
+        > span {
+            display: block;
+            font-size: 14px;
+            font-weight: normal;
+            color: #666;
+        }
+    }
+
+    .headshot {
+        float: left;
+        height: 37px;
+        width: 37px;
+        margin-right: 10px;
+        background-size: cover;
+        background-position: center center;
+        background: #ddd;
+        @include border-radius(3px);
+        -webkit-box-shadow: inset 0 0 2px rgba(0,0,0,.6);
+    }
+
+    .x-item-pressed,
+    .x-item-selected {
+        border-top-color: #D1D1D1 !important;
+    }
+}
+
+// show contact
+.x-show-contact {
+    background: #EEEEEE;
+
+    .top {
+        padding: 22px;
+        height: 100px;
+
+        > * {
+            float: left;
+        }
+
+        .headshot {
+            height: 60px;
+            width: 60px;
+            margin-right: 10px;
+            background-size: cover;
+            background-position: center center;
+            @include border-radius(10px);
+            border: 1px solid #444;
+            -webkit-box-shadow: inset 0 0 2px rgba(0,0,0,.4);
+        }
+
+        .name {
+            width: 195px;
+            padding-top: 0;
+            font-size: 22px;
+            font-weight: bold;
+
+            span {
+                display: block;
+                font-size: 14px;
+                font-weight: normal;
+                color: #666;
+            }
+
+            a:link {
+                color: #3f9b26;
+                text-decoration: none;
+            }
+        }
+    }
+}
+
+//custom shadow on map
+.x-map {
+    &:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 999;
+				pointer-eventS:none;
+        -webkit-box-shadow: inset 0 3px 3px rgba(0,0,0,.4);
+    }
+}
+
+
+.x-toolbar-inner {
+    .x-layout-hbox {
+        position: relative;
+
+        #editButton,
+        #saveButton {
+            position: absolute;
+            right: 0;
+            top: .4em;
+        }
+    }
+}

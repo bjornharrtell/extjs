@@ -1,0 +1,53 @@
+.#{$prefix}form-cb-wrap {
+    vertical-align: top;
+}
+
+.#{$prefix}form-cb-wrap-inner {
+    position: relative;
+}
+
+.#{$prefix}form-cb {
+    position: absolute;
+    left: 0;
+    right: auto;
+    vertical-align: top;
+    overflow: hidden;
+    padding: 0;
+    border: 0;
+    // IE gets the text cursor when mouseover on this element
+    cursor: default;
+    &::-moz-focus-inner {
+        padding: 0;
+        border: 0;
+    }
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}form-cb {
+        right: 0;
+        left: auto;
+    }
+}
+
+/* allow for the component to be positioned after the label */
+.#{$prefix}form-cb-after {
+    left: auto;
+    right: 0;
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl.#{$prefix}form-cb-after {
+        left: 0;
+        right: auto;
+    }
+}
+
+/* some browsers like IE 10 need a block element to be able to measure
+the height of a multi-line element */
+.#{$prefix}form-cb-label {
+    display: inline-block;
+
+    &.#{$prefix}form-cb-no-box-label {
+        display: none;
+    }
+}

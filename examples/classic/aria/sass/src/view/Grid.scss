@@ -1,0 +1,45 @@
+.sell-col {
+    background-image: theme-background-image('delete', 'png');
+}
+
+.buy-col {
+    background-image: theme-background-image('accept', 'png');
+}
+
+.alert-col {
+    background-image: theme-background-image('error', 'png');
+}
+
+.#{$prefix}grid-cell .#{$prefix}action-col-icon:focus {
+    outline: 2px dotted $orange;
+}
+
+.#{$prefix}grid-actionable .#{$prefix}grid-item-selected .#{$prefix}grid-cell .#{$prefix}action-col-icon:focus {
+    outline: 2px dotted white;
+}
+
+.#{$prefix}grid-item-selected .#{$prefix}grid-cell a[href],
+.#{$prefix}grid-cell.#{$prefix}grid-cell-selected a[href] {
+    color: black;
+    
+    &:focus {
+        outline: 2px dotted black;
+    }
+}
+
+.#{$prefix}grid-item-selected .#{$prefix}grid-cell.#{$prefix}grid-item-focused a[href] {
+    color: white;
+}
+
+.#{$prefix}grid-cell a[href] {
+    color: $orange;
+    
+    &:focus {
+        outline: 2px dotted $orange;
+    }
+}
+
+.#{$prefix}grid-actionable .#{$prefix}grid-item-selected .#{$prefix}grid-cell a[href]:focus {
+    color: white;
+    outline: 2px dotted white;
+}

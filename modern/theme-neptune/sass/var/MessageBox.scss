@@ -1,0 +1,12 @@
+/**
+ * @class Ext.MessageBox
+ */
+
+$messagebox-background-color: dynamic(#fff);
+$messagebox-border-width: dynamic(5px);
+$messagebox-border-style: dynamic(solid);
+$messagebox-title-background-color: dynamic($base-highlight-color);
+$messagebox-border-color: dynamic($messagebox-title-background-color);
+$messagebox-border-radius: dynamic(.3em);
+$messagebox-title-color: dynamic($light-color);
+$messagebox-footer-background-color: dynamic(mix($base-light-color, $neutral-light-color, 30%));

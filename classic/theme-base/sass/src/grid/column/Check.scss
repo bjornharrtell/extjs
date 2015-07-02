@@ -1,0 +1,12 @@
+.#{$prefix}grid-cell-inner-checkcolumn {
+    line-height: 0;
+    font-size: 0;
+
+    :focus {
+        outline: $grid-row-cell-focus-border-width $grid-row-cell-focus-border-style $grid-row-cell-focus-border-color;
+    }
+}
+
+.#{$prefix}grid-checkcolumn {
+    display: inline-block;
+}

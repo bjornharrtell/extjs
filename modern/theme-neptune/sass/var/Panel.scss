@@ -1,0 +1,93 @@
+/**
+ * @class Ext.Panel
+ */
+
+/**
+ * @var {color/list}
+ * Panel border-color
+ */
+$panel-border-color: dynamic($base-color);
+
+/**
+ * @var {number/list}
+ * Panel border-width
+ */
+$panel-border-width: dynamic(1px);
+
+/**
+ * @var {string/list}
+ * Panel border-style
+ */
+$panel-border-style: dynamic(solid);
+
+/**
+ * @var {color}
+ * Panel body background-color
+ */
+$panel-body-background-color: dynamic(#fff);
+
+/**
+ * @var {color}
+ * Panel body text color
+ */
+$panel-body-color: dynamic($color);
+
+/**
+ * @var {color}
+ * Panel body border-color
+ */
+$panel-body-border-color: dynamic($neutral-medium-dark-color);
+
+/**
+ * @var {number/list}
+ * Panel body border-width
+ */
+$panel-body-border-width: dynamic(1px);
+
+/**
+ * @var {number/list}
+ * Panel body border-style
+ */
+$panel-body-border-style: dynamic(solid);
+
+/**
+ * @var {string/number}
+ * Panel body font-weight
+ */
+$panel-body-font-weight: dynamic($font-weight-normal);
+
+/**
+ * @var {number}
+ * Panel body font-size
+ */
+$panel-body-font-size: dynamic(1rem);
+
+/**
+ * @var {number}
+ * Panel body font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$panel-body-font-size-big: dynamic($panel-body-font-size);
+
+/**
+ * @var {number}
+ * Panel body line-height
+ */
+$panel-body-line-height: dynamic($line-height);
+
+/**
+ * @var {number}
+ * Panel body line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$panel-body-line-height-big: dynamic($panel-body-line-height);
+
+/**
+ * @var {string}
+ * Panel body font-family
+ */
+$panel-body-font-family: dynamic($font-family);
+
+/**
+ * @var {string}
+ * `true` to include {@link #manageBorders border management} rules
+ */
+$panel-manage-borders: dynamic(true);

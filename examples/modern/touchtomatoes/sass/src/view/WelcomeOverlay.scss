@@ -1,0 +1,64 @@
+.x-ie .welcomeOverlay.x-panel, .x-android-2 .welcomeOverlay.x-panel {
+  background-color: rgba(0,0,0,.5);
+}
+
+.welcomeOverlay.x-panel {
+  @include background-image(radial-gradient(center, ellipse cover,  rgba(0,0,0,0.5), rgba(0,0,0,0.8)));
+  background-color: transparent;
+
+  .x-innerhtml {
+    @include st-box;
+    @include st-box-orient(vertical);
+    @include st-box-align(center);
+    @include st-box-pack(center);
+    height: 100%;
+    color: white;
+
+    .message {
+      @include st-box;
+      @include st-box-orient(vertical);
+      @include st-box-align(center);
+      @include st-box-pack(center);
+      @include text-shadow(1px 1px 0px rgba(0,0,0,.7));
+
+      @include query-medium{
+        font-size: 2em;
+      }
+      @include query-large{
+        font-size: 2.2em;
+      }
+
+      @include query-small-landscape {
+        font-size: .8em;
+      }
+
+      h2 {
+        text-align: center;
+        font-weight: 300;
+        font-size: 1.2em;
+        padding-bottom:15px;
+        color: #41942e;
+        em {
+          display: block;
+          color: #b43027;
+          font-weight: 800;
+          font-size: 1.6em;
+        }
+      }
+
+      p{
+        text-align: center;
+        font-weight: 600;
+        max-width: 75%;
+      }
+    }
+
+    .tap {
+      padding-top:30px;
+      font-weight: 100px;
+      font-size: .8em;
+    }
+
+
+  }
+}

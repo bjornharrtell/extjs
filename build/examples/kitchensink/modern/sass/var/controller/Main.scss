@@ -1,0 +1,6 @@
+$dark-theme: dynamic(if($theme-name == 'theme-mountainview', true, false));
+
+// TODO: make sure fashion can handle null values as meaning "value not yet defined"
+// for purposes of !default
+// https://sencha.jira.com/browse/SDKTOOLS-1061
+//$base-color: if($theme-name == 'theme-windows', #2672EC, null);

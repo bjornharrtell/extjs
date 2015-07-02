@@ -1,0 +1,7 @@
+.x-placeholderlabel {
+  &.x-field-focused {
+    .x-form-label {
+      color : $ios7-blue;
+    }
+  }
+}

@@ -1,0 +1,89 @@
+@mixin query-small {
+  @media only screen and (max-width: 480px){
+    @content;
+  }
+}
+
+@mixin query-small-landscape {
+  @media only screen and (orientation: landscape) and (max-height: 480px) and (min-height: 300px){
+    @content;
+  }
+}
+
+@mixin query-medium {
+  @media only screen and (min-width:481px) and (max-width: 1024px){
+    @content;
+  }
+}
+
+@mixin query-large {
+  @media only screen and (min-width: 1024px) {
+    @content;
+  }
+}
+
+@mixin query-lumia-920 {
+  @media only screen and (min-device-width : 768px) and (max-device-width : 1280px) {
+    @content;
+  }
+}
+
+@mixin query-lumia-920-landscape {
+  @media only screen and (orientation: landscape) and (min-device-width : 768px) and (max-device-width : 1280px) {
+    @content;
+  }
+}
+
+.x-ie {
+
+  .x-toolbar {
+    background-color: #f7f7f7;
+    .x-button .x-button-icon {
+      height: 1.3em;
+    }
+  }
+  .grid .x-list-item {
+    width: 50%;
+
+    @include query-lumia-920 {
+      width: 50%;
+    }
+  }
+
+  .moviedetails {
+    .title {
+      @include query-lumia-920 {
+        font-size: 1.5em;
+      }
+    }
+    .img {
+      @include query-lumia-920 {
+        height: 75px;
+      }
+
+      @include query-lumia-920-landscape {
+        display: none;
+      }
+    }
+    ul.cast {
+      li {
+        @include query-lumia-920 {
+          font-size: .5em;
+        }
+      }
+    }
+  }
+
+  .welcomeOverlay.x-panel {
+    background-color: rgba(0,0,0,.5);
+
+    .x-innerhtml {
+      .message {
+        font-size: 1em;
+        @include query-lumia-920 {
+          font-size: .8em;
+        }
+      }
+    }
+  }
+}

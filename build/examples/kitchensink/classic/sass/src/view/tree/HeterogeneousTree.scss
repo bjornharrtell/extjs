@@ -1,0 +1,11 @@
+@if $theme-name == 'theme-classic' or $theme-name == 'theme-gray' {
+    .heterogeneous-tree-area-info {
+        background-image: url(images/icons/fam/information.png);
+    }
+} @else {
+    .heterogeneous-tree-area-info:before {
+        font: 16px/1 FontAwesome;
+        content: $fa-var-info-circle;
+    }
+}
+

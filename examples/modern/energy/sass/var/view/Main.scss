@@ -1,0 +1,10 @@
+$base-color: #444;
+$active-color: #111;
+
+$list-bg-color: #161616;
+$list-color: #ccc;
+$list-pressed-color: darken($active-color, 50%) !default;
+
+$legend-background-color: #111;
+$legend-border-color: #000;
+$legend-item-color: #ccc !default;

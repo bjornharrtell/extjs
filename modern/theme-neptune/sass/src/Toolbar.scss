@@ -1,0 +1,426 @@
+/**
+ * Creates a visual theme for a Toolbar.
+ *
+ * @param {string} $ui
+ * The name of the UI being created. Can not included spaces or special punctuation
+ * (used in CSS class names).
+ *
+ * @param {color} $background-color
+ * Toolbar background-color
+ *
+ * @param {string/list} $background-gradient
+ * Toolbar background-gradient. Can be either the name of a gradient defined by
+ * {@link Global_CSS#background-gradient} or a list of color stops.
+ *
+ * @param {color} $border-color
+ * Toolbar border-color
+ *
+ * @param {number/list} $border-width
+ * Toolbar border-width
+ *
+ * @param {number/list} $border-style
+ * Toolbar border-style
+ *
+ * @param {number/list} $padding
+ * Toolbar padding
+ *
+ * @param {number/list} $padding-big
+ * Toolbar padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {number} $horizontal-spacing
+ * The space in between horizontally aligned Toolbar items
+ *
+ * @param {number} $horizontal-spacing-big
+ * The space in between horizontally aligned Toolbar items in the
+ * {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {number} $vertical-spacing
+ * The space in between vertically aligned Toolbar items
+ *
+ * @param {number} $vertical-spacing-big
+ * The space in between vertically aligned Toolbar items in the
+ * {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {color} $title-color
+ * Toolbar {@link Ext.Title Title} color
+ *
+ * @param {string/number} $title-font-weight
+ * Toolbar {@link Ext.Title Title} font-weight
+ *
+ * @param {number} $title-font-size
+ * Toolbar {@link Ext.Title Title} font-size
+ *
+ * @param {number} $title-font-size-big
+ * Toolbar {@link Ext.Title Title} font-size in the
+ * {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {string} $title-font-family
+ * Toolbar {@link Ext.Title Title} font-family
+ *
+ * @member Ext.Button
+ */
+@mixin toolbar-ui(
+    $ui: null,
+    $background-color: null,
+    $background-gradient: null,
+
+    $border-color: null,
+    $border-width: null,
+    $border-style: null,
+
+    $padding: null,
+    $padding-big: null,
+    $horizontal-spacing: null,
+    $horizontal-spacing-big: null,
+    $vertical-spacing: null,
+    $vertical-spacing-big: null,
+
+    $title-color: null,
+    $title-font-weight: null,
+    $title-font-size: null,
+    $title-font-size-big: null,
+    $title-font-family: null
+
+) {
+    $ui-suffix: ui-suffix($ui);
+
+    @if $background-color != null {
+        @if $border-color == null {
+            $border-color: toolbar-border-color($background-color);
+        }
+
+        @if $title-color == null {
+            $title-color: toolbar-title-color($background-color);
+        }
+    }
+
+    .x-toolbar#{$ui-suffix} {
+        @include background-gradient($background-color, $background-gradient);
+        @include border($border-width, $border-style, $border-color);
+        padding: $padding;
+
+        @if $enable-big and ($padding-big != $padding) {
+            .x-big & {
+                padding: $padding-big;
+            }
+        }
+
+        @if $horizontal-spacing != null {
+            .x-toolbar-inner.x-horizontal > * {
+                margin-right: $horizontal-spacing;
+
+                @if $enable-big and ($horizontal-spacing-big != $horizontal-spacing) {
+                    .x-big & {
+                        margin-right: $horizontal-spacing-big;
+                    }
+                }
+
+                &:last-child {
+                    margin-right: 0;
+                }
+            }
+        }
+
+        @if $vertical-spacing != null {
+            .x-vertical > * {
+                margin-bottom: $vertical-spacing;
+
+                @if $enable-big and ($vertical-spacing-big != $vertical-spacing) {
+                    .x-big & {
+                        margin-bottom: $vertical-spacing-big;
+                    }
+                }
+
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+
+        .x-title {
+            color: $title-color;
+            @include font(
+                $font-weight: $title-font-weight,
+                $font-size: $title-font-size,
+                $font-family: $title-font-family
+            );
+
+            @if $enable-big and ($title-font-size-big != $title-font-size) {
+                .x-big & {
+                    font-size: $title-font-size-big;
+                }
+            }
+        }
+    }
+}
+
+.x-toolbar.x-container > .x-body {
+    // This ensures that the default minimum height of a toolbar is identical to the height
+    // it would have if it contained a default-styled button
+    min-height: calc(#{vertical($button-padding)} + #{vertical($button-border-width)} + #{$button-line-height});
+
+    @if $enable-big {
+        .x-big & {
+            min-height: calc(#{vertical($button-padding-big)} + #{vertical($button-border-width)} + #{$button-line-height-big});
+        }
+    }
+}
+
+@include toolbar-ui(
+    $background-color: $toolbar-background-color,
+    $background-gradient: $toolbar-background-gradient,
+
+    $border-color: $toolbar-border-color,
+    $border-width: $toolbar-border-width,
+    $border-style: $toolbar-border-style,
+
+    $padding: $toolbar-padding,
+    $padding-big: $toolbar-padding-big,
+    $horizontal-spacing: $toolbar-horizontal-spacing,
+    $horizontal-spacing-big: $toolbar-horizontal-spacing-big,
+    $vertical-spacing: $toolbar-vertical-spacing,
+    $vertical-spacing-big: $toolbar-vertical-spacing-big,
+
+    $title-color: $toolbar-title-color,
+    $title-font-weight: $toolbar-title-font-weight,
+    $title-font-size: $toolbar-title-font-size,
+    $title-font-size-big: $toolbar-title-font-size-big,
+    $title-font-family: $toolbar-title-font-family
+);
+
+/**
+ * Creates a theme UI for toolbars.
+ *
+ *     // SCSS
+ *     @include sencha-toolbar-ui('sub', #58710D, 'glossy');
+ *
+ *     // JS
+ *     var myTb = new Ext.Toolbar({title: 'My Green Glossy Toolbar', ui: 'sub'})
+ *
+ * @param {string} $ui-label The name of the UI being created.
+ *   Can not included spaces or special punctuation (used in class names)
+ * @param {color} $color Base color for the UI.
+ * @param {string} $gradient: $toolbar-background-gradient Background gradient style for the UI.
+ *
+ * @member Ext.Button
+ * @deprecated 6.0 Use {@link #toolbar-ui} instead
+ */
+@mixin sencha-toolbar-ui($ui-label, $color, $gradient: $toolbar-background-gradient) {
+    @include toolbar-ui(
+        $ui: $ui-label,
+        $background-color: $color,
+        $background-gradient: $gradient
+    );
+}
+
+
+// TODO: the following styling should be handled by field uis and a defaultFieldUI config
+.x-toolbar,
+.x-msgbox {
+    .x-field {
+        width: 15em;
+    }
+
+    .x-input-text,
+    .x-input-search,
+    .x-input-number,
+    .x-input-select {
+        border: 1px solid $field-border-color;
+    }
+
+    .x-form-label {
+        background: transparent;
+        > span {
+            font-weight: $font-weight-normal;
+        }
+    }
+}
+
+/**
+ * @var {color} $toolbar-input-bg
+ * Background-color for toolbar form fields.
+ */
+//$toolbar-input-bg: #fff !default;
+
+/**
+ * @var {color} $toolbar-input-color
+ * Text color for toolbar form fields.
+ */
+//$toolbar-input-color: #000 !default;
+
+/**
+ * @var {measurement} $toolbar-input-height
+ * Text color for toolbar form fields.
+ */
+//$toolbar-input-height: 1.6em !default;
+
+/**
+ * @var {color} $toolbar-input-border-color
+ * Border color for toolbar form fields.
+ */
+//$toolbar-input-border-color: rgba(#000, .5) !default;
+
+// Private
+//$toolbar-select-overflow-mask-width: 3em;
+//$toolbar-search-left-padding: 1.67em;
+//
+//// Includes default toolbar form field styles.
+//
+////so disabled fields are still dark
+//.x-spinner .x-input-el,
+//.x-field-select .x-input-el {
+//    -webkit-text-fill-color: #000;
+//    -webkit-opacity: 1;
+//}
+//
+//.x-spinner.x-item-disabled .x-input-el,
+//.x-field-select.x-item-disabled .x-input-el {
+//    -webkit-text-fill-color: currentcolor;
+//}
+//
+////and inside toolbars
+//.x-toolbar .x-field-select .x-input-el {
+//    -webkit-text-fill-color: #fff;
+//}
+//
+//.x-toolbar .x-field-select.x-item-disabled .x-input-el {
+//    -webkit-text-fill-color: rgba(255,255,255,.6);
+//}
+//
+//.x-toolbar {
+//    .x-form-field-container {
+//        @if $include-border-radius {
+//            padding: 0 .3em;
+//        }
+//    }
+//
+//    .x-slider-field,
+//    .x-toggle-field {
+//        .x-component-outer {
+//            padding: 0em .3em;
+//        }
+//    }
+//
+//    .x-field {
+//        width: 13em;
+//        padding: .5em;
+//        min-height: 0;
+//        border-bottom: 0;
+//        background: transparent;
+//
+//        .x-clear-icon {
+//            background-size: 50% 50%;
+//            right: -0.8em;
+//            margin-top: -1.06em;
+//        }
+//    }
+//
+//    .x-field-input {
+//        padding-right: 1.6em !important;
+//    }
+//
+//    .x-field-textarea,
+//    .x-field-text,
+//    .x-field-number,
+//    .x-field-search {
+//        .x-component-outer {
+//            background-color: $toolbar-input-bg;
+//
+//            @if $include-border-radius {
+//                @include border-radius(.3em);
+//            }
+//
+//            @if $include-highlights {
+//              @include box-shadow($toolbar-input-border-color 0 .1em 0 inset, $toolbar-input-border-color 0 -.1em 0 inset, $toolbar-input-border-color .1em 0 0 inset, $toolbar-input-border-color -.1em 0 0 inset, rgba(#000, .5) 0 .15em .4em inset);
+//            }
+//        }
+//    }
+//
+//    .x-form-label {
+//        background: transparent;
+//        border: 0;
+//        padding: 0;
+//        line-height: 1.4em;
+//    }
+//
+//    .x-form-field {
+//        height: $toolbar-input-height;
+//        color: lighten($toolbar-input-color, 43%);
+//        background: transparent;
+//        min-height: 0;
+//        -webkit-appearance: none;
+//        padding: 0em .3em;
+//        margin: 0;
+//
+//        &:focus {
+//            color: $toolbar-input-color;
+//        }
+//    }
+//
+//    .x-field-select,
+//    .x-field-search {
+//        .x-component-outer {
+//            @if $include-border-radius {
+//                @include border-radius($toolbar-input-height/2);
+//            }
+//        }
+//    }
+//
+//    .x-field-search {
+//        .x-field-input {
+//            background-position: .5em 50%;
+//        }
+//    }
+//
+//    .x-field-select {
+//        -webkit-box-shadow: none;
+//
+//        .x-form-field {
+//            height: 1.4em;
+//        }
+//    }
+//
+//    .x-field-select {
+//        background: transparent;
+//
+//        .x-component-outer {
+//            &:after {
+//                right: .4em;
+//            }
+//        }
+//
+//        &.x-item-disabled {
+//            .x-component-outer:after {
+//                opacity: .6;
+//            }
+//        }
+//
+//        // Background is set in _toolbar file
+//        .x-component-outer:before {
+//            width: $toolbar-select-overflow-mask-width;
+//            border-left: none;
+//
+//            @if $include-border-radius {
+//                @include border-right-radius($toolbar-input-height/2);
+//            }
+//            @if $include-highlights {
+//                -webkit-mask: get-image-url('select_mask');
+//                -webkit-mask-position: right top;
+//                -webkit-mask-repeat: repeat-y;
+//                -webkit-mask-size: $toolbar-select-overflow-mask-width .05em;
+//            }
+//            @else {
+//                width: 0.5em !important;
+//            }
+//        }
+//
+//        .x-input-text {
+//            color: #fff;
+//        }
+//    }
+//}
+//
+//.x-android .x-field-search .x-field-input {
+//    padding-left: .2em !important;
+//    padding-right: 2.2em !important;
+//}

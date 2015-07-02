@@ -1,0 +1,24 @@
+.x-scroll-view {
+    position: relative;
+    display: block;
+    overflow: hidden;
+}
+
+.x-scroll-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.x-scroll-scroller {
+    position: absolute;
+    min-width: 100%;
+    min-height: 100%;
+}
+
+// Added as workaround for https://sencha.jira.com/browse/EXTJS-17314
+// This needs to be re-visited
+.x-scroll-scroller:not(.x-grid-scrollelement) {
+    height: auto !important;
+    width: auto !important;
+}

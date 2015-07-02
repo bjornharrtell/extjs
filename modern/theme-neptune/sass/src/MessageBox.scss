@@ -1,0 +1,53 @@
+/**
+ * @class Ext.MessageBox
+ */
+
+.x-msgbox,
+.x-panel.x-floating,
+.x-form.x-floating {
+    margin: .5em;
+    @include border($messagebox-border-width, $messagebox-border-style, $messagebox-border-color);
+    background-color: $messagebox-background-color;
+
+    // This !important border-width setting is here to disable the border:0 that gets set
+    // on the floating panel by virtue of it having "border: false".  In the classic toolkit
+    // this is not an issue because message boxes and windows have frame:true which enables
+    // borders.  Since modern toolkit does not yet have any concept of framing we need this
+    // property for now.
+    border-width: $messagebox-border-width !important;
+
+    @if $include-border-radius {
+        @include border-radius($messagebox-border-radius);
+    }
+
+    .x-toolbar {
+        border: 0;
+    }
+
+    .x-field {
+        margin-top: .3em;
+    }
+}
+
+.x-msgbox-title {
+    padding-top: calc(#{top($toolbar-padding)} - #{top($messagebox-border-width)});
+
+    @if $enable-big {
+        .x-big & {
+            padding-top: calc(#{top($toolbar-padding-big)} - #{top($messagebox-border-width)});
+        }
+    }
+
+    background-color: $messagebox-title-background-color;
+    .x-title {
+        color: $messagebox-title-color;
+    }
+}
+
+.x-msgbox-inner {
+    padding: 1em .6em;
+}
+
+.x-msgbox-buttons {
+    background-color: $messagebox-footer-background-color;
+}

@@ -1,0 +1,34 @@
+/**
+ * @class Ext.field.Select
+ */
+
+/**
+ * @var {number}
+ * SelectField trigger font-size
+ */
+$selectfield-trigger-font-size: dynamic(1.24em);
+
+/**
+ * @var {number}
+ * SelectField trigger font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$selectfield-trigger-font-size-big: dynamic(1.2em);
+
+/**
+ * @var {number}
+ * SelectField trigger font-size. If specified in terms of `em` units, the trigger will be sized
+ * relative to {@link #$selectfield-trigger-font-size}.
+ */
+$selectfield-trigger-size: dynamic(1em);
+
+/**
+ * @var {string/list}
+ * SelectField trigger icon
+ */
+$selectfield-trigger-icon: dynamic($fa-var-caret-down $selectfield-trigger-font-size $font-icon-font-family);
+
+/**
+ * @var {color}
+ * SelectField trigger color
+ */
+$selectfield-trigger-color: dynamic($neutral-dark-color);

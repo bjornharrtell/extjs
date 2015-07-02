@@ -50,18 +50,25 @@
     </target>
 
     <target name="-after-build" depends="init">
-        <copy todir="${build.out.base.path}/../lib/" overwrite="true">
-            <fileset dir="${app.dir}/lib/" includes="**/*"/>
-        </copy>
         <copy todir="${build.out.base.path}/.." overwrite="true">
-            <fileset dir="${app.dir}" includes="sass/**/*"/>
+            <fileset dir="${app.dir}"
+                     includes="${toolkit.name}/samples/**/*,
+                               ${toolkit.name}/sass/**/*,
+                               ${toolkit.name}/resources/**/*,
+                               data/**/*,
+                               lib/**/*,
+                               resources/images/**/*"/>
         </copy>
-        <copy todir="${build.out.base.path}/.." overwrite="true">
-            <fileset dir="${app.dir}" includes="app/**/*"/>
-        </copy>
-        <copy todir="${build.out.base.path}/../resources">
-            <fileset dir="${app.dir}/resources" includes="**/*"/>
-        </copy>
+
+        <if>
+            <equals arg1="${toolkit.name}" arg2="modern"/>
+            <then>
+                <copy todir="${build.out.base.path}/.." overwrite="true">
+                    <fileset dir="${app.dir}"
+                             includes="${toolkit.name}/src/**/*"/>
+                </copy>
+            </then>
+        </if>
     </target>
 
     <!--regenerate the example page to pick up changes to relative path to packages-->
@@ -117,8 +124,8 @@
                 <then>
                     <ant dir="${basedir}" inheritall="false" inheritrefs="true" target="@{target}">
                         <property name="compiler.ref.id" value="${compiler.ref.id}-@{theme}"/>
-                        <property name="app.theme" value="ext-theme-@{theme}"/>
-                        <property name="app.build.dir.suffix" value="ext-theme-@{theme}"/>
+                        <property name="app.theme" value="theme-@{theme}"/>
+                        <property name="app.build.dir.suffix" value="theme-@{theme}"/>
                         <property name="cmd.dir" value="${cmd.dir}"/>
                         <property name="build.environment" value="${build.environment}"/>
                         <property name="build.compression.yui" value="${build.compression.yui}"/>
@@ -129,9 +136,9 @@
                 <else>
                     <ant dir="${basedir}" inheritall="false" inheritrefs="true" target="@{target}">
                         <property name="compiler.ref.id" value="${compiler.ref.id}-@{theme}-@{locale}"/>
-                        <property name="app.theme" value="ext-theme-@{theme}"/>
+                        <property name="app.theme" value="theme-@{theme}"/>
                         <property name="app.locale" value="@{locale}"/>
-                        <property name="app.build.dir.suffix" value="ext-theme-@{theme}-@{locale}"/>
+                        <property name="app.build.dir.suffix" value="theme-@{theme}-@{locale}"/>
                         <property name="cmd.dir" value="${cmd.dir}"/>
                         <property name="build.environment" value="${build.environment}"/>
                         <property name="build.compression.yui" value="${build.compression.yui}"/>

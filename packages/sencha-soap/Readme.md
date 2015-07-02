@@ -1,2 +1,0 @@
-# sencha-soap - Read Me
-

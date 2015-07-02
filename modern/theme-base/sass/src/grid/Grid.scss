@@ -1,0 +1,167 @@
+.x-grid .x-dock-body > .x-body {
+    width: 100%;
+}
+.#{$prefix}grid-header-container {
+    overflow: hidden;
+}
+
+.#{$prefix}grid-headergroup-inner {
+    white-space: nowrap;
+    > .#{$prefix}innerhtml {
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.#{$prefix}grid-row {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: table;
+    table-layout: fixed;
+    // An explicit width is required for table-layout: fixed to be applied, even if the columns
+    // have their own explicit widths set
+    // http://www.w3.org/TR/CSS21/tables.html#fixed-table-layout
+    width: 0;
+}
+
+.#{$prefix}grid-cell {
+    display: table-cell;
+    vertical-align: middle;
+    overflow: hidden;
+}
+
+.#{$prefix}grid-cell-inner {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.#{$prefix}grid-cell-hidden {
+    display: none;
+}
+
+.#{$prefix}grid-cell-align-center,
+.#{$prefix}grid-column-align-center {
+    text-align: center;
+}
+
+.#{$prefix}grid-cell-align-right,
+.#{$prefix}grid-column-align-right {
+    text-align: right;
+}
+
+.#{$prefix}grid-viewoptions {
+    border-width: 0 0 0 1px;
+    border-style: solid;
+
+    .#{$prefix}list-item.#{$prefix}item-selected.#{$prefix}list-item-tpl,
+    .#{$prefix}list-item.#{$prefix}item-pressed.#{$prefix}list-item-tpl  {
+        background: transparent;
+        .#{$prefix}innerhtml {
+            background: transparent;
+        }
+    }
+}
+
+.#{$prefix}grid-columnoptions {
+    border-width: 0 0 1px;
+}
+
+.#{$prefix}grid-multiselection-column {
+    position: relative;
+    padding: 0;
+
+    &:after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 60px;
+        height: 64px;
+        line-height: 64px;
+        font-family: 'Pictos';
+        font-size: 26px;
+        text-align: center;
+        content: icon-character-for-name('check');
+    }
+}
+
+.#{$prefix}grid-multiselection-cell {
+    position: relative;
+    padding: 0;
+
+    &:after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        font-family: 'Pictos';
+        font-size: 20px;
+        text-align: center;
+        content: icon-character-for-name('minus2');
+    }
+}
+
+.#{$prefix}item-selected .#{$prefix}grid-multiselection-cell:after {
+    content: icon-character-for-name('check2');
+}
+
+.#{$prefix}grid-pagingtoolbar {
+    > .#{$prefix}body {
+        @include st-box-align(center);
+    }
+}
+
+.#{$prefix}grid-pagingtoolbar-currentpage {
+    position: relative;
+    height: 22px;
+
+    span {
+        position: absolute;
+        right: 0;
+        top: 0;
+        line-height: 22px;
+        height: 22px;
+    }
+}
+
+.#{$prefix}grid-summaryrow {
+    position: relative;
+}
+
+.#{$prefix}grid-summaryrow .#{$prefix}grid-multiselection-cell:after {
+    content: '';
+}
+
+// Provides ability to capture events on the grid
+.#{$prefix}ie .#{$prefix}grid-grouped .#{$prefix}translatable-container {
+    .#{$prefix}grid-row, .#{$prefix}grid-header {
+        &:before {
+            content: ". .";
+            color: transparent;
+            position: absolute;
+            left: 0px;
+            word-spacing: 3000px;
+            opacity: 0;
+        }
+    }
+}
+
+.#{$prefix}grid-header {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    z-index: 2 !important;
+}
+
+.#{$prefix}ios .#{$prefix}grid-header {
+    @include transform(translate3d(0, 0, 0));
+}
+
+.#{$prefix}grid-grouped .#{$prefix}grid-row.#{$prefix}grid-header-wrap .#{$prefix}dock-horizontal,
+.#{$prefix}grid-grouped .#{$prefix}grid-row-tpl.#{$prefix}grid-header-wrap {
+    border-top: 0;
+}

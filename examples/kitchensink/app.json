@@ -10,34 +10,7 @@
      * to "Ext.require". The "app.dir" variable below is expanded to the path where the
      * application resides (the same folder in which this file is located).
      */
-    "classpath": "${app.dir}/app,${app.dir}/../ux",
-
-    /**
-     * The Sencha Framework for this application: "ext" or "touch".
-     */
-    "framework": "ext",
-
-    /**
-     * The name of the theme for this application.
-     */
-    "theme": "ext-theme-neptune",
-
-    /**
-     * The list of required packages (with optional versions; default is "latest").
-     *
-     * For example,
-     *
-     *      "requires": [
-     *          "sencha-charts"
-     *      ]
-     */
-    "requires": [
-        "ext-locale",
-        "ext-ux",
-        "sencha-amf",
-        "sencha-soap",
-        "sencha-charts"
-    ],
+    "classpath": "${app.dir}/app,${app.dir}/${toolkit.name}/src,${app.dir}/${toolkit.name}/samples",
 
     /**
      * Sass configuration properties.
@@ -51,7 +24,10 @@
          * root namespace, change this to "". Doing so would change the mapping of
          * "KitchenSink.view.Foo" to "sass/src/KitchenSink/view/Foo.scss".
          */
-        "namespace": "KitchenSink"
+        "namespace": "KitchenSink",
+        "src": "${app.dir}/sass/src,${app.dir}/${toolkit.name}/sass/src",
+        "var": "${app.dir}/sass/var,${app.dir}/${toolkit.name}/sass/var",
+        "etc": "${app.dir}/sass/etc/all.scss,${app.dir}/${toolkit.name}/sass/etc/all.scss"
     },
 
     /**
@@ -121,7 +97,7 @@
             "includeInBundle": true
     	},
     	{
-            "path": "../shared/examples.js",
+            "path": "../classic/shared/examples.js",
             "includeInBundle": true
     	}
     ],
@@ -157,7 +133,12 @@
         },
         {
             "path": "${build.out.css.dir}/KitchenSink-all.css",
-            "bootstrap": true
+            "bundle": true,
+            "exclude": ["fashion"]
+        },
+        {
+            "path": "../resources/Sencha-Examples/style.css",
+            "remote": true
         }
     ],
 
@@ -189,6 +170,10 @@
     "resources": [
     ],
 
+    "resource": {
+        "paths": "${app.dir}/resources,${app.dir}/${toolkit.name}/resources"
+    },
+
     /**
      * File / directory name matchers to ignore when copying to the builds, must be valid regular expressions
      */
@@ -214,20 +199,28 @@
             }
         ]
     },
-    
+
     /**
-     * override objects for setting build environment specific 
+     * override objects for setting build environment specific
      * settings.
      */
     "production": {
+        "output": {
+            "appCache": {
+                "enable": false
+            }
+        },
+        "cache": {
+            "enable": false
+        }
     },
-    
+
     "testing": {
     },
-    
+
     "development": {
     },
-    
+
     /**
      * Controls the name of the manifest file used by the microloader for
      * dev mode
@@ -235,33 +228,33 @@
     "bootstrap": {
         "manifest": "${build.id}.json"
     },
-    
+
     /**
      *  Controls the output directory for build resources.  May be set with
      *  either a string:
-     *  
+     *
      *      outputDir: ""
-     *  
-     *  or an object containing 5 possible values for various types of 
+     *
+     *  or an object containing 5 possible values for various types of
      *  build artifacts:
-     *  
+     *
      *  outputDir: {
      *      // this is the base of the output directory.  all other paths
      *      // are relative to this
      *      base: ""
-     *      
+     *
      *      // output dir for the index.html and manifest.json files.
      *      // defaults to base
      *      page:".",
      *
-     *      // output dir for compile js files.  
+     *      // output dir for compile js files.
      *      // defaults to base
      *      js: ".",
-     *      
+     *
      *      // output dir for compiled app css content.
      *      // defaults to "resources" under the base location
      *      css: "./resources",
-     *      
+     *
      *      // output dir for all other page resources (images, etc.)
      *      // defaults to the css location
      *      resources: ""
@@ -275,40 +268,218 @@
         "deltas": {
             "enable": false
         },
-        "cache": {
+        "appCache": {
             "enable": false
         }
     },
-    
+
     /**
      * Uniquely generated id for this application, used as prefix for localStorage keys.
      * Normally you should never change this value.
      */
     "id": "7f0d3b50-5cb1-47e0-97b7-ffe69d12d49e",
 
+    /**
+     * TODO: https://sencha.jira.com/browse/EXTJS-16742
+     */
     "locales": [
         "en",
         "he"
     ],
 
+    "overrides": "${app.dir}/overrides,${app.dir}/locale/${app.locale},${app.dir}/${toolkit.name}/overrides,${app.dir}/${toolkit.name}/locale/${app.locale}",
+
+    "framework": "ext",
+    "toolkit": "classic",
+
     "builds": {
         "classic": {
-            "theme": "ext-theme-classic"
+            "toolkit": "classic",
+            "requires": [
+                "font-awesome",
+                "locale",
+                "ux",
+                "amf",
+                "soap",
+                "pivot",
+                "charts"
+            ],
+            "locales": [
+                "en",
+                "he"
+            ],
+            "theme": "theme-classic"
         },
         "gray": {
-            "theme": "ext-theme-gray"
+            "toolkit": "classic",
+            "requires": [
+                "font-awesome",
+                "locale",
+                "ux",
+                "amf",
+                "soap",
+                "pivot",
+                "charts"
+            ],
+            "locales": [
+                "en",
+                "he"
+            ],
+            "theme": "theme-gray"
         },
         "crisp": {
-            "theme": "ext-theme-crisp"
+            "toolkit": "classic",
+            "requires": [
+                "font-awesome",
+                "locale",
+                "ux",
+                "amf",
+                "soap",
+                "pivot",
+                "charts"
+            ],
+            "locales": [
+                "en",
+                "he"
+            ],
+            "theme": "theme-crisp"
         },
         "crisp-touch": {
-            "theme": "ext-theme-crisp-touch"
+            "toolkit": "classic",
+            "requires": [
+                "font-awesome",
+                "locale",
+                "ux",
+                "amf",
+                "soap",
+                "pivot",
+                "charts"
+            ],
+            "locales": [
+                "en",
+                "he"
+            ],
+            "theme": "theme-crisp-touch"
         },
         "neptune": {
-            "theme": "ext-theme-neptune"
+            "toolkit": "classic",
+            "requires": [
+                "font-awesome",
+                "locale",
+                "ux",
+                "amf",
+                "soap",
+                "pivot",
+                "charts"
+            ],
+            "locales": [
+                "en",
+                "he"
+            ],
+            "theme": "theme-neptune"
         },
         "neptune-touch": {
-            "theme": "ext-theme-neptune-touch"
+            "toolkit": "classic",
+            "requires": [
+                "font-awesome",
+                "locale",
+                "ux",
+                "amf",
+                "soap",
+                "pivot",
+                "charts"
+            ],
+            "locales": [
+                "en",
+                "he"
+            ],
+            "theme": "theme-neptune-touch"
+        },
+        "triton": {
+            "toolkit": "classic",
+            "requires": [
+                "font-awesome",
+                "locale",
+                "ux",
+                "amf",
+                "soap",
+                "pivot",
+                "charts"
+            ],
+            "locales": [
+                "en",
+                "he"
+            ],
+            "theme": "theme-triton"
+        },
+
+        "modern-triton": {
+            "toolkit": "modern",
+            "slicer": null,
+            "requires": [
+                "font-awesome",
+                "amf",
+                "soap",
+                "charts"
+            ],
+            "theme": "theme-triton"
+        },
+        "modern-neptune": {
+            "toolkit": "modern",
+            "slicer": null,
+            "requires": [
+                "font-awesome",
+                "amf",
+                "soap",
+                "charts"
+            ],
+            "theme": "theme-neptune"
+        },
+        /*
+        "blackberry": {
+            "toolkit": "modern",
+            "slicer": null,
+            "requires": [
+                "font-awesome",
+                "amf",
+                "soap",
+                "charts"
+            ],
+            "theme": "theme-blackberry"
+        },
+        */
+        "cupertino": {
+            "toolkit": "modern",
+            "slicer": null,
+            "requires": [
+                "font-awesome",
+                "amf",
+                "soap",
+                "charts"
+            ],
+            "theme": "theme-cupertino"
+        },
+        "mountainview": {
+            "toolkit": "modern",
+            "slicer": null,
+            "requires": [
+                "font-awesome",
+                "amf",
+                "soap",
+                "charts"
+            ],
+            "theme": "theme-mountainview"
+        },
+        "windows": {
+            "toolkit": "modern",
+            "slicer": null,
+            "requires": [
+                "font-awesome",
+                "amf",
+                "soap",
+                "charts"
+            ],
+            "theme": "theme-windows"
         }
     }
 }

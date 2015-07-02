@@ -1,3 +1,3 @@
-# ext-theme-crisp-touch/resources
+# theme-crisp-touch/resources
 
 This folder contains static resources (typically an `"images"` folder as well).

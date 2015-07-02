@@ -1,0 +1,101 @@
+/**
+ * @var {color}
+ * Grid column text color
+ */
+$grid-column-color: dynamic($highlight-color);
+
+/**
+ * @var {color}
+ * Grid column background-color
+ */
+$grid-column-background-color: dynamic($neutral-light-color);
+
+/**
+ * @var {color}
+ * Grid column background-color
+ */
+$grid-column-sorted-background-color: dynamic(mix(#fff, $base-light-color, 80%));
+
+/**
+ * @var {color}
+ * Grid column background-color
+ */
+$grid-column-border-color: dynamic($neutral-medium-dark-color);
+
+/**
+ * @var {string/number}
+ * Grid column font-weight
+ */
+$grid-column-font-weight: dynamic($font-weight-bold);
+
+/**
+ * @var {number}
+ * Grid column font-size
+ */
+$grid-column-font-size: dynamic(1rem);
+
+/**
+ * @var {number}
+ * Grid column font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$grid-column-font-size-big: dynamic($grid-column-font-size);
+
+/**
+ * @var {number}
+ * Grid column line-height
+ */
+$grid-column-line-height: dynamic(1.25em);
+
+/**
+ * @var {number}
+ * Grid column line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$grid-column-line-height-big: dynamic(1.2em);
+
+/**
+ * @var {string}
+ * Grid column font-family
+ */
+$grid-column-font-family: dynamic($font-family);
+
+/**
+ * @var {number/list}
+ * Grid column padding
+ */
+$grid-column-padding: dynamic(.3em .6em);
+
+/**
+ * @var {number/list}
+ * Grid column padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$grid-column-padding-big: dynamic(.46em .6em);
+
+/**
+ * @var {number}
+ * The space between the column header text and sort icon
+ */
+$grid-column-sort-icon-spacing: dynamic(.23em);
+
+/**
+ * @var {number}
+ * Sort icon font size
+ */
+$grid-column-sort-icon-font-size: dynamic(1em);
+
+/**
+ * @var {color}
+ * Sort icon color
+ */
+$grid-column-sort-icon-color: dynamic($grid-column-color);
+
+/**
+ * @var {string/list}
+ * Sort ascending icon
+ */
+$grid-column-sort-asc-icon: dynamic($fa-var-long-arrow-up $grid-column-sort-icon-font-size $font-icon-font-family);
+
+/**
+ * @var {string/list}
+ * Sort descending icon
+ */
+$grid-column-sort-desc-icon: dynamic($fa-var-long-arrow-down $grid-column-sort-icon-font-size $font-icon-font-family);

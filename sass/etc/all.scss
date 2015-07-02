@@ -1,0 +1,5 @@
+// These variables are always included so that they can be used by theme-neutral without
+// requiring either the font-awesome or font-ext package.  This allows sub-themes to
+// simply require these two packages to enable font icon support.
+@import 'font-awesome-variables';
+@import 'font-ext-variables';

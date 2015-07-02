@@ -1,0 +1,153 @@
+.widget-top-first-container{
+    background-color: $widget-first-container-background;
+}
+.widget-bottom-first-container{
+    background-color: $lightest-color;
+}
+.postion-class{
+    position:relative;
+}
+.widget-name-text{
+    font-family: "Open Sans";
+    font-weight: Bold;
+    font-size: 16px ;
+    line-height:16px;
+}
+.widget-tool-button{
+    .widget-follow-button, .widget-follow-button .x-frame-mc{
+        @include btn-border($follow-button-color);
+    }
+    .widget-message-button, .widget-message-button .x-frame-mc{
+        @include btn-border($base-color);
+    }
+    .x-btn-inner-default-toolbar-small{
+        color: $lightest-color;
+    }
+}
+.widget-top-container-first-img{
+    position: absolute;
+    z-index: 200;
+    margin-top:94px;
+    border: 3px solid $lightest-color;
+    @include border-radius(36px);
+    left: 50%;
+    margin-left: -33px;
+}
+.widget-top-second-container{
+    background-color: $widget-second-container-background;
+}
+.widget-top-first-third-container {
+    background-color: $widget-third-container-background;
+}
+
+.widget-top-first-fourth-container {
+    background:url('images/img2.jpg');
+    background-size:100% auto;
+}
+.widget-top-second-panel .x-fa{
+    color: $lightest-color;
+}
+
+.widget-follower-toolbar{
+    background-color: $follower-toolbar-background;
+    font-size:12px;
+    padding:0 ;
+    text-align:center;
+    border-top:1px solid $base-border-color;
+    border-bottom:1px solid $base-border-color;
+    .x-form-display-field{
+        font-size:13px;
+        color: $FAQ-sub-header-color;
+        font-family: "Open Sans";
+    }
+    .x-form-display-field .label{
+        color: $color;
+        font-size: 12px;
+
+    }
+    .widget-follower-tool-label{
+        border-left:1px solid $base-border-color;
+        border-right:1px solid $base-border-color;
+    }
+}
+
+.info-card-item{
+    text-align: center;
+    background: $lightest-color ;
+    padding:45px 10px !important;
+    font-size: 24px;
+
+     &.info-card-large-wrap{
+        h2{
+            font-size: 48px;
+            line-height: 48px;
+        }
+        span.x-fa {
+            height: 75px;
+             width: 75px;
+            border-radius: 38px;
+            color: $lightest-color;
+            font-size: 30px;
+            line-height: 75px;
+            margin: 15px 0;
+
+            &.fa-shopping-cart {
+                background-color: $sale-container-color;
+            }
+            &.fa-envelope {
+                background-color: $message-container-color;
+            }
+            &.fa-code {
+                background-color: $code-container-color;
+            }
+            &.fa-file-text {
+                background-color: $user-container-color;
+            }
+        }
+        .infodiv{
+            font-size: 14px;
+            line-height: 16px;
+        }
+    }
+    &.cornflower-blue:before {
+        background: $sale-container-color;
+    }
+    &.green:before {
+        background: $message-container-color;
+    }
+    &.magenta:before {
+        background: $code-container-color;
+    }
+    &.pink:before {
+        background: $user-container-color;
+    }
+    &.orange:before {
+        background: $server-container-color;
+    }
+    &.blue:before {
+        background: $file-container-color;
+    }
+    h2{
+        font-size: 30px;
+        font-weight: normal;
+        margin: 0;
+        margin:0;
+        line-height: 32px;
+    }
+    div{
+        line-height: 24px;
+    }
+    span{
+        font-size: 24px;
+        line-height: 24px;
+    }
+
+}
+.info-card-item:before{
+    width:100%;
+    position:absolute;
+    height:3px;
+    content:"";
+    top:0;
+    left:0
+}

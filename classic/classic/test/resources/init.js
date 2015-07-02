@@ -1,0 +1,3 @@
+addGlobal([
+    'spec'
+]);

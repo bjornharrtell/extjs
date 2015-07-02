@@ -5,5 +5,5 @@
  * to the most recently built CSS file for the application to allow index.html
  * in the development directory to load properly (i.e., "dev mode").
  */
-@import '../../build/examples/kitchensink/neptune-touch-he/resources/KitchenSink-all.css';
+@import '../../build/examples/kitchensink/windows-he/resources/KitchenSink-all.css';
 

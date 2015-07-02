@@ -1,0 +1,42 @@
+.x-field-checkbox .x-input-el {
+    padding: 0;
+    height: $textfield-input-line-height + vertical($textfield-input-padding);
+
+    @if $enable-big {
+        .x-big & {
+            height: $textfield-input-line-height-big + vertical($textfield-input-padding-big);
+        }
+    }
+}
+
+.x-field-checkbox .x-field-mask:after {
+    color: $checkboxfield-checkbox-color;
+    position: absolute;
+    right: .4em;
+    height: $checkboxfield-checkbox-size;
+    width: $checkboxfield-checkbox-size;
+    font-size: $checkboxfield-checkbox-font-size;
+    top: 50%;
+    margin-top: -($checkboxfield-checkbox-size / 2);
+    @if $enable-big {
+        .x-big & {
+            font-size: $checkboxfield-checkbox-font-size-big;
+        }
+    }
+    @include font-icon($checkboxfield-checkbox-icon, $pseudo: false);
+    text-align: center;
+}
+
+.x-input-checkbox {
+    visibility: hidden;
+}
+
+.x-field-checkbox .x-input-el:checked + .x-field-mask:after {
+    @include font-icon($checkboxfield-checked-checkbox-icon, $pseudo: false);
+
+    @if $enable-big {
+        .x-big & {
+            font-size: $checkboxfield-checkbox-font-size-big;
+        }
+    }
+}

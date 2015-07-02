@@ -22,7 +22,7 @@
         <attribute name="loaderConfigJsonpTpl" default="Ext.Loader.addClassPathMappings"/>
         <attribute name="overrideTpl" default='Ext.Loader.loadScriptsSync'/>
         <attribute name="overrideTplType" default="jsonp"/>
-        <attribute name="overrideExcludeTags" default="package-sencha-core,package-${framework.name}"/>
+        <attribute name="overrideExcludeTags" default="package-core,package-sencha-core,package-${framework.name},package-${toolkit.name}"/>
         <text name="launchcode" optional="true"/>
         <sequential>
             <local name="temp.file"/>

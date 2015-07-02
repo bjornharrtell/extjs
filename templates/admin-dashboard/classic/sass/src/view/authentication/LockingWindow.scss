@@ -1,0 +1,12 @@
+.auth-locked-window{
+    .x-window-body {
+  	    background-image:url('images/lock-screen-background.jpg');
+      	background-size:cover;
+      	background-repeat:repeat;
+  	}
+      &.x-window-default{
+  	    border: none;
+  	    border-radius: 0;
+  	    padding: 0;
+  	}
+}

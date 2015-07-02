@@ -11,19 +11,18 @@
     <title>Ext JS Kitchen Sink</title>
 
     <link rel="apple-touch-icon" href="resources/images/apple-touch-icon.png"/>
-    <link rel="stylesheet" type="text/css" href="resources/Sencha-Examples/style.css"/>
 
     <!-- The line below must be kept intact for Sencha Command to build your application -->
     <script type="text/javascript">
         var Ext = Ext || {};
         Ext.beforeLoad = function(tags){
-            var theme = location.href.match(/theme=([\w-]+)/),
+            var profile = location.href.match(/profile=([\w-]+)/),
                 locale = location.href.match(/locale=([\w-]+)/);
 
-            theme  = (theme && theme[1]) || (tags.desktop ? 'crisp' : 'crisp-touch');
+            profile  = (profile && profile[1]) || (tags.phone ? 'modern-triton' : 'triton');
             locale = (locale && locale[1]) || 'en';
 
-            Ext.manifest = theme + "-" + locale;
+            Ext.manifest = profile + "-" + locale;
             tags.test = /testMode=true/.test(location.search);
             Ext.microloaderTags = tags;
         };

@@ -1,0 +1,25 @@
+#word-status .x-status-text-panel .spacer {
+    width: 60px;
+    font-size:0;
+    line-height:0;
+}
+#word-status .x-status-busy {
+    padding-left: 25px !important;
+    background: transparent no-repeat 3px 0;
+}
+#word-status .x-status-saved {
+    padding-left: 25px !important;
+    background: transparent no-repeat 3px 0;
+}
+
+#word-status .x-status-text {
+    color: #777;
+}
+
+#word-status .x-status-busy {
+    background-image: url(images/saving.gif);
+}
+#word-status .x-status-saved {
+    background-image: url(images/saved.png);
+}
+

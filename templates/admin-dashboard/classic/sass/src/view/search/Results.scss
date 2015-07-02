@@ -1,0 +1,37 @@
+.allRecordsCls{
+	.x-grid-cell-inner{
+		padding:15px;
+		div{
+			white-space: normal;
+		}
+		.resultsTitleCls{
+			font-size:14px;
+			color: $FAQ-sub-header-color;
+		}
+		.resultsUrlCls a{
+			color:$base-color;
+			text-decoration:none;
+			&:hover{
+				text-decoration:underline;
+			}
+		}
+		.imageRowCls img{
+			margin-right:15px;
+		}
+	}
+}
+.user-grid{
+	.x-grid-td{
+		vertical-align:middle;
+		img{
+			@include border-radius($circle-border-radius);
+		}
+	}
+	.x-grid-body{
+		border-width:1px;
+	}
+}
+.x-action-col-icon{
+	font-size: 13px !important;
+}
+

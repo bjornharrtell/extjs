@@ -1,0 +1,202 @@
+$touch-theme-neptune: true;
+
+/**
+ * @class Global_CSS
+ * Global CSS variables and mixins.
+ */
+
+/**
+ * @var {boolean} $include-default-uis
+ * Decides whether or not to include the default UIs for all components.
+ */
+$include-default-uis: dynamic(true);
+
+/**
+ * @var {boolean} $include-highlights=true
+ * Optionally disable all gradients, text-shadows, and box-shadows. Useful for CSS debugging,
+ * non-performant browsers, or minimalist designs.
+ */
+$include-highlights: dynamic(true); // Can disable all theme-generated gradients, text-shadows, and box-shadows.
+
+/**
+ * @var {boolean} $include-border-radius
+ * Optionally disable all border-radius. Useful for CSS debugging, non-performant browsers, or minimalist designs.
+ */
+$include-border-radius: dynamic(true); // Can disable all rounded corners
+
+/**
+ * @var {boolean} $basic-slider
+ * Optionally remove CSS3 effects from the slider component for improved performance.
+ */
+$basic-slider: dynamic(false);
+
+/**
+ * @var {color} $base-color
+ * The primary color variable from which most elements derive their color scheme.
+ */
+$base-color: dynamic(#157fcc);
+
+/**
+ * @var {color}
+ * A slightly lightened shade of the base color
+ */
+$base-highlight-color: dynamic(mix(#fff, $base-color, 15%));
+
+/**
+ * @var {color}
+ * A light shade of the base color
+ */
+$base-light-color: dynamic(mix(#fff, $base-color, 65%));
+
+/**
+ * @var {color}
+ * A dark shade of the base color
+ */
+$base-dark-color: dynamic(mix(#000, $base-color, 14%));
+
+/**
+ * @var {color}
+ * Base neutral color from which neutral colors throughout the theme are derived
+ */
+$neutral-color: dynamic(#e1e1e1);
+
+/**
+ * @var {color}
+ * A light shade of the neutral color
+ */
+$neutral-light-color: dynamic(mix(#fff, $neutral-color, 68%));
+
+/**
+ * @var {color}
+ * A light shade of the neutral color
+ */
+$neutral-highlight-color: dynamic(mix(#fff, $neutral-color, 50%));
+
+/**
+ * @var {color}
+ * A medium-dark shade of the neutral color
+ */
+$neutral-medium-dark-color: dynamic(mix(#000, $neutral-color, 14%));
+
+/**
+ * @var {color}
+ * A dark shade of the neutral color
+ */
+$neutral-dark-color: dynamic(mix(#000, $neutral-color, 22%));
+
+/**
+ * @var {color}
+ * Base text color to be used throughout the theme
+ */
+$color: dynamic(#000);
+
+/**
+ * @var {color}
+ * A somewhat lightened shade of the base text color
+ */
+$highlight-color: dynamic(#666);
+
+/**
+ * @var {color}
+ * A light text color for use on dark backgrounds
+ */
+$light-color: dynamic(#fff);
+
+/**
+ * @var {string} $base-background-gradient
+ * The primary gradient variable from which most elements derive their color scheme.
+ *
+ * See background-gradient mixin.
+ */
+$base-background-gradient: dynamic(if($include-highlights, matte, null));
+
+/**
+ * @var {font-family} $font-family
+ * The font-family to be used throughout the theme.
+ *
+ * See background-gradient mixin.
+ */
+$font-family: dynamic(helvetica, arial, sans-serif);
+
+/**
+ * @var {number} $font-size
+ * The base font-size to be used throughout the theme.
+ */
+$font-size: dynamic(81.25%);
+
+/**
+ * @var {number} $font-size
+ * The base font-size to be used throughout the theme in the
+ * {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$font-size-big: dynamic(93.75%);
+
+/**
+ * @var {number} $line-height
+ * The base line-height to be used throughout the theme.
+ */
+$line-height: dynamic(1.25);
+
+/**
+ * @var {color} $alert-color
+ * Color used for elements like badges, errors, and "decline" UIs (eg. on buttons).
+ */
+$alert-color: dynamic(red);
+
+/**
+ * @var {color} $confirm-color
+ * Color used for elements like success messages, and "confirm" UIs (eg. on buttons).
+ */
+$confirm-color: dynamic(#92cf00);  // Green
+
+/**
+ * @var {color} $active-color
+ * Color used for elements like selected rows and certain overlays like the picker mask.
+ */
+$active-color: dynamic(darken(saturate($base-color, 55%), 10%));
+
+/**
+ * @var {color} $neutral-color
+ * Color used for the neautral `ui` for Toolbars and Tabbars.
+ */
+$neutral-color: #e0e0e0;
+
+/**
+ * @var {measurement} $global-row-height
+ * The minimum row height for items like toolbars.
+ * @private
+ */
+$global-row-height: dynamic(2.6em);
+
+/**
+ * @var {measurement} $global-list-height
+ * The minimum row height for items like toolbars.
+ @private
+ */
+$global-list-height: dynamic(46px);
+
+/**
+ * @var {color} $loading-spinner-color
+ * Background-color for the bars in the loading spinner.
+ */
+$loading-spinner-color: dynamic(#aaa);
+
+/**
+ * @var {boolean}
+ * `true` to enable support for a "big" sizing scheme.
+ * "Big" sizing is enabled by a `'x-big'` CSS class on the `<html>` element.
+ * Typically used to provide "tappable sizing for touch-enabled devices.
+ */
+$enable-big: dynamic(true);
+
+/**
+ * @var {string/number}
+ * The "normal" font-weight to be used throughout the theme.
+ */
+$font-weight-normal: dynamic(normal);
+
+/**
+ * @var {string/number}
+ * The "bold" font-weight to be used throughout the theme.
+ */
+$font-weight-bold: dynamic(bold);

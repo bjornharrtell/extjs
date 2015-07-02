@@ -1,0 +1,40 @@
+/**
+ * @class Ext.field.Checkbox
+ */
+
+/**
+ * @var {number}
+ * The font-size of the checkbox
+ */
+$checkboxfield-checkbox-font-size: dynamic(1.24em);
+
+/**
+ * @var {number}
+ * The font-size of the checkbox in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$checkboxfield-checkbox-font-size-big: dynamic(1.2em);
+
+/**
+ * @var {number}
+ * Checkbox size. If specified in terms of `em` units, the checkbox will be sized
+ * relative to {@link #$checkboxfield-checkbox-font-size}.
+ */
+$checkboxfield-checkbox-size: dynamic(1em);
+
+/**
+ * @var {string/list}
+ * The checkbox icon
+ */
+$checkboxfield-checkbox-icon: dynamic($fa-var-square-o $checkboxfield-checkbox-font-size $font-icon-font-family);
+
+/**
+ * @var {string/list}
+ * The checkbox icon in "checked" state
+ */
+$checkboxfield-checked-checkbox-icon: dynamic($fa-var-check-square-o $checkboxfield-checkbox-font-size $font-icon-font-family);
+
+/**
+ * @var {color}
+ * The checkbox color
+ */
+$checkboxfield-checkbox-color: dynamic($neutral-dark-color);

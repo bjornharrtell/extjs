@@ -1,0 +1,39 @@
+@if $theme-name == 'theme-classic' or $theme-name == 'theme-gray' {
+    .framing-buttons-add {
+        background-image: url(images/icons/fam/add.gif);
+    }
+
+    .framing-buttons-option {
+        background-image: url(images/icons/fam/plugin.gif);
+    }
+
+    .framing-buttons-remove {
+        background-image: url(images/icons/fam/delete.gif);
+    }
+
+    .framing-buttons-grid {
+        background-image: url(images/icons/fam/grid.png);
+    }
+} @else {
+    .framing-buttons-add:before {
+        font: 16px/1 FontAwesome;
+        color: $green-icon-color;
+        content: $fa-var-plus-circle;
+    }
+
+    .framing-buttons-option:before {
+        font: 16px/1 FontAwesome;
+        content: $fa-var-puzzle-piece;
+    }
+
+    .framing-buttons-remove:before {
+        font: 16px/1 FontAwesome;
+        color: $red-icon-color;
+        content: $fa-var-minus-circle;
+    }
+
+    .framing-buttons-grid:before {
+        font: 16px/1 FontAwesome;
+        content: $fa-var-table;
+    }
+}

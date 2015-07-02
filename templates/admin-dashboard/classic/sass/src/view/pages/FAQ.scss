@@ -1,0 +1,74 @@
+.pages-faq-container{
+
+	.x-header{
+		&.x-panel-header-light{
+			border-bottom: 1px solid $base-border-color !important;
+			padding:15px 16px;
+			.x-panel-header-title-light{
+		  		color: $color;
+		  		font-size: 14px;
+		  		font-family: "Open Sans";
+		  		font-weight: Bold;
+	  		}
+		}
+
+		.x-fa{
+			line-height:16px;
+		}
+		.x-tool-after-title .x-tool-img{
+		    display: none;
+		}
+	}
+	.x-collapsed{
+		.x-accordion-hd .x-panel-header-title .x-fa:before{
+		    content: "\f0da";
+		}
+	}
+	.x-accordion-body{
+		padding-left:34px;
+	}
+	.round-btn{
+		@include btn-border($base-color);
+	}
+}
+
+.faq-left-sidebar{
+	.x-fa{
+	    font-size: 16px;
+	    margin-right: 10px;
+	}
+	.faq-tips-list {
+	    list-style: none;
+	    padding:0;
+	    margin:0;
+	    li{
+	    	margin:15px 0;
+	    	&:before {
+			    font-family:FontAwesome;
+			    content: "\f111";
+			    padding-right:10px;
+			}
+			&.pointone:before {
+			    color: $FAQ-tip-list-color-1;
+			}
+			&.pointtwo:before {
+			    color: $FAQ-tip-list-color-2;
+			}
+			&.pointthree:before {
+			    color: $FAQ-tip-list-color-3;
+			}
+			&.pointfour:before {
+			    color: $FAQ-tip-list-color-4;
+			}
+	    }
+
+	}
+	.borderCls{
+	    border-bottom: 1px solid $base-border-color;
+	}
+}
+
+.FAQPanel .x-title-text-default{
+  font-size: 16px;
+  font-weight: normal;
+}

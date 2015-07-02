@@ -1,0 +1,104 @@
+/**
+ * @class Ext.field.Field
+ */
+
+.x-field {
+    background: $field-background-color;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+}
+
+.x-form-label {
+    color: $field-label-color;
+    background-color: $field-label-background-color;
+
+    padding: $field-label-padding;
+    @include font($field-label-font-weight, $field-label-font-size, $field-label-line-height, $field-label-font-family);
+    min-height: calc(#{$field-label-line-height} + #{vertical($field-label-padding)});
+
+    @if $enable-big {
+        .x-big & {
+            @if $field-label-padding-big != $field-label-padding {
+                padding: $field-label-padding-big;
+            }
+            @if $field-label-font-size-big != $field-label-font-size {
+                font-size: $field-label-font-size-big;
+            }
+            @if $field-label-line-height-big != $field-label-line-height {
+                line-height: $field-label-line-height-big;
+            }
+        }
+    }
+}
+
+.x-field-input {
+    .x-clear-icon {
+        width: $textfield-clear-icon-size;
+        height: $textfield-clear-icon-size;
+        top: 50%;
+        right: .4em;
+        color: $textfield-clear-icon-color;
+        margin-top: -($textfield-clear-icon-size / 2);
+        @include font-icon($textfield-clear-icon);
+    }
+}
+
+.x-field-clearable,
+.x-field-revealable {
+    .x-input-el {
+        padding-right: calc(#{$textfield-clear-icon-font-size} + .6em);
+
+        @if $enable-big {
+            .x-big & {
+                padding-right: calc(#{$textfield-clear-icon-font-size-big} + .6em);
+            }
+        }
+    }
+}
+
+.x-input-el {
+    background-color: $textfield-input-background-color;
+    padding: $textfield-input-padding;
+    @include font($textfield-input-font-weight, $textfield-input-font-size, $textfield-input-line-height, $textfield-input-font-family);
+    min-height: calc(#{$textfield-input-line-height} + #{vertical($textfield-input-padding)});
+
+    @if $enable-big {
+        .x-big & {
+            @if $textfield-input-padding-big != $textfield-input-padding {
+                padding: $textfield-input-padding-big;
+            }
+            @if $textfield-input-font-size-big != $textfield-input-font-size {
+                font-size: $textfield-input-font-size-big;
+            }
+            @if $textfield-input-line-height-big != $textfield-input-line-height {
+                line-height: $textfield-input-line-height-big;
+            }
+        }
+    }
+
+    border-width: 0;
+    -webkit-appearance: none;
+}
+
+.x-item-disabled {
+  .x-form-label,
+  input,
+  .x-input-el,
+  .x-spinner-body,
+  select,
+  textarea,
+  .x-field-clear-container {
+    color: #b3b3b3;
+    pointer-events: none;
+  }
+}
+
+.x-item-disabled .x-form-label {
+    color: #aaa;
+}
+
+.x-item-disabled .x-form-label:after {
+    color: #666 !important;
+}

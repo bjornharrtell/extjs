@@ -1,0 +1,27 @@
+/**
+ * @class Ext.form.FieldSet
+ */
+
+/**
+ * @var {number/list}
+ * FieldSet border-radius
+ */
+$fieldset-border-radius: dynamic(.4em);
+
+/**
+ * @var {color}
+ * FieldSet border-color
+ */
+$fieldset-border-color: dynamic($neutral-color);
+
+/**
+ * @var {number/list}
+ * FieldSet border-width
+ */
+$fieldset-border-width: dynamic(1px);
+
+/**
+ * @var {color}
+ * FieldSet title text color
+ */
+$fieldset-title-color: dynamic($highlight-color);

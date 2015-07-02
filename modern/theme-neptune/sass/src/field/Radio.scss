@@ -1,0 +1,43 @@
+.x-field-radio .x-input-el {
+    padding: 0;
+    height: $textfield-input-line-height + vertical($textfield-input-padding);
+
+    @if $enable-big {
+        .x-big & {
+            height: $textfield-input-line-height-big + vertical($textfield-input-padding-big);
+        }
+    }
+}
+
+.x-field-radio .x-field-mask:after {
+    color: $radiofield-checkbox-color;
+    position: absolute;
+    right: .6em;
+    height: $radiofield-checkbox-size;
+    width: $radiofield-checkbox-size;
+    font-size: $radiofield-checkbox-font-size;
+    top: 50%;
+    margin-top: -($radiofield-checkbox-size / 2);
+    @if $enable-big {
+        .x-big & {
+            font-size: $radiofield-checkbox-font-size-big;
+        }
+    }
+    @include font-icon($radiofield-checkbox-icon, $pseudo: false);
+    text-align: center;
+}
+
+.x-input-radio {
+    visibility: hidden;
+}
+
+.x-field-radio .x-input-el:checked + .x-field-mask:after {
+    @include font-icon($radiofield-checked-checkbox-icon, $pseudo: false);
+
+    @if $enable-big {
+        .x-big & {
+            font-size: $radiofield-checkbox-font-size-big;
+        }
+    }
+}
+

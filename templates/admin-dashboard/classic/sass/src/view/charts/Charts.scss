@@ -1,0 +1,26 @@
+.quick-graph-panel{
+	.x-panel-header-title-light > .x-title-icon-wrap-light.x-title-icon-left {
+	  width: 30px;
+	  height: 30px;
+	  border-radius: 15px;
+	  background-color: $chart-icon-background-color;
+	  text-align: center;
+	  }
+	.x-panel-header-title-light > .x-title-icon-wrap-light > .x-title-icon-light {
+	   background-position: center center;
+	    color: $color;	 
+	    padding-left: 4px;  
+	    line-height: 16px;
+	    text-align: center;
+	}
+	.x-title-text {
+	  padding-left: 10px;
+	  color: $color;
+	}
+	.fa-dot-circle-o:before {
+		padding-left:2px;
+	}
+	.fa-pie-chart:before{
+		padding-left: 1px;
+	}
+}

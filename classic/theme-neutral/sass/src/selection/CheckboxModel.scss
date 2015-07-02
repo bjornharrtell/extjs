@@ -1,0 +1,51 @@
+.#{$prefix}column-header-checkbox {
+    border-color: $grid-header-background-color;
+}
+
+.#{$prefix}grid-row-checker,
+.#{$prefix}column-header-checkbox .#{$prefix}column-header-text {
+    height: $form-checkbox-size;
+    width: $form-checkbox-size;
+
+    @if $enable-font-icons and ($checkbox-selection-model-glyph != null) {
+        @include font-icon($checkbox-selection-model-glyph);
+        color: $checkbox-selection-model-glyph-color;
+        .#{$prefix}column-header-text-inner {
+            display: none;
+        }
+    } @else {
+        background-image: theme-background-image($form-checkbox-background-image);
+    }
+}
+
+.#{$prefix}grid-row-checker:focus {
+    outline: $grid-row-cell-focus-border-width $grid-row-cell-focus-border-style $grid-row-cell-focus-border-color;
+}
+
+.#{$prefix}column-header-checkbox .#{$prefix}column-header-inner {
+    padding: $checkbox-selection-model-column-header-padding;
+}
+
+.#{$prefix}grid-cell-row-checker .#{$prefix}grid-cell-inner {
+    padding: $checkbox-selection-model-cell-padding;
+
+    // &nbsp; in summary rows must be same height as checkbox
+    line-height: $form-checkbox-size;
+
+    @if $grid-no-row-lines-show-focus-border {
+        .#{$prefix}grid-no-row-lines .#{$prefix}grid-row-focused & {
+            padding-top: top($checkbox-selection-model-cell-padding) - $grid-row-cell-border-width;
+            padding-bottom: bottom($checkbox-selection-model-cell-padding) - $grid-row-cell-border-width;
+        }
+    }
+}
+
+.#{$prefix}grid-hd-checker-on .#{$prefix}column-header-text,
+.#{$prefix}grid-item-selected .#{$prefix}grid-row-checker,
+.#{$prefix}grid-item-selected .#{$prefix}grid-row-checker {
+    @if $enable-font-icons and ($checkbox-selection-model-checked-glyph != null) {
+        @include font-icon($checkbox-selection-model-checked-glyph);
+    } @else {
+        background-position: 0 (-$form-checkbox-size);
+    }
+}

@@ -1,6 +1,0 @@
-{
-    suites: [{
-        page: "http://{host}:{port}/ext/test/local/",
-        capabilities: "capabilities.json"
-    }]
-}

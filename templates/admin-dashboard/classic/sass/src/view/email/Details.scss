@@ -1,0 +1,53 @@
+.email-sender-img {
+    @include border-radius(64px);
+    border:1px solid $single-mail-border-color;
+}
+.single-mail-email-subject {
+    line-height: 1.7em;
+    .user-name{
+    	font-size: 16px;
+    }
+    .user-info{
+    	font-size: 22px;
+    	max-width: 95%;
+    	text-overflow: ellipsis;
+   	 	overflow: hidden;
+    	white-space: nowrap;
+    }
+}
+.mail-body{
+    font-size: 14px;
+    line-height: 1.6em;
+    padding-bottom: 14px;
+    border-bottom: 1px solid $single-mail-border-color;
+}
+.single-mail-top-toolbar{
+    background-color: $lightest-color;
+    border-bottom: 1px solid $single-mail-border-color !important;   
+    .x-btn-inner-default-toolbar-small {
+    	color: $color;
+    }
+    a:first-child {
+      left: 2px !important;
+    }
+}
+.single-mail-attachment{
+    border: 1px solid $single-mail-border-color;
+    border-left-width: 0;
+    border-right-width: 0;
+    margin-right: 15px;
+    width: 100px;
+    height: 100px;
+}
+.single-mail-action-button{
+	.email-compose-save-button, .email-compose-save-button .x-frame-mc{
+   		@include btn-border($single-mail-save-button-color);    
+    }
+	.email-compose-send-button, .email-compose-send-button .x-frame-mc{
+        @include btn-border($single-mail-send-button-color); 
+	} 	
+}
+
+.attachment-container{
+    margin-top: 16px;
+}

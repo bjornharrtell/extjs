@@ -1,0 +1,394 @@
+/**
+ * Creates a visual theme for a Tab.
+ *
+ * @param {string} $ui
+ * The name of the UI being created. Can not included spaces or special punctuation
+ * (used in CSS class names).
+ *
+ * @param {color} $background-color
+ * Tab background-color
+ *
+ * @param {color} $active-background-color
+ * Tab background-color when active
+ *
+ * @param {string/list} $background-gradient
+ * Tab background-gradient.  Can be either the name of a gradient defined by
+ * {@link Global_CSS#background-gradient} or a list of color stops.
+ *
+ * @param {string/list} $active-background-gradient
+ * Tab background-gradient when active.  Can be either the name of a gradient
+ * defined by {@link Global_CSS#background-gradient} or a list of color stops.
+ *
+ * @param {color} $color
+ * Tab text color
+ *
+ * @param {color} $active-color
+ * Tab text color when active
+ *
+ * @param {color/list} $border-color
+ * Tab border-color
+ *
+ * @param {color/list} $active-border-color
+ * Tab border-color when active
+ *
+ * @param {number/list} $border-width
+ * Tab border-width
+ *
+ * @param {number/list} $border-style
+ * Tab border-style
+ *
+ * @param {number} $border-radius
+ * Tab border-radius
+ *
+ * @param {number} $border-radius-big
+ * Tab border-radius in the {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {number} $font-weight
+ * Tab font-weight
+ *
+ * @param {number} $font-size
+ * Tab font-size
+ *
+ * @param {number} $font-size-big
+ * Tab font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {number} $line-height
+ * Tab line-height
+ *
+ * @param {number} $line-height-big
+ * Tab line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {font-family} $font-family
+ * Tab font-family
+ *
+ * @param {number/list} $padding
+ * Tab padding
+ *
+ * @param {number/list} $padding-big
+ * Tab padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {number} $icon-size
+ * Tab icon size
+ *
+ * @param {number} $icon-size-big
+ * Tab icon size in the {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {number} $icon-font-size
+ * Tab icon font-size.  Used for configuring the size of font icons
+ *
+ * @param {number} $icon-font-size-big
+ * Tab icon font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {number} $icon-horizontal-spacing
+ * The space between the button icon and text when the icon is horizontally aligned
+ *
+ * @param {number} $icon-horizontal-spacing-big
+ * The space between the button icon and text when the icon is horizontally aligned
+ * in the {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {number} $icon-vertical-spacing
+ * The space between the button icon and text when the icon is vertically aligned
+ *
+ * @param {number} $icon-vertical-spacing-big
+ * The space between the button icon and text when the icon is vertically aligned
+ * in the {@link Ext.Component#$enable-big big} sizing scheme
+ *
+ * @param {number} $disabled-opacity
+ * Tab opacity when disabled
+ * @param {color} $badge-background-color
+ * The background-color of the button's {@link #badgeText badge}
+ *
+ * @param {string/list} $badge-background-gradient
+ * The background-gradient of the button's {@link #badgeText badge} Can be either the name
+ * of a gradient defined by {@link Global_CSS#background-gradient} or a list of color stops.
+ *
+ * @param {color} $badge-color
+ * The text color of the button's {@link #badgeText badge}
+ *
+ * @param {color} $badge-border-color
+ * The border-color of the button's {@link #badgeText badge}
+ *
+ * @param {number/list} $badge-border-radius
+ * The border-radius of the button's {@link #badgeText badge}
+ *
+ * @param {number} $badge-min-width
+ * The min-width of the button's {@link #badgeText badge}
+ *
+ * @param {number} $badge-max-width
+ * The max-width of the button's {@link #badgeText badge}
+ *
+ * @param {number} $badge-font-weight
+ * The font-weight of the button's {@link #badgeText badge}
+ *
+ * @param {number} $badge-font-size
+ * The font-size of the button's {@link #badgeText badge}
+ *
+ * @param {string} $badge-font-family
+ * The font-family of the button's {@link #badgeText badge}
+ *
+ * @param {number} $badge-line-height
+ * The line-height of the button's {@link #badgeText badge}
+ *
+ * @param {number} $badge-top
+ * Offset of the {@link #badgeText badge} from the top of the button
+ *
+ * @param {number} $badge-right
+ * Offset of the {@link #badgeText badge} from the right of the button
+ *
+ * @param {number} $badge-bottom
+ * Offset of the {@link #badgeText badge} from the bottom of the button
+ *
+ * @param {number} $badge-left
+ * Offset of the {@link #badgeText badge} from the left of the button
+ *
+ * @param {number} $badge-padding
+ * The padding of the button's {@link #badgeText badge}
+ *
+ * @member Ext.tab.Tab
+ */
+@mixin tab-ui(
+    $ui: null,
+
+    $background-color: null,
+    $active-background-color: null,
+
+    $background-gradient: null,
+    $active-background-gradient: null,
+
+    $color: null,
+    $active-color: null,
+
+    $border-color: null,
+    $active-border-color: null,
+
+    $border-width: null,
+    $border-style: null,
+
+    $border-radius: null,
+    $border-radius-big: null,
+
+    $font-weight: null,
+    $font-size: null,
+    $font-size-big: null,
+    $line-height: null,
+    $line-height-big: null,
+    $font-family: null,
+
+    $padding: null,
+    $padding-big: null,
+
+    $icon-size: null,
+    $icon-size-big: null,
+    $icon-font-size: null,
+    $icon-font-size-big: null,
+    $icon-horizontal-spacing: null,
+    $icon-horizontal-spacing-big: null,
+    $icon-vertical-spacing: null,
+    $icon-vertical-spacing-big: null,
+
+    $disabled-opacity: null,
+
+    $badge-background-color: null,
+    $badge-background-gradient: null,
+    $badge-color: null,
+    $badge-border-color: null,
+    $badge-border-radius: null,
+    $badge-min-width: null,
+    $badge-max-width: null,
+    $badge-font-weight: null,
+    $badge-font-size: null,
+    $badge-font-family: null,
+    $badge-line-height: null,
+    $badge-top: null,
+    $badge-right: null,
+    $badge-bottom: null,
+    $badge-left: null,
+    $badge-padding: null
+) {
+    $ui-suffix: ui-suffix($ui);
+
+    .x-tab#{$ui-suffix} {
+        color: $color;
+        padding: $padding;
+        @include font($font-weight, $font-size, $line-height, $font-family);
+        @include border($border-width, $border-style, $border-color);
+
+        @if $include-border-radius {
+            @include border-radius($border-radius);
+        }
+
+        @if $enable-big {
+            .x-big & {
+                @if $padding-big != $padding {
+                    padding: $padding-big;
+                }
+                @if $font-size-big != $font-size {
+                    font-size: $font-size-big;
+                }
+                @if $line-height-big != $line-height {
+                    line-height: $line-height-big;
+                }
+                @if $include-border-radius and ($border-radius-big != $border-radius) {
+                    @include border-radius($border-radius-big);
+                }
+            }
+        }
+
+        @include background-gradient($background-color, $background-gradient);
+
+        &.x-tab-active {
+            color: $active-color;
+            @include background-gradient($active-background-color, $active-background-gradient);
+            border-color: $active-border-color;
+        }
+
+        .x-button-icon {
+            width: $icon-size;
+            height: $icon-size;
+            line-height: $icon-size;
+            font-size: $icon-font-size;
+
+            @if $enable-big {
+                .x-big & {
+                    @if $icon-size-big != $icon-size {
+                        width: $icon-size-big;
+                        height: $icon-size-big;
+                        line-height: $icon-size-big;
+                    }
+                    @if $icon-font-size-big != $icon-font-size {
+                        font-size: $icon-font-size-big;
+                    }
+                }
+            }
+        }
+
+        &.x-iconalign-left .x-button-icon {
+            margin-right: $icon-horizontal-spacing;
+
+            @if $enable-big and $icon-horizontal-spacing-big != $icon-horizontal-spacing {
+                .x-big & {
+                    margin-right: $icon-horizontal-spacing-big;
+                }
+            }
+        }
+
+        &.x-iconalign-right .x-button-icon {
+            margin-left: $icon-horizontal-spacing;
+
+            @if $enable-big and $icon-horizontal-spacing-big != $icon-horizontal-spacing {
+                .x-big & {
+                    margin-left: $icon-horizontal-spacing-big;
+                }
+            }
+        }
+
+        &.x-iconalign-top .x-button-icon {
+            margin-bottom: $icon-vertical-spacing;
+
+            @if $enable-big and $icon-vertical-spacing-big != $icon-vertical-spacing {
+                .x-big & {
+                    margin-bottom: $icon-vertical-spacing-big;
+                }
+            }
+        }
+
+        &.x-iconalign-bottom .x-button-icon {
+            margin-top: $icon-vertical-spacing;
+
+            @if $enable-big and $icon-vertical-spacing-big != $icon-vertical-spacing {
+                .x-big & {
+                    margin-top: $icon-vertical-spacing-big;
+                }
+            }
+        }
+
+        .x-button-label {
+            // prevents the button height from shrinking when it has no text
+            min-height: $line-height;
+        }
+
+        &.x-item-disabled {
+            opacity: $disabled-opacity;
+        }
+
+        .x-badge {
+            border-color: $badge-border-color;
+            min-width: $badge-min-width;
+
+            @include font($badge-font-weight, $badge-font-size, $badge-line-height, $badge-font-family);
+
+            top: $badge-top;
+            right: $badge-right;
+            bottom: $badge-bottom;
+            left: $badge-left;
+            padding: $badge-padding;
+            max-width: $badge-max-width;
+            color: $badge-color;
+
+            @include background-gradient($badge-background-color, $badge-background-gradient);
+
+            @if $include-border-radius {
+                @include border-radius($badge-border-radius);
+            }
+        }
+    }
+}
+
+@include tab-ui(
+    $background-color: $tab-background-color,
+    $active-background-color: $tab-active-background-color,
+
+    $background-gradient: $tab-background-gradient,
+    $active-background-gradient: $tab-active-background-gradient,
+
+    $color: $tab-color,
+    $active-color: $tab-active-color,
+
+    $border-color: $tab-border-color,
+    $active-border-color: $tab-active-border-color,
+
+
+    $border-style: $tab-border-style,
+    $border-width: $tab-border-width,
+
+    $border-radius: $tab-border-radius,
+    $border-radius-big: $tab-border-radius-big,
+
+    $font-weight: $tab-font-weight,
+    $font-size: $tab-font-size,
+    $font-size-big: $tab-font-size-big,
+    $line-height: $tab-line-height,
+    $line-height-big: $tab-line-height-big,
+    $font-family: $tab-font-family,
+
+    $padding: $tab-padding,
+    $padding-big: $tab-padding-big,
+
+    $icon-size: $tab-icon-size,
+    $icon-size-big: $tab-icon-size-big,
+    $icon-font-size: $tab-icon-font-size,
+    $icon-font-size-big: $tab-icon-font-size-big,
+    $icon-horizontal-spacing: $tab-icon-horizontal-spacing,
+    $icon-horizontal-spacing-big: $tab-icon-horizontal-spacing-big,
+    $icon-vertical-spacing: $tab-icon-vertical-spacing,
+    $icon-vertical-spacing-big: $tab-icon-vertical-spacing-big,
+
+    $disabled-opacity: $button-disabled-opacity,
+
+    $badge-background-color: $button-badge-background-color,
+    $badge-background-gradient: $button-badge-background-gradient,
+    $badge-color: $button-badge-color,
+    $badge-border-color: $button-badge-border-color,
+    $badge-border-radius: $button-badge-border-radius,
+    $badge-min-width: $button-badge-min-width,
+    $badge-max-width: $button-badge-max-width,
+    $badge-font-weight: $button-badge-font-weight,
+    $badge-font-size: $button-badge-font-size,
+    $badge-font-family: $button-badge-font-family,
+    $badge-line-height: $button-badge-line-height,
+    $badge-top: $button-badge-top,
+    $badge-right: $button-badge-right,
+    $badge-bottom: $button-badge-bottom,
+    $badge-left: $button-badge-left,
+    $badge-padding: $button-badge-padding
+);

@@ -1,0 +1,122 @@
+//// Icons used with permission from Drew Wilson
+//// http://pictos.drewwilson.com/
+//// Pictos icons are (c) 2010 Drew Wilson
+
+@font-face {
+    font-family: 'Pictos';
+    src: url('#{$pictos-font-path}/pictos-web.eot');
+    src: url('#{$pictos-font-path}/pictos-web.eot?#iefix') format('embedded-opentype'),
+    url('#{$pictos-font-path}/pictos-web.woff') format('woff'),
+    url('#{$pictos-font-path}/pictos-web.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.pictos {
+    font-family: Pictos;
+}
+
+.pictos-anchor:before { content: $pictos-var-anchor; }
+.pictos-box:before { content: $pictos-var-box; }
+.pictos-upload:before { content: $pictos-var-upload; }
+.pictos-forbidden:before { content: $pictos-var-forbidden; }
+.pictos-lightning:before { content: $pictos-var-lightning; }
+.pictos-rss:before { content: $pictos-var-rss; }
+.pictos-team:before { content: $pictos-var-team; }
+.pictos-help:before { content: $pictos-var-help; }
+.pictos-info:before { content: $pictos-var-info; }
+.pictos-attachment:before { content: $pictos-var-attachment; }
+.pictos-heart:before { content: $pictos-var-heart; }
+.pictos-list:before { content: $pictos-var-list; }
+.pictos-music:before { content: $pictos-var-music; }
+.pictos-table:before { content: $pictos-var-table; }
+.pictos-folder:before { content: $pictos-var-folder; }
+.pictos-pencil:before { content: $pictos-var-pencil; }
+.pictos-chat2:before { content: $pictos-var-chat2; }
+.pictos-retweet:before { content: $pictos-var-retweet; }
+.pictos-search:before { content: $pictos-var-search; }
+.pictos-time:before { content: $pictos-var-time; }
+.pictos-switch:before { content: $pictos-var-switch; }
+.pictos-camera:before { content: $pictos-var-camera; }
+.pictos-chat:before { content: $pictos-var-chat; }
+.pictos-settings2:before { content: $pictos-var-settings2; }
+.pictos-settings:before { content: $pictos-var-settings; }
+.pictos-tags:before { content: $pictos-var-tags; }
+.pictos-attachment2:before { content: $pictos-var-attachment2; }
+.pictos-bird:before { content: $pictos-var-bird; }
+.pictos-cloud:before { content: $pictos-var-cloud; }
+.pictos-delete_black1:before { content: $pictos-var-delete_black1; }
+.pictos-eye:before { content: $pictos-var-eye; }
+.pictos-file:before { content: $pictos-var-file; }
+.pictos-browser:before { content: $pictos-var-browser; }
+.pictos-home:before { content: $pictos-var-home; }
+.pictos-inbox:before { content: $pictos-var-inbox; }
+.pictos-network:before { content: $pictos-var-network; }
+.pictos-key:before { content: $pictos-var-key; }
+.pictos-radio:before { content: $pictos-var-radio; }
+.pictos-mail:before { content: $pictos-var-mail; }
+.pictos-news:before { content: $pictos-var-news; }
+.pictos-case:before { content: $pictos-var-case; }
+.pictos-photos:before { content: $pictos-var-photos; }
+.pictos-power:before { content: $pictos-var-power; }
+.pictos-action:before { content: $pictos-var-action; }
+.pictos-favorites:before { content: $pictos-var-favorites; }
+.pictos-plane:before { content: $pictos-var-plane; }
+.pictos-user:before { content: $pictos-var-user; }
+.pictos-video:before { content: $pictos-var-video; }
+.pictos-compose:before { content: $pictos-var-compose; }
+.pictos-truck:before { content: $pictos-var-truck; }
+.pictos-chart2:before { content: $pictos-var-chart2; }
+.pictos-chart:before { content: $pictos-var-chart; }
+.pictos-expand:before { content: $pictos-var-expand; }
+.pictos-refresh:before { content: $pictos-var-refresh; }
+.pictos-check:before { content: $pictos-var-check; }
+.pictos-check2:before { content: $pictos-var-check2; }
+.pictos-play:before { content: $pictos-var-play; }
+.pictos-pause:before { content: $pictos-var-pause; }
+.pictos-stop:before { content: $pictos-var-stop; }
+.pictos-forward:before { content: $pictos-var-forward; }
+.pictos-rewind:before { content: $pictos-var-rewind; }
+.pictos-play2:before { content: $pictos-var-play2; }
+.pictos-refresh2:before { content: $pictos-var-refresh2; }
+.pictos-minus:before { content: $pictos-var-minus; }
+.pictos-battery:before { content: $pictos-var-battery; }
+.pictos-left:before { content: $pictos-var-left; }
+.pictos-right:before { content: $pictos-var-right; }
+.pictos-calendar:before { content: $pictos-var-calendar; }
+.pictos-shuffle:before { content: $pictos-var-shuffle; }
+.pictos-wireless:before { content: $pictos-var-wireless; }
+.pictos-speedometer:before { content: $pictos-var-speedometer; }
+.pictos-more:before { content: $pictos-var-more; }
+.pictos-print:before { content: $pictos-var-print; }
+.pictos-download:before { content: $pictos-var-download; }
+.pictos-warning_black:before { content: $pictos-var-warning_black; }
+.pictos-locate:before { content: $pictos-var-locate; }
+.pictos-trash:before { content: $pictos-var-trash; }
+.pictos-cart:before { content: $pictos-var-cart; }
+.pictos-bank:before { content: $pictos-var-bank; }
+.pictos-flag:before { content: $pictos-var-flag; }
+.pictos-add:before { content: $pictos-var-add; }
+.pictos-delete:before { content: $pictos-var-delete; }
+.pictos-lock:before { content: $pictos-var-lock; }
+.pictos-unlock:before { content: $pictos-var-unlock; }
+.pictos-minus2:before { content: $pictos-var-minus2; }
+.pictos-add2:before { content: $pictos-var-add2; }
+.pictos-up:before { content: $pictos-var-up; }
+.pictos-down:before { content: $pictos-var-down; }
+.pictos-screens:before { content: $pictos-var-screens; }
+.pictos-bell:before { content: $pictos-var-bell; }
+.pictos-quote:before { content: $pictos-var-quote; }
+.pictos-volume_mute:before { content: $pictos-var-volume_mute; }
+.pictos-volume:before { content: $pictos-var-volume; }
+.pictos-question:before { content: $pictos-var-question; }
+.pictos-arrow_left:before { content: $pictos-var-arrow_left; }
+.pictos-arrow_right:before { content: $pictos-var-arrow_right; }
+.pictos-arrow_up:before { content: $pictos-var-arrow_up; }
+.pictos-arrow_down:before { content: $pictos-var-arrow_down; }
+.pictos-organize:before { content: $pictos-var-organize; }
+.pictos-bookmarks:before { content: $pictos-var-bookmarks; }
+.pictos-loop2:before { content: $pictos-var-loop2; }
+.pictos-star:before { content: $pictos-var-star; }
+.pictos-maps:before { content: $pictos-var-maps; }
+.pictos-reply:before { content: $pictos-var-reply; }

@@ -1,0 +1,540 @@
+// These variables may or may not have already been defined by the theme.
+$app-background-color: dynamic(#fff);
+$app-primary-text-color: dynamic(if($theme-name == 'theme-cupertino', #157efb, #000));
+$app-secondary-text-color: dynamic(if($theme-name == 'theme-neptune', gray, #000));
+
+.card {
+    > .x-inner, .x-body > .x-inner, .x-inner:not(.x-toolbar-inner).x-scroll-scroller {
+        @include st-box;
+        @include st-box-orient(vertical);
+        @include st-box-align(center);
+        @include st-box-pack(center);
+    }
+
+    .x-innerhtml {
+        text-align: center;
+        font-size: 18px;
+        line-height: 24px;
+        padding: 10px;
+        width: 75%;
+        margin: 0 auto;
+
+        .x-phone & {
+            width: auto;
+            padding: 20px;
+        }
+    }
+
+    .action {
+        display: inline-block;
+        background-color: rgba(#000, .06);
+        border: 1px solid rgba(#fff, .1);
+        padding: 1px 5px;
+        @include border-radius(4px);
+        color: #657b83;
+    }
+
+    code {
+        color: #859900;
+    }
+}
+
+#launchscreen {
+    @include st-box;
+    @include st-box-orient(vertical);
+    @include st-box-align(center);
+    @include st-box-pack(center);
+
+    .x-innerhtml {
+        width: 90%;
+
+        .x-landscape & {
+            width: 90%;
+        }
+
+        > div {
+            text-align: left;
+            background-color: darken($app-background-color, 4);
+            color: $app-primary-text-color;
+            padding: 20px;
+            font-size: 12pt;
+            line-height: 18px;
+        }
+    }
+
+    h2, h3 {
+        font-weight: bold;
+    }
+
+    p {
+        color: $app-secondary-text-color;
+    }
+
+    h3 {
+        color: $app-primary-text-color;
+    }
+
+    .feature {
+        padding-left: 65px;
+        position: relative;
+        margin: 15px;
+        min-height: 60px;
+
+        > img {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    }
+
+    .main {
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        min-height: 80px;
+    }
+
+    footer {
+        padding: 10px 0 0;
+        font-size: 10pt;
+        color: $app-secondary-text-color;
+    }
+
+    a {
+        font-weight: bold;
+        text-decoration: none;
+        color: $base-color;
+    }
+
+    h1 {
+        font-size: 18pt;
+        font-weight: bold;
+        color: $app-primary-text-color;
+    }
+
+    span {
+        color: $app-secondary-text-color;
+    }
+}
+
+// Touch Pad Demo
+#touchdemo > .x-panel-body {
+    padding: 20px;
+}
+
+#touchpad {
+    line-height: 60px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 48px;
+    padding-top: 30px;
+    @include border-radius(30px);
+    border: 8px dashed #d6d6d6;
+    color: #ccc;
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, .8);
+
+    .x-phone & {
+        font-size: 21px;
+    }
+
+    .x-tablet & {
+        margin: 20px;
+    }
+}
+
+.x-ie #touchpad {
+    @include border-radius(0px);
+}
+
+#touchinfopanel {
+    border-right: 1px solid #000;
+    background-color: #eee;
+
+    .x-toolbar-metal {
+        height: 30px;
+        border-top: 1px solid #666;
+        border-bottom: 1px solid #666;
+
+        .x-toolbar-title {
+            line-height: 30px !important;
+            font-size: 16px;
+            text-shadow: rgba(0, 0, 0, .5) 0 -1px 0;
+        }
+    }
+}
+
+.dataview-basic {
+    .x-dataview-item {
+        width: 100%;
+        padding: 15px;
+        border-bottom: 1px solid #c2c2c2;
+        height: 128px;
+
+        &:last-child {
+            border-bottom: 0px;
+        }
+
+        .img {
+            display: inline-block;
+            width: 95px;
+            height: 95px;
+            background-repeat: no-repeat;
+            background-size: 104%;
+            background-position: 50%;
+            float: left;
+        }
+
+        .content {
+            vertical-align: top;
+            margin-left: 100px;
+            padding: 30px 0px 0px 20px;
+
+            .name {
+                font-size: 20px;
+                font-weight: bold;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .affiliation {
+                color: #9d9d9d;
+                font-size: 14px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+    }
+}
+
+// Weather demo
+
+.demo-weather {
+    text-align: center;
+}
+
+.day {
+    display: inline-block;
+    background-color: #f9f9f9;
+    color: rgba(0, 0, 0, .6);
+    text-shadow: #fff 0 1px 0;
+    width: 8em;
+    text-align: center;
+    @include border-radius(15px);
+    @include st-box-shadow(inset 0 0 4px #888);
+    padding: 1em;
+    margin: .5em;
+
+    .x-android & {
+        @include box-shadow(none);
+    }
+}
+
+.date {
+    font-size: .8em;
+}
+
+.icon img {
+    @include border-radius(10px);
+    margin: .6em;
+    width: 3.5em;
+}
+
+.temp {
+    margin-top: .2em;
+    display: block;
+    font-size: 2.2em;
+    line-height: .5em;
+}
+
+.temp_low {
+    display: inline;
+    font-size: .5em;
+    color: rgba(30, 30, 30, .5);
+}
+
+// Blog posts
+
+.blog-post h3 {
+    margin-bottom: .5em;
+
+    a {
+        color: #000;
+        font-weight: bold;
+        text-decoration: none;
+        line-height: 1.3em;
+        border-bottom: 1px solid #ddd;
+    }
+}
+
+.x-video-ghost {
+    background-color: white
+}
+
+// Dataview Examples
+.dataview-horizontal, .dataview-inline {
+    background-color: #d0d0d0;
+
+    .name {
+        width: 75px;
+    }
+
+    .img {
+        display: inline-block;
+        width: 75px;
+        height: 75px;
+        background-repeat: no-repeat;
+        background-size: 104%;
+        background-position: 50%;
+    }
+
+    .x-dataview-item {
+        @include box-shadow(0px 5px 10px -6px black);
+        padding: 10px 10px 20px 10px;
+        margin: 5px;
+        background-color: white;
+        div {
+            color: black;
+            padding-top: 10px;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+}
+
+// Awesome Audio fixes
+.myAudio-outer {
+    text-align: center;
+    background-color: #6A466F;
+}
+
+.myAudio {
+    position: relative;
+}
+
+.myAudio audio {
+    position: absolute;
+    top: 50%;
+    margin-top: -12px;
+    width: 100%;
+}
+
+
+@if $theme-name == 'theme-cupertino' {
+    #mainNestedList {
+        border-right: 1px solid #ccc;
+    }
+
+    .charttoolbar {
+        .x-button {
+            border: 1px solid $ios7-blue;
+            background-color: white;
+        }
+    }
+
+    .placeholderlabel-form {
+        .container-borders {
+            border-top: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+
+            .x-field:first-child {
+                border-right: 1px solid #ccc;
+            }
+        }
+    }
+} @else if $theme-name == 'theme-mountainview' {
+    #touchpad {
+        background-color: rgb(100, 100, 100);
+    }
+
+    #touchinfopanel {
+        background-color: #333;
+    }
+
+    .card .x-innerhtml {
+        color: white;
+    }
+} @else if $theme-name == 'theme-tizen' {
+    .card {
+        .x-innerhtml {
+            color: $dark-primary-text-color;
+        }
+
+        .action {
+            color: $dark-primary-text-color;;
+        }
+
+        code {
+            color: $dark-primary-text-color;;
+        }
+    }
+
+    #launchscreen {
+        .x-innerhtml {
+            > div {
+                background-color: $winset-gray-blue;
+                color: $dark-primary-text-color;
+            }
+        }
+
+        p {
+            color: $dark-primary-text-color;
+        }
+
+        h3 {
+            color: $dark-primary-text-color;
+        }
+        .main {
+            border-bottom: 1px solid #ccc;
+        }
+
+        footer {
+            color: $dark-primary-text-color;
+        }
+
+        a {
+            color: $dark-primary-text-color;;
+        }
+
+        h1 {
+            color: $dark-primary-text-color;
+        }
+
+        span {
+            color: $dark-primary-text-color;
+        }
+    }
+
+    // Touch Pad Demo
+    #touchpad {
+        background-color: $winset-gray-blue;
+    }
+
+    #touchinfopanel {
+        background-color: $winset-gray-blue;
+    }
+
+    .x-carousel-item {
+        background-color: $winset-gray-blue;
+        border: 1px solid $winset-black;
+    }
+
+    .blog-post h3 a {
+        color: $dark-primary-text-color;
+        border-bottom-color: $dark-secondary-text-color;
+    }
+
+    .x-toolbar.charttoolbar {
+        .x-button {
+            background: $dark-gradient-down-gray;
+            border-color: transparent;
+            border-left: 0;
+            padding: 5px;
+
+            &.x-button-pressing {
+                background: $dark-gradient-down-blue;
+                .x-button-icon:before, .x-button-label {
+                    color: $dark-primary-text-color;
+                }
+            }
+        }
+    }
+
+
+    .x-theme-variation-light {
+        .card {
+            .x-innerhtml {
+                color: $light-primary-text-color;
+            }
+
+            .action {
+                color: $light-primary-text-color;
+            }
+
+            code {
+                color: $light-primary-text-color;
+            }
+        }
+
+        #launchscreen {
+            .x-innerhtml {
+                > div {
+                    background-color: $light-secondary-text-color;
+                    color: $light-primary-text-color;
+                }
+            }
+
+            p {
+                color: $light-primary-text-color;
+            }
+
+            h3 {
+                color: $light-primary-text-color;
+            }
+            .main {
+                border-bottom: 1px solid #ccc;
+            }
+
+            footer {
+                color: $light-primary-text-color;
+            }
+
+            a {
+                color: $light-primary-text-color;;
+            }
+
+            h1 {
+                color: $light-primary-text-color;
+            }
+
+            span {
+                color: $light-primary-text-color;
+            }
+        }
+
+        // Touch Pad Demo
+        #touchpad {
+            color: $light-primary-text-color;
+            background-color: $light-secondary-text-color;
+        }
+
+        #touchinfopanel {
+            color: $light-primary-text-color;
+            background-color: $light-secondary-text-color;
+        }
+
+        .x-carousel-item {
+            background-color: $light-primary-text-color;
+            border: 1px solid $light-secondary-text-color;
+        }
+
+        .blog-post h3 a {
+            color: $light-primary-text-color;
+            border-bottom-color: $light-secondary-text-color;
+        }
+
+        .x-toolbar.charttoolbar {
+            .x-button {
+                background: $light-secondary-text-color;
+                border-color: transparent;
+                border-left: 0;
+                padding: 5px;
+
+                &.x-button-pressing {
+                    .x-button-icon:before, .x-button-label {
+                        color: $light-primary-text-color;
+                    }
+                }
+            }
+        }
+
+
+        .x-carousel-item {
+            background-color: $light-primary-background-color;
+            border: 1px solid $light-secondary-text-color;
+        }
+    }
+}

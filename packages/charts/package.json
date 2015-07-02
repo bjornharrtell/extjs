@@ -1,0 +1,62 @@
+{
+    "name": "charts",
+    "alternateName": ["sencha-charts"],
+    "type": "code",
+    "creator": "Sencha",
+    "summary": "Sencha Charts",
+    "detailedDescription": "Sencha Charts is a package that allows to generate charts of different types (line, columns, scatter, radar, gauge, etc...). It also includes the Drawing library which provides an abstraction sitting on top of HTML Canvas and SVG.",
+    "version": "6.0.0.640",
+    "compatVersion": "1.0.0",
+    "format": "1",
+    "sass": {
+        "namespace": "Ext",
+        "etc": "${package.dir}/sass/etc/all.scss,${package.dir}/${toolkit.name}/sass/etc/all.scss",
+        "var": "${package.dir}/sass/var,${package.dir}/${toolkit.name}/sass/var",
+        "src": "${package.dir}/sass/src,${package.dir}/${toolkit.name}/sass/src"
+    },
+    "slicer": {
+        "js": [
+            {
+                "path": "${package.dir}/sass/example/custom.js",
+                "isWidgetManifest": true
+            }
+        ]
+    },
+    "output": {
+        "base": "${framework.dir}/build/packages/${package.name}/${toolkit.name}/${build.id}",
+        "js": "..",
+        "sass": ""
+    },
+    
+    "framework": "ext",
+    "local": true,
+    "requires": ["core"],
+    "classpath": "${package.dir}/src,${package.dir}/${toolkit.name}/src",
+    "overrides": "${package.dir}/overrides,${package.dir}/${toolkit.name}/overrides",
+    "js": [
+    ],
+
+    "builds": {
+        "triton": {
+            "toolkit": "classic",
+            "theme": "theme-triton"
+        },
+        "neptune": {
+            "toolkit": "classic",
+            "theme": "theme-neptune"
+        },
+        "crisp": {
+            "toolkit": "classic",
+            "theme": "theme-crisp"
+        },
+        "classic": {
+            "toolkit": "classic",
+            "theme": "theme-classic"
+        },
+        "modern-neptune": {
+            "toolkit": "modern",
+            "theme": "theme-neptune"
+        } 
+    }
+
+}

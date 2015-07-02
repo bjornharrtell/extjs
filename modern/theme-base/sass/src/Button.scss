@@ -1,0 +1,69 @@
+/**
+ * @class Ext.Button
+ */
+
+.x-button,
+.x-tab {
+    @include st-box;
+    @include st-box-align(center);
+
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+
+    &.x-hasbadge {
+        overflow: visible;
+    }
+}
+
+.x-button-icon {
+    position: relative;
+    background-repeat: no-repeat;
+    background-position: center;
+    text-align: center;
+}
+
+.x-button-icon.x-shown {
+    display: block;
+}
+
+.x-button-icon.x-hidden {
+    display: none;
+}
+
+// Button icon alignment
+.x-iconalign-left,
+.x-icon-align-right {
+    @include st-box-orient(horizontal);
+}
+
+.x-iconalign-top,
+.x-iconalign-bottom {
+    @include st-box-orient(vertical);
+}
+
+.x-iconalign-bottom,
+.x-iconalign-right {
+    @include st-box-direction(reverse);
+}
+
+.x-iconalign-center {
+    @include st-box-pack(center);
+}
+
+// Button labels
+.x-button-label {
+    @include st-box-flex(1);
+    @include st-box-align(center);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: center;
+    display: block;
+    overflow: hidden;
+}
+
+.x-badge {
+    z-index: 2;
+    position: absolute;
+    text-overflow: ellipsis;
+}

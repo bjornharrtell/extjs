@@ -1,0 +1,142 @@
+.x-toolbar {
+  background-color: #f7f7f7;
+
+  .x-dock .x-button .x-button-icon {
+    @include st-box-flex(0);
+    height: 1.7em;
+  }
+
+  .x-button .x-button-icon:before {
+    line-height: 1.5em;
+  }
+  .x-title{
+    text-align: center;
+    font-weight: 300;
+    color: #222;
+  }
+
+
+  .x-field-textarea,
+  .x-field-text,
+  .x-field-number,
+  .x-field-search {
+    .x-component-outer {
+      @include box-shadow($toolbar-input-border-color 0 .1em 0 inset, $toolbar-input-border-color 0 -.1em 0 inset, $toolbar-input-border-color .1em 0 0 inset, $toolbar-input-border-color -.1em 0 0 inset, rgba(#000, .25) 0 .15em .4em inset);
+    }
+  }
+}
+
+.moviesearch .x-form {
+  min-width: 50%;
+  .x-field-search {
+    width:100%;
+
+    input {
+      padding-left: 15px
+    }
+  }
+}
+
+.movie .img {
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.grid .x-list-item {
+  display: inline-block;
+  width: 50%;
+  border: none !important;
+  @include perspective(300px);
+
+  body.x-ios &.x-item-pressed {
+    .movie {
+      @include transform(translateZ(20px));
+    }
+  }
+
+  @include query-small {
+    width: 50%;
+  }
+
+  @include query-small-landscape {
+    width: 33%;
+  }
+
+  @include query-medium {
+    width:33%;
+  }
+
+  @include query-large {
+    width: 25%
+  }
+
+  .movie {
+    @include st-box;
+    @include st-box-orient(vertical);
+    @include st-box-align(center);
+    @include transition-duration(.3s);
+
+    $width: (320/2) - ($list-item-padding *2);
+    $height: $width * (266/180);
+
+    .title {
+      white-space: nowrap;
+      width: $width;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: .75em;
+      text-align: center;
+      padding-bottom: 5px;
+    }
+
+
+    .img {;
+      background-color: black;
+      width: $width;
+      height: $height;
+      background-position: 50%;
+      background-size: cover;
+      @include box-shadow(10px 10px 38px -8px black);
+    }
+    .ratings {
+      width: $width;
+      @include st-box;
+      @include st-box-orient(horizontal);
+      //@include box-shadow(0px 7px 33px -13px black);
+      .critics {
+        border-left: 1px solid lightgray;
+        text-align: right;
+      }
+      .user:not(.unknown) {
+        //@include inline-icon("user");
+      }
+
+      .critics:not(.unknown) {
+        //@include inline-icon("pencil");
+      }
+      .user, .critics {
+        position: relative;
+        &:not(.unknown):before {
+          text-align: left;
+          font-size: 0.75em;
+          line-height: 2.8em;
+          margin-right: .5em;
+          color: rgba(0,0,0,.2);
+        }
+        @include st-box;
+        @include st-box-pack(center);
+        @include st-box-align(center);
+        padding: 5px;
+        background-color: rgb(211, 77, 77);
+        width: 50%;
+      }
+      .user.success, .critics.success {
+        background-color: rgb(94, 177, 94);
+      }
+
+      .user.unknown, .critics.unknown{
+        background-color: #ddd;
+      }
+    }
+  }
+}

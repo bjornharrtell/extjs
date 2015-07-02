@@ -1,0 +1,7 @@
+#navigation-breadcrumb {
+    @if $theme-name == 'theme-neptune' or $theme-name == 'theme-neptune-touch' {
+        .x-tool-img {
+            background-image: theme-background-image('tools/tool-sprites-dark');
+        }
+    }
+}

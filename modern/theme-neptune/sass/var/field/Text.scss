@@ -1,0 +1,88 @@
+/**
+ * @class Ext.field.Text
+ */
+
+/**
+ * @var {color}
+ * TextField input background-color
+ */
+$textfield-input-background-color: dynamic(#fff);
+
+/**
+ * @var {color}
+ * TextField input padding
+ */
+$textfield-input-padding: dynamic(.23em .4em);
+
+/**
+ * @var {color}
+ * TextField input padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$textfield-input-padding-big: dynamic(.2em .4em);
+
+/**
+ * @var {string/number}
+ * TextField input font-weight
+ */
+$textfield-input-font-weight: dynamic($font-weight-normal);
+
+/**
+ * @var {number}
+ * TextField input font-size
+ */
+$textfield-input-font-size: dynamic(1rem);
+
+/**
+ * @var {number}
+ * TextField input font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$textfield-input-font-size-big: dynamic($textfield-input-font-size);
+
+/**
+ * @var {number}
+ * TextField input line-height
+ */
+$textfield-input-line-height: dynamic(1.23em);
+
+/**
+ * @var {number}
+ * TextField input line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$textfield-input-line-height-big: dynamic(1.6em);
+
+/**
+ * @var {string}
+ * TextField input font-family
+ */
+$textfield-input-font-family: dynamic($font-family);
+
+/**
+ * @var {number}
+ * TextField clear icon font-size
+ */
+$textfield-clear-icon-font-size: dynamic(1.23em);
+
+/**
+ * @var {number}
+ * TextField clear icon font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$textfield-clear-icon-font-size-big: dynamic(1.2em);
+
+/**
+ * @var {number}
+ * TextField clear icon size. If specified in terms of `em` units, the icon will be sized
+ * relative to {@link #$textfield-clear-icon-font-size}.
+ */
+$textfield-clear-icon-size: dynamic(1em);
+
+/**
+ * @var {string/list}
+ * The checkbox icon
+ */
+$textfield-clear-icon: dynamic($fa-var-times-circle $textfield-clear-icon-font-size $font-icon-font-family);
+
+/**
+ * @var {color}
+ * The checkbox color
+ */
+$textfield-clear-icon-color: dynamic($neutral-dark-color);

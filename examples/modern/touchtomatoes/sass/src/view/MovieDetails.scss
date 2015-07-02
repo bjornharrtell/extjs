@@ -1,0 +1,121 @@
+.moviedetails {
+  z-index: 9999;
+  .x-button {
+    border: 0;
+    border-radius: 0;
+    background: rgb(246, 255, 148);
+    font-weight: 100;
+
+    &.x-button-pressing {
+      background: #F8E766;
+      background-image: none;
+    }
+
+    .x-button-label {
+      font-weight: 100;
+    }
+  }
+
+  .title {
+    text-align: center;
+    font-weight: 100;
+    font-size: 1.5em;
+    padding: 10px;
+    line-height: 1em;
+    max-height: 300px;
+    overflow: hidden;
+
+    @include query-small-landscape {
+      font-size: 1.5em;
+    }
+
+    @include query-medium {
+      font-size: 2.5em;
+    }
+
+    @include query-large {
+      font-size: 3em;
+    }
+  }
+
+  .img {
+    width: 100%;
+    height: 75px;
+
+    @include query-medium {
+      height: 200px;
+    }
+
+    @include query-large {
+      height: 300px;
+    }
+    background-position: 50%;
+    background-size: contain;
+    @include box-shadow(inset 0px 0px 14px 0px rgba(0, 0, 0, 0.5));
+
+    @include query-small-landscape {
+      display: none;
+    }
+  }
+
+  .info {
+    @include st-box;
+    @include st-box-orient(horizontal);
+    font-size: .8em;
+    font-weight: 400;
+
+    @include query-small-landscape {
+      font-size: .5em;
+    }
+
+    .rating, .vbox {
+      padding: 10px;
+    }
+
+    .vbox {
+      text-align: right;
+    }
+
+    .spacer {
+      @include st-box-flex(1);
+    }
+  }
+
+  ul.cast {
+    padding: 3px;
+    background-color: #d3d3d3;
+    @include st-box;
+    @include st-box-orient(horizontal);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    li {
+      font-size: .4em;
+      @include query-medium {
+        font-size: .8em;
+      }
+
+      @include query-large {
+        font-size: 1em;
+      }
+
+      font-weight: 300;
+
+      &:before {
+        content: ", ";
+      }
+
+      &:first-child:before {
+        content: ""
+      }
+    }
+  }
+
+  .content .x-innerhtml {
+    text-align: justify;
+    padding: 10px;
+    font-weight: 300;
+    font-size: .8em;
+  }
+}

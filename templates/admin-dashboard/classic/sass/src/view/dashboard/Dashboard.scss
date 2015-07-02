@@ -1,0 +1,183 @@
+.dashboard-main-chart{
+    .x-panel-body-default {
+        color:$color;
+    }
+}
+
+.top-info-container{
+    color: #4590D3;
+    font-size: 13px;
+    font-family: "Open Sans";
+    .inner {
+        white-space: nowrap;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .dashboard-analytics-percentage{
+        font-size: 14px;
+    }
+}
+.dashboard-tools{
+    font-size: 18px;
+    color: #fff;
+    line-height: 15px;
+    .x-tool-img{
+        background-image: none;
+    }
+}
+.graph-analysis-left .x-progress-bar {
+    background-color: $progress-bar-background-color;
+}
+#dashboard {
+    .quick-graph-panel {
+        .x-panel-header {
+            background: $lightest-color;
+            padding: 12px;
+            .x-tool-img {
+                display: none;
+            }
+            .x-fa, .x-title-text {
+                color: $color;
+                line-height: 16px;
+                &.x-title-text {
+                    padding-left: 10px;
+                }
+            }
+            .x-title-icon-wrap {
+                height: 30px;
+                width: 30px;
+                border-radius: 15px;
+                background: $chart-icon-background-color;
+                padding: 0;
+            }
+        }
+    }
+}
+
+.weather-panel {
+    background: #fff;
+}
+
+.weather-image-container {
+    height: 80px;
+    width: 100px;
+    float: left;
+    background: $weather-img-background-color;
+    text-align: center;
+    padding-top: 20px;
+}
+.weather-details-container {
+    color: $progress-bar-background-color;
+    line-height: 20px;
+    float: left;
+    padding: 20px;
+
+    :first-child{
+        margin-bottom: 4px;
+        font-size: 30px;
+    }
+}
+
+.graph-analysis-right{
+    border-left: 1px solid $base-border-color;
+    .right-value{
+        text-align:right;
+    }
+}
+
+.dashboard-member-grid .x-fa, .user-grid .x-fa{
+    height: 20px;
+    width: 20px;
+    background: $grid-item-edit-btn-color;
+    line-height: 20px;
+    float: left;
+    margin-right:10px;
+    &:before{
+        display:block;
+        line-height:20px;
+        text-align:center;
+    }
+    &.fa-close{
+        background-color: $grid-item-close-btn-color;
+        color: $lightest-color;
+    }
+    &.fa-ban{
+        background-color: $grid-item-ban-btn-color;
+        color: $lightest-color;
+    }
+    &.x-action-col-icon{
+        font-size: 13px !important;
+    }
+}
+
+.overflow-ellipsis{
+    overflow:hidden;
+}
+.pie-legend-container {
+    font-size: 11px;
+    text-overflow:ellipsis;
+    .quick-graph-pie-legend{
+        height: 15px;
+        width: 15px;
+    }
+    .x-autocontainer-innerCt{
+        padding-left: 10px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        line-height:14px;
+    }
+}
+
+.bottom-indent {
+    margin-bottom: 16px;
+}
+
+.left-aligned-div{
+    float:left;
+}
+
+.right-aligned-div{
+    float: right;
+}
+.services-text {
+    margin: 0 0 10px 5px;
+    height: 86px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.services-legend {
+    min-width: 240px;
+    div {
+        width: 15px;
+        height: 15px;
+        float: left;
+        margin: 1px 5px 0 0;
+    }
+    span {
+        font-size: 11px;
+        width: 33%;
+        display: inline-block;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+}
+
+.service-finance .x-progress-bar, .legend-finance {
+    background-color:$grid-item-ban-btn-color;
+}
+.service-research .x-progress-bar, .legend-research,
+.widget-progressbar .x-progress-bar {
+    background-color: $legend-research;
+}
+.service-marketing .x-progress-bar, .legend-marketing {
+    background-color: $legend-marketing;
+}
+.force-notext-button, .force-notext-button .x-frame-mc{
+    @include btn-border($force-background-color);
+}
+
+.white-panel {
+    background: #fff;
+}

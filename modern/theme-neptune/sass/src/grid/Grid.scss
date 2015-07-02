@@ -1,0 +1,183 @@
+// Default grid styling
+.x-grid-cell {
+    background-color: $grid-cell-background-color;
+    color: $grid-cell-color;
+
+    .x-item-selected & {
+        background-color: $grid-cell-selected-background-color;
+        @include color-by-background($grid-cell-selected-background-color);
+    }
+
+    .x-item-pressed & {
+        background: $grid-cell-pressed-background-color none;
+    }
+
+    .x-grid-cell-inner {
+        @include font($grid-cell-font-weight, $grid-cell-font-size, $grid-cell-line-height, $grid-cell-font-family);
+        padding: $grid-cell-padding;
+        @if $enable-big {
+            .x-big & {
+                font-size: $grid-cell-font-size-big;
+                line-height: $grid-cell-line-height-big;
+                padding: $grid-cell-padding-big;
+            }
+        }
+    }
+
+    border-bottom: 1px solid $grid-cell-border-color;
+
+    .x-button,
+    .x-field {
+        margin-top: -(top($grid-cell-padding));
+        margin-bottom: -(bottom($grid-cell-padding));
+
+        @if $enable-big {
+            .x-big & {
+                margin-top: -(top($grid-cell-padding-big));
+                margin-bottom: -(bottom($grid-cell-padding-big));
+            }
+        }
+    }
+
+    .x-grid-summaryrow & {
+        background-color: $grid-summary-row-cell-background-color;
+        color: $grid-summary-row-cell-color;
+
+        .x-grid-cell-inner {
+            @include font($grid-summary-row-cell-font-weight, $grid-summary-row-cell-font-size, $grid-summary-row-cell-line-height, $grid-summary-row-cell-font-family);
+            padding: $grid-summary-row-cell-padding;
+            @if $enable-big {
+                .x-big & {
+                    font-size: $grid-summary-row-cell-font-size-big;
+                    line-height: $grid-summary-row-cell-line-height-big;
+                    padding: $grid-summary-row-cell-padding-big;
+                }
+            }
+        }
+    }
+}
+
+.x-grid-header {
+    background-color: $grid-group-header-background-color;
+    border-top: 1px solid $grid-group-header-border-color;
+    border-bottom: 1px solid $grid-group-header-border-color;
+
+    color: $grid-group-header-color;
+    @include font($grid-group-header-font-weight, $grid-group-header-font-size, $grid-group-header-line-height, $grid-group-header-font-family);
+    padding: $grid-group-header-padding;
+
+    @if $enable-big {
+        .x-big & {
+            font-size: $grid-group-header-font-size-big;
+            line-height: $grid-group-header-line-height-big;
+            padding: $grid-group-header-padding-big;
+        }
+    }
+}
+
+
+.x-grid-viewoptions {
+    background-color: #fff;
+    border-color: $sheet-border-color;
+}
+
+.#{$prefix}column-options-sortablehandle,
+.#{$prefix}column-options-visibleindicator,
+.#{$prefix}column-options-groupindicator,
+.#{$prefix}column-options-folder,
+.#{$prefix}column-options-leaf {
+    height: 1em;
+    width: 1em;
+    font-size: $gridviewoptions-icon-font-size;
+    @if $enable-big {
+        .x-big & {
+            font-size: $gridviewoptions-icon-font-size-big;
+        }
+    }
+}
+
+.x-column-options-itemwrap {
+    @include st-box;
+    @include st-box-align(center);
+
+    > * {
+        margin-right: .5em;
+    }
+
+    > :last-child {
+        margin-right: 0;
+    }
+}
+
+.x-column-options-sortablehandle {
+    @include font-icon($fa-var-bars FontAwesome);
+    color: $neutral-dark-color;
+}
+
+.x-column-options-text {
+    @include st-box-flex;
+}
+
+.x-column-options-visibleindicator {
+    @include font-icon($fa-var-eye FontAwesome);
+    color: $base-color;
+}
+
+.x-column-options-groupindicator {
+    @include font-icon($fa-var-group FontAwesome);
+    color: $neutral-dark-color;
+}
+
+.x-column-options-folder,
+.x-column-options-leaf {
+    color: #91E698;
+}
+
+.x-column-options-folder {
+    @include font-icon($fa-var-folder FontAwesome);
+
+}
+.x-column-options-leaf {
+    @include font-icon($fa-var-file FontAwesome);
+}
+
+.x-column-options-hidden {
+    .x-column-options-visibleindicator,
+    .x-column-options-text,
+    .x-column-options-folder,
+    .x-column-options-leaf {
+        color: $neutral-dark-color;
+    }
+}
+
+.x-column-options-grouped .x-column-options-groupindicator {
+    color: $base-color;
+}
+
+.x-grid-multiselection-column {
+	color: #C0C0C0;
+
+    &.x-grid-multiselection-allselected:after {
+        color: #1464AE !important;
+    }
+}
+
+.x-grid-multiselection-cell {
+	color: #C0C0C0;
+}
+
+.x-item-selected .x-grid-multiselection-cell:after {
+    color: #1464AE;
+}
+
+.x-grid-pagingtoolbar {
+    border-top-color: #d7d7d7;
+}
+
+.#{$prefix}grid-pagingtoolbar-prev {
+    @include font-icon($fa-var-angle-left FontAwesome);
+}
+
+.#{$prefix}grid-pagingtoolbar-next {
+    @include font-icon($fa-var-angle-right FontAwesome);
+}

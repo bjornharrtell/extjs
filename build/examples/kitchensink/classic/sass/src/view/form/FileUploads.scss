@@ -1,0 +1,11 @@
+@if $theme-name == 'theme-classic' or $theme-name == 'theme-gray' {
+    .file-uploads-image-add {
+        background-image: url(images/image_add.png);
+    }
+} @else {
+    .file-uploads-image-add:before {
+        font: 16px/1 FontAwesome;
+        content: $fa-var-file-image-o;
+    }
+}
+

@@ -1,0 +1,17 @@
+.email-inbox-panel{
+    .fa-heart:before {
+        color: $active-heart-icon-color;
+    }
+
+    .fa-heart-o:before{
+        color: $inactive-heart-icon-color;
+    }
+
+    .x-grid-body{
+        border-width: 1px;
+    }
+
+    .x-grid-cell-special{
+        border-right-width: 0;
+    }
+}

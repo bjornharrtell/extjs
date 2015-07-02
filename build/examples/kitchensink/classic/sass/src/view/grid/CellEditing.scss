@@ -1,0 +1,11 @@
+@if $theme-name == 'theme-classic' or $theme-name == 'theme-gray' {
+    .cell-editing-delete-row {
+        background-image: url(images/icons/fam/delete.gif);
+    }
+} @else {
+    .cell-editing-delete-row:before {
+        font: 16px/1 FontAwesome;
+        color: $red-icon-color;
+        content: $fa-var-minus-circle;
+    }
+}

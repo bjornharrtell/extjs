@@ -1,0 +1,86 @@
+// COLOR PALETTE
+
+$exec-dark-background: dynamic(#3e4752);
+$exec-light-background: dynamic(#ececec);
+$exec-tile-background: dynamic(#ffffff);
+
+$exec-blue-color: dynamic(#2e6eaf);
+$exec-red-color: dynamic(#f1495b);
+$exec-green-color: dynamic(#11c897);
+$exec-light-blue-color: dynamic(saturate(lighten($exec-blue-color, 53%), 70%));
+
+$exec-font-light-color: dynamic(#a0a7b8);
+$exec-font-color: dynamic(#878ea2);
+$exec-font-dark-color: dynamic($exec-dark-background);
+
+//Proxima Nova is preferred font, but it is not a free font.
+$exec-font-family: dynamic("Proxima Nova", "Helvetica Neue", Helvetica, Arial, sans-serif);
+
+$exec-font-size-small-content: dynamic(10px);
+$exec-font-size-content: dynamic(12px);
+$exec-font-size-small-title: dynamic(14px);
+$exec-font-size-medium-title: dynamic(18px);
+$exec-font-size-large-title: dynamic(20px);
+$exec-font-size-xlarge-title: dynamic(28px);
+
+$exec-font-regular: dynamic(400);
+$exec-font-semibold: dynamic(500);
+$exec-font-bold: dynamic(800);
+
+// GENERAL APP STYLE
+
+$base-color: dynamic($exec-blue-color);
+$color: dynamic($exec-font-dark-color);
+$font-family: dynamic($exec-font-family);
+$body-background-color: dynamic($exec-light-background);
+
+// PANEL
+
+$panel-body-color: dynamic($exec-font-dark-color);
+$panel-body-background-color: dynamic($exec-light-background);
+
+// TOOLBAR
+
+$toolbar-background-color: dynamic($exec-light-background);
+
+// GRID
+
+$grid-cell-inner-padding: dynamic(15px);
+$grid-header-padding: dynamic(15px);
+$grid-grouped-header-padding: dynamic(15px);
+
+$grid-column-header-font-weight: dynamic($exec-font-bold);
+$grid-row-cell-font-weight: dynamic($exec-font-semibold);
+
+$grid-row-cell-color: dynamic($exec-font-color);
+$grid-column-header-color: dynamic($exec-font-dark-color);
+
+$grid-grouped-header-border-width: dynamic(0);
+
+$grid-grouped-header-background-color: dynamic($exec-light-blue-color);
+
+// BUTTON
+// since only small (default) buttons are used, only small button styles are defined here
+
+$button-small-border-radius: dynamic(3px);
+$button-default-border-color: dynamic($exec-blue-color);
+$button-toolbar-border-color: dynamic($button-default-border-color);
+
+$button-default-background-color: dynamic($exec-blue-color);
+$button-toolbar-background-color: dynamic($button-default-background-color);
+
+$button-default-color: dynamic(white);
+$button-toolbar-color: dynamic($button-default-color);
+
+$button-toolbar-inner-border-color-focus: dynamic(mix($button-toolbar-background-color, $button-toolbar-color, 20%));
+
+$button-small-font-size: dynamic($exec-font-size-content);
+$button-small-font-weight: dynamic($exec-font-bold);
+
+// MENU
+
+$menu-text-color: dynamic($exec-font-dark-color);
+
+// BORDERS
+
+$light-grey-borders: dynamic($exec-font-color);

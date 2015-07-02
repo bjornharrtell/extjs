@@ -1,0 +1,29 @@
+/**
+ * @class Ext.Panel
+ */
+
+.x-panel,
+.x-msgbox {
+    position: relative;
+}
+
+.x-panel.x-floating,
+.x-msgbox,
+.x-form.x-floating {
+    .x-panel-inner,
+    > .x-body {
+        z-index: 1;
+    }
+}
+
+.x-panel.x-floating > .x-dock,
+.x-msgbox > .x-dock,
+.x-form.x-floating > .x-dock {
+    z-index: 1;
+}
+
+.x-panel.x-floating > .x-dock.x-sized,
+.x-msgbox > .x-dock.x-sized,
+.x-form.x-floating > .x-dock.x-sized {
+    margin: 6px;
+}

@@ -1,0 +1,54 @@
+{
+    "name": "amf",
+    "alternateName": ["sencha-amf"],
+    "type": "code",
+    "creator": "Sencha",
+    "summary": "AMF Direct support, for using AMF-based servers as data sources",
+    "detailedDescription": "Use AMF-based server (e.g. BlazeDS, Coldfusion) as data sources for grid. Also allows making RMI calls to the server using Direct.",
+    "version": "6.0.0.640",
+    "compatVersion": "6.0.0",
+    "framework": "ext",
+    "format": "1",
+    "output": "${framework.dir}/build/packages/${package.name}",
+    "local": true,
+    "toolkit": "classic",
+
+    "sass": {
+        /**
+         * The root namespace to use when mapping *.scss files to classes in the
+         * sass/src and sass/var directories. For example, "Ext.view.View" would
+         * map to "sass/src/view/View.scss". If we changed this to "Ext.view" then
+         * it would map to "sass/src/View.scss".
+         */
+        "namespace": "Ext",
+
+        /**
+         * This file is automatically imported into the SASS build before "vars".
+         */
+        "etc": "${package.dir}/sass/etc/all.scss",
+
+        /**
+         * This is the folder where SASS "vars" resides. This is searched for SCSS files
+         * that match the JavaScript classes used.
+         */
+        "var": "${package.dir}/sass/var",
+
+        /**
+         * This is the folder where SASS "src" resides. This is searched for SCSS files
+         * that match the JavaScript classes used.
+         */
+        "src": "${package.dir}/sass/src"
+    },
+
+    /**
+     * This is the comma-separated list of folders where classes reside. These classes
+     * must be explicitly required to be included in the build.
+     */
+    "classpath": "${package.dir}/src",
+
+    /**
+     * This is the comma-separated list of folders where overrides reside. These files
+     * are automatically required in the build when the package is required.
+     */
+    "overrides": "${package.dir}/overrides"
+}

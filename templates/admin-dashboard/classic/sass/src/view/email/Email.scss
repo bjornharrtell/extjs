@@ -1,0 +1,81 @@
+.menu-item-common{
+    padding-right:20px;
+    position: absolute;
+    font-family: FontAwesome;
+    right: 0;
+}
+.navigation-email{
+    // @include box-shadow(0px,2px,8px,0px,rgba(0,0,0,.15));
+    @include box-shadow(0, 1px, 2px, 0, rgba(0,0,0,0.2));
+    &.x-menu-default {
+        border-width: 0;
+    }
+
+
+    .x-menu-header{
+        line-height: 20px;
+        background-color: $lightest-color;
+        padding: 20px 15px;
+
+        border-bottom: 1px solid #ccc !important;
+        .x-title-icon-wrap{
+            width: 40px;
+            text-align: left;
+        }
+        .x-title-text {
+            font-size: 16px;
+        }
+
+    }
+
+    .x-menu-item-icon-default{
+        padding-top: 10px;
+        padding-left: 12px;
+        font-size: 16px;
+        line-height: 24px;
+    }
+
+    .x-menu-item {
+        line-height: 50px;
+        .x-menu-item-text-default.x-menu-item-indent-no-separator{
+            margin-left: 56px;
+        }
+        &.online-user {
+            .x-menu-item-text-default.x-menu-item-indent-no-separator{
+                margin-left: 18px;
+            }
+            .x-menu-item-link:after{
+                color: $online-menu-item-color;
+                content: "\f111";
+                @extend .menu-item-common;
+            }
+            &.x-menu-item-active {
+                .x-menu-item-link:after{
+                    color: white;
+                }
+            }
+        }
+        &.offline-user{
+            .x-menu-item-link:after{
+                color: $offline-menu-item-color;
+                content: "\f111";
+                @extend .menu-item-common;
+            }
+            .x-menu-item-text-default.x-menu-item-indent-no-separator{
+                margin-left: 20px;
+            }
+        }
+        .x-menu-item-link:after {
+            @extend .menu-item-common;
+            color: $default-menu-item-color;
+            content: "\f105";
+        }
+    }
+}
+ 
+.email-main-wrap .x-menu-item-default.x-menu-item-active{
+    background-color: $menu-item-focus-color;
+    .fa, .x-menu-item-link:after, .x-menu-item.offline-user .x-menu-item-link:after{
+        color : $lightest-color;
+    }
+}

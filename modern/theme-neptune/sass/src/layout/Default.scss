@@ -1,0 +1,91 @@
+.x-managed-borders {
+    .x-docked-top {
+        border-bottom-width: 0 !important;
+    }
+
+    .x-docked-bottom {
+        border-top-width: 0 !important;
+    }
+
+    .x-docked-left {
+        border-right-width: 0 !important;
+    }
+
+    .x-docked-right {
+        border-left-width: 0 !important;
+    }
+}
+
+.x-noborder-l {
+    border-left-width: 0 !important;
+}
+
+.x-noborder-b {
+    border-bottom-width: 0 !important;
+}
+
+.x-noborder-bl {
+    border-bottom-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.x-noborder-r {
+    border-right-width: 0 !important;
+}
+
+.x-noborder-rl {
+    border-right-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.x-noborder-rb {
+    border-right-width: 0 !important;
+    border-bottom-width: 0 !important;
+}
+
+.x-noborder-rbl {
+    border-right-width: 0 !important;
+    border-bottom-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.x-noborder-t {
+    border-top-width: 0 !important;
+}
+
+.x-noborder-tl {
+    border-top-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.x-noborder-tb {
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+}
+
+.x-noborder-tbl {
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.x-noborder-tr {
+    border-top-width: 0 !important;
+    border-right-width: 0 !important;
+}
+
+.x-noborder-trl {
+    border-top-width: 0 !important;
+    border-right-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.x-noborder-trb {
+    border-top-width: 0 !important;
+    border-right-width: 0 !important;
+    border-bottom-width: 0 !important;
+}
+
+.x-noborder-trbl {
+    border-width: 0 !important;
+}

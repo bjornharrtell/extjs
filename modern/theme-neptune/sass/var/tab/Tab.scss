@@ -1,0 +1,281 @@
+/**
+ * @class Ext.tab.Tab
+ */
+
+/**
+ * @var {color}
+ * Tab background-color
+ */
+$tab-background-color: dynamic(mix(#fff, $base-highlight-color, 10%));
+
+/**
+ * @var {color}
+ * Tab background-color when active
+ */
+$tab-active-background-color: dynamic($base-light-color);
+
+/**
+ * @var {string/list}
+ * Tab background-gradient.  Can be either the name of a gradient defined by
+ * {@link Global_CSS#background-gradient} or a list of color stops.
+ */
+$tab-background-gradient: dynamic(null);
+
+/**
+ * @var {string/list}
+ * Tab background-gradient when active.  Can be either the name of a gradient
+ * defined by {@link Global_CSS#background-gradient} or a list of color stops.
+ */
+$tab-active-background-gradient: dynamic(null);
+
+/**
+ * @var {color}
+ * Tab text color
+ */
+$tab-color: dynamic($light-color);
+
+/**
+ * @var {color}
+ * Tab text color when active
+ */
+$tab-active-color: dynamic($base-color);
+
+/**
+ * @var {color/list}
+ * Tab border-color
+ */
+$tab-border-color: dynamic($tab-background-color);
+
+/**
+ * @var {color/list}
+ * Tab border-color when active
+ */
+$tab-active-border-color: dynamic($tab-active-background-color);
+
+/**
+ * @var {number/list}
+ * Tab border-width
+ */
+$tab-border-width: dynamic(1px);
+
+/**
+ * @var {string/list}
+ * Tab border-style
+ */
+$tab-border-style: dynamic(solid);
+
+/**
+ * @var {number}
+ * Tab border-radius
+ */
+$tab-border-radius: dynamic(.25em);
+
+/**
+ * @var {number}
+ * Tab border-radius in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$tab-border-radius-big: dynamic(.2em);
+
+/**
+ * @var {string/number}
+ * Tab font-weight
+ */
+$tab-font-weight: dynamic($font-weight-bold);
+
+/**
+ * @var {number}
+ * Tab font-size
+ */
+$tab-font-size: dynamic(1rem);
+
+/**
+ * @var {number}
+ * Tab font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$tab-font-size-big: dynamic($tab-font-size);
+
+/**
+ * @var {number}
+ * Tab line-height
+ */
+$tab-line-height: dynamic(1.23em);
+
+/**
+ * @var {number}
+ * Tab line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$tab-line-height-big: dynamic(1.6em);
+
+/**
+ * @var {string}
+ * Tab font-family
+ */
+$tab-font-family: dynamic($font-family);
+
+/**
+ * @var {number/list}
+ * Tab padding
+ */
+$tab-padding: dynamic(.23em .6em);
+
+/**
+ * @var {number/list}
+ * Tab padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$tab-padding-big: dynamic(.2em .6em);
+
+/**
+ * @var {number}
+ * Tab icon size.  If specified in terms of `em` units, the icon will be sized
+ * relative to {@link #$tab-icon-font-size}.
+ */
+$tab-icon-size: dynamic(1em);
+
+/**
+ * @var {number}
+ * Tab icon size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * If specified in terms of `em` units, the icon will be sized
+ * relative to {@link #$tab-icon-font-size-big}.
+ */
+$tab-icon-size-big: dynamic(1em);
+
+/**
+ * @var {number}
+ * Tab icon font-size.  Used for configuring the size of font icons
+ */
+$tab-icon-font-size: dynamic($tab-line-height);
+
+/**
+ * @var {number}
+ * Tab icon font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$tab-icon-font-size-big: dynamic($tab-line-height-big);
+
+/**
+ * @var {number}
+ * The space between the tab icon and text when the icon is horizontally aligned
+ */
+$tab-icon-horizontal-spacing: dynamic(.6em);
+
+/**
+ * @var {number}
+ * The space between the tab icon and text when the icon is horizontally aligned
+ * in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$tab-icon-horizontal-spacing-big: dynamic($tab-icon-horizontal-spacing);
+
+/**
+ * @var {number}
+ * The space between the tab icon and text when the icon is vertically aligned
+ */
+$tab-icon-vertical-spacing: dynamic(.2em);
+
+/**
+ * @var {number}
+ * The space between the tab icon and text when the icon is vertically aligned
+ * in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$tab-icon-vertical-spacing-big: dynamic($tab-icon-vertical-spacing);
+
+/**
+ * @var {number}
+ * Tab opacity when disabled
+ */
+$tab-disabled-opacity: dynamic(.5);
+
+/**
+ * @var {color}
+ * The background-color of the tab's {@link #badgeText badge}
+ */
+$tab-badge-background-color: dynamic(darken($alert-color, 10%));
+
+/**
+ * @var {string/list}
+ * The background-gradient of the tab's {@link #badgeText badge} Can be either the name
+ * of a gradient defined by {@link Global_CSS#background-gradient} or a list of color stops.
+ */
+$tab-badge-background-gradient: dynamic($base-background-gradient);
+
+/**
+ * @var {color}
+ * The text color of the tab's {@link #badgeText badge}
+ */
+$tab-badge-color: dynamic(color-by-background($tab-badge-background-color));
+
+/**
+ * @var {color}
+ * The border-color of the tab's {@link #badgeText badge}
+ */
+$tab-badge-border-color: dynamic(darken($tab-badge-background-color, 10%));
+
+/**
+ * @var {number/list}
+ * The border-radius of the tab's {@link #badgeText badge}
+ */
+$tab-badge-border-radius: dynamic(.2em);
+
+/**
+ * @var {number}
+ * The min-width of the tab's {@link #badgeText badge}
+ */
+$tab-badge-min-width: dynamic(2em);
+
+/**
+ * @var {number}
+ * The max-width of the tab's {@link #badgeText badge}
+ */
+$tab-badge-max-width: dynamic(95%);
+
+/**
+ * @var {string/number}
+ * The font-weight of the tab's {@link #badgeText badge}
+ */
+$tab-badge-font-weight: dynamic(null);
+
+/**
+ * @var {number}
+ * The font-size of the tab's {@link #badgeText badge}
+ */
+$tab-badge-font-size: dynamic(1em);
+
+/**
+ * @var {string}
+ * The font-family of the tab's {@link #badgeText badge}
+ */
+$tab-badge-font-family: dynamic($tab-font-family);
+
+/**
+ * @var {number}
+ * The line-height of the tab's {@link #badgeText badge}
+ */
+$tab-badge-line-height: dynamic($tab-line-height);
+
+/**
+ * @var {number}
+ * Offset of the {@link #badgeText badge} from the top of the tab
+ */
+$tab-badge-top: dynamic(-.2em);
+
+/**
+ * @var {number}
+ * Offset of the {@link #badgeText badge} from the right of the tab
+ */
+$tab-badge-right: dynamic(0);
+
+/**
+ * @var {number}
+ * Offset of the {@link #badgeText badge} from the bottom of the tab
+ */
+$tab-badge-bottom: dynamic(null);
+
+/**
+ * @var {number}
+ * Offset of the {@link #badgeText badge} from the left of the tab
+ */
+$tab-badge-left: dynamic(null);
+
+/**
+ * @var {number}
+ * The padding of the tab's {@link #badgeText badge}
+ */
+$tab-badge-padding: dynamic(.1em .3em);

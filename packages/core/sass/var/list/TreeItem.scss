@@ -1,0 +1,98 @@
+/*
+ * This file contains the base variables for styling a treelist.
+ */
+
+$treelist-background-color: dynamic(null);
+
+$treelist-toolstrip-background-color: dynamic(#f8f8f8);
+
+/**
+ * @var {string}
+ * The padding for tree nodes in a `{@link Ext.list.Tree treelist}`.
+ */
+$treelist-color: dynamic(null);
+
+/**
+ * @var {string}
+ * The margin for tree nodes in a `{@link Ext.list.Tree treelist}`.
+ */
+$treelist-padding: dynamic(0 8px);
+
+//--------------------------------------------------------------------------
+
+$treelist-item-line-height: dynamic(36px);
+$treelist-item-line-height-big: dynamic(null);
+
+$treelist-item-color: dynamic($treelist-color);
+
+//--------------------------------------------------------------------------
+
+$treelist-tool-float-indicator-color: dynamic(null);
+$treelist-tool-float-indicator-width: dynamic(null);
+
+$treelist-tool-selected-color: dynamic(null);
+$treelist-tool-selected-background-color: dynamic(null);
+
+$treelist-tool-indicator-selected-color: dynamic(null);
+$treelist-tool-indicator-selected-width: dynamic(null);
+
+//--------------------------------------------------------------------------
+
+$treelist-item-text-color: dynamic($treelist-color);
+
+$treelist-item-text-icon-gap: dynamic(4px);
+
+$treelist-item-text-over-color: dynamic($treelist-item-text-color);
+
+$treelist-item-text-font-size: dynamic(null);
+
+$treelist-item-text-overflow: dynamic(ellipsis);
+
+//--------------------------------------------------------------------------
+
+$treelist-item-expander-color: dynamic($treelist-color);
+
+$treelist-item-expander-over-color: dynamic($treelist-item-expander-color);
+
+$treelist-item-expander-glyph: dynamic($fa-var-angle-right $font-icon-font-family);
+$treelist-item-expander-expanded-glyph: dynamic($fa-var-angle-down $font-icon-font-family);
+
+$treelist-item-expander-width: dynamic(18px);
+$treelist-item-expander-width-big: dynamic(null);
+
+$treelist-item-expander-font-size: dynamic(16px);
+$treelist-item-expander-font-size-big: dynamic(null);
+
+//--------------------------------------------------------------------------
+
+$treelist-item-icon-color: dynamic($treelist-color);
+
+$treelist-item-icon-over-color: dynamic($treelist-item-icon-color);
+
+$treelist-item-icon-width: dynamic(22px);
+$treelist-item-icon-width-big: dynamic(null);
+
+$treelist-item-icon-font-size: dynamic(18px);
+$treelist-item-icon-font-size-big: dynamic(null);
+
+//--------------------------------------------------------------------------
+
+$treelist-item-expanded-background-color: dynamic(null);
+
+$treelist-item-expanded-child-background-color: dynamic(null);
+
+
+//--------------------------------------------------------------------------
+$treelist-row-indicator-selected-color: dynamic(null);
+
+$treelist-row-indicator-selected-over-color: dynamic(null);
+
+$treelist-row-indicator-over-color: dynamic(null);
+
+$treelist-row-indicator-width: dynamic(null);
+
+$treelist-row-selected-background-color: dynamic(null);
+
+$treelist-row-selected-over-background-color: dynamic(null);
+
+$treelist-row-over-background-color: dynamic(null);

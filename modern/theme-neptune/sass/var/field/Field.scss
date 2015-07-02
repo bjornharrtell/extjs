@@ -1,0 +1,81 @@
+/**
+ * @class Ext.field.Field
+ */
+
+/**
+ * @var {color}
+ * Field border-color
+ */
+$field-border-color: dynamic($neutral-color);
+
+/**
+ * @var {color}
+ * Field background-color
+ */
+$field-background-color: dynamic(#fff);
+
+/**
+ * @var {color}
+ * Field label text color
+ */
+$field-label-color: dynamic($color);
+
+/**
+ * @var {color}
+ * Field label text color
+ */
+$field-label-border-color: dynamic($color);
+
+/**
+ * @var {color}
+ * Field label background-color
+ */
+$field-label-background-color: dynamic($neutral-light-color);
+
+/**
+ * @var {color}
+ * Field label padding
+ */
+$field-label-padding: dynamic(.23em .6em);
+
+/**
+ * @var {color}
+ * Field label padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$field-label-padding-big: dynamic(.2em .6em);
+
+/**
+ * @var {string/number}
+ * Field label font-weight
+ */
+$field-label-font-weight: dynamic($font-weight-bold);
+
+/**
+ * @var {number}
+ * Field label font-size
+ */
+$field-label-font-size: dynamic(1rem);
+
+/**
+ * @var {number}
+ * Field label font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$field-label-font-size-big: dynamic($field-label-font-size);
+
+/**
+ * @var {number}
+ * Field label line-height
+ */
+$field-label-line-height: dynamic(1.23em);
+
+/**
+ * @var {number}
+ * Field label line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$field-label-line-height-big: dynamic(1.6em);
+
+/**
+ * @var {string}
+ * Field label font-family
+ */
+$field-label-font-family: dynamic($font-family);

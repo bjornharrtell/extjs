@@ -1,0 +1,10 @@
+@if $theme-name == 'theme-classic' or $theme-name == 'theme-gray' {
+    .widget-grid-user {
+        background-image: url(images/icons/fam/user.png);
+    }
+} @else {
+    .widget-grid-user:before {
+        font: 16px/1 FontAwesome;
+        content: $fa-var-user;
+    }
+}

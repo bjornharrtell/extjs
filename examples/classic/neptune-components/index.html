@@ -1,0 +1,28 @@
+<!DOCTYPE HTML>
+<html manifest="">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Neptune Components</title>
+
+    <script type="text/javascript">
+        var Ext = Ext || {};
+        Ext.beforeLoad = function (tags) {
+            var theme = location.href.match(/theme=([\w-]+)/);
+
+            theme  = (theme && theme[1]) || 'neptune';
+
+            Ext.manifest = theme;
+            tags.test = /testMode=true/.test(location.search);
+            Ext.microloaderTags = tags;
+        };
+    </script>
+
+    <!-- The line below must be kept intact for Sencha Cmd to build your application -->
+    <script id="microloader" type="text/javascript" src="bootstrap.js"></script>
+
+</head>
+<body></body>
+</html>

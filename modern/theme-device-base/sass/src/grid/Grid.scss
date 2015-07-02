@@ -1,0 +1,222 @@
+.#{$prefix}grid-row {
+    border-width: 0 0 1px 0;
+    border-style: solid;
+}
+
+.#{$prefix}grid-cell {
+    line-height: 60px;
+    padding: 0 8px;
+    height: 60px;
+    border-width: 0 1px 0 0;
+}
+
+.#{$prefix}grid-summaryrow {
+    height: 32px;
+    font-size: 0.8em;
+
+    .#{$prefix}grid-cell {
+        height: 32px;
+        line-height: 30px;
+        border-width: 0 0 1px;
+        border-style: solid;
+    }
+}
+
+.#{$prefix}grid-header {
+    line-height: 44px;
+    font-weight: bold;
+}
+
+.#{$prefix}grid-header-container {
+    border-width: 0 1px 1px 0;
+    border-style: solid;
+    height: 65px;
+    font-weight: bold;
+
+    .#{$prefix}grid-header-container-inner {
+        width: 100000px;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .#{$prefix}grid-column {
+        display: inline-block;
+    }
+}
+
+.#{$prefix}grid-column {
+    height: 64px;
+    border-width: 1px 1px 0 1px;
+    border-style: solid;
+    line-height: 64px;
+    vertical-align: middle;
+    padding: 0 8px;
+
+    .#{$prefix}innerhtml {
+        position: relative;
+        display: inline-block;
+    }
+
+    &.#{$prefix}column-sorted-asc,
+    &.#{$prefix}column-sorted-desc {
+        .#{$prefix}innerhtml:after {
+            position: absolute;
+            width: 12px;
+            line-height: 64px;
+            top: 0;
+            height: 64px;
+            font-family: 'Pictos';
+            font-size: 12px;
+        }
+    }
+
+    &.#{$prefix}column-align-left,
+    &.#{$prefix}column-align-center {
+        .#{$prefix}innerhtml:after {
+            right: -16px;
+        }
+    }
+    &.#{$prefix}column-align-right .#{$prefix}innerhtml:after {
+        left: -16px;
+    }
+
+    &.#{$prefix}column-sorted-asc .#{$prefix}innerhtml:after {
+        content: icon-character-for-name('up');
+    }
+    &.#{$prefix}column-sorted-desc .#{$prefix}innerhtml:after {
+        content: icon-character-for-name('down');
+    }
+}
+
+.#{$prefix}grid-headergroup {
+    display: inline-block;
+    position: relative;
+    vertical-align: bottom;
+    height: 64px;
+    padding-top: 32px;
+
+    .#{$prefix}inner > .#{$prefix}innerhtml {
+        height: 32px;
+        line-height: 28px;
+        vertical-align: middle;
+        display: block;
+        position: absolute;
+        width: 100%;
+        top: 0;
+        left: 0;
+        border-style: solid;
+        border-width: 1px;
+    }
+
+    .#{$prefix}grid-column {
+        height: 32px !important;
+        line-height: 27px !important;
+        font-size: 0.7em;
+
+        &.#{$prefix}column-sorted-asc,
+        &.#{$prefix}column-sorted-desc {
+            .#{$prefix}innerhtml:after {
+                line-height: 27px;
+                height: 27px;
+            }
+        }
+    }
+}
+
+.#{$prefix}grid-pagingtoolbar-prev {
+    @include font-icon($pictos-var-arrow_left Pictos);
+}
+
+.#{$prefix}grid-pagingtoolbar-next {
+    @include font-icon($pictos-var-arrow_right Pictos);
+}
+
+.#{$prefix}grid-viewoptions {
+    .#{$prefix}list-item .#{$prefix}innerhtml {
+        padding: 0px !important;
+    }
+
+    .#{$prefix}column-options-header {
+        height: 32px;
+        line-height: 28px;
+        vertical-align: middle;
+        border-style: solid;
+        border-width: 1px;
+        overflow: hidden;
+        padding-left: 10px;
+    }
+
+    .#{$prefix}column-options-sortablehandle,
+    .#{$prefix}column-options-visibleindicator,
+    .#{$prefix}column-options-groupindicator,
+    .#{$prefix}column-options-folder,
+    .#{$prefix}column-options-leaf {
+        width: 40px;
+        height: 48px;
+        position: absolute;
+        bottom: 0;
+
+        &:after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            text-align: center;
+            font-size: 24px;
+            line-height: 48px;
+            vertical-align: middle;
+            font-family: 'Pictos';
+        }
+    }
+
+    .#{$prefix}column-options-sortablehandle {
+        left: 0;
+        &:after {
+            line-height: 54px;
+            content: icon-character-for-name('list');
+        }
+    }
+    .#{$prefix}column-options-visibleindicator {
+        right: 0;
+        &:after {
+            font-size: 30px;
+            line-height: 54px;
+            content: icon-character-for-name('eye');
+        }
+    }
+
+    .#{$prefix}column-options-groupindicator {
+        right: 40px;
+        &:after {
+            font-size: 30px;
+            line-height: 54px;
+            content: icon-character-for-name('team');
+        }
+    }
+
+    .#{$prefix}column-options-folder,
+    .#{$prefix}column-options-leaf {
+        width: 30px;
+        left: 40px;
+
+        &:after {
+            line-height: 52px;
+            content: icon-character-for-name('folder');
+        }
+    }
+
+    .#{$prefix}column-options-leaf:after {
+        content: icon-character-for-name('file');
+    }
+
+    .#{$prefix}column-options-text {
+        display: block;
+        height: 30px;
+        margin: 10px 50px 5px 80px;
+        position: relative;
+        vertical-align: middle;
+        line-height: 28px;
+    }
+}

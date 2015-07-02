@@ -1,0 +1,103 @@
+/**
+ * @class Ext.Toolbar
+ */
+
+/**
+ * @var {color}
+ * Toolbar background-color
+ */
+$toolbar-background-color: dynamic(#fff);
+
+/**
+ * @var {string/list}
+ * Toolbar background-gradient. Can be either the name of a gradient defined by
+ * {@link Global_CSS#background-gradient} or a list of color stops.
+ */
+$toolbar-background-gradient: dynamic(null);
+
+/**
+ * @var {color}
+ * Toolbar border-color
+ */
+$toolbar-border-color: dynamic($neutral-medium-dark-color);
+
+/**
+ * @var {number/list}
+ * Toolbar border-width
+ */
+$toolbar-border-width: dynamic(1px);
+
+/**
+ * @var {number/list}
+ * Toolbar border-style
+ */
+$toolbar-border-style: dynamic(solid);
+
+/**
+ * @var {number/list}
+ * Toolbar padding
+ */
+$toolbar-padding: dynamic(.46rem .5rem);
+
+/**
+ * @var {number/list}
+ * Toolbar padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$toolbar-padding-big: dynamic(.4rem .67rem);
+
+/**
+ * @var {number}
+ * The space in between horizontally aligned Toolbar items
+ */
+$toolbar-horizontal-spacing: dynamic(.2rem);
+
+/**
+ * @var {number}
+ * The space in between horizontally aligned Toolbar items in the
+ * {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$toolbar-horizontal-spacing-big: dynamic(.3rem);
+
+/**
+ * @var {number}
+ * The space in between vertically aligned Toolbar items
+ */
+$toolbar-vertical-spacing: dynamic(.2rem);
+
+/**
+ * @var {number}
+ * The space in between vertically aligned Toolbar items in the
+ * {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$toolbar-vertical-spacing-big: dynamic(.3rem);
+
+/**
+ * @var {color}
+ * Toolbar {@link Ext.Title Title} color
+ */
+$toolbar-title-color: dynamic($highlight-color);
+
+/**
+ * @var {string/number}
+ * Toolbar {@link Ext.Title Title} font-weight
+ */
+$toolbar-title-font-weight: dynamic($font-weight-bold);
+
+/**
+ * @var {number}
+ * Toolbar {@link Ext.Title Title} font-size
+ */
+$toolbar-title-font-size: dynamic(1rem);
+
+/**
+ * @var {number}
+ * Toolbar {@link Ext.Title Title} font-size in the
+ * {@link Ext.Component#$enable-big big} sizing scheme
+ */
+$toolbar-title-font-size-big: dynamic($toolbar-title-font-size);
+
+/**
+ * @var {string}
+ * Toolbar {@link Ext.Title Title} font-family
+ */
+$toolbar-title-font-family: dynamic($font-family);

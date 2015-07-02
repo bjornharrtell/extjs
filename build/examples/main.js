@@ -17,7 +17,7 @@ window.onload = function() {
     
     for (; i < ln; i++) {
         group = groups[i];
-        expanded = !groupIndex;
+        expanded = (groupIndex < 2);
         html +=
 
             '<div class="group-header ' + (expanded ? 'expanded' : 'collapsed') + '">' +

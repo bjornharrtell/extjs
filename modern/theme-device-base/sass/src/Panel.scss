@@ -1,0 +1,13 @@
+.x-msgbox {
+    padding: 6px;
+    background-color: #ccc;
+}
+.x-panel, .x-form {
+    &.x-floating {
+        padding: 6px;
+
+        > * > .x-dock-body {
+            background-color: #fff;
+        }
+    }
+}

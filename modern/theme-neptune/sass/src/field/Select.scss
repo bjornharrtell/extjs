@@ -1,0 +1,45 @@
+/**
+ * @class Ext.field.Select
+ */
+
+.x-field-select .x-field-mask:after {
+    color: $selectfield-trigger-color;
+    position: absolute;
+    right: .4em;
+    height: $selectfield-trigger-size;
+    width: $selectfield-trigger-size;
+    font-size: $selectfield-trigger-font-size;
+    top: 50%;
+    margin-top: -($selectfield-trigger-size / 2);
+    @if $enable-big {
+        .x-big & {
+            font-size: $selectfield-trigger-font-size-big;
+        }
+    }
+    @include font-icon($selectfield-trigger-icon, $pseudo: false);
+    text-align: center;
+}
+
+// Overlay
+
+.x-select-overlay {
+    .x-list-item-label {
+        height: 2.6em;
+    }
+
+    .x-item-selected {
+        .x-list-label {
+            margin-right: 2.6em;
+        }
+
+        &.x-list-item {
+            .x-list-label {
+                @include font-icon($fa-var-check, $pseudo: after, $style-pseudo: true);
+                &:after {
+                    position: absolute;
+                    right: .6em;
+                }
+            }
+        }
+    }
+}

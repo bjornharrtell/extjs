@@ -1,0 +1,6 @@
+$picker-background-color: dynamic(#fff);
+$picker-item-height: dynamic(1.85em);
+$picker-item-height-big: dynamic(2.46em);
+$picker-item-padding: 0 .6em;
+$picker-bar-background-color: dynamic(mix(#fff, $base-light-color, 25%));
+$picker-title-color: $toolbar-title-color;

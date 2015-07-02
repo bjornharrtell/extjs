@@ -1,0 +1,134 @@
+
+.auth-dialog{
+
+    .auth-profile-wrap{
+        background:$base-color;
+        color:$lightest-color;
+        line-height:24px;
+        .user-name-text{
+            font-size: 18px;
+            font-weight:bold;
+        }
+        .user-post-text{
+            font-size:14px;
+        }
+        .auth-profile-img{
+            @include border-radius($circle-border-radius);
+        }
+    }
+    .x-form-text-default{
+        padding: 15px;
+    }
+
+
+    .register-page-back-button,
+    .register-page-back-button .x-frame-mc{
+        background-color: $lightest-color;
+        border:none;
+        padding:5px 0 0 0;
+        .x-btn-inner-default-small{
+            padding : 0;
+            height:20px;
+            color: $base-color;
+            &:hover{
+                text-decoration:underline;
+            }
+        }
+        &.x-btn-pressed.x-btn-default-small{
+            background-color: transparent;
+        }
+    }
+    .trigger-glyph-noop {
+        cursor:default;
+    }
+    .x-form-trigger{
+        text-align:right;
+        width:50px;
+    }
+    .password-trigger,
+    .auth-email-trigger,
+    .auth-password-trigger,
+    .auth-envelope-trigger{
+        &:before{
+            top: 10px;
+            left:-18px;
+            position: relative;
+            color: $dialog-trigger-color;
+            font-size: 30px;
+        }
+
+        &.password-trigger:before,
+        &.auth-password-trigger:before{
+            content: "\f023";
+        }
+        &.auth-email-trigger:before{
+            content: "\f007";
+        }
+        &.auth-envelope-trigger:before{
+            content: "\f0e0";
+        }
+    }
+    .seperator{
+        text-align: center;
+        color: $create-account-background-color;
+        font-family: "Open Sans";
+        display: inline-block;
+        background: $lightest-color;
+        position: relative;
+        z-index: 1;
+        padding: 0 8px;
+    }
+    .link-forgot-password {
+        line-height:32px;
+        color: $base-color;
+        text-decoration:none;
+        margin-left:5px;
+        &:hover{
+            text-decoration:underline;
+        }
+    }
+
+    .x-btn{
+        .x-btn-icon-el{
+            &:before{
+                right: 10px;
+                font-size: 24px;
+                position: absolute;
+            }
+        }
+    }
+
+    .auth-facebook-button .x-fa{
+        color: $lightest-color;
+        font-size: 24px;
+        top:10px;
+        right: 13px;
+    }
+
+    .auth-login-button .x-fa,
+    .auth-resetpassword-button .x-fa{
+        font-size: 32px;
+        right: 11px;
+        top:10px;
+        line-height: 16px;
+    }
+    .auth-create-account-button .x-fa {
+        color: $lightest-color;
+        right: 24px;
+        top:10px;
+    }
+
+    .outer-div{
+        width:100%;
+        text-align: center;
+        &:after{
+            content: " ";
+            width:100%;
+            height: 1px;
+            background-color: $blank-page-color;
+            position:absolute;
+            left: 0;
+            top: 9px;
+        }
+    }
+}

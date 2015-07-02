@@ -3,12 +3,16 @@
  * needed for your application, but these edits will have to be merged by
  * Sencha Cmd when upgrading.
  */
+
+// KitchenSink is not fully WAI-ARIA compliant at this point
+Ext.enableAriaButtons = false;
+
 Ext.application({
     extend: 'KitchenSink.Application',
 
-    name: 'KitchenSink',
+    name: 'KitchenSink'
 
-    autoCreateViewport: 'KitchenSink.view.main.Main'
+    //autoCreateViewport: 'KitchenSink.view.main.Main'
 	
     //-------------------------------------------------------------------------
     // Most customizations should be made to KitchenSink.Application. If you need to

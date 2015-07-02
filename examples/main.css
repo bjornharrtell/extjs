@@ -36,12 +36,6 @@ a {
     overflow: hidden;
 }
 
-@media screen and (max-width: 1000px) {
-    .wrap {
-        width: 100%;
-    }
-}
-
 #sencha-logo,
 #title-text {
     height: 50px;
@@ -205,4 +199,46 @@ div.example-icon {
     padding: 24px 0;
     border-top: 1px solid #c8c8c8;
     color: #888;
+}
+
+
+@media screen and (max-width: 1000px) {
+    #header > .wrap {
+        padding: 0 10px 10px 10px;
+    }
+    
+    .wrap {
+        width: 100%;
+    }
+
+    #header-title {
+        width: 100%;
+        display: block;
+        padding-bottom: 8px;
+    }
+
+    #ext-logo {
+        margin: auto;
+    }
+
+    .header-item {
+        display: inline-block;
+        width: 33%;
+    }
+    
+    .header-link {
+        text-align: center;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .header-item {
+        font-size: .75em;
+    }
+}
+
+@media screen and (max-width: 320px) {
+    .header-item {
+        font-size: .6em;
+    }
 }

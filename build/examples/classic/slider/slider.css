@@ -1,0 +1,15 @@
+#custom-slider:before, #custom-slider:after {
+    content:"";
+    background: url(images/ticks.gif) no-repeat;
+    width: 220px;
+    height: 10px;
+    display: block;
+}
+
+#custom-slider {
+    width: 220px;
+}
+
+h3 {
+    padding:15px 0 5px;
+}

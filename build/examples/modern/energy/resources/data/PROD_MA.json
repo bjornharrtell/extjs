@@ -1,0 +1,402 @@
+{"items": [
+    {
+        "year": 1960,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 394,
+        "crude-oil": 0,
+        "renewable": 53354
+    },
+    {
+        "year": 1961,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 9931,
+        "crude-oil": 0,
+        "renewable": 52769
+    },
+    {
+        "year": 1962,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 8017,
+        "crude-oil": 0,
+        "renewable": 53590
+    },
+    {
+        "year": 1963,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 11181,
+        "crude-oil": 0,
+        "renewable": 52762
+    },
+    {
+        "year": 1964,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 14166,
+        "crude-oil": 0,
+        "renewable": 54148
+    },
+    {
+        "year": 1965,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 11407,
+        "crude-oil": 0,
+        "renewable": 55636
+    },
+    {
+        "year": 1966,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 12572,
+        "crude-oil": 0,
+        "renewable": 58117
+    },
+    {
+        "year": 1967,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 14707,
+        "crude-oil": 0,
+        "renewable": 58183
+    },
+    {
+        "year": 1968,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 13757,
+        "crude-oil": 0,
+        "renewable": 62101
+    },
+    {
+        "year": 1969,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 12614,
+        "crude-oil": 0,
+        "renewable": 64611
+    },
+    {
+        "year": 1970,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 13272,
+        "crude-oil": 0,
+        "renewable": 65043
+    },
+    {
+        "year": 1971,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 15554,
+        "crude-oil": 0,
+        "renewable": 61247
+    },
+    {
+        "year": 1972,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 16179,
+        "crude-oil": 0,
+        "renewable": 59302
+    },
+    {
+        "year": 1973,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 55829,
+        "crude-oil": 0,
+        "renewable": 56501
+    },
+    {
+        "year": 1974,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 32196,
+        "crude-oil": 0,
+        "renewable": 56959
+    },
+    {
+        "year": 1975,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 41636,
+        "crude-oil": 0,
+        "renewable": 53325
+    },
+    {
+        "year": 1976,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 40475,
+        "crude-oil": 0,
+        "renewable": 60502
+    },
+    {
+        "year": 1977,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 39571,
+        "crude-oil": 0,
+        "renewable": 63357
+    },
+    {
+        "year": 1978,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 60943,
+        "crude-oil": 0,
+        "renewable": 67677
+    },
+    {
+        "year": 1979,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 66113,
+        "crude-oil": 0,
+        "renewable": 74298
+    },
+    {
+        "year": 1980,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 35255,
+        "crude-oil": 0,
+        "renewable": 72495
+    },
+    {
+        "year": 1981,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 47766,
+        "crude-oil": 0,
+        "renewable": 73163
+    },
+    {
+        "year": 1982,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 46212,
+        "crude-oil": 0,
+        "renewable": 66640
+    },
+    {
+        "year": 1983,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 66116,
+        "crude-oil": 0,
+        "renewable": 78595
+    },
+    {
+        "year": 1984,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 11221,
+        "crude-oil": 0,
+        "renewable": 65032
+    },
+    {
+        "year": 1985,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 65141,
+        "crude-oil": 0,
+        "renewable": 65453
+    },
+    {
+        "year": 1986,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 25604,
+        "crude-oil": 0,
+        "renewable": 69642
+    },
+    {
+        "year": 1987,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 11863,
+        "crude-oil": 0,
+        "renewable": 60278
+    },
+    {
+        "year": 1988,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 11841,
+        "crude-oil": 0,
+        "renewable": 61835
+    },
+    {
+        "year": 1989,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 31906,
+        "crude-oil": 0,
+        "renewable": 66832
+    },
+    {
+        "year": 1990,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 53647,
+        "crude-oil": 0,
+        "renewable": 65262
+    },
+    {
+        "year": 1991,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 46304,
+        "crude-oil": 0,
+        "renewable": 66581
+    },
+    {
+        "year": 1992,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 49653,
+        "crude-oil": 0,
+        "renewable": 68431
+    },
+    {
+        "year": 1993,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 45574,
+        "crude-oil": 0,
+        "renewable": 69748
+    },
+    {
+        "year": 1994,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 40330,
+        "crude-oil": 0,
+        "renewable": 73475
+    },
+    {
+        "year": 1995,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 47133,
+        "crude-oil": 0,
+        "renewable": 72546
+    },
+    {
+        "year": 1996,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 55922,
+        "crude-oil": 0,
+        "renewable": 78431
+    },
+    {
+        "year": 1997,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 45234,
+        "crude-oil": 0,
+        "renewable": 72313
+    },
+    {
+        "year": 1998,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 59782,
+        "crude-oil": 0,
+        "renewable": 66411
+    },
+    {
+        "year": 1999,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 47218,
+        "crude-oil": 0,
+        "renewable": 65505
+    },
+    {
+        "year": 2000,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 57487,
+        "crude-oil": 0,
+        "renewable": 69797
+    },
+    {
+        "year": 2001,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 53719,
+        "crude-oil": 0,
+        "renewable": 47992
+    },
+    {
+        "year": 2002,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 60237,
+        "crude-oil": 0,
+        "renewable": 46715
+    },
+    {
+        "year": 2003,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 51875,
+        "crude-oil": 0,
+        "renewable": 50455
+    },
+    {
+        "year": 2004,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 61922,
+        "crude-oil": 0,
+        "renewable": 51070
+    },
+    {
+        "year": 2005,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 57138,
+        "crude-oil": 0,
+        "renewable": 40781
+    },
+    {
+        "year": 2006,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 60838,
+        "crude-oil": 0,
+        "renewable": 45633
+    },
+    {
+        "year": 2007,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 53681,
+        "crude-oil": 0,
+        "renewable": 38321
+    },
+    {
+        "year": 2008,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 61345,
+        "crude-oil": 0,
+        "renewable": 42647
+    },
+    {
+        "year": 2009,
+        "coal": 0,
+        "gas": 0,
+        "nuclear": 56442,
+        "crude-oil": 0,
+        "renewable": 42103
+    }
+]}

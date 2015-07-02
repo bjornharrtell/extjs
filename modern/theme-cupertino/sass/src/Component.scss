@@ -1,0 +1,7 @@
+@include icon-font('iOS7', 'ios7/ios7');
+
+.x-layout-card-item {
+	background: $background-color;
+}
+
+@include st-loading-spinner(1em, $ios7-blue, .1em, .25em);

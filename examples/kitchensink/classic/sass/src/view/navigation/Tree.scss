@@ -1,0 +1,6 @@
+#navigation-tree .x-tree-icon {
+    width: 20px;
+    @if $theme-name == 'theme-neptune-touch' or $theme-name == 'theme-crisp-touch' {
+        width: 24px;
+    }
+}

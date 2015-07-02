@@ -1,0 +1,26 @@
+@if $theme-name == 'theme-classic' or $theme-name == 'theme-gray' {
+    .tree-grid-task {
+        background-image: url(images/icons/fam/cog.gif);
+    }
+    .tree-grid-task-folder {
+        background-image: url(images/icons/fam/folder_go.gif);
+    }
+    .tree-grid-edit-task {
+        background-image: url(images/edit_task.png);
+    }
+} @else {
+    .tree-grid-task:before {
+        font: 16px/1 FontAwesome;
+        color: gray;
+        content: $fa-var-cog;
+    }
+    .tree-grid-task-folder:before {
+        font: 16px/1 FontAwesome;
+        content: $fa-var-envelope;
+    }
+    .tree-grid-edit-task:before {
+        font: 16px/1 FontAwesome;
+        content: $fa-var-pencil-square-o;
+    }
+}
+
