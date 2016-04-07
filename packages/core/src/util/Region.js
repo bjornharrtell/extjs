@@ -35,17 +35,17 @@ Ext.define('Ext.util.Region', {
 
     /**
      * Creates a region from the bounding sides.
-     * @param {Number} top Top The topmost pixel of the Region.
-     * @param {Number} right Right The rightmost pixel of the Region.
-     * @param {Number} bottom Bottom The bottom pixel of the Region.
-     * @param {Number} left Left The leftmost pixel of the Region.
+     * @param {Number} top The topmost pixel of the Region.
+     * @param {Number} right The rightmost pixel of the Region.
+     * @param {Number} bottom The bottom pixel of the Region.
+     * @param {Number} left The leftmost pixel of the Region.
      */
-    constructor : function(t, r, b, l) {
+    constructor : function(top, right, bottom, left) {
         var me = this;
-        me.y = me.top = me[1] = t;
-        me.right = r;
-        me.bottom = b;
-        me.x = me.left = me[0] = l;
+        me.y = me.top = me[1] = top;
+        me.right = right;
+        me.bottom = bottom;
+        me.x = me.left = me[0] = left;
     },
 
     /**
@@ -114,18 +114,18 @@ Ext.define('Ext.util.Region', {
 
     /**
      * Modifies the current region to be adjusted by offsets.
-     * @param {Number} top top offset
-     * @param {Number} right right offset
-     * @param {Number} bottom bottom offset
-     * @param {Number} left left offset
+     * @param {Number} top Top offset
+     * @param {Number} right Right offset
+     * @param {Number} bottom Bottom offset
+     * @param {Number} left Left offset
      * @return {Ext.util.Region} this
      */
-    adjust : function(t, r, b, l) {
+    adjust : function(top, right, bottom, left) {
         var me = this;
-        me.top = me.y += t;
-        me.left = me.x += l;
-        me.right += r;
-        me.bottom += b;
+        me.top = me.y += top;
+        me.left = me.x += left;
+        me.right += right;
+        me.bottom += bottom;
         return me;
     },
 

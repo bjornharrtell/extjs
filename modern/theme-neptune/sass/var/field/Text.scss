@@ -16,7 +16,7 @@ $textfield-input-padding: dynamic(.23em .4em);
 
 /**
  * @var {color}
- * TextField input padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * TextField input padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $textfield-input-padding-big: dynamic(.2em .4em);
 
@@ -34,7 +34,7 @@ $textfield-input-font-size: dynamic(1rem);
 
 /**
  * @var {number}
- * TextField input font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * TextField input font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $textfield-input-font-size-big: dynamic($textfield-input-font-size);
 
@@ -46,7 +46,7 @@ $textfield-input-line-height: dynamic(1.23em);
 
 /**
  * @var {number}
- * TextField input line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * TextField input line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $textfield-input-line-height-big: dynamic(1.6em);
 
@@ -64,7 +64,7 @@ $textfield-clear-icon-font-size: dynamic(1.23em);
 
 /**
  * @var {number}
- * TextField clear icon font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * TextField clear icon font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $textfield-clear-icon-font-size-big: dynamic(1.2em);
 

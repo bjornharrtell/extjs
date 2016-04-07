@@ -85,7 +85,7 @@ Ext.define('KitchenSink.view.direct.DirectVC', {
     },
     
     /**
-     * This method will be called when Ext.Direct API is initialized;
+     * This method will be called when Ext Direct API is initialized;
      * derived ViewControllers should override it to finish initialization.
      * @template
      * @protected
@@ -95,7 +95,7 @@ Ext.define('KitchenSink.view.direct.DirectVC', {
     onProviderInit: function(requestUrl, hasProvider) {
         var me = this;
         
-        // "Our" part of Ext.Direct API has been loaded and initialized
+        // "Our" part of Ext Direct API has been loaded and initialized
         if (hasProvider || requestUrl === me.requestUrl) {
             delete me.requestUrl;
             me.providerUrls.push(requestUrl);
@@ -105,7 +105,7 @@ Ext.define('KitchenSink.view.direct.DirectVC', {
     },
     
     onProviderFail: function(requestUrl, error) {
-        Ext.Msg.alert('Ext.Direct init failure', error);
+        Ext.Msg.alert('Ext Direct init failure', error);
     },
     
     // Retrieve provider reference by its URL

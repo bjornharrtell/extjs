@@ -8,8 +8,6 @@ Ext.define('Ext.scroll.DomScroller', {
 
     isDomScroller: true,
 
-    _spacerCls: Ext.baseCSSPrefix +  'domscroller-spacer',
-
     getMaxPosition: function() {
         var element = this.getElement(),
             x = 0,
@@ -52,21 +50,11 @@ Ext.define('Ext.scroll.DomScroller', {
     },
 
     getPosition: function() {
-        var element = this.getElement(),
-            x = 0,
-            y = 0,
-            position;
-
-        if (element && !element.destroyed) {
-            position = this.getElementScroll(element);
-            x = position.left;
-            y = position.top;
+        var me = this;
+        if (me.positionDirty) {
+            me.updateDomScrollPosition();
         }
-
-        return {
-            x: x,
-            y: y
-        };
+        return me.position;
     },
 
     getSize: function() {
@@ -89,48 +77,9 @@ Ext.define('Ext.scroll.DomScroller', {
         return size;
     },
 
-    setSize: function(size) {
-        var me = this,
-            element = me.getElement(),
-            spacer, x, y;
-
-        if (element) {
-            spacer = me.getSpacer();
-
-            // Typically a dom scroller simply assumes the scroll size dictated by its content.
-            // In some cases, however, it is necessary to be able to manipulate this scroll size
-            // (infinite lists for example).  This method positions a 1x1 px spacer element
-            // within the scroller element to set a specific scroll size.
-
-            if (size == null) {
-                spacer.hide();
-            } else {
-                if (typeof size === 'number') {
-                    x = size;
-                    y = size;
-                } else {
-                    x = size.x || 0;
-                    y = size.y || 0;
-                }
-
-                // Subtract spacer size from coordinates (spacer is always 1x1 px in size)
-                if (x > 0) {
-                    x -= 1;
-                }
-                if (y > 0) {
-                    y -= 1;
-                }
-
-                me.setSpacerXY(spacer, x, y);
-                spacer.show();
-            }
-        }
-    },
-
     updateElement: function(element, oldElement) {
         this.initXStyle();
         this.initYStyle();
-        this.callParent([element, oldElement]);
     },
 
     updateX: function(x) {
@@ -143,12 +92,15 @@ Ext.define('Ext.scroll.DomScroller', {
 
     privates: {
         doScrollTo: function(x, y, animate) {
+            // There is an IE8 override of this method; when making changes here
+            // don't forget to update the override as well
             var me = this,
                 element = me.getElement(),
-                maxPosition, dom, to, xInf, yInf;
+                maxPosition, dom, to, xInf, yInf,
+                i;
 
             if (element && !element.destroyed) {
-                dom = this.getElement().dom;
+                dom = element.dom;
 
                 xInf = (x === Infinity);
                 yInf = (y === Infinity);
@@ -188,44 +140,24 @@ Ext.define('Ext.scroll.DomScroller', {
                     }
                     if (x != null) {
                         dom.scrollLeft = x;
+                        // IE8 does not update immediately without this hack.
+                        //<feature legacyBrowser>
+                        if (Ext.isIE8) {
+                            i = dom.scrollLeft;
+                            dom.scrollLeft = x;
+                        }
+                        //</feature legacyBrowser>
                     }
                 }
+
+                // Our position object will need refreshing before returning.
+                me.positionDirty = true;
             }
         },
 
         // rtl hook
         getElementScroll: function(element) {
             return element.getScroll();
-        },
-
-        getSpacer: function() {
-            var me = this,
-                spacer = me._spacer,
-                element;
-
-            // In some cases (e.g. infinite lists) we need to be able to tell the scroller
-            // to have a specific size, regardless of its contents.  This creates a spacer
-            // element which can then be absolutely positioned to affect the element's
-            // scroll size.
-            if (!spacer) {
-                element = me.getElement();
-                spacer = me._spacer = element.createChild({
-                    cls: me._spacerCls
-                });
-
-                spacer.setVisibilityMode(2); // 'display' visibilityMode
-
-                // make sure the element is positioned if it is not already.  This ensures
-                // that the spacer's position will affect the element's scroll size
-                element.position();
-            }
-
-            return spacer;
-        },
-
-        // rtl hook
-        setSpacerXY: function(spacer, x, y) {
-            spacer.setLocalXY(x, y);
         },
 
         stopAnimation: function() {
@@ -235,4 +167,16 @@ Ext.define('Ext.scroll.DomScroller', {
             }
         }
     }
+}, function(DomScroller) {
+    // Ensure the global Ext scroll event fires when the document scrolls.
+    // This is for when a non-viewport based app is used.
+    // DOM scroll events are used for document scrolls.
+    // The Viewport plugin destroys this Scroller at startup.
+    Ext.onDocumentReady(function() {
+        DomScroller.document = new DomScroller({
+            x: true,
+            y: true,
+            element: document.body
+        });
+    });
 });

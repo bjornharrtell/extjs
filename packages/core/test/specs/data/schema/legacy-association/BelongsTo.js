@@ -9,7 +9,7 @@ describe("Ext.data.association.BelongsTo_legacy", function() {
             belongsTo: Ext.apply({
                 model: 'spec.User'
             }, cfg)
-        })
+        });
     }
     
     function doSet(user, options, scope) {

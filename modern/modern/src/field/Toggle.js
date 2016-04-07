@@ -70,7 +70,9 @@ Ext.define('Ext.field.Toggle', {
          */
         cls: 'x-toggle-field',
 
-        /* @cfg {String} labelAlign The position to render the label relative to the field input.
+        /**
+         * @cfg {String} labelAlign
+         * The position to render the label relative to the field input.
          * Available options are: 'top', 'left', 'bottom' and 'right'
          * @accessor
          */

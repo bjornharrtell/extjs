@@ -1,0 +1,34 @@
+@include progress-ui(
+    $ui: 'plain',
+
+    $height: 5px,
+    $border-width: 0,
+    $border-radius: 0
+);
+
+.top-info-container{
+    color: #4590D3;
+    .inner {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.dashboard-graph-analysis-left {
+    border-right: 1px solid #ddd;
+}
+
+.graph-analysis-right-inner-container.right-value {
+    text-align: right;
+}
+
+.graph-analysis-right {
+    padding-left: 15px;
+}
+
+@media (max-width: 699px) {
+    .graph-analysis-right {
+        padding-left: 0;
+    }
+}

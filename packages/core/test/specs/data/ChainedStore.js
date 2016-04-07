@@ -27,6 +27,7 @@ describe("Ext.data.ChainedStore", function() {
     function createSource(cfg) {
         cfg = cfg || {};
         source = new Ext.data.Store(Ext.applyIf(cfg, {
+            asynchronousLoad: false,
             model: 'spec.User'
         }));
     }

@@ -265,6 +265,17 @@ Ext.define('Ext.Toolbar', {
         }
 
         this.callParent([item, index]);
+    },
+
+    factoryItem: function (config) {
+        if (config === '->') {
+            config = {
+                xtype: 'component',
+                flex: 1
+            };
+        }
+
+        return this.callParent([ config ]);
     }
 });
 

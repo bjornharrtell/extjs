@@ -31,7 +31,7 @@
             <then>
                 <cordova-echo message="Creating Cordova Application with ID &quot;${app.cordova.config.id}&quot; and Name &quot;${app.cordova.config.name}&quot;"/>
                 <x-shell reloadprofile="true" dir="${app.dir}">
-                    cordova ${cordova.cli.options} create "${app.cordova.config.path}" ${app.cordova.config.id} ${app.cordova.config.name}
+                    cordova ${cordova.cli.options} create "${app.cordova.config.path}" ${app.cordova.config.id} "${app.cordova.config.name}"
                 </x-shell>
             </then>
         </if>

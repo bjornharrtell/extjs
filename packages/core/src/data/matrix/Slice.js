@@ -3,8 +3,6 @@
  * @private
  */
 Ext.define('Ext.data.matrix.Slice', {
-    stub: null,
-
     constructor: function (side, id) {
         /**
          * @property {String/Number} id
@@ -39,28 +37,12 @@ Ext.define('Ext.data.matrix.Slice', {
         store.on('load', me.onStoreLoad, me, {single: true});
     },
 
-    changeId: function (newId) {
-        var me = this,
-            oldId = me.id,
-            side = me.side,
-            slices = side.slices,
-            slice = slices[oldId],
-            members = slice.members,
-            index = side.index,
-            otherSlices = side.inverse.slices,
-            assoc, otherId, otherMembers;
+    commit: function() {
+        var members = this.members,
+            id;
 
-        me.id = newId;
-        slices[newId] = slice;
-        delete slices[oldId];
-
-        for (otherId in members) {
-            assoc = members[otherId];
-            assoc[index] = newId;
-
-            otherMembers = otherSlices[otherId].members;
-            otherMembers[newId] = otherMembers[oldId];
-            delete otherMembers[oldId];
+        for (id in members) {
+            members[id][2] = 0;
         }
     },
 
@@ -133,6 +115,31 @@ Ext.define('Ext.data.matrix.Slice', {
                     otherSlice.notify.call(otherSlice.scope, otherSlice, id, state);
                 }
             }
+        }
+    },
+
+    updateId: function (newId) {
+        var me = this,
+            oldId = me.id,
+            side = me.side,
+            slices = side.slices,
+            slice = slices[oldId],
+            members = slice.members,
+            index = side.index,
+            otherSlices = side.inverse.slices,
+            assoc, otherId, otherMembers;
+
+        me.id = newId;
+        slices[newId] = slice;
+        delete slices[oldId];
+
+        for (otherId in members) {
+            assoc = members[otherId];
+            assoc[index] = newId;
+
+            otherMembers = otherSlices[otherId].members;
+            otherMembers[newId] = otherMembers[oldId];
+            delete otherMembers[oldId];
         }
     },
 

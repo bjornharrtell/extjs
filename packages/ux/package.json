@@ -1,40 +1,63 @@
 {
-    "format": "1",
+    /**
+     * The namespace of this package.
+     *
+     * As a general rule, all classes that belong to this package should be under this namespace
+     * if multiple namespaces are part of this package, set this to "".
+     */
+    "namespace": "Ext",
+
     "name": "ux",
-    "alternateName": ["ext-ux"],
     "type": "code",
+    "alternateName": [
+        "ext-ux"
+    ],
+
+    "framework": "ext",
+
     "creator": "Sencha",
     "summary": "User eXtensions",
     "detailedDescription": "This package contains extensions to Ext JS that should be considered as 'beta' or 'work in progress'. We hope they are useful 'as is' or serve as inspiration for more feature-rich work.",
-    "version": "6.0.0.640",
+
+    "version": "6.0.1.250",
     "compatVersion": "6.0.0",
+    "format": "1",
+
+    "output": {
+        "base": "${framework.dir}/build/packages/${package.name}/${toolkit.name}/${build.id}",
+        "js": "..",
+        "sass": ""
+    },
+    "local": true,
 
     "sass": {
-        /**
-         * The root namespace to use when mapping *.scss files to classes in the
-         * sass/src and sass/var directories. For example, "Ext.view.View" would
-         * map to "sass/src/view/View.scss". If we changed this to "Ext.view" then
-         * it would map to "sass/src/View.scss".
-         */
         "namespace": "Ext.ux",
 
-        /**
-         * This file is automatically imported into the SASS build before "vars".
-         */
-        "etc": "${package.dir}/sass/etc/all.scss,${package.dir}/${toolkit.name}/sass/etc/all.scss",
+        "etc": [
+            "${package.dir}/sass/etc/all.scss",
+            "${package.dir}/${toolkit.name}/sass/etc/all.scss"
+        ],
 
-        /**
-         * This is the folder where SASS "vars" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
-        "var": "${package.dir}/sass/var,${package.dir}/${toolkit.name}/sass/var",
+        "var": [
+            "${package.dir}/sass/var",
+            "${package.dir}/${toolkit.name}/sass/var"
+        ],
 
-        /**
-         * This is the folder where SASS "src" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
-        "src": "${package.dir}/sass/src,${package.dir}/${toolkit.name}/sass/src"
+        "src": [
+            "${package.dir}/sass/src",
+            "${package.dir}/${toolkit.name}/sass/src"
+        ]
     },
+
+    "classpath": [
+        "${package.dir}/src",
+        "${package.dir}/${toolkit.name}/src"
+    ],
+
+    "overrides": [
+        "${package.dir}/overrides",
+        "${package.dir}/${toolkit.name}/overrides"
+    ],
 
     "slicer": {
         "js": [
@@ -46,30 +69,11 @@
     },
 
     "resource": {
-      "paths": "${package.dir}/resources,${package.dir}/${toolkit.name}/resources"
+        "paths": [
+            "${package.dir}/resources",
+            "${package.dir}/${toolkit.name}/resources"
+        ]
     },
-
-    "output": {
-        "base": "${framework.dir}/build/packages/${package.name}/${toolkit.name}/${build.id}",
-        "js": "..",
-        "sass": ""
-    },
-
-    "local": true,
-
-    "framework": "ext",
-
-    /**
-     * This is the comma-separated list of folders where classes reside. These classes
-     * must be explicitly required to be included in the build.
-     */
-    "classpath": "${package.dir}/src,${package.dir}/${toolkit.name}/src",
-
-    /**
-     * This is the comma-separated list of folders where overrides reside. These files
-     * are automatically required in the build when the package is required.
-     */
-    "overrides": "${package.dir}/overrides,${package.dir}/${toolkit.name}/overrides",
 
     "builds": {
         "triton": {

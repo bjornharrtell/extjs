@@ -6,13 +6,13 @@
  * @var {number}
  * The font-size of the checkbox
  */
-$checkboxfield-checkbox-font-size: dynamic(1.24em);
+$checkboxfield-checkbox-font-size: dynamic(1.24rem);
 
 /**
  * @var {number}
- * The font-size of the checkbox in the {@link Ext.Component#$enable-big big} sizing scheme
+ * The font-size of the checkbox in the {@link Global_CSS#$enable-big big} sizing scheme
  */
-$checkboxfield-checkbox-font-size-big: dynamic(1.2em);
+$checkboxfield-checkbox-font-size-big: dynamic(1.2rem);
 
 /**
  * @var {number}

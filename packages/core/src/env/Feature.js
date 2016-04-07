@@ -367,13 +367,11 @@ Ext.feature = {
          */
         name: 'touchScroll',
         fn: function() {
-            var supports = Ext.supports,
-                touchScroll = 0;
+            var touchScroll = 0;
 
-            if (navigator.msMaxTouchPoints ||
-                    (Ext.isWebKit && supports.TouchEvents && Ext.os.is.Desktop)) {
+            if (Ext.os.is.Desktop && (navigator.maxTouchPoints || navigator.msMaxTouchPoints)) {
                 touchScroll = 1;
-            } else if (supports.Touch) {
+            } else if (Ext.supports.Touch) {
                 touchScroll = 2;
             }
             return touchScroll;
@@ -659,25 +657,6 @@ Ext.feature = {
         fn: function() {
             return !(Ext.browser.is.AndroidStock4 && Ext.os.version.getMinor() < 2);
         }
-    },{
-        name: 'ProperHBoxStretching',
-        ready: true,
-        fn: function() {
-            // IE10 currently has a bug in their flexbox row layout. We feature detect the issue here.
-            var bodyElement = document.createElement('div'),
-                innerElement = bodyElement.appendChild(document.createElement('div')),
-                contentElement = innerElement.appendChild(document.createElement('div')),
-                innerWidth;
-
-            bodyElement.setAttribute('style', 'width: 100px; height: 100px; position: relative;');
-            innerElement.setAttribute('style', 'position: absolute; display: -ms-flexbox; display: -webkit-flex; display: -moz-flexbox; display: flex; -ms-flex-direction: row; -webkit-flex-direction: row; -moz-flex-direction: row; flex-direction: row; min-width: 100%;');
-            contentElement.setAttribute('style', 'width: 200px; height: 50px;');
-            document.body.appendChild(bodyElement);
-            innerWidth = innerElement.offsetWidth;
-            document.body.removeChild(bodyElement);
-
-            return (innerWidth > 100);
-        }
     },
 
     /**
@@ -959,10 +938,15 @@ Ext.feature = {
         fn: function(doc) {
             var body = doc.body,
                 supports = false,
-                el = this.getTestElement(),
+                el = doc.createElement('div'),
                 style = el.style;
 
             if (el.getBoundingClientRect) {
+                // If the document body already has child nodes (text nodes etc) we can end
+                // up with subpixel rounding errors in IE11 when measuring the height.
+                // Absolute positioning prevents this.
+                style.position = 'absolute';
+                style.top = "0";
                 style.WebkitTransform = style.MozTransform = style.msTransform =
                     style.OTransform = style.transform = 'rotate(90deg)';
                 style.width = '100px';
@@ -1233,7 +1217,7 @@ Ext.feature = {
         }
     },
 
-    /*
+    /**
      * @property {Boolean} SpecialKeyDownRepeat
      * True if the browser fires the keydown event on specialkey autorepeat
      * 
@@ -1342,6 +1326,24 @@ Ext.feature = {
             // and in Firefox (where it is not supported); adding an element and trying to
             // focus it will fail when the browser window itself is not focused.
             return !Ext.isGecko;
+        }
+    },
+    
+    /**
+     * @property {Boolean} AsyncFocusEvents
+     * `true` if the browser fires focus events (focus, blur, focusin, focusout)
+     * asynchronously, i.e. in a separate event loop invocation. This is only true
+     * for all versions Internet Explorer; Microsoft Edge and other browsers fire
+     * focus events synchronously.
+     */
+    {
+        name: 'AsyncFocusEvents',
+        fn: function() {
+            // The sad part is that we can't feature detect this because the focus
+            // event won't be fired when the browser window itself is not focused.
+            
+            // Private shortcut for brevity
+            return Ext.asyncFocus = !!Ext.isIE;
         }
     },
 

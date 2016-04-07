@@ -107,8 +107,8 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
          *   desktop devices).
          *  * `tall` - True if `width` < `height` regardless of device type.
          *  * `wide` - True if `width` > `height` regardless of device type.
-         *  * `width` - The width of the viewport
-         *  * `height` - The height of the viewport.
+         *  * `width` - The width of the viewport in pixels.
+         *  * `height` - The height of the viewport in pixels.
          *  * `platform` - An object containing various booleans describing the platform
          *  (see `{@link Ext#platformTags Ext.platformTags}`). The properties of this
          *  object are also available implicitly (without "platform." prefix) but this

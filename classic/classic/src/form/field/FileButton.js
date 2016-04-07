@@ -48,11 +48,17 @@ Ext.define('Ext.form.field.FileButton', {
         return this.getTpl('afterTpl').apply(values);
     },
     
-    getTemplateArgs: function(){
-        var args = this.callParent();
-        args.inputCls = this.inputCls;
-        args.inputName = this.inputName;
-        args.tabIndex = this.ownerCt.tabIndex;
+    getTemplateArgs: function() {
+        var me = this,
+            args;
+        
+        args = me.callParent();
+        
+        args.inputCls = me.inputCls;
+        args.inputName = me.inputName || me.id;
+        args.tabIndex = me.tabIndex || null;
+        args.role = me.ariaRole;
+        
         return args;
     },
     
@@ -94,7 +100,7 @@ Ext.define('Ext.form.field.FileButton', {
             });
 
         // This is our focusEl
-        fileInputEl.dom.setAttribute(Ext.Component.componentIdAttribute, me.id);
+        fileInputEl.dom.setAttribute('data-componentid', me.id);
         
         // We place focus and blur listeners on fileInputEl to activate Button's
         // focus and blur style treatment

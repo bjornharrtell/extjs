@@ -1,0 +1,7 @@
+.social-status-header, .social-status-count {
+    text-align: center;
+}
+
+.social-status-category:not(:last-child) {
+    border-right: 1px solid $border-color;
+}

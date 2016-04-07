@@ -1,7 +1,7 @@
 describe("Ext.data.schema.ManyToOne", function() {
     
     var schema, Post, Thread, threadRole, postRole,
-        threadCalled =false, 
+        threadCalled = false, 
         postCalled = false;
 
     function definePost(refCfg) {
@@ -30,7 +30,7 @@ describe("Ext.data.schema.ManyToOne", function() {
             responseText: Ext.JSON.encode(data)
         });
     }
-    
+
     beforeEach(function() {
         threadCalled = postCalled = false;
         MockAjaxManager.addMethods();
@@ -47,7 +47,7 @@ describe("Ext.data.schema.ManyToOne", function() {
             }
         });
     });
-    
+
     afterEach(function() {
         MockAjaxManager.removeMethods();
         Ext.undefine('spec.Post');
@@ -307,7 +307,7 @@ describe("Ext.data.schema.ManyToOne", function() {
                 definePost();
                 SubThread = Ext.define('spec.SubThread', {
                     extend: 'spec.Thread'
-                })
+                });
             });
 
             it("should not have any associations", function() {
@@ -405,6 +405,8 @@ describe("Ext.data.schema.ManyToOne", function() {
             });
 
             var store = new Ext.data.Store({
+                // Always want immediate load
+                asynchronousLoad: false,
                 model: 'Node'
             });
             store.load();
@@ -419,8 +421,11 @@ describe("Ext.data.schema.ManyToOne", function() {
 
         describe("key inference", function() {
             describe("without session", function() {
-                it("should infer the key from the parent", function() {
+                beforeEach(function() {
                     definePost();
+                });
+
+                it("should infer the key from the parent", function() {
                     var thread = Thread.load(1);
                     complete({
                         id: 1,
@@ -431,6 +436,27 @@ describe("Ext.data.schema.ManyToOne", function() {
                         }]
                     });
                     var posts = thread.posts();
+                    expect(posts.getCount()).toBe(2);
+                    expect(posts.getAt(0).getId()).toBe(101);
+                    expect(posts.getAt(0).get('threadId')).toBe(1);
+                    expect(posts.getAt(0).dirty).toBe(false);
+                    expect(posts.getAt(1).getId()).toBe(102);
+                    expect(posts.getAt(1).get('threadId')).toBe(1);
+                    expect(posts.getAt(1).dirty).toBe(false);
+                });
+
+                it("should infer the key when loading the store, not nested", function() {
+                    var thread = Thread.load(1);
+                    complete({
+                        id: 1
+                    });
+                    var posts = thread.posts();
+                    posts.load();
+                    complete([{
+                        id: 101
+                    }, {
+                        id: 102
+                    }]);
                     expect(posts.getCount()).toBe(2);
                     expect(posts.getAt(0).getId()).toBe(101);
                     expect(posts.getAt(0).get('threadId')).toBe(1);
@@ -488,6 +514,27 @@ describe("Ext.data.schema.ManyToOne", function() {
                         }]
                     });
                     var posts = thread.posts();
+                    expect(posts.getCount()).toBe(2);
+                    expect(posts.getAt(0).getId()).toBe(101);
+                    expect(posts.getAt(0).get('threadId')).toBe(1);
+                    expect(posts.getAt(0).dirty).toBe(false);
+                    expect(posts.getAt(1).getId()).toBe(102);
+                    expect(posts.getAt(1).get('threadId')).toBe(1);
+                    expect(posts.getAt(1).dirty).toBe(false);
+                });
+
+                it("should infer the key when loading the store, not nested", function() {
+                    var thread = Thread.load(1, null, session);
+                    complete({
+                        id: 1
+                    });
+                    var posts = thread.posts();
+                    posts.load();
+                    complete([{
+                        id: 101
+                    }, {
+                        id: 102
+                    }]);
                     expect(posts.getCount()).toBe(2);
                     expect(posts.getAt(0).getId()).toBe(101);
                     expect(posts.getAt(0).get('threadId')).toBe(1);
@@ -1453,7 +1500,7 @@ describe("Ext.data.schema.ManyToOne", function() {
                         it("should not load the store by default", function() {
                             definePost();
                             makeThread();
-                            var spy = spyOn(Ext.data.Store.prototype, 'load').andReturn();
+                            var spy = spyOn(Ext.data.ProxyStore.prototype, 'load').andReturn();
                             thread.posts();
                             expect(spy.callCount).toBe(0);    
                         });  
@@ -1466,7 +1513,7 @@ describe("Ext.data.schema.ManyToOne", function() {
                             }); 
                             
                             makeThread();
-                            var spy = spyOn(Ext.data.Store.prototype, 'load').andReturn();
+                            var spy = spyOn(Ext.data.ProxyStore.prototype, 'load').andReturn();
                             thread.posts();
                             expect(spy.callCount).toBe(1);          
                         });

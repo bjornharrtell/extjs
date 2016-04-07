@@ -23,9 +23,8 @@ Ext.define('Ext.picker.Time', {
     requires: ['Ext.data.Store', 'Ext.Date'],
 
     config: {
-        /*
-         * @private
-         * @override
+        /**
+         * @hide
          * This class creates its own store based upon time range and increment configuration.
          */
         store: true
@@ -127,13 +126,12 @@ Ext.define('Ext.picker.Time', {
         me.callParent();
     },
 
-    applyStore: function(store, oldStore) {
+    setStore: function (store) {
         // TimePicker may be used standalone without being configured as a BoundList by a Time field.
         // In this case, we have to create our own store.
-        if (store === true) {
-            store = Ext.picker.Time.createStore(this.format, this.increment);
-        }
-        return store;
+        this.store = (store === true) ?
+            Ext.picker.Time.createStore(this.format, this.increment) :
+            store;
     },
 
     /**
@@ -198,3 +196,4 @@ Ext.define('Ext.picker.Time', {
         fields: ['disp', 'date']
     });
 });
+

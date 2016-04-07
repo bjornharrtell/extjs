@@ -1,0 +1,21 @@
+.auth-locked{
+    background-image:url('images/lock-screen-background.jpg');
+    background-size:cover;
+}
+
+.lockscreen-header{
+    background-color:$base-color;
+    color:white;
+}
+
+.text-border {
+    border:1px solid #efefef;
+}
+
+.checkbox-text-adjustment{
+    margin-top:.5rem;
+}
+
+.x-unsized .x-field-input{
+    min-width:2em;
+}

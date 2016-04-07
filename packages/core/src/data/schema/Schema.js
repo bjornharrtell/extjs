@@ -464,7 +464,7 @@ Ext.define('Ext.data.schema.Schema', {
      * Checks if the passed entity has attached associations that need to be read when
      * using nested loading.
      * 
-     * @param {String/Ext.Class/Ext.data.Model} The name, instance or Model class.
+     * @param {String/Ext.Class/Ext.data.Model} name The name, instance, or Model class.
      * @return {Boolean} `true` if there are associations attached to the entity.
      */
     hasAssociations: function(name) {

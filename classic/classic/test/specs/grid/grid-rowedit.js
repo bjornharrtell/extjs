@@ -62,7 +62,7 @@ describe("grid-rowedit", function() {
             }
 
             // locked param as true means that columns 1 and 2 are locked
-            function makeGrid(columns, pluginCfg, locked) {
+            function makeGrid(columns, pluginCfg, locked, gridCfg) {
                 var data = [],
                     defaultCols = [],
                     hasCols,
@@ -113,11 +113,10 @@ describe("grid-rowedit", function() {
                 });
                 
                 plugin = new Ext.grid.plugin.RowEditing(pluginCfg);
-                grid = new Ext.grid.Panel({
+
+                grid = new Ext.grid.Panel(Ext.apply({
                     columns: columns || defaultCols,
                     store: store,
-                    trailingBufferZone: 1000,
-                    leadingBufferZone: 1000,
                     selType: 'cellmodel',
                     plugins: [plugin],
                     width: 1000,
@@ -127,7 +126,8 @@ describe("grid-rowedit", function() {
                         mouseOverOutBuffer: 0
                     },
                     renderTo: Ext.getBody()
-                });
+                }, gridCfg));
+
                 if (!hasCols) {
                     colRef = grid.getColumnManager().getColumns();
                 }
@@ -175,7 +175,7 @@ describe("grid-rowedit", function() {
 
                     // The editor of the 3rd column (first normal column) should be active
                     expect(Ext.Element.getActiveElement() === ed.inputEl.dom).toBe(true);
-
+                    
                     // The editor should be in the right container
                     expect(ed.up('container') === plugin.editor.items.items[1]).toBe(true);
 
@@ -189,6 +189,32 @@ describe("grid-rowedit", function() {
             });
 
             describe("basic editing", function() {
+                // https://sencha.jira.com/browse/EXTJS-18773
+                it('should scroll a record that is outside the rendered block into view and edit it', function() {
+                    makeGrid();
+                    var data = [],
+                        i;
+
+                    for (i = 11; i <= 1000; ++i) {
+                        data.push({
+                            field1: i + '.' + 1,
+                            field2: i + '.' + 2,
+                            field3: i + '.' + 3,
+                            field4: i + '.' + 4,
+                            field5: i + '.' + 5,
+                            field6: i + '.' + 6,
+                            field7: i + '.' + 7,
+                            field8: i + '.' + 8,
+                            field9: i + '.' + 9,
+                            field10: i + '.' + 10
+                        });
+                    }
+                    store.add(data);
+                    startEdit(900);
+                    expect(plugin.editing).toBe(true);
+                    expect(plugin.getEditor().isVisible()).toBe(true);
+                });
+
                 it("should trigger the edit on cell interaction", function(){
                     makeGrid();
                     triggerCellMouseEvent('dblclick', 0, 0);
@@ -270,10 +296,136 @@ describe("grid-rowedit", function() {
                     jasmine.expectFocused(toFocus);
                 });
 
+                it("should scroll horizontally to display the field being edited", function() {
+                    makeGrid(null,null,null,{
+                        width: 300
+                    });
+                    var rec = store.first(),
+                        x, offset=0;
+
+                    // IE 8 has a 2px offset when the editor is visible
+                    if(Ext.isIE8) {
+                        offset = 2;
+                    }
+
+                    // this will scroll the grid all the way to the right
+                    view.scrollBy(300,0);
+                    waitsFor(function() {
+                        return view.getScrollX() >= 200;
+                    });
+
+                    runs(function(){
+                        x = view.getScrollX();
+                        plugin.startEdit(rec,colRef[4]);
+
+                        // expects the grid not to scroll when editing the last field
+                        expect(view.getScrollX()).toBe(x-offset);
+                        plugin.cancelEdit();
+                        // expects the grid not to scroll when cancelling the edit
+                        expect(view.getScrollX()).toBe(x);
+                        plugin.startEdit(rec,colRef[0]);
+                        // expects the grid to scroll left when editing the first field
+                        expect(view.getScrollX()).toBe(offset);
+                    });
+                });
+
                 it("should not be dirty when the field has values", function() {
                     makeGrid();
                     startEdit(store.first());
                     expect(plugin.getEditor().isDirty()).toBe(false);
+                });
+            });
+
+            describe("scrolling while editing", function() {
+                beforeEach(function() {
+                    var data = [],
+                        bufferPlugin;
+
+                   makeGrid([{
+                        dataIndex: 'field1',
+                        field: 'displayfield'
+                    }, {
+                        dataIndex: 'field2',
+                        field: 'displayfield'
+                    }, {
+                        dataIndex: 'field3',
+                        field: 'displayfield'
+                    }, {
+                        dataIndex: 'field4',
+                        field: 'textfield'
+                    }],{
+                        clicksToMoveEditor: 1,
+                        autoCancel: false 
+                    },null,{
+                        trailingBufferZone: 10,
+                        leadingBufferZone: 10
+                    });
+
+
+                for (var i = 11; i <= 100; ++i) {
+                    data.push({
+                        field1: i + '.' + 1,
+                        field2: i + '.' + 2,
+                        field3: i + '.' + 3,
+                        field4: i + '.' + 4,
+                        field5: i + '.' + 5,
+                        field6: i + '.' + 6,
+                        field7: i + '.' + 7,
+                        field8: i + '.' + 8,
+                        field9: i + '.' + 9,
+                        field10: i + '.' + 10
+                    });
+                }
+
+                store.insert(10,data);
+
+                });
+
+                it('it should keep the editor active if scrolling out of view', function() {
+                    startEdit();
+                    
+                    runs(function(){
+                        setTimeout(function(){
+                            // this will scroll the grid view down
+                            // to a point where rows get de-rendered
+                            // if the grid has a bufferedRenderer plugin
+                            view.scrollBy(0,700);
+                        },50);
+                        
+                    })
+
+                    waitsFor(function () {
+                        // Wait until a record begin edit is cached
+                        // or verified if it is not a grid with bufferedRenderer
+                         return plugin.editor._cachedNode || !grid.bufferedRenderer;
+                    }, 'scroll to the bottom', 10000);
+
+                    runs(function(){
+                        // if this is a grid with bufferedRenderer
+                        // the record editor should be hidden at Y = -400;
+                        if (grid.bufferedRenderer) {
+                            expect(plugin.editor.getLocalY()).not.toBe(0);
+                        }
+                        setTimeout(function(){
+                            // scrolls the grid back to the top
+                            view.scrollBy(0,-700);
+                        },1000);
+                    });
+
+                    waitsFor(function(){
+                        return view.getScrollY() === 0;
+                    },10000);
+
+                    runs(function(){
+                        // the cached record should have been erased
+                        // or it should never existed if this is not a grid with bufferedRenderer
+                        // the editor also should not be hidden anymore
+                        // and the editor editing status should still be true.
+                        expect(plugin.editor._editedNode).toBeFalsy();
+                        expect(plugin.editor.getLocalY()).toBe(0);
+                        expect(plugin.editing).toBe(true);
+                    });
+
                 });
             });
 

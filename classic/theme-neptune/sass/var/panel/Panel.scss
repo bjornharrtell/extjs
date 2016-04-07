@@ -34,6 +34,7 @@ $panel-light-header-font-family: dynamic($font-family);
 $panel-light-header-font-size: dynamic($font-size);
 $panel-light-header-font-weight: dynamic($panel-header-font-weight);
 $panel-light-header-color: dynamic(#666);
+$panel-light-header-glyph-color: dynamic($panel-light-header-color);
 $panel-light-header-background-color: dynamic(mix($base-light-color, $neutral-light-color, 30%));
 $panel-light-header-text-transform: dynamic(none);
 $panel-light-border-color: dynamic($panel-light-header-background-color);

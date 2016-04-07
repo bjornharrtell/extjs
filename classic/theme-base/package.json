@@ -1,16 +1,50 @@
 {
+    /**
+     * The namespace of this package.
+     *
+     * As a general rule, all classes that belong to this package should be under this namespace
+     * if multiple namespaces are part of this package, set this to "".
+     */
+    "namespace": "Ext",
+
     "name": "theme-base",
-    "toolkit": "classic",
-    "alternateName": ["ext-theme-base"],
     "type": "theme",
+    "alternateName": [
+        "ext-theme-base"
+    ],
+
+    "framework": "ext",
+    "toolkit": "classic",
+    "requires": [
+        "classic"
+    ],
+
     "creator": "Sencha",
-    "summary": "Ext JS Base Theme",
-    "detailedDescription": "An abstract base theme that provides only the bare minimums for Ext JS",
-    "version": "6.0.0.640",
-    "compatVersion": "5.0.0",
+    "summary": "Ext JS Modern Base Theme",
+    "detailedDescription": "An abstract base theme that provides only the bare minimums for the Ext JS classic toolkit",
+
+    "version": "6.0.1.250",
+    "compatVersion": "6.0.0",
     "format": "1",
 
-    "js":[
+    "output": "${workspace.subpkg.prefix}/${package.name}",
+    "local": true,
+
+    "sass": {
+        "namespace": "Ext",
+
+        "etc": "${package.dir}/sass/etc/all.scss",
+
+        "var": "${package.dir}/sass/var",
+
+        "src": "${package.dir}/sass/src"
+    },
+
+    "classpath": "${package.dir}/src",
+
+    "overrides": "${package.dir}/overrides",
+
+    "js": [
         {
             "path":"/~cmd/extensions/sencha-fashion/fashion/fashion.js",
             "bootstrap": true,
@@ -45,51 +79,5 @@
                 "path": "${package.dir}/sass/example/slicer.css"
             }
         ]
-    },
-
-    "output": "${workspace.subpkg.prefix}/${package.name}",
-    "local": true,
-
-    "sass": {
-        /**
-         * The root namespace to use when mapping *.scss files to classes in the
-         * sass/src and sass/var directories. For example, "Ext.view.View" would
-         * map to "sass/src/view/View.scss". If we changed this to "Ext.view" then
-         * it would map to "sass/src/View.scss".
-         */
-        "namespace": "Ext",
-
-        /**
-         * This file is automatically imported into the SASS build before "vars".
-         */
-        "etc": "${package.dir}/sass/etc/all.scss",
-
-        /**
-         * This is the folder where SASS "vars" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
-        "var": "${package.dir}/sass/var",
-
-        /**
-         * This is the folder where SASS "src" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
-        "src": "${package.dir}/sass/src"
-    },
-
-    /**
-     * This is the comma-separated list of folders where classes reside. These classes
-     * must be explicitly required to be included in the build.
-     */
-    "classpath": "${package.dir}/src",
-
-    /**
-     * This is the comma-separated list of folders where overrides reside. These files
-     * are automatically required in the build when the package is required.
-     */
-    "overrides": "${package.dir}/overrides",
-    
-    "requires": [
-        "classic"
-    ]
+    }
 }

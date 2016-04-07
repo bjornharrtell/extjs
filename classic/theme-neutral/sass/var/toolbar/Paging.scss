@@ -24,25 +24,25 @@ $grid-paging-toolbar-glyph-font-size: dynamic(16px);
  * @var {string/list}
  * Glyph for the "first" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$grid-paging-toolbar-first-glyph: dynamic($fa-var-angle-double-left $grid-paging-toolbar-glyph-font-size $font-icon-font-family);
+$grid-paging-toolbar-first-glyph: dynamic($ext-var-double-chevron-left $grid-paging-toolbar-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph for the "prev" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$grid-paging-toolbar-prev-glyph: dynamic($fa-var-angle-left $grid-paging-toolbar-glyph-font-size $font-icon-font-family);
+$grid-paging-toolbar-prev-glyph: dynamic($ext-var-chevron-left $grid-paging-toolbar-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph for the "next" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$grid-paging-toolbar-next-glyph: dynamic($fa-var-angle-right $grid-paging-toolbar-glyph-font-size $font-icon-font-family);
+$grid-paging-toolbar-next-glyph: dynamic($ext-var-chevron-right $grid-paging-toolbar-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph for the "last" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$grid-paging-toolbar-last-glyph: dynamic($fa-var-angle-double-right $grid-paging-toolbar-glyph-font-size $font-icon-font-family);
+$grid-paging-toolbar-last-glyph: dynamic($ext-var-double-chevron-right $grid-paging-toolbar-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}

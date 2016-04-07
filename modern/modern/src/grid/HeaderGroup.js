@@ -1,7 +1,5 @@
 /**
- * @class Ext.grid.HeaderGroup
- * @extends Ext.Container
- * Description
+ * @private
  */
 Ext.define('Ext.grid.HeaderGroup', {
     extend: 'Ext.Container',
@@ -16,8 +14,8 @@ Ext.define('Ext.grid.HeaderGroup', {
         text: '&nbsp;',
 
         /**
-         * [columns description]
-         * @type {[type]}
+         * @cfg {Object[]} columns
+         * The columns in this group.
          */
         columns: null,
 
@@ -32,7 +30,26 @@ Ext.define('Ext.grid.HeaderGroup', {
          * We hide the HeaderGroup by default, and show it when any columns are added to it.
          * @hide
          */
-        hidden: true
+        hidden: true,
+
+        layout: {
+            type: 'hbox',
+            align: 'stretch'
+        }
+    },
+
+    getElementConfig: function() {
+        return {
+            reference: 'element',
+            classList: ['x-container', 'x-unsized'],
+            children: [{
+                reference: 'textElement',
+                className: 'x-grid-headergroup-text'
+            }, {
+                reference: 'innerElement',
+                className: 'x-inner'
+            }]
+        };
     },
 
     applyItems: function(items, collection) {
@@ -43,7 +60,7 @@ Ext.define('Ext.grid.HeaderGroup', {
     },
 
     updateText: function(text) {
-        this.setHtml(text);
+        this.textElement.setHtml(text);
     },
 
     initialize: function() {
@@ -51,13 +68,16 @@ Ext.define('Ext.grid.HeaderGroup', {
 
         me.on({
             add: 'doVisibilityCheck',
-            remove: 'doVisibilityCheck'
-        });
-
-        me.on({
+            remove: 'doVisibilityCheck',
             show: 'onColumnShow',
             hide: 'onColumnHide',
-            delegate: '> column'
+            delegate: '> column',
+            scope: 'this'
+        });
+        
+        me.on({
+            show: 'onShow',
+            scope: 'this'
         });
 
         me.callParent();
@@ -77,6 +97,18 @@ Ext.define('Ext.grid.HeaderGroup', {
         }
     },
 
+    onShow: function() {
+        var toShow;
+
+        // No visible subcolumns, then show the first child.
+        if (!this.getVisibleCount()) {
+            toShow = this.getComponent(0);
+            if (toShow) {
+                toShow.show();
+            }
+        }
+    },
+
     doVisibilityCheck: function() {
         var me = this,
             columns = me.getInnerItems(),
@@ -88,7 +120,7 @@ Ext.define('Ext.grid.HeaderGroup', {
             if (!column.isHidden()) {
                 if (me.isHidden()) {
                     if (me.initialized) {
-                        this.show();
+                        me.show();
                     } else {
                         me.setHidden(false);
                     }

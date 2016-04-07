@@ -42,4 +42,4 @@ $grid-filters-header-menu-less-than-glyph: dynamic($fa-var-chevron-left $grid-he
  * @var {string/list}
  * Glyph for the grid header menu "equals" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$grid-filters-header-menu-equals-glyph: dynamic($ext-icon-equals $grid-header-menu-glyph-font-size ExtJS);
+$grid-filters-header-menu-equals-glyph: dynamic($ext-var-equals $grid-header-menu-glyph-font-size ExtJS);

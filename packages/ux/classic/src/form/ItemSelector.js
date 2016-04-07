@@ -269,6 +269,15 @@ Ext.define('Ext.ux.form.ItemSelector', {
         toStore.add(recs);
         fromStore.resumeEvents();
         toStore.resumeEvents();
+        
+        // If the list item was focused when moved (e.g. via double-click)
+        // then removing it will cause the focus to be thrown back to the
+        // document body. Which might disrupt things if ItemSelector is
+        // contained by a floating thingie like a Menu.
+        // Focusing the list itself will prevent that.
+        if (fromField.boundList.containsFocus) {
+            fromField.boundList.focus();
+        }
 
         fromField.boundList.refresh();
         toField.boundList.refresh();

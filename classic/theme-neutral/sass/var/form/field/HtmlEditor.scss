@@ -72,13 +72,13 @@ $html-editor-underline-glyph: dynamic($fa-var-underline $html-editor-glyph-font-
  * @var {string/list}
  * Glyph for the "foreground color" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$html-editor-forecolor-glyph: dynamic($fa-var-font $html-editor-glyph-font-size $font-icon-font-family);
+$html-editor-forecolor-glyph: dynamic($ext-var-text-color $html-editor-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph for the "background color" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$html-editor-backcolor-glyph: dynamic($fa-var-font $html-editor-glyph-font-size $font-icon-font-family);
+$html-editor-backcolor-glyph: dynamic($ext-var-text-background-color $html-editor-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
@@ -114,19 +114,19 @@ $html-editor-bulletlist-glyph: dynamic($fa-var-list-ul $html-editor-glyph-font-s
  * @var {string/list}
  * Glyph for the "grow text" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$html-editor-growtext-glyph: dynamic($fa-var-arrow-up $html-editor-glyph-font-size $font-icon-font-family);
+$html-editor-growtext-glyph: dynamic($ext-var-text-increase $html-editor-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph for the "shrink text" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$html-editor-shrinktext-glyph: dynamic($fa-var-arrow-down $html-editor-glyph-font-size $font-icon-font-family);
+$html-editor-shrinktext-glyph: dynamic($ext-var-text-decrease $html-editor-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph for the "source edit" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$html-editor-sourceedit-glyph: dynamic($fa-var-pencil $html-editor-glyph-font-size $font-icon-font-family);
+$html-editor-sourceedit-glyph: dynamic($ext-var-edit-html $html-editor-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}

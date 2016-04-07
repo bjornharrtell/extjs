@@ -1,7 +1,11 @@
 describe('Ext.grid.filters.filter.Number', function () {
-    var grid, store, plugin, columnFilter, headerCt, menu, rootMenuItem;
+    var grid, store, plugin, columnFilter, headerCt, menu, rootMenuItem,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
 
     function createGrid(listCfg, storeCfg, gridCfg) {
+        synchronousLoad = false;
         store = new Ext.data.Store(Ext.apply({
             fields:['name', 'email', 'phone'],
             data: [
@@ -50,6 +54,8 @@ describe('Ext.grid.filters.filter.Number', function () {
 
         columnFilter = grid.columnManager.getHeaderByDataIndex('age').filter;
         plugin = grid.filters;
+        synchronousLoad = true;
+        store.flushLoad();
     }
 
     function showMenu() {
@@ -67,7 +73,21 @@ describe('Ext.grid.filters.filter.Number', function () {
         menu = rootMenuItem.menu;
     }
 
-    afterEach(function () {
+    beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+    });
+
+    afterEach(function() {
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+
         store.destroy();
         grid = store = plugin = columnFilter = menu = headerCt = rootMenuItem = Ext.destroy(grid);
     });
@@ -343,4 +363,109 @@ describe('Ext.grid.filters.filter.Number', function () {
         setActive(true);
         setActive(false);
     });
+
+    describe('activate and deactivate', function () {
+        describe('activating', function () {
+            describe('when activating after instantiation', function () {
+                function runTest(val) {
+                    it('should work for both truthy and falsey values', function () {
+                        var len;
+
+                        createGrid({
+                            active: false,
+                            value: {
+                                eq: val
+                            }
+                        });
+
+                        len = store.data.length;
+                        showMenu();
+                        expect(store.data.length).toBe(len);
+
+                        columnFilter.setActive(true);
+
+                        expect(store.data.length).toBe(0);
+                    });
+                }
+
+                runTest(0);
+                runTest(5);
+            });
+
+            describe('when toggling', function () {
+                function runTest(val) {
+                    it('should work for both truthy and falsey values', function () {
+                        createGrid();
+
+                        showMenu();
+
+                        columnFilter.setValue({
+                            eq: val
+                        });
+
+                        columnFilter.setActive(false);
+                        columnFilter.setActive(true);
+
+                        expect(store.data.length).toBe(0);
+                    });
+                }
+
+                runTest(0);
+                runTest(5);
+            });
+        });
+
+        describe('deactivating', function () {
+            describe('when deactivating after instantiation', function () {
+                function runTest(val) {
+                    it('should work for both truthy and falsey values', function () {
+                        var len;
+
+                        createGrid({
+                            value: {
+                                eq: val
+                            }
+                        });
+
+                        showMenu();
+                        expect(store.data.length).toBe(0);
+
+                        columnFilter.setActive(false);
+
+                        expect(store.data.length > 0).toBe(true);
+                    });
+                }
+
+                runTest(0);
+                runTest(5);
+            });
+
+            describe('when toggling', function () {
+                function runTest(val) {
+                    it('should work for both truthy and falsey values', function () {
+                        var len;
+
+                        createGrid();
+
+                        len = store.data.length;
+                        showMenu();
+
+                        columnFilter.setValue({
+                            eq: val
+                        });
+
+                        expect(store.data.length).toBe(0);
+
+                        columnFilter.setActive(false);
+
+                        expect(store.data.length).toBe(len);
+                    });
+                }
+
+                runTest(0);
+                runTest(5);
+            });
+        });
+    });
 });
+

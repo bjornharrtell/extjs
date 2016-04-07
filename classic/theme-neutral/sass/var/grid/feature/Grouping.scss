@@ -72,7 +72,7 @@ $grid-grouped-title-line-height: dynamic(round($grid-grouped-title-font-size * 1
  * @var {string/list}
  * Glyph for the "group by this field" menu icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$grid-grouped-menu-group-by-glyph: dynamic($ext-icon-group-by $grid-header-menu-glyph-font-size ExtJS);
+$grid-grouped-menu-group-by-glyph: dynamic($ext-var-group-by $grid-header-menu-glyph-font-size ExtJS);
 
 /**
  * @var {color}

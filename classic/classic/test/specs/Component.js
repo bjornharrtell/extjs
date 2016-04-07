@@ -1,7 +1,7 @@
 describe("Ext.Component", function(){
     var Component = Ext.Component,
         proto = Component.prototype,
-        compIdAttr = Ext.Component.componentIdAttribute,
+        compIdAttr = 'data-componentid',
         c;
 
     function makeComponent(cfg, isConfiguredEl) {
@@ -4703,8 +4703,6 @@ describe("Ext.Component", function(){
     });
     
     describe("component lookup by element", function() {
-        var cmpIdAttr = Ext.Component.componentIdAttribute;
-        
         describe("focusable components", function() {
             beforeEach(function() {
                 makeComponent({
@@ -4723,13 +4721,13 @@ describe("Ext.Component", function(){
                 });
             });
             
-            it("should add " + cmpIdAttr + " attribute to the focusable element", function() {
-                var cmpId = c.getFocusEl().getAttribute(cmpIdAttr);
+            it("should add " + compIdAttr + " attribute to the focusable element", function() {
+                var cmpId = c.getFocusEl().getAttribute(compIdAttr);
                 
                 expect(cmpId).toBe(c.id);
             });
             
-            it("should be able to look Component up by " + cmpIdAttr + " attribute", function() {
+            it("should be able to look Component up by " + compIdAttr + " attribute", function() {
                 var cmp = Ext.Component.fromElement(c.getFocusEl());
                 
                 expect(cmp).toEqual(c);
@@ -4762,8 +4760,8 @@ describe("Ext.Component", function(){
                 });
             });
             
-            it("should not add " + cmpIdAttr + " attribute to Component's elements", function() {
-                var el = c.el.down('[' + cmpIdAttr + ']');
+            it("should not add " + compIdAttr + " attribute to Component's elements", function() {
+                var el = c.el.down('[' + compIdAttr + ']');
                 
                 expect(el).toEqual(null);
             });
@@ -6404,6 +6402,20 @@ describe("Ext.Component", function(){
                 expect(c.getScrollable().getX()).toBe(true);
                 expect(c.getScrollable().getY()).toBe(true);
             });
+
+            it("should be able to clear the old scroller", function() {
+                makeComponent({
+                    renderTo: document.body,
+                    width: 300,
+                    height: 300,
+                    scrollable: true
+                });
+
+                var scroller = c.getScrollable();
+                c.setScrollable(false);
+                expect(c.getScrollable()).toBeNull();
+                expect(scroller.destroyed).toBe(true);
+            });
         });
 
         describe('scroll position', function () {
@@ -6793,7 +6805,7 @@ describe("Ext.Component", function(){
 
             waitsFor(function() {
                 return startSpy.callCount === 1;
-            });
+            }, 'startSpy to fire', 1000);
 
             runs(function() {
                 expect(startSpy.mostRecentCall.args).toEqual([10, 20]);
@@ -6802,7 +6814,7 @@ describe("Ext.Component", function(){
 
             waitsFor(function() {
                 return moveSpy.callCount === 2;
-            });
+            }, 'moveSpy to fire', 1000);
 
             runs(function() {
                 expect(startSpy.callCount).toBe(1);
@@ -6814,7 +6826,7 @@ describe("Ext.Component", function(){
 
             waitsFor(function() {
                 return moveSpy.callCount === 1;
-            });
+            }, 'moveSpy to fire the first time', 1000);
 
             runs(function() {
                 expect(moveSpy.mostRecentCall.args).toEqual([10, 20]);
@@ -6823,7 +6835,7 @@ describe("Ext.Component", function(){
 
             waitsFor(function() {
                 return moveSpy.callCount === 2;
-            });
+            }, 'moveSpy to fire the second time', 1000);
 
             runs(function() {
                 expect(moveSpy.mostRecentCall.args).toEqual([20, 30]);
@@ -6835,7 +6847,7 @@ describe("Ext.Component", function(){
 
             waitsFor(function() {
                 return moveSpy.callCount === 1;
-            });
+            }, 'moveSpy to fire', 1000);
 
             runs(function() {
                 c.scrollTo(20, 30);
@@ -6843,7 +6855,7 @@ describe("Ext.Component", function(){
 
             waitsFor(function() {
                 return endSpy.callCount === 1;
-            });
+            }, 'endSpy to fire', 1000);
 
             runs(function() {
                 expect(endSpy.mostRecentCall.args).toEqual([20, 30]);

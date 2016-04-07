@@ -12,8 +12,8 @@ Ext.env.OS = function(userAgent, platform, browserScope) {
 // @require Ext.env.Browser
 
     var me = this,
-        names = me.names,
-        prefixes = me.prefixes,
+        names = Ext.Boot.osNames,
+        prefixes = Ext.Boot.osPrefixes,
         name,
         version = '',
         is = me.is,
@@ -96,34 +96,6 @@ Ext.env.OS = function(userAgent, platform, browserScope) {
 
 Ext.env.OS.prototype = {
     constructor: Ext.env.OS,
-
-    names: {
-        ios: 'iOS',
-        android: 'Android',
-        windowsPhone: 'WindowsPhone',
-        webos: 'webOS',
-        blackberry: 'BlackBerry',
-        rimTablet: 'RIMTablet',
-        mac: 'MacOS',
-        win: 'Windows',
-        tizen: 'Tizen',
-        linux: 'Linux',
-        bada: 'Bada',
-        chrome: 'ChromeOS',
-        other: 'Other'
-    },
-    prefixes: {
-        tizen: '(Tizen )',
-        ios: 'i(?:Pad|Phone|Pod)(?:.*)CPU(?: iPhone)? OS ',
-        android: '(Android |HTC_|Silk/)', // Some HTC devices ship with an OSX userAgent by default,
-                                    // so we need to add a direct check for HTC_
-        windowsPhone: 'Windows Phone ',
-        blackberry: '(?:BlackBerry|BB)(?:.*)Version\/',
-        rimTablet: 'RIM Tablet OS ',
-        webos: '(?:webOS|hpwOS)\/',
-        bada: 'Bada\/',
-        chrome: 'CrOS '
-    },
 
     /**
      * A "hybrid" property, can be either accessed as a method call, i.e:

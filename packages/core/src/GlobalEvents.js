@@ -128,7 +128,7 @@ Ext.define('Ext.GlobalEvents', {
      * document regardless of whether some other handler tried to stop it.  An
      * example where this is useful is a menu that needs to be hidden whenever
      * there is a mousedown event on the document.
-     * @param {Ext.event.Event} The event object
+     * @param {Ext.event.Event} e The event object
      */
 
     /**

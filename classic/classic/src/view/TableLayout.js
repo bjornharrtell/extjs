@@ -11,12 +11,21 @@ Ext.define('Ext.view.TableLayout', {
 
     beginLayout: function (ownerContext) {
         var me = this,
-            partner = me.owner.lockingPartner,
+            owner = me.owner,
+            ownerGrid = owner.ownerGrid,
+            partner = owner.lockingPartner,
             context = ownerContext.context;
+
+        // Flag whether we need to do row height synchronization
+        ownerContext.doSyncRowHeights = partner && partner.grid.isVisible() && ownerGrid.syncRowHeight;
 
         if (!me.columnFlusherId) {
             me.columnFlusherId = me.id + '-columns';
             me.rowHeightFlusherId = me.id + '-rows';
+        }
+
+        if (me.owner.bufferedRenderer) {
+            me.owner.bufferedRenderer.beforeTableLayout(ownerContext);
         }
 
         me.callParent([ ownerContext ]);
@@ -25,7 +34,7 @@ Ext.define('Ext.view.TableLayout', {
         // the other side's layout context. If the locked or normal side is hidden then
         // we should treat it as thoguh we were laying out a single grid, so don't setup the partners.
         // This is typically if a grid is configured with locking but starts with no locked columns.
-        if (partner && partner.grid.isVisible()) {
+        if (ownerContext.doSyncRowHeights) {
             if (!ownerContext.lockingPartnerContext) {
                 (ownerContext.lockingPartnerContext = context.getCmp(partner)).
                     lockingPartnerContext = ownerContext;
@@ -95,11 +104,11 @@ Ext.define('Ext.view.TableLayout', {
             }
         }
 
+        // They have to turn row height synchronization on, or there may be variable row heights
         // Either no columns changed, or we have flushed those changes.. which means the
         // column widths in the DOM are correct. Now we can proceed to syncRowHeights (if
         // we are locking) or wrap it up by determining our vertical overflow.
-
-        if (lockingPartnerContext) {
+        if (ownerContext.doSyncRowHeights) {
             if (!(rowHeightFlusher = state.rowHeightFlusher)) {
                 // When we are locking, both sides need to read their row heights in a read
                 // phase (i.e., right now).
@@ -235,12 +244,18 @@ Ext.define('Ext.view.TableLayout', {
     },
 
     finishedLayout: function(ownerContext) {
-        var nodeContainer = Ext.fly(this.owner.getNodeContainer());
+        var me = this,
+            nodeContainer = Ext.fly(me.owner.getNodeContainer());
 
-        this.callParent([ ownerContext ]);
+        me.callParent([ ownerContext ]);
 
         if (nodeContainer) {
             nodeContainer.setWidth(ownerContext.headerContext.props.contentWidth);
+        }
+
+        // Inform any buffered renderer about completion of the layout of its view
+        if (me.owner.bufferedRenderer) {
+            me.owner.bufferedRenderer.afterTableLayout(ownerContext);
         }
     }
 });

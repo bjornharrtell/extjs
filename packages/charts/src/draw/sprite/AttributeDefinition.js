@@ -15,7 +15,10 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
         /**
          * @cfg {Object} defaults Defines the default values of attributes.
          */
-        defaults: {},
+        defaults: {
+            $value: {},
+            lazy: true
+        },
 
         /**
          * @cfg {Object} aliases Defines the alternative names for attributes.
@@ -40,7 +43,12 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
          * One can define a custom processor function here or use the name of a predefined
          * processor from the {@link Ext.draw.sprite.AttributeParser} singleton.
          */
-        processors: {},
+        processors: {
+            // A plus side of lazy initialization is that the 'processors' and 'defaults' will
+            // only be applied for those sprite classes that are actually instantiated.
+            $value: {},
+            lazy: true
+        },
 
         /**
          * @cfg {Object} dirtyTriggers
@@ -104,6 +112,9 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
         processorFactoryRe: /^(\w+)\(([\w\-,]*)\)$/
     },
 
+    // The sprite class for which AttributeDefinition instance is created.
+    spriteClass: null,
+
     constructor: function (config) {
         var me = this;
         me.initConfig(config);
@@ -129,21 +140,22 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
 
         for (name in processors) {
             fn = processors[name];
-            if (!Ext.isFunction(fn)) {
-                if (Ext.isString(fn)) {
-                    match = fn.match(processorFactoryRe);
-                    if (match) {
-                        fn = defaultProcessor[match[1]].apply(defaultProcessor, match[2].split(','));
-                    } else {
-                        // Names of animation parsers match the names of attribute parsers.
-                        animationProcessors[name] = fn;
-                        anyAnimationProcessors = true;
-                        fn = defaultProcessor[fn];
-                    }
-                } else {
-                    continue;
+            if (typeof fn === 'string') {
+                match = fn.match(processorFactoryRe);
+                if (match) { // enums(... , limited(... or something of that nature.
+                    fn = defaultProcessor[match[1]].apply(defaultProcessor, match[2].split(','));
+                } else if (defaultProcessor[fn]) {
+                    // Names of animation parsers match the names of attribute parsers.
+                    animationProcessors[name] = fn;
+                    anyAnimationProcessors = true;
+                    fn = defaultProcessor[fn];
                 }
             }
+            //<debug>
+            if (!Ext.isFunction(fn)) {
+                Ext.raise(this.spriteClass.$className + ": processor '" + name + "' has not been found.");
+            }
+            //</debug>
             result[name] = fn;
         }
 
@@ -204,9 +216,8 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
         if (!batchedChanges) {
             return {};
         }
-        var definition = this,
-            processors = definition.getProcessors(),
-            aliases = definition.getAliases(),
+        var processors = this.getProcessors(),
+            aliases = this.getAliases(),
             translation = batchedChanges.translation || batchedChanges.translate,
             normalized = {},
             i, ln, name, val,
@@ -341,9 +352,8 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
         if (!changes) {
             return {};
         }
-        var definition = this,
-            processors = definition.getProcessors(),
-            aliases = definition.getAliases(),
+        var processors = this.getProcessors(),
+            aliases = this.getAliases(),
             translation = changes.translation || changes.translate,
             normalized = {},
             name, val, rotation, scaling, matrix, split;
@@ -411,6 +421,21 @@ Ext.define('Ext.draw.sprite.AttributeDefinition', {
         if ('matrix' in changes) {
             matrix = Ext.draw.Matrix.create(changes.matrix);
             split = matrix.split();
+
+            // This will NOT update the transformation matrix of a sprite
+            // with the given elements. It will attempt to extract the
+            // individual transformation attributes from the transformation matrix
+            // elements provided. Then the extracted attributes will be used by
+            // the sprite's 'applyTransformations' method to calculate
+            // the transformation matrix of the sprite.
+            // It's not possible to recover all the information from the given
+            // transformation matrix elements. Shearing and centers of rotation
+            // and scaling are not recovered.
+            // Ideally, this should work like sprite.transform([elements], true),
+            // i.e. update the transformation matrix of a sprite directly,
+            // without attempting to update sprite's transformation attributes.
+            // But we are not changing the behavior (just yet) for compatibility
+            // reasons.
 
             normalized.matrix = matrix;
             normalized.rotationRads = split.rotation;

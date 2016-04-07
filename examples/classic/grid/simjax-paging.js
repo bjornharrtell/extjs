@@ -2625,7 +2625,7 @@ Ext.onReady(function(){
                   replycount:0,
                   lastpost:1305137653,
                   lastposter:"danellison",
-                  excerpt:"Hi all.  Viewport does an Ext.direct call to php backend for menu contents and handler methods are returned as json text.\n\n\n\t    if(COI.userProfile.sh..."
+                  excerpt:"Hi all.  Viewport does an Ext Direct call to php backend for menu contents and handler methods are returned as json text.\n\n\n\t    if(COI.userProfile.sh..."
                },
                {
                   title:"Forum functionality hopelessly broken?",
@@ -4728,7 +4728,7 @@ Ext.onReady(function(){
                   excerpt:"Hello,\n\nI've been searching this forum for an answer but couldn't find one, there were I believe some issues with defaultType and defaultAnchor, and I..."
                },
                {
-                  title:"Ext.Direct \/ Cross Site Scripting",
+                  title:"Ext Direct \/ Cross Site Scripting",
                   threadid:132071,
                   username:"hl_igig",
                   userid:147130,
@@ -4739,7 +4739,7 @@ Ext.onReady(function(){
                   replycount:3,
                   lastpost:1304497451,
                   lastposter:"hl_igig",
-                  excerpt:"Is there any way to get Ext.Direct runnable from another domain?\r\n\r\nany help would be appreciated\r\n\r\n\r\ngreetings"
+                  excerpt:"Is there any way to get Ext Direct runnable from another domain?\r\n\r\nany help would be appreciated\r\n\r\n\r\ngreetings"
                },
                {
                   title:"Looking for -trainer\/consultant Bxl Belgium",

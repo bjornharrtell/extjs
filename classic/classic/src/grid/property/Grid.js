@@ -247,9 +247,6 @@ Ext.define('Ext.grid.property.Grid', {
      * @param {Object} oldValue The original property value prior to editing
      */
 
-    /**
-     * @private
-     */
     initComponent : function() {
         var me = this;
 
@@ -453,7 +450,8 @@ Ext.define('Ext.grid.property.Grid', {
             val = record.get(me.valueField),
             editor = me.getConfigProp(propName, 'editor'),
             type = me.getConfigProp(propName, 'type'),
-            editors = me.editors;
+            editors = me.editors,
+            field;
 
         // A custom editor was found. If not already wrapped with a CellEditor, wrap it, and stash it back
         // If it's not even a Field, just a config object, instantiate it before wrapping it.
@@ -488,6 +486,12 @@ Ext.define('Ext.grid.property.Grid', {
             editor = editors['boolean']; // jshint ignore:line
         } else {
             editor = editors.string;
+        }
+
+        field = editor.field;
+
+        if (field && field.ui === 'default' && !field.hasOwnProperty('ui')) {
+            field.ui = me.editingPlugin.defaultFieldUI;
         }
 
         // Give the editor a unique ID because the CellEditing plugin caches them

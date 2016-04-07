@@ -119,10 +119,49 @@ Ext.define('Ext.draw.sprite.Instancing', {
         var template = this.getTemplate(),
             originalAttr = template.attr,
             bbox;
+
         template.attr = this.instances[index];
         bbox = template.getBBox(isWithoutTransform);
         template.attr = originalAttr;
         return bbox;
+    },
+
+    /**
+     * @private
+     * Checks if the instancing sprite can be seen.
+     * @return {Boolean}
+     */
+    isVisible: function () {
+        var attr = this.attr,
+            parent = this.getParent(),
+            result;
+
+        result = parent && parent.isSurface && !attr.hidden && attr.globalAlpha;
+
+        return !!result;
+    },
+
+    /**
+     * @private
+     * Checks if the instance of an instancing sprite can be seen.
+     * @param {Number} index The index of the instance.
+     */
+    isInstanceVisible: function (index) {
+        var me = this,
+            template = me.getTemplate(),
+            originalAttr = template.attr,
+            instances = me.instances,
+            result = false;
+
+        if (!Ext.isNumber(index) || index < 0 || index >= instances.length || !me.isVisible()) {
+            return result;
+        }
+
+        template.attr = instances[index];
+        result = template.isVisible(point, options);
+        template.attr = originalAttr;
+
+        return result;
     },
 
     render: function (surface, ctx, clipRect, rect) {
@@ -188,11 +227,12 @@ Ext.define('Ext.draw.sprite.Instancing', {
         var me = this,
             template = me.getTemplate();
 
-        me.callParent();
-
         me.instances = null;
+
         if (template) {
             template.destroy();
         }
+
+        me.callParent();
     }
 });

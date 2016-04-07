@@ -36,7 +36,7 @@ Ext.define('Ext.chart.axis.sprite.Axis3D', {
         }
     },
 
-    doLayout: function () {
+    layoutUpdater: function () {
         var me = this,
             chart = me.getAxis().getChart();
         if (chart.isInitializing) {
@@ -51,7 +51,7 @@ Ext.define('Ext.chart.axis.sprite.Axis3D', {
             context = {
                 attr: attr,
                 segmenter: me.getSegmenter(),
-                renderer: me.doDefaultRender
+                renderer: me.defaultRenderer
             };
 
         if (attr.position === 'left' || attr.position === 'right') {

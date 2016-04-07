@@ -25,21 +25,21 @@
  * Toolbar padding
  *
  * @param {number/list} $padding-big
- * Toolbar padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Toolbar padding in the {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {number} $horizontal-spacing
  * The space in between horizontally aligned Toolbar items
  *
  * @param {number} $horizontal-spacing-big
  * The space in between horizontally aligned Toolbar items in the
- * {@link Ext.Component#$enable-big big} sizing scheme
+ * {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {number} $vertical-spacing
  * The space in between vertically aligned Toolbar items
  *
  * @param {number} $vertical-spacing-big
  * The space in between vertically aligned Toolbar items in the
- * {@link Ext.Component#$enable-big big} sizing scheme
+ * {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {color} $title-color
  * Toolbar {@link Ext.Title Title} color
@@ -52,7 +52,7 @@
  *
  * @param {number} $title-font-size-big
  * Toolbar {@link Ext.Title Title} font-size in the
- * {@link Ext.Component#$enable-big big} sizing scheme
+ * {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {string} $title-font-family
  * Toolbar {@link Ext.Title Title} font-family
@@ -236,28 +236,28 @@
     }
 }
 
-/**
- * @var {color} $toolbar-input-bg
- * Background-color for toolbar form fields.
- */
+///**
+// * @var {color} $toolbar-input-bg
+// * Background-color for toolbar form fields.
+// */
 //$toolbar-input-bg: #fff !default;
 
-/**
- * @var {color} $toolbar-input-color
- * Text color for toolbar form fields.
- */
+///**
+// * @var {color} $toolbar-input-color
+// * Text color for toolbar form fields.
+// */
 //$toolbar-input-color: #000 !default;
 
-/**
- * @var {measurement} $toolbar-input-height
- * Text color for toolbar form fields.
- */
+///**
+// * @var {measurement} $toolbar-input-height
+// * Text color for toolbar form fields.
+// */
 //$toolbar-input-height: 1.6em !default;
 
-/**
- * @var {color} $toolbar-input-border-color
- * Border color for toolbar form fields.
- */
+///**
+// * @var {color} $toolbar-input-border-color
+// * Border color for toolbar form fields.
+// */
 //$toolbar-input-border-color: rgba(#000, .5) !default;
 
 // Private

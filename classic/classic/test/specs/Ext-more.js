@@ -152,37 +152,67 @@ describe("Ext-more", function() {
     });
 
     describe("Ext.removeNode", function() {
-        var el, id;
+        var el, id, dom;
+        
         beforeEach(function() {
             el = Ext.getBody().createChild({
                 tag: 'span',
                 html: 'foobar'
             });
+            
             id = el.id;
+            dom = el.dom;
         });
         
-        it("should remove a dom element from document", function() {
-            var dom = el.dom;
-            Ext.removeNode(dom);
-            expect(dom.parentNode).toBeFalsy();
+        afterEach(function() {
+            el = id = dom = null;
         });
+        
+        if (Ext.isIE8) {
+            it("should schedule element for garbage collection", function() {
+                var queue = Ext.Element.destroyQueue,
+                    len = queue.length;
+                
+                Ext.removeNode(dom);
+                
+                expect(queue.length).toBe(len + 1);
+                expect(queue[len]).toBe(dom);
+            });
+            
+            it("should finally destroy the element after a timeout", function() {
+                runs(function() {
+                    Ext.removeNode(dom);
+                });
+                
+                // The timeout is hardcoded in Element override
+                waits(32);
+                
+                runs(function() {
+                    expect(dom.parentNode).toBeFalsy();
+                });
+            });
+        }
+        else {
+            it("should remove a dom element from document", function() {
+                Ext.removeNode(dom);
+                expect(dom.parentNode).toBeFalsy();
+            });
+        }
 
         it("should delete the cache reference", function() {
             expect(Ext.cache[id]).toBeDefined();
             Ext.removeNode(el.dom);
             expect(Ext.cache[id]).toBeUndefined();
         });
-        if (!Ext.isIE8) {
-            it("should remove all listeners from the dom element", function() {
-                var listener = jasmine.createSpy(),
-                    dom = el.dom;
+        
+        it("should remove all listeners from the dom element", function() {
+            var listener = jasmine.createSpy();
 
-                el.on('mouseup', listener);
-                Ext.removeNode(dom);
-                jasmine.fireMouseEvent(dom, 'mouseup');
-                expect(listener).not.toHaveBeenCalled();
-            });
-        }
+            el.on('mouseup', listener);
+            Ext.removeNode(dom);
+            jasmine.fireMouseEvent(dom, 'mouseup');
+            expect(listener).not.toHaveBeenCalled();
+        });
     });
 
     describe("Ext.addBehaviors", function() {
@@ -242,6 +272,49 @@ describe("Ext-more", function() {
         });
     });
 
+    describe('Ext.copyToIf', function() {
+        it('should not overwrite defined properties', function() {
+            var dest = {
+                a: 1,
+                b: undefined
+            };
+            Ext.copyToIf(dest, {
+                a: 2,
+                b: 3,
+                c: 4
+            }, 'a,b,c');
+            expect(dest.a).toBe(1);
+
+            // Test the bug in the deprecated copyToIf.
+            // If the property existed but was undefined, it was overwritten
+            expect(dest.b).toBe(3);
+
+            // Test valid copying
+            expect(dest.c).toBe(4);
+        });
+    });
+
+    describe('Ext.copyIf', function() {
+        it('should not overwrite existing properties', function() {
+            var dest = {
+                a: 1,
+                b: undefined
+            };
+            Ext.copyIf(dest, {
+                a: 2,
+                b: 3,
+                c: 4
+            }, 'a,b,c');
+            expect(dest.a).toBe(1);
+
+            // Property b was present in dest, so is left alone.
+            expect(dest.b).toBeUndefined();
+
+            // Test valid copying
+            expect(dest.c).toBe(4);
+        });
+    });
+
     describe("Ext.copyTo", function() {
         var src, dest;
 
@@ -279,6 +352,137 @@ describe("Ext-more", function() {
                     b: 2,
                     c: 3
                 });
+            });
+        });
+        
+        describe('including prototype properties', function() {
+            var CopyToSource = function(obj){
+                Ext.apply(this, obj);
+            };
+
+            CopyToSource.prototype = {
+                prototypeProperty: "I'm from the prototype"
+            };
+
+            beforeEach(function() {
+                src = new CopyToSource({
+                    a: 1,
+                    b: 2,
+                    c: 3,
+                    d: 4
+                });
+            });
+            it('should not copy prototype properties unless asked', function() {
+                Ext.copyTo(dest, src, 'a,nonExistent,prototypeProperty');
+
+                // There was only ONE property that could be copied over.
+                // nonExistent should NOT end up as a property reference to undefined.
+                // prototypeProperty was not copied because it's on the prototype and
+                // we did not pass the usePrototypeKeys parameter.
+                expect(dest).toEqual({
+                    a: 1
+                });
+            });
+            it('should copy prototype properties when asked', function() {
+                Ext.copyTo(dest, src, 'a,nonExistent,prototypeProperty', true);
+
+                // There were TWO that could be copied over.
+                // nonExistent should NOT end up as a property reference to undefined.
+                // prototypeProperty is copied over because we passed the usePrototypeKeys parameter.
+                expect(dest).toEqual({
+                    a: 1,
+                    prototypeProperty: "I'm from the prototype"
+                });
+
+                // Test the bug in the deprecated method.
+                // copyTo copies nonexistent properties if usePrototypeKeys is true.
+                expect('nonExistent' in dest).toBe(true);
+                expect(dest.nonExistent).toBeUndefined();
+            });
+        });
+    });
+
+    describe("Ext.copy", function() {
+        var src, dest;
+
+        beforeEach(function() {
+            src = {
+                a: 1,
+                b: 2,
+                c: 3,
+                d: 4
+            };
+
+            dest = {};
+        });
+
+        afterEach(function() {
+            src = null;
+            dest = null;
+        });
+
+        describe("with an array of named properties", function() {
+            it("should copy a set of named properties fom the source object to the destination object.", function() {
+                Ext.copy(dest, src, ['a', 'b', 'e']);
+
+                expect(dest).toEqual({
+                    a: 1,
+                    b: 2
+                });
+            });
+        });
+
+        describe("with a string list of named properties", function() {
+            it("should copy a set of named properties fom the source object to the destination object.", function() {
+                Ext.copy(dest, src, 'c,b,e');
+                expect(dest).toEqual({
+                    b: 2,
+                    c: 3
+                });
+            });
+        });
+        
+        describe('including prototype properties', function() {
+            var CopyToSource = function(obj){
+                Ext.apply(this, obj)
+            };
+
+            CopyToSource.prototype = {
+                prototypeProperty: "I'm from the prototype"
+            };
+
+            beforeEach(function() {
+                src = new CopyToSource({
+                    a: 1,
+                    b: 2,
+                    c: 3,
+                    d: 4
+                });
+            });
+            it('should not copy prototype properties unless asked', function() {
+                Ext.copy(dest, src, 'a,nonExistent,prototypeProperty');
+
+                // There was only ONE property that could be copied over.
+                // nonExistent should NOT end up as a property reference to undefined.
+                // prototypeProperty was not copied because it's on the prototype and
+                // we did not pass the usePrototypeKeys parameter.
+                expect(dest).toEqual({
+                    a: 1
+                });
+            });
+            it('should copy prototype properties when asked', function() {
+                Ext.copy(dest, src, 'a,nonExistent,prototypeProperty', true);
+
+                // There were TWO that could be copied over.
+                // nonExistent should NOT end up as a property reference to undefined.
+                // prototypeProperty is copied over because we passed the usePrototypeKeys parameter.
+                expect(dest).toEqual({
+                    a: 1,
+                    prototypeProperty: "I'm from the prototype"
+                });
+
+                // Test that the new version does NOT copy nonexistent properties when usePrototypeKeys is true.
+                expect('nonExistent' in dest).toBe(false);
             });
         });
     });

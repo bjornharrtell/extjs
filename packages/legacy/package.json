@@ -1,52 +1,75 @@
 {
+    /**
+     * The namespace of this package.
+     *
+     * As a general rule, all classes that belong to this package should be under this namespace
+     * if multiple namespaces are part of this package, set this to "".
+     */
+    "namespace": "Ext",
+
     "name": "legacy",
     "type": "code",
+
+    "framework": "ext",
+    "toolkit": "modern",
+    "theme": "theme-neptune",
+    //"requires": [
+    //    ...
+    //],
+
     "creator": "Sencha",
     "summary": "Legacy / Deprecated Classes",
     "detailedDescription": "This package contains classes that are no longer supported",
-    "version": "6.0.0.640",
+
+    "version": "6.0.1.250",
     "compatVersion": "6.0.0",
     "format": "1",
-    "output": "${package.dir}/build",
+
+    "output": {
+        "base": "${framework.dir}/build/packages/${package.name}/${toolkit.name}/${build.id}",
+        "js": "..",
+        "sass": ""
+    },
     "local": true,
-    "framework": "ext",
 
     "sass": {
-        /**
-         * The root namespace to use when mapping *.scss files to classes in the
-         * sass/src and sass/var directories. For example, "Ext.view.View" would
-         * map to "sass/src/view/View.scss". If we changed this to "Ext.view" then
-         * it would map to "sass/src/View.scss".
-         */
         "namespace": "Ext",
 
-        /**
-         * This file is automatically imported into the SASS build before "vars".
-         */
-        "etc": "${package.dir}/sass/etc/all.scss",
+        "etc": [
+            "${package.dir}/sass/etc/all.scss",
+            "${package.dir}/${toolkit.name}/sass/etc/all.scss"
+        ],
 
-        /**
-         * This is the folder where SASS "vars" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
-        "var": "${package.dir}/sass/var",
+        "var": [
+            "${package.dir}/sass/var",
+            "${package.dir}/${toolkit.name}/sass/var"
+        ],
 
-        /**
-         * This is the folder where SASS "src" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
-        "src": "${package.dir}/sass/src"
+        "src": [
+            "${package.dir}/sass/src",
+            "${package.dir}/${toolkit.name}/sass/src"
+        ]
     },
 
-    /**
-     * This is the comma-separated list of folders where classes reside. These classes
-     * must be explicitly required to be included in the build.
-     */
-    "classpath": "${package.dir}/src",
+    "classpath": [
+        "${package.dir}/src",
+        "${package.dir}/${toolkit.name}/src"
+    ],
 
-    /**
-     * This is the comma-separated list of folders where overrides reside. These files
-     * are automatically required in the build when the package is required.
-     */
-    "overrides": "${package.dir}/overrides"
+    "overrides": [
+        "${package.dir}/overrides",
+        "${package.dir}/${toolkit.name}/overrides"
+    ],
+
+    "slicer": null,
+
+    "builds": {
+        "classic": {
+            "toolkit": "classic"
+        },
+
+        "modern": {
+            "toolkit": "modern"
+        }
+    }
 }

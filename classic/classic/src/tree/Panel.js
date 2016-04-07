@@ -27,7 +27,7 @@
  *     Ext.create('Ext.tree.Panel', {
  *         title: 'Simple Tree',
  *         width: 200,
- *         height: 150,
+ *         height: 200,
  *         store: store,
  *         rootVisible: false,
  *         renderTo: Ext.getBody()
@@ -197,6 +197,61 @@
  *
  * If you add store listeners to the {@link Ext.data.Store#event-update update} event, then you will receive notification when any of this state changes.
  * You should check the array of modified field names passed to the listener to decide whether the listener should take action or ignore the event.
+ * 
+ * # Tree Grid
+ * Trees may be configured using the {@link #cfg-columns} config including a 
+ * {@link Ext.tree.Column treecolumn} to give the tree panel a hybrid tree / 
+ * {@link Ext.grid.Panel grid} structure.
+ * 
+ *     @example
+ *     Ext.create({
+ *         xtype: 'treepanel',
+ *         renderTo: Ext.getBody(),
+ *         height: 200,
+ *         width: 300,
+ *         rootVisible: false,
+ *         store: Ext.create('Ext.data.TreeStore', {
+ *             fields: ['text', 'duration', 'isLayover'],
+ *             root: {
+ *                 expanded: true,
+ *                 children: [{
+ *                     text: 'SFO  &nbsp;✈&nbsp; DFW',
+ *                     duration: '6h 55m',
+ *                     expanded: true,
+ *                     children: [{
+ *                         text: 'SFO &nbsp;✈&nbsp; PHX',
+ *                         duration: '2h 04m',
+ *                         leaf: true
+ *                     }, {
+ *                         text: 'PHX layover',
+ *                         duration: '2h 36m',
+ *                         isLayover: true,
+ *                         leaf: true
+ *                     }, {
+ *                         text: 'PHX &nbsp;✈&nbsp; DFW',
+ *                         duration: '2h 15m',
+ *                         leaf: true
+ *                     }]
+ *                 }]
+ *             }
+ *         }),
+ *         columns: [{
+ *             xtype: 'treecolumn',
+ *             text: 'Flight Endpoints',
+ *             dataIndex: 'text',
+ *             flex: 1,
+ *             renderer: function (val, meta, rec) {
+ *                 if (rec.get('isLayover')) {
+ *                     meta.tdStyle = 'color: gray; font-style: italic;';
+ *                 }
+ *                 return val;
+ *             }
+ *         }, {
+ *             text: 'Duration',
+ *             dataIndex: 'duration',
+ *             width: 100
+ *         }]
+ *     });
  */
 Ext.define('Ext.tree.Panel', {
     extend: 'Ext.panel.Table',
@@ -386,10 +441,19 @@ Ext.define('Ext.tree.Panel', {
         // An injected LockingView relays events from its locked side's View
         me.relayEvents(view, [
             /**
+            * @event beforecheckchange
+            * Fires when a node with a checkbox's checked property changes.
+            * @param {Ext.data.TreeModel} node The node who's checked property is to be changed.
+            * @param {Boolean} checked The node's current checked state.
+            * @param {Ext.event.Event} e The click event.
+            */
+            'beforecheckchange',
+            /**
             * @event checkchange
-            * Fires when a node with a checkbox's checked property changes
-            * @param {Ext.data.TreeModel} node The node who's checked property was changed
-            * @param {Boolean} checked The node's new checked state
+            * Fires when a node with a checkbox's checked property changes.
+            * @param {Ext.data.TreeModel} node The node who's checked property was changed.
+            * @param {Boolean} checked The node's new checked state.
+            * @param {Ext.event.Event} e The click event.
             */
             'checkchange',
             /**
@@ -508,8 +572,49 @@ Ext.define('Ext.tree.Panel', {
             'load'
         ]);
 
+        // If rootVisible is false, we *might* need to expand the node.
+        // If store is autoLoad, that will already have been kicked off.
+        // If its already expanded, or in the process of loading, the TreeStore
+        // has started that at the end of updateRoot 
+        if (!me.rootVisible && !store.autoLoad && !(root.isExpanded() || root.isLoading())) {
+            // A hidden root must be expanded, unless it's overridden with autoLoad: false.
+            // If it's loaded, set its expanded field (silently), and skip ahead to the onNodeExpand callback.
+            if (root.isLoaded()) {
+                root.data.expanded = true;
+                store.onNodeExpand(root, root.childNodes);
+            }
+            // Root is not loaded; go through the expand mechanism to force a load
+            // unless we were told explicitly not to load the store by setting
+            // autoLoad: false. This is useful with Direct proxy in cases when
+            // Direct API is loaded dynamically and may not be available at the time
+            // when TreePanel is created.
+            else if (store.autoLoad !== false) {
+                root.data.expanded = false;
+                root.expand();
+            }
+        }
+
+        // TreeStore must have an upward link to the TreePanel so that nodes can find their owning tree in NodeInterface.getOwnerTree
+        store.ownerTree = me;
+
+        if (!initial) {
+            me.view.setRootNode(root);
+        }
+    },
+
+    /**
+     * @private
+     */
+    addRelayers: function(newRoot) {
+        var me = this;
+
+        if (me.rootRelayers) {
+            me.rootRelayers.destroy();
+            me.rootRelayers = null;
+        }
+        
         // Relay store events with prefix. Return a Destroyable object
-        me.rootRelayers = me.mon(root, {
+        me.rootRelayers = me.mon(newRoot, {
             destroyable: true,
 
             /**
@@ -582,37 +687,9 @@ Ext.define('Ext.tree.Panel', {
              * @event beforeitemcollapse
              * @inheritdoc Ext.data.TreeStore#nodebeforecollapse
              */
-            beforecollapse: me.createRelayer('beforeitemcollapse', [0, 1])
+            beforecollapse: me.createRelayer('beforeitemcollapse', [0, 1]),
+            scope: me
         });
-
-        // If rootVisible is false, we *might* need to expand the node.
-        // If store is autoLoad, that will already have been kicked off.
-        // If its already expanded, or in the process of loading, the TreeStore
-        // has started that at the end of updateRoot 
-        if (!me.rootVisible && !store.autoLoad && !(root.isExpanded() || root.isLoading())) {
-            // A hidden root must be expanded, unless it's overridden with autoLoad: false.
-            // If it's loaded, set its expanded field (silently), and skip ahead to the onNodeExpand callback.
-            if (root.isLoaded()) {
-                root.data.expanded = true;
-                store.onNodeExpand(root, root.childNodes);
-            }
-            // Root is not loaded; go through the expand mechanism to force a load
-            // unless we were told explicitly not to load the store by setting
-            // autoLoad: false. This is useful with Direct proxy in cases when
-            // Direct API is loaded dynamically and may not be available at the time
-            // when TreePanel is created.
-            else if (store.autoLoad !== false) {
-                root.data.expanded = false;
-                root.expand();
-            }
-        }
-
-        // TreeStore must have an upward link to the TreePanel so that nodes can find their owning tree in NodeInterface.getOwnerTree
-        store.ownerTree = me;
-
-        if (!initial) {
-            me.view.setRootNode(root);
-        }
     },
 
     /**
@@ -932,7 +1009,7 @@ Ext.define('Ext.tree.Panel', {
      * @param {Boolean}                 callback.success `true` if the node expansion was successful.
      * @param {Ext.data.NodeInterface}  callback.lastNode If successful, the target node. If unsuccessful, the
      *                                  last tree node encountered while expanding the path.
-     * @param {HTMLElement}             options.callback.node If successful, the record's view node.
+     * @param {HTMLElement}             callback.node If successful, the record's view node.
      * @param {Object}                  [scope] The scope of the callback function
      */
     selectPath: function(path, field, separator, callback, scope) {

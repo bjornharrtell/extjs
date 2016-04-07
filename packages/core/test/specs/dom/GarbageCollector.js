@@ -45,7 +45,7 @@ describe("Ext.dom.GarbageCollector", function() {
         el.destroy();
     });
 
-    (Ext.getDetachedBody ? describe : xdescribe)("should not collect an element that is in the detached body", function() {
+    (Ext.getDetachedBody ? it : xit)("should not collect an element that is in the detached body", function() {
         var el = Ext.get(document.createElement('div')),
             id = el.id;
 

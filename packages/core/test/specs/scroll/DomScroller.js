@@ -919,11 +919,18 @@ describe("Ext.scroll.DomScroller", function() {
                 });
 
                 it("should sync the partner's scroll position when the scroller is scrolled", function() {
+                    // The partner should take action upon scroll start and end
+                    spyOn(scroller2, 'fireScrollStart').andCallThrough();
+                    spyOn(scroller2, 'fireScrollEnd').andCallThrough();
+
                     scroller.scrollTo(10, 20);
 
                     waitsFor(function() {
-                        return scrollSpy.wasCalled;
-                    });
+                        return scrollSpy.wasCalled
+                        // The passive side should also have fired its start and end scroll events
+                        &&     scroller2.fireScrollStart.callCount === 1
+                        &&     scroller2.fireScrollEnd.callCount === 1;
+                    }, 'scroller2 to have started scrolling, scrolled, and ended scrolling');
 
                     runs(function() {
                         expect(scroller2.getPosition()).toEqual({
@@ -934,11 +941,18 @@ describe("Ext.scroll.DomScroller", function() {
                 });
 
                 it("should sync the scroller's scroll position when the partner is scrolled", function() {
+                    // The scroller should take action upon scroll start and end
+                    spyOn(scroller, 'fireScrollStart').andCallThrough();
+                    spyOn(scroller, 'fireScrollEnd').andCallThrough();
+
                     scroller2.scrollTo(10, 20);
 
                     waitsFor(function() {
-                        return scrollSpy2.wasCalled;
-                    });
+                        return scrollSpy2.wasCalled
+                        // The passive side should also have fired its start and end scroll events
+                        &&     scroller.fireScrollStart.callCount === 1
+                        &&     scroller.fireScrollEnd.callCount === 1;
+                    }, 'scroller to have started scrolling, scrolled, and ended scrolling');
 
                     runs(function() {
                         expect(scroller.getPosition()).toEqual({

@@ -110,6 +110,7 @@ Ext.define('Ext.toolbar.Breadcrumb', {
         /**
          * @cfg {Ext.data.TreeModel/String} selection
          * The selected node, or `"root"` to select the root node
+         * @accessor
          */
         selection: 'root'
     },

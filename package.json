@@ -1,15 +1,13 @@
 {
   "name": "ext",
+  "namespace": "Ext",
   "format": "1",
-  "version": "6.0.0.640",
+  "version": "6.0.1.250",
   "compatVersion": "6.0.0",
   "creator": "Sencha",
   "summary": "Ext JS",
   "detailedDescription": "Sencha Ext JS JavaScript Framework",
   "type": "framework",
-  "resources": [
-    "resources"
-  ],
   "output": "${package.dir}/build",
   "build": {
     "dir": "${package.output.base}"
@@ -23,6 +21,11 @@
   },
   "classpath": "${package.dir}/src",
   "overrides": "${package.dir}/overrides",
+  "resource": {
+    "paths": [
+      "resources"
+    ]
+  },
   "example": {
     "path": [
       "examples",
@@ -40,6 +43,7 @@
       "classic/responsive-app",
       "classic/aria",
       "modern/addressbook",
+      "modern/blackberry",
       "modern/energy",
       "modern/stockapp",
       "modern/states",
@@ -53,6 +57,10 @@
     "packages/charts",
     "packages/amf",
     "packages/soap",
-    "packages/ux"
+    "packages/ux",
+    "packages/legacy",
+    "packages/font-awesome",
+    "packages/font-pictos",
+    "packages/font-ext"
   ]
 }

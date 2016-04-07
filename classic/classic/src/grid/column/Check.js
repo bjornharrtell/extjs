@@ -42,10 +42,6 @@ Ext.define('Ext.grid.column.Check', {
      */
     align: 'center',
 
-    /**
-     * @cfg {Boolean} ignoreExport
-     * @inheritdoc
-     */
     ignoreExport: true,
 
     /**

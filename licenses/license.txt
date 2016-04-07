@@ -1,4 +1,4 @@
-Ext JS 6.0.0.640 - JavaScript Library
+Ext JS 6.0.1.250 - JavaScript Library
 Copyright (c) 2006-2015, Sencha Inc.
 All rights reserved.
 licensing@sencha.com

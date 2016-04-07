@@ -134,10 +134,12 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
             // capture this before callParent since it calls handle/clearOverflow:
             me.scrollSize = lastProps[names.x] + lastProps[names.width];
             me.updateScrollButtons();
+
+            // Restore pre layout scroll position
+            layout.innerCt[names.setScrollLeft](scrollPos);
         }
 
-        layout.innerCt[names.setScrollLeft](scrollPos);
-        this.callParent([ownerContext]);
+        me.callParent([ownerContext]);
     },
 
     handleOverflow: function(ownerContext) {
@@ -356,7 +358,7 @@ Ext.define('Ext.layout.container.boxOverflow.Scroller', {
     getMaxScrollPosition: function() {
         var me = this,
             layout = me.layout,
-            maxScrollPos = me.scrollSize - layout.innerCt[layout.names.getWidth]();
+            maxScrollPos = me.scrollSize - layout.innerCt.lastBox[layout.names.width];
 
         return (maxScrollPos < 0) ? 0 : maxScrollPos;
     },

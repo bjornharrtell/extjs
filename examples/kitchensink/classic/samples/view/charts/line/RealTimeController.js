@@ -28,7 +28,7 @@ Ext.define('KitchenSink.view.charts.line.RealTimeController', {
         this.addNewNumberData();
         this.numberChartTask = Ext.TaskManager.start({
             run: this.addNewNumberData,
-            interval: 500,
+            interval: 1000,
             repeat: 240,
             scope: this
         });
@@ -37,6 +37,16 @@ Ext.define('KitchenSink.view.charts.line.RealTimeController', {
     onNumberChartDestroy: function () {
         if (this.numberChartTask) {
             Ext.TaskManager.stop(this.numberChartTask);
+        }
+    },
+
+    onTabChange: function (tabPanel, newCard, oldCard) {
+        if (newCard.getItemId() === 'numeric') {
+            Ext.TaskManager.stop(this.timeChartTask);
+            Ext.TaskManager.start(this.numberChartTask);
+        } else {
+            Ext.TaskManager.stop(this.numberChartTask);
+            Ext.TaskManager.start(this.timeChartTask);
         }
     },
 
@@ -128,4 +138,4 @@ Ext.define('KitchenSink.view.charts.line.RealTimeController', {
         }
     }
 
-})
+});

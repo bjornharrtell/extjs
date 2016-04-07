@@ -6,12 +6,8 @@ Ext.define('Admin.store.search.Users', {
     model: 'Admin.model.search.User',
 
     proxy: {
-        type: 'ajax',
-        url: '~api/search/users',
-        reader: {
-            type: 'json',
-            rootProperty: 'data'
-        }
+        type: 'api',
+        url: '~api/search/users'
     },
 
     autoLoad: 'true',

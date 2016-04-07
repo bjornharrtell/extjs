@@ -116,7 +116,7 @@ describe("Ext.form.action.DirectSubmit", function() {
             createAction();
             
             expect(function() { action.run(); }).toThrow(
-                "Cannot resolve Ext.Direct API method spec.TestDirect.submit " +
+                "Cannot resolve Ext Direct API method spec.TestDirect.submit " +
                 "for submit action"
             );
         });

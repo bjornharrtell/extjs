@@ -15,10 +15,13 @@ Ext.define('KitchenSink.view.binding.Form', {
         }
     },
 
-    layout: 'fit',
+    layout: 'vbox',
+    scrollable: true,
 
     items: {
         xtype: 'fieldset',
+        flex: 1,
+        minHeight: 400,
         defaultType: 'container',
         layout: 'vbox',
         instructions: [
@@ -35,10 +38,9 @@ Ext.define('KitchenSink.view.binding.Form', {
             items: [{
                 xtype: 'numberfield',
                 label: 'Red',
-                labelWidth: '35%',
-                width: 200,
-                bind: '{red}',
-                margin: '0 10 0 0'
+                labelWidth: '50%',
+                width: 150,
+                bind: '{red}'
             }, {
                 xtype: 'singlesliderfield',
                 flex: 1,
@@ -54,10 +56,9 @@ Ext.define('KitchenSink.view.binding.Form', {
             items: [{
                 xtype: 'numberfield',
                 label: 'Green',
-                labelWidth: '35%',
-                width: 200,
-                bind: '{green}',
-                margin: '0 10 0 0'
+                labelWidth: '50%',
+                width: 150,
+                bind: '{green}'
             }, {
                 xtype: 'singlesliderfield',
                 flex: 1,
@@ -73,10 +74,9 @@ Ext.define('KitchenSink.view.binding.Form', {
             items: [{
                 xtype: 'numberfield',
                 label: 'Blue',
-                labelWidth: '35%',
-                width: 200,
-                bind: '{blue}',
-                margin: '0 10 0 0'
+                labelWidth: '50%',
+                width: 150,
+                bind: '{blue}'
             }, {
                 xtype: 'singlesliderfield',
                 flex: 1,

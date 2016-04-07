@@ -91,7 +91,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
         if (visible && visible !== prev) {
             // If being shown, something may have changed while not visible, so
             // force the summary records to recalculate
-            me.updateNext = true;
+            me.updateSummaryRow = true;
         }
 
         // If there is another side to be toggled, then toggle it (as long as we are not already being commanded from that other side);

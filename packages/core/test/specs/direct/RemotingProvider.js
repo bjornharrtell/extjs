@@ -447,7 +447,7 @@ describe("Ext.direct.RemotingProvider", function() {
                         }]);
                     });
                 });
-            
+                
                 it("should run calls with specified timeout w/o batching", function() {
                     var options = [],
                         baseTid;
@@ -462,6 +462,39 @@ describe("Ext.direct.RemotingProvider", function() {
                     
                         ns.TestAction.echo('baz', Ext.emptyFn);
                         ns.TestAction.echo('qux', Ext.emptyFn, this, { timeout: 1 });
+                    });
+                
+                    waitsFor(function() { return !!options }, 'options never modified', 20);
+                
+                    runs(function() {
+                        expect(options.length).toBe(1);
+                        // AND
+                        expect(options[0].jsonData).toEqual({
+                            action: 'TestAction',
+                            method: 'echo',
+                            type:   'rpc',
+                            tid:    baseTid + 2,
+                            data:   ['qux']
+                        });
+                    });
+                });
+                
+                it("should run calls instantly with disableBatching", function() {
+                    var options = [],
+                        baseTid;
+                
+                    runs(function() {
+                        Ext.Ajax.request.andCallFake(function(opt) {
+                            options.push(opt);
+                        });
+
+                        provider.enableBuffer = 200;
+                        baseTid = Ext.direct.Transaction.TRANSACTION_ID;
+                        
+                        ns.TestAction.echo('baz', Ext.emptyFn);
+                        
+                        ns.TestAction.echo.$directCfg.method.disableBatching = true;
+                        ns.TestAction.echo('qux', Ext.emptyFn);
                     });
                 
                     waitsFor(function() { return !!options }, 'options never modified', 20);
@@ -497,6 +530,187 @@ describe("Ext.direct.RemotingProvider", function() {
                         type: 'rpc',
                         tid: baseTid + 1,
                         data: ['fred']
+                    });
+                });
+                
+                describe("bufferLimit", function() {
+                    var options, baseTid;
+                    
+                    beforeEach(function() {
+                        options = [];
+                        
+                        Ext.Ajax.request.andCallFake(function(opt) {
+                            options.push(opt);
+                        });
+                    
+                        provider.enableBuffer = 200;
+                        provider.bufferLimit = 3;
+                    
+                        baseTid = Ext.direct.Transaction.TRANSACTION_ID;
+                    });
+                    
+                    it("should batch calls up to bufferLimit", function() {
+                        runs(function() {
+                            ns.TestAction.echo('fee', Ext.emptyFn);
+                            ns.TestAction.echo('fie', Ext.emptyFn);
+                            ns.TestAction.echo('foe', Ext.emptyFn);
+                            ns.TestAction.echo('foo', Ext.emptyFn);
+                        });
+                        
+                        waitsFor(function() {
+                            return !!options.length;
+                        }, 'options never modified', 20);
+                        
+                        runs(function() {
+                            expect(options.length).toBe(1);
+                            
+                            expect(options[0].jsonData).toEqual([{
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 1,
+                                data:   ['fee']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 2,
+                                data:   ['fie']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 3,
+                                data:   ['foe']
+                            }]);
+                        });
+                    });
+                    
+                    it("should make 2 batched requests for 6 calls", function() {
+                        runs(function() {
+                            ns.TestAction.echo('frobbe', Ext.emptyFn);
+                            ns.TestAction.echo('throbbe', Ext.emptyFn);
+                            ns.TestAction.echo('gurgle', Ext.emptyFn);
+                            ns.TestAction.echo('bonzo', Ext.emptyFn);
+                            ns.TestAction.echo('mymse', Ext.emptyFn);
+                            ns.TestAction.echo('splurge', Ext.emptyFn);
+                        });
+                        
+                        waitsFor(function() {
+                            return !!options.length;
+                        }, 'options never modified', 20);
+                        
+                        runs(function() {
+                            expect(options.length).toBe(2);
+                            
+                            expect(options[0].jsonData).toEqual([{
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 1,
+                                data:   ['frobbe']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 2,
+                                data:   ['throbbe']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 3,
+                                data:   ['gurgle']
+                            }]);
+                            
+                            expect(options[1].jsonData).toEqual([{
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 4,
+                                data:   ['bonzo']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 5,
+                                data:   ['mymse']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 6,
+                                data:   ['splurge']
+                            }]);
+                        });
+                    });
+                    
+                    it("should make 3 batched requests for 7 calls", function() {
+                        runs(function() {
+                            ns.TestAction.echo('Grumpy', Ext.emptyFn);
+                            ns.TestAction.echo('Sleepy', Ext.emptyFn);
+                            ns.TestAction.echo('Dopey', Ext.emptyFn);
+                            ns.TestAction.echo('Bashful', Ext.emptyFn);
+                            ns.TestAction.echo('Sneezy', Ext.emptyFn);
+                            ns.TestAction.echo('Happy', Ext.emptyFn);
+                            ns.TestAction.echo('Doc', Ext.emptyFn);
+                        });
+                        
+                        waitsFor(function() {
+                            return options.length === 3;
+                        }, '3 Ajax requests', 300);
+                        
+                        runs(function() {
+                            expect(options.length).toBe(3);
+                            
+                            expect(options[0].jsonData).toEqual([{
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 1,
+                                data:   ['Grumpy']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 2,
+                                data:   ['Sleepy']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 3,
+                                data:   ['Dopey']
+                            }]);
+                            
+                            expect(options[1].jsonData).toEqual([{
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 4,
+                                data:   ['Bashful']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 5,
+                                data:   ['Sneezy']
+                            }, {
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 6,
+                                data:   ['Happy']
+                            }]);
+                            
+                            expect(options[2].jsonData).toEqual({
+                                action: 'TestAction',
+                                method: 'echo',
+                                type:   'rpc',
+                                tid:    baseTid + 7,
+                                data:   ['Doc']
+                            });
+                        });
                     });
                 });
             });

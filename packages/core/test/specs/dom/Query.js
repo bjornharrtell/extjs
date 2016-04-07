@@ -52,6 +52,13 @@ describe("Ext.dom.Query", function(){
         }
     });
 
+    describe("selectValue", function() {
+        it("should return defaultValue if nothing is found", function() {
+            var result = Ext.dom.Query.selectValue("testing", document, "empty");
+            expect(result).toBe('empty');
+        });
+    });
+    
     describe("jsSelect", function(){
 
         it("should throw error for an invalid query", function(){

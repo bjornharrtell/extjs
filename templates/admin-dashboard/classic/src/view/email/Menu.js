@@ -9,7 +9,7 @@ Ext.define('Admin.view.email.Menu', {
 
     title: 'Email',
 
-    iconCls: 'x-fa fa-group',
+    iconCls: 'x-fa fa-inbox',
 
     floating: false,
 
@@ -30,7 +30,7 @@ Ext.define('Admin.view.email.Menu', {
             text: 'Compose'
         },
         {
-            routeId: 'emailinbox',
+            routeId: '',
             iconCls: 'x-fa fa-inbox',
             text: 'Inbox'
         },

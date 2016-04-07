@@ -85,8 +85,10 @@ Ext.define('Ext.draw.Surface', {
 
     /**
      * The reported device pixel density.
+     * devicePixelRatio is only supported from IE11,
+     * so we use deviceXDPI and logicalXDPI that are supported from IE6.
      */
-    devicePixelRatio: window.devicePixelRatio || 1,
+    devicePixelRatio: window.devicePixelRatio || window.screen.deviceXDPI / window.screen.logicalXDPI,
 
     deprecated: {
         '5.1.0': {
@@ -147,23 +149,29 @@ Ext.define('Ext.draw.Surface', {
 
     isSurface: true,
 
-    dirtyPredecessor: 0,
+    /**
+     * @private
+     * This flag is used to indicate that `predecessors` surfaces that should render
+     * before this surface renders are dirty, and to call `renderFrame`
+     * when all `predecessors` have their `renderFrame` called (i.e. not dirty anymore).
+     * This flag indicates that current surface has surfaces that are yet to render
+     * before current surface can render. When all the `predecessors` surfaces
+     * have rendered, i.e. when `dirtyPredecessorCount` reaches zero,
+     */
+    isPendingRenderFrame: false,
+
+    dirtyPredecessorCount: 0,
 
     constructor: function (config) {
         var me = this;
 
         me.predecessors = [];
         me.successors = [];
-        // The `pendingRenderFrame` flag is used to indicate that `predecessors` (surfaces that should render first)
-        // are dirty, and to call `renderFrame` when all `predecessors` have their `renderFrame` called
-        // (i.e. not dirty anymore).
-        me.pendingRenderFrame = false;
         me.map = {};
 
         me.callParent([config]);
         me.matrix = new Ext.draw.Matrix();
-        me.inverseMatrix = me.matrix.inverse(me.inverseMatrix);
-        me.resetTransform();
+        me.inverseMatrix = me.matrix.inverse();
     },
 
     /**
@@ -182,43 +190,36 @@ Ext.define('Ext.draw.Surface', {
     waitFor: function (surface) {
         var me = this,
             predecessors = me.predecessors;
+
         if (!Ext.Array.contains(predecessors, surface)) {
             predecessors.push(surface);
             surface.successors.push(me);
-            if (surface._dirty) {
-                me.dirtyPredecessor++;
+            if (surface.getDirty()) {
+                me.dirtyPredecessorCount++;
             }
         }
     },
 
-    setDirty: function (dirty) {
-        if (this._dirty !== dirty) {
-            var successors = this.successors, successor,
-                i, ln = successors.length;
-            for (i = 0; i < ln; i++) {
-                successor = successors[i];
-                if (dirty) {
-                    successor.dirtyPredecessor++;
-                    successor.setDirty(true);
-                } else {
-                    successor.dirtyPredecessor--;
-                    if (successor.dirtyPredecessor === 0 && successor.pendingRenderFrame) {
-                        successor.renderFrame();
-                    }
+    updateDirty: function (dirty) {
+        var successors = this.successors,
+            ln = successors.length,
+            i = 0,
+            successor;
+
+        for (; i < ln; i++) {
+            successor = successors[i];
+            if (dirty) {
+                successor.dirtyPredecessorCount++;
+                successor.setDirty(true);
+            } else {
+                successor.dirtyPredecessorCount--;
+                // Don't need to call `setDirty(false)` on a successor here,
+                // as this will be done by `renderFrame`.
+                if (successor.dirtyPredecessorCount === 0 && successor.isPendingRenderFrame) {
+                    successor.renderFrame();
                 }
             }
-            this._dirty = dirty;
         }
-    },
-
-    applyElement: function (newElement, oldElement) {
-        if (oldElement) {
-            oldElement.set(newElement);
-        } else {
-            oldElement = Ext.Element.create(newElement);
-        }
-        this.setDirty(true);
-        return oldElement;
     },
 
     applyBackground: function (background, oldBackground) {
@@ -288,8 +289,9 @@ Ext.define('Ext.draw.Surface', {
     },
 
     /**
+     * @method
      * Add a Sprite to the surface.
-     * You can put any number of object as parameter.
+     * You can put any number of objects as the parameter.
      * See {@link Ext.draw.sprite.Sprite} for the configuration object to be passed into this method.
      *
      * For example:
@@ -303,7 +305,7 @@ Ext.define('Ext.draw.Surface', {
      *     });
      *     drawContainer.renderFrame();
      *
-     * @param {Object/Object[]}
+     * @param {Object/Object[]} sprite
      * @returns {Ext.draw.sprite.Sprite/Ext.draw.sprite.Sprite[]}
      *
      */
@@ -355,6 +357,7 @@ Ext.define('Ext.draw.Surface', {
     },
 
     /**
+     * @method
      * @protected
      * Invoked when a sprite is added to the surface.
      * @param {Ext.draw.sprite.Sprite} sprite The sprite to be added.
@@ -374,7 +377,7 @@ Ext.define('Ext.draw.Surface', {
      *
      * @param {Ext.draw.sprite.Sprite/String} sprite A sprite instance or its ID.
      * @param {Boolean} [isDestroy=false] If `true`, the sprite will be destroyed.
-     * @returns {Boolean} Returns the removed/destroyed sprite or `null` otherwise.
+     * @returns {Ext.draw.sprite.Sprite} Returns the removed/destroyed sprite or `null` otherwise.
      */
     remove: function (sprite, isDestroy) {
         var me = this,
@@ -453,7 +456,8 @@ Ext.define('Ext.draw.Surface', {
     },
 
     /**
-     * @private Creates an item and appends it to the surface. Called
+     * @private
+     * Creates an item and appends it to the surface. Called
      * as an internal method when calling `add`.
      */
     createItem: function (config) {
@@ -581,8 +585,8 @@ Ext.define('Ext.draw.Surface', {
         if (!me.element) {
             return;
         }
-        if (me.dirtyPredecessor > 0) {
-            me.pendingRenderFrame = true;
+        if (me.dirtyPredecessorCount > 0) {
+            me.isPendingRenderFrame = true;
             return;
         }
 
@@ -619,6 +623,7 @@ Ext.define('Ext.draw.Surface', {
     },
 
     /**
+     * @method
      * @private
      * Renders a single sprite into the surface.
      * Do not call it from outside `renderFrame` method.
@@ -650,14 +655,6 @@ Ext.define('Ext.draw.Surface', {
     clearTransform: Ext.emptyFn,
 
     /**
-     * Returns 'true' if the surface is dirty.
-     * @return {Boolean} 'true' if the surface is dirty
-     */
-    getDirty: function () {
-        return this._dirty;
-    },
-
-    /**
      * Destroys the surface. This is done by removing all components from it and
      * also removing its reference to a DOM element.
      *
@@ -669,7 +666,6 @@ Ext.define('Ext.draw.Surface', {
         var me = this;
 
         me.removeAll(true);
-        me.setBackground(null);
         me.predecessors = null;
         me.successors = null;
 

@@ -42,6 +42,11 @@ Ext.define('Ext.view.Table', {
         // 
         // The events below are to be relayed only from the normal side view because the events
         // are relayed from the selection model, so both sides will fire them.
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         normalSideEvents: [
             "deselect",
             "select",
@@ -50,6 +55,11 @@ Ext.define('Ext.view.Table', {
             "selectionchange"
         ],
         // These events are relayed from both views because they are fired independently.
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         events: [
             "blur",
             "focus",
@@ -88,6 +98,7 @@ Ext.define('Ext.view.Table', {
             "refresh",
             "itemremove",
             "itemadd",
+            "beforeitemupdate",
             "itemupdate",
             "viewready",
             "beforerefresh",
@@ -768,10 +779,6 @@ Ext.define('Ext.view.Table', {
             // That is data rows.
             rows = me.el.query(me.rowSelector);
 
-            if (toIdx > fromIdx && fragment) {
-                destinationCellIdx -= 1;
-            }
-
             for (i = 0, len = rows.length; i < len; i++) {
                 tr = rows[i];
                 cells = tr.childNodes;
@@ -880,11 +887,14 @@ Ext.define('Ext.view.Table', {
     /**
      * Get the cell (td) for a particular record and column.
      * @param {Ext.data.Model} record
-     * @param {Ext.grid.column.Column} column
+     * @param {Ext.grid.column.Column/Number} column
      * @private
      */
     getCell: function(record, column) {
         var row = this.getRow(record);
+        if (typeof column === 'number') {
+            column = this.getHeaderAtIndex(column);
+        }
         return Ext.fly(row).down(column.getCellSelector());
     },
 
@@ -1273,7 +1283,9 @@ Ext.define('Ext.view.Table', {
         var me = this,
             all = me.all,
             store = me.getStore(),
-            i, item, nodeContainer, targetEl;
+            i, nodeContainer, targetEl,
+            removedItems = all.slice(),
+            removedRecs = [];
         
         // The purpose of this is to allow boilerplate HTML nodes to remain in place inside a View
         // while the transient, templated data can be discarded and recreated.
@@ -1285,10 +1297,10 @@ Ext.define('Ext.view.Table', {
         // view. This is so that widgets rendered into a view by a WidgetColumn can be recycled.
         if (me.hasListeners.itemremove) {
             for (i = all.startIndex; i <= all.endIndex; i++) {
-                item = all.item(i, true);  
-                me.fireEvent('itemremove', store.getByInternalId(item.getAttribute('data-recordId')), i, item, me);
+                removedRecs.push(store.getByInternalId(all.item(i, true).getAttribute('data-recordId')));  
             }
         }
+        me.fireEvent('itemremove', removedRecs, all.startIndex, removedItems, me);
 
         // AbstractView will clear the view correctly
         // It also resets the scrollrange.
@@ -1316,32 +1328,20 @@ Ext.define('Ext.view.Table', {
     },
 
     getRecord: function(node) {
-        var me = this,
-            recordIndex;
-
         // If store.destroy has been called before some delayed event fires on a node, we must ignore the event.
-        if (me.store.destroyed) {
+        if (this.store.destroyed) {
             return;
         }
         if (node.isModel) {
             return node;
         }
 
-        node = me.getNode(node);
+        node = this.getNode(node);
+
+        // Must use the internalId stamped into the DOM because if this is called after a sort or filter, but
+        // before the refresh, then the "data-recordIndex" will be stale.
         if (node) {
-            // The indices may be off because of collapsed groups (if we're grouping) or row wrapping, so just grab it by id.
-            if (!me.hasActiveFeature()) {
-                recordIndex = node.getAttribute('data-recordIndex');
-                if (recordIndex) {
-                    recordIndex = parseInt(recordIndex, 10);
-                    if (recordIndex > -1) {
-                        // The index is the index in the original Store, not in a GroupStore
-                        // The Grouping Feature increments the index to skip over unrendered records in collapsed groups
-                        return me.store.data.getAt(recordIndex);
-                    }
-                }
-            }
-            return me.dataSource.getByInternalId(node.getAttribute('data-recordId'));
+            return this.dataSource.getByInternalId(node.getAttribute('data-recordId'));
         }
     },
 
@@ -1899,12 +1899,13 @@ Ext.define('Ext.view.Table', {
             // If what is being focused an interior element, but is not a cell, allow it to proceed.
             // This means that we must be in actionable mode. This will happen when an ActionColumn invokes a modal window
             // and that window is dismissed leading to automatic focus of the previously focused element.
-            else if (focusTarget && me.el.contains(focusTarget) && focusTarget !== me.el.dom) {
+            // Testing whether the focusTarget isFocusable is a fix for IE. It can sometimes fire a focus event with the .x-scroll-scroller as the target
+            else if (focusTarget && Ext.fly(focusTarget).isFocusable() && me.el.contains(focusTarget) && focusTarget !== me.el.dom) {
                 me.ownerGrid.setActionableMode(true, new Ext.grid.CellContext(me).setPosition(me.getRecord(focusTarget), me.getHeaderByCell(Ext.fly(focusTarget).up(me.getCellSelector()))));
 
                 // setActionableMode focuses the *first* tabbable element in the cell.
                 // If focus if entering into another element (eg multiple action icons in an ActionColumn), then redirect it.
-                focusTarget.focus();
+                Ext.fly(focusTarget).focus();
             }
             // The View's el has been focused.
             // We now have to decide which cell to focus
@@ -1950,7 +1951,8 @@ Ext.define('Ext.view.Table', {
                 // Not a descendant which we allow to carry focus. Focus the view el.
                 if (!focusPosition) {
                     e.stopEvent();
-                    me.el.dom.focus();
+                    me.el.focus();
+                    
                     return;
                 }
             }
@@ -2062,7 +2064,7 @@ Ext.define('Ext.view.Table', {
 
     // Override the version in Ext.view.View because the focusable elements are the grid cells.
     /**
-     * @override
+     * @override Ext.view.View
      * Focuses a particular row and brings it into view. Will fire the rowfocus event.
      * @param {HTMLElement/String/Number/Ext.data.Model} row An HTMLElement template node, index of a template node, the id of a template node or the
      * @param {Boolean/Number} [delay] Delay the focus this number of milliseconds (true for 10 milliseconds).
@@ -2221,6 +2223,14 @@ Ext.define('Ext.view.Table', {
 
             // Row might not be rendered due to buffered rendering or being part of a collapsed group...
             if (oldItemDom) {
+
+                // refreshNode can be called on a collapsed placeholder record.
+                // Update it from a new rendering.
+                if (record.isCollapsedPlaceholder) {
+                    Ext.fly(oldItemDom).syncContent(me.createRowElement(record, me.indexOfRow(record)));
+                    return;
+                }
+
                 overItemCls = me.overItemCls;
                 columns = me.ownerCt.getVisibleColumnManager().getColumns();
 
@@ -2235,7 +2245,7 @@ Ext.define('Ext.view.Table', {
                         cell = Ext.fly(oldItemDom).down(column.getCellSelector(), true);
 
                         // Mark the field's dirty status if we are configured to do so (defaults to true)
-                        if (!clearDirty && markDirty) {
+                        if (cell && !clearDirty && markDirty) {
                             cellFly.attach(cell);
                             if (record.isModified(column.dataIndex)) {
                                 cellFly.addCls(dirtyCls);
@@ -2294,7 +2304,7 @@ Ext.define('Ext.view.Table', {
                             }
                         }
                     }
-                    
+
                     // The element's data is no longer synchronized. We just overwrite it in the DOM
                     if (elData) {
                         elData.isSynchronized = false;
@@ -2407,20 +2417,27 @@ Ext.define('Ext.view.Table', {
 
                 // We only need to update the layout if any of the columns can change the row height.
                 if (hasVariableRowHeight) {
-                    if (me.bufferedRenderer) {
-                        me.bufferedRenderer.refreshSize();
-
-                        // Must climb to ownerGrid in case we've only updated one field in one side of a lockable assembly.
-                        // ownerGrid is always the topmost GridPanel.
-                        me.ownerGrid.updateLayout();
-                    } else {
-                        me.refreshSize();
-                    }
+                    // Must climb to ownerGrid in case we've only updated one field in one side of a lockable assembly.
+                    // ownerGrid is always the topmost GridPanel.
+                    me.ownerGrid.updateLayout();
 
                     // Ensure any layouts queued by itemupdate handlers and/or the refreshSize call are executed.
                     Ext.resumeLayouts(true);
                 }
             }
+        }
+    },
+
+    afterComponentLayout: function() {
+        var scroller;
+        
+        this.callParent(arguments);
+        
+        // BufferedRenderer gets a pair of calls bracketting a component layout
+        // which enables it to calsulate its scroll range and update the scroller.
+        // If no BufferedRenderer, we do it here.
+        if (this.touchScroll && !this.bufferedRenderer && (scroller = this.getScrollable())) {
+            scroller.refresh();
         }
     },
 
@@ -2493,33 +2510,7 @@ Ext.define('Ext.view.Table', {
      * 2 = Column needs update, but renderer has 1 argument or column uses an updater.
      */
     shouldUpdateCell: function(record, column, changedFieldNames) {
-        // We should not update certain columns (widget column)
-        if (!column.preventUpdate) {
-
-            // The passed column has a renderer which peeks and pokes at other data.
-            // Return 1 which means that a whole new TableView item must be rendered.
-            if (column.hasCustomRenderer) {
-                return 1;
-            }
-
-            // If there is a changed field list, and it's NOT a custom column renderer
-            // (meaning it doesn't peek at other data, but just uses the raw field value)
-            // We only have to update it if the column's field is amobg those changes.
-            if (changedFieldNames) {
-                var len = changedFieldNames.length,
-                    i, field;
-
-                for (i = 0; i < len; ++i) {
-                    field = changedFieldNames[i];
-                    if (field === column.dataIndex || field === record.idProperty) {
-                        return 2;
-                    }
-                }
-            } else {
-                return 2;
-            }
-        }
-        return 0;
+        return column.shouldUpdateCell(record, changedFieldNames);
     },
 
     /**
@@ -2527,13 +2518,17 @@ Ext.define('Ext.view.Table', {
      */
     refresh: function() {
         var me = this,
-            scroller;
+            scroller,
+            restoreFocus = me.saveFocusState();
 
         if (me.destroying) {
             return;
         }
 
         me.callParent(arguments);
+
+        // If focus was in any way in this view, this will restore it
+        restoreFocus();
 
         me.headerCt.setSortState();
 
@@ -3032,7 +3027,6 @@ Ext.define('Ext.view.Table', {
         return result;
     },
 
-    
     /**
      * Returns the index of the last row in your table view deemed to be visible.
      * @return {Number}
@@ -3091,15 +3085,34 @@ Ext.define('Ext.view.Table', {
      */
     onReplace: function(store, startIndex, oldRecords, newRecords) {
         var me = this,
-            bufferedRenderer = me.bufferedRenderer;
+            bufferedRenderer = me.bufferedRenderer,
+            restoreFocus;
 
         // If there's a buffered renderer and the removal range falls inside the current view...
         if (me.rendered && bufferedRenderer) {
+            // If focus was in any way in the view, whether actionable or navigable, this will return
+            // a function which will restore that state.
+            restoreFocus = me.saveFocusState();
             bufferedRenderer.onReplace(store, startIndex, oldRecords, newRecords);
+
+            // If focus was in any way in this view, this will restore it
+            restoreFocus();
         } else {
             me.callParent(arguments);
         }
         me.setPendingStripe(startIndex);
+    },
+
+    onResize: function(width, height, oldWidth, oldHeight) {
+        var me = this,
+            bufferedRenderer = me.bufferedRenderer;
+
+        // Ensure the buffered renderer makes its adjustments before user resize listeners
+        if (bufferedRenderer) {
+            bufferedRenderer.onViewResize(me, width, height, oldWidth, oldHeight);
+        }
+
+        me.callParent([width, height]);
     },
 
     // after adding a row stripe rows from then on
@@ -3121,15 +3134,90 @@ Ext.define('Ext.view.Table', {
     // after removing a row stripe rows from then on
     onRemove: function(store, records, index) {
         var me = this,
-            bufferedRenderer = me.bufferedRenderer;
+            bufferedRenderer = me.bufferedRenderer,
+            restoreFocus;
 
-        // If there's a BufferedRenderer...
-        if (me.rendered && bufferedRenderer) {
+        // If there's a BufferedRenderer, and it's being used (dataset size before removal was >= rendered block size)...
+        if (me.rendered && bufferedRenderer && me.dataSource.getCount() + records.length >= bufferedRenderer.viewSize) {
+            // If focus was in any way in the view, whether actionable or navigable, this will return
+            // a function which will restore that state.
+            restoreFocus = me.saveFocusState();
             bufferedRenderer.onReplace(store, index, records, []);
+
+            // If focus was in any way in this view, this will restore it
+            restoreFocus();
         } else {
             me.callParent(arguments);
         }
         me.setPendingStripe(index);
+    },
+
+    /**
+     * @private
+     * Called prior to an operation which may remove focus from this view by some kind of DOM operation.
+     *
+     * If this view contains focus in any sense, either navigable mode, or actionable mode,
+     * this method returns a function which, when called after the disruptive DOM operation
+     * will restore focus to the same record/column, or, if the record has been removed, to the same
+     * row index/column.
+     *
+     * @returns {Function} A function that will restore focus if focus was within this view,
+     * or a function which does nothing is focus is not in this view.
+     */
+    saveFocusState: function() {
+        var me = this,
+            store = me.dataSource,
+            actionableMode = me.actionableMode,
+            navModel = me.getNavigationModel(),
+            focusPosition = actionableMode ? me.actionPosition : navModel.getPosition(true),
+            refocusRow, refocusCol;
+
+        if (focusPosition) {
+            // Separate this from the instance that the nav model is using.
+            focusPosition = focusPosition.clone();
+
+            // Exit actionable mode.
+            // We must inform any Actionables that they must relinquish control.
+            // Tabbability must be reset.
+            if (actionableMode) {
+                me.ownerGrid.setActionableMode(false);
+            }
+
+            // Blur the focused descendant, but do not trigger focusLeave.
+            me.el.dom.focus();
+
+            // Exiting actionable mode navigates to the owning cell, so in either focus mode we must
+            // clear the navigation position
+            navModel.setPosition();
+
+            // The following function will attempt to refocus back in the same mode to the same cell
+            // as it was at before based upon the previous record (if it's still inthe store), or the row index.
+            return function() {
+                // If we still have data, attempt to refocus in the same mode.
+                if (store.getCount()) {
+
+                    // Adjust expectations of where we are able to refocus according to what kind of destruction
+                    // might have been wrought on this view's DOM during focus save.
+                    refocusRow = Math.min(focusPosition.rowIdx, me.all.getCount() - 1);
+                    refocusCol = Math.min(focusPosition.colIdx, me.getVisibleColumnManager().getColumns().length - 1);
+                    focusPosition = new Ext.grid.CellContext(me).setPosition(
+                            store.contains(focusPosition.record) ? focusPosition.record : refocusRow, refocusCol);
+
+                    if (actionableMode) {
+                        me.ownerGrid.setActionableMode(true, focusPosition);
+                    } else {
+                        me.cellFocused = true;
+                        // Pass "preventNavigation" as true so that that does not cause selection.
+                        navModel.setPosition(focusPosition, null, null, null, true);
+                    }
+                }
+                // No rows - focus associated column header
+                else {
+                    focusPosition.column.focus();
+                }
+            };
+        }
+        return Ext.emptyFn;
     },
     
     onDataRefresh: function(store) {
@@ -3265,18 +3353,20 @@ Ext.define('Ext.view.Table', {
                 record,
                 isActionable,
                 lockingPartner,
-                result;
+                doRestoreFocus;
 
             // No mode change.
             // ownerGrid's call will NOT fire mode change event upon false return.
             if (me.actionableMode === enabled) {
-                // If we are actionable already at that positoin return false.
+                // If we're not actinoable already, or (we are actionable already at that position) return false.
                 // Test using mandatory passed position because we may not have an actionPosition if we are 
                 // the lockingPartner of an actionable view that contained the action position.
-                if (enabled && position.isEqual(me.actionPosition)) {
+                //
+                // If we being told to go into actionable mode but at another position, we must continue.
+                // This is just actionable navigation.
+                if (!enabled || position.isEqual(me.actionPosition)) {
                     return false;
                 }
-                result = false;
             }
 
             // If this View or its lockingPartner contains the current focus position, then make the tab bumpers tabbable
@@ -3285,6 +3375,11 @@ Ext.define('Ext.view.Table', {
                 if (position && (position.view === me || (position.view === (lockingPartner = me.lockingPartner) && lockingPartner.actionableMode))) {
                     position = position.clone();
                     record = position.record;
+                    
+                    me.grid.ensureVisible(record,{
+                        column : position.column
+                    });
+
                     focusRow = me.all.item(position.rowIdx);
 
                     // We're the focused side - attempt to see if ths focused cell is actionable
@@ -3319,10 +3414,13 @@ Ext.define('Ext.view.Table', {
                             // Restore tabbabilty to all elements in this row
                             focusRow.restoreTabbableState(/* skipSelf */ true);
 
-                            // If we are the locking partner of an actionable side, we are successful already
+                            // If we are the locking partner of an actionable side, we are successful already.
+                            // But we must not have an actionPosition. We are not actually in possession of an active cell
+                            // and we must not reject an action request at that cell in the isEqual test above.
                             if (lockingPartner) {
                                 me.actionableMode = true;
-                                return result;
+                                me.actionPosition = null;
+                                return true;
                             }
 
                             // If there are focusables in the actioned cell, we can enter actionable mode.
@@ -3339,11 +3437,11 @@ Ext.define('Ext.view.Table', {
                                 navModel.setPosition();
 
                                 navModel.actionPosition = me.actionPosition = position;
-
-                                tabbableChildren[0].focus();
+                                
+                                Ext.fly(tabbableChildren[0]).focus();
 
                                 // Avoid falling through to returning false
-                                return result;
+                                return true;
                             }
                         }
                     }
@@ -3355,6 +3453,17 @@ Ext.define('Ext.view.Table', {
             } else {
                 // Capture before exiting from actionable mode moves focus
                 activeEl = Ext.fly(Ext.Element.getActiveElement());
+
+                doRestoreFocus = me.el.contains(activeEl);
+
+                // Blur the focused descendant, but do not trigger focusLeave.
+                // This is so that when the focus is restored to the cell which contained
+                // the active content, it will not be a FocusEnter from the universe.
+                if (doRestoreFocus) {
+
+                    // Row to return focus to.
+                    record = me.actionPosition && me.actionPosition.record;
+                }
 
                 // We are exiting actionable mode.
                 // Tell all registered Actionables about this fact if they need to know.
@@ -3372,12 +3481,15 @@ Ext.define('Ext.view.Table', {
                     });
                 }
 
-                // Restore focus to the cell in which the user invoked exit actionable mode.
-                if (me.el.contains(activeEl)) {
-                    navModel.setPosition(new Ext.grid.CellContext(me).setPosition(me.getRecord(activeEl) || 0, me.getHeaderByCell(activeEl.findParent(me.getCellSelector())) || 0));
-                }
+                // These flags MUST be set before focus restoration to the owning cell.
+                // so that when Ext.grid.NavigationModel#onFocusMove attempts to exit actionable mode, we don't recurse.
                 me.actionableMode = me.ownerGrid.actionableMode = false;
                 me.actionPosition = navModel.actionPosition = me.actionRow = null;
+
+                // Restore focus to the cell in which actionable mode is active.
+                if (doRestoreFocus) {
+                    navModel.setPosition(new Ext.grid.CellContext(me).setPosition(record || 0, me.getHeaderByCell(activeEl.findParent(me.getCellSelector())) || 0));
+                }
             }
         },
 
@@ -3428,6 +3540,7 @@ Ext.define('Ext.view.Table', {
                 }
 
                 // We've switched sides.
+                me.actionPosition = null;
                 me = lockingPartner;
                 newRow = me.all.item(rowIdx, true);
             }
@@ -3504,17 +3617,10 @@ Ext.define('Ext.view.Table', {
 
                     // Keep actionPosition synched
                     me.actionPosition = me.getNavigationModel().actionPosition = position;
-                    focusTarget.focus();
-
-                    // Workaround for https://sencha.jira.com/browse/EXTJS-18349
-                    // Focus exits from the grid on IE8 when moving to the next row in cell editing
-                    // TOTO: remove this when IE8 retires.
-                    if (Ext.isIE8) {
-                        setTimeout(function() {
-                            focusTarget.focus();
-                        }, 0);
-                    }
-                } else {
+                    
+                    Ext.fly(focusTarget).focus();
+                }
+                else {
                     // We walked off the end of the columns  without finding a focusTarget
                     // Process onRowExit in the current direction
                     me.onRowExit(focusRow, me.all.item(position.rowIdx + (forward ? 1 : -1)), forward);

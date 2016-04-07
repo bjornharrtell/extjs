@@ -1,6 +1,9 @@
 describe('Ext.grid.plugin.CellEditing', function () {
     var store, plugin, grid, view, record, column, field,
-        TAB = 9;
+        TAB = 9,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
 
     function makeGrid(pluginCfg, gridCfg, storeCfg, locked) {
         store = new Ext.data.Store(Ext.apply({
@@ -22,7 +25,8 @@ describe('Ext.grid.plugin.CellEditing', function () {
                 {header: 'Email', dataIndex: 'email', flex:1,
                     editor: {
                         xtype: 'textareafield',
-                        allowBlank: false
+                        allowBlank: false,
+                        grow: true
                     }
                 },
                 {header: 'Phone', dataIndex: 'phone', editor: 'textfield'},
@@ -52,10 +56,22 @@ describe('Ext.grid.plugin.CellEditing', function () {
     }
 
     beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+
         MockAjaxManager.addMethods();
     });
 
     afterEach(function() {
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+
         tearDown();
         MockAjaxManager.removeMethods();
     });
@@ -182,18 +198,24 @@ describe('Ext.grid.plugin.CellEditing', function () {
 
         describe('canceledit', function () {
             beforeEach(function () {
-                cancelEditFired = false;
 
-                makeGrid({
-                    listeners: {
-                        canceledit: function (editor, context) {
-                            cancelEditFired = true;
-                            editorContext = context;
+                // Must wait for async focus events from previous suite to complete.
+                waits(10);
+                
+                runs(function() {
+                    cancelEditFired = false;
+
+                    makeGrid({
+                        listeners: {
+                            canceledit: function (editor, context) {
+                                cancelEditFired = true;
+                                editorContext = context;
+                            }
                         }
-                    }
-                });
+                    });
 
-                startEdit();
+                    startEdit();
+                });
             });
 
             it('should be able to get the original value when canceling the edit by the plugin', function() {
@@ -259,8 +281,12 @@ describe('Ext.grid.plugin.CellEditing', function () {
                     column.getEditor().setValue('');
                     plugin.getEditor(record, column).cancelEdit();
 
-                    expect(cancelEditFired).toBe(true);
-                    expect(editorContext.value).toBe('');
+                    waitsFor(function() {
+                        return cancelEditFired;
+                    });
+                    runs(function() {
+                        expect(editorContext.value).toBe('');
+                    });
                 });
             });
         });
@@ -339,10 +365,10 @@ describe('Ext.grid.plugin.CellEditing', function () {
     });
 
     describe('sorting', function () {
-        it('should complete the edit when sorting', function () {
+        it('should complete the edit when focusing the column', function () {
             makeGrid();
             startEdit();
-            column.sort();
+            column.focus();
 
             expect(plugin.editing).toBe(false);
         });
@@ -655,12 +681,6 @@ describe('Ext.grid.plugin.CellEditing', function () {
     });
 
     describe('clicksToEdit', function () {
-        var node;
-
-        afterEach(function () {
-            node = null;
-        });
-
         describe('2 clicks', function () {
             beforeEach(function () {
                 makeGrid();
@@ -685,6 +705,51 @@ describe('Ext.grid.plugin.CellEditing', function () {
 
                 expect(plugin.activeEditor).toBeFalsy();
             });
+
+            describe('editing a new cell', function () {
+                var cells, boundEl;
+
+                afterEach(function () {
+                    cells = boundEl = null;
+                });
+
+                it('should update the activeEditor to point to the new cell, adjacent', function () {
+                    record = grid.store.getAt(0);
+                    node = grid.view.getNodeByRecord(record);
+                    cells = Ext.fly(node).query('.x-grid-cell');
+
+                    boundEl = cells[0];
+                    jasmine.fireMouseEvent(boundEl, 'dblclick');
+
+                    expect(plugin.activeEditor.boundEl.dom).toBe(boundEl);
+
+                    // Update the boundEl to our new cell.
+                    boundEl = cells[1];
+                    jasmine.fireMouseEvent(boundEl, 'dblclick');
+
+                    expect(plugin.activeEditor.boundEl.dom).toBe(boundEl);
+                });
+
+                it('should update the activeEditor to point to the new cell, below', function () {
+                    record = grid.store.getAt(0);
+                    node = grid.view.getNodeByRecord(record);
+                    boundEl = Ext.fly(node).down('.x-grid-cell').dom;
+
+                    jasmine.fireMouseEvent(boundEl, 'dblclick');
+
+                    expect(plugin.activeEditor.boundEl.dom).toBe(boundEl);
+
+                    record = grid.store.getAt(1);
+                    node = grid.view.getNodeByRecord(record);
+
+                    // Update the boundEl to our new cell.
+                    boundEl = Ext.fly(node).down('.x-grid-cell').dom;
+
+                    jasmine.fireMouseEvent(boundEl, 'dblclick');
+
+                    expect(plugin.activeEditor.boundEl.dom).toBe(boundEl);
+                });
+            });
         });
 
         describe('1 click', function () {
@@ -704,6 +769,63 @@ describe('Ext.grid.plugin.CellEditing', function () {
                 jasmine.fireMouseEvent(Ext.fly(node).down('.x-grid-cell'), 'click');
 
                 expect(plugin.activeEditor).not.toBeFalsy();
+            });
+
+            // Note: I'm disabling this for IE b/c certain versions (esp. 10 & 11) could not distinguish
+            // between single- and double-click.
+            if (!Ext.isIE) {
+                it('should not begin editing when double-clicked', function () {
+                    record = grid.store.getAt(0);
+                    node = grid.view.getNodeByRecord(record);
+                    jasmine.fireMouseEvent(Ext.fly(node).down('.x-grid-cell'), 'dblclick');
+
+                    expect(plugin.activeEditor).toBeFalsy();
+                });
+            }
+
+            describe('editing a new cell', function () {
+                var cells, boundEl;
+
+                afterEach(function () {
+                    cells = boundEl = null;
+                });
+
+                it('should update the activeEditor to point to the new cell, adjacent', function () {
+                    record = grid.store.getAt(0);
+                    node = grid.view.getNodeByRecord(record);
+                    cells = Ext.fly(node).query('.x-grid-cell');
+
+                    boundEl = cells[0];
+                    jasmine.fireMouseEvent(boundEl, 'click');
+
+                    expect(plugin.activeEditor.boundEl.dom).toBe(boundEl);
+
+                    // Update the boundEl to our new cell.
+                    boundEl = cells[1];
+                    jasmine.fireMouseEvent(boundEl, 'click');
+
+                    expect(plugin.activeEditor.boundEl.dom).toBe(boundEl);
+                });
+
+                it('should update the activeEditor to point to the new cell, below', function () {
+                    record = grid.store.getAt(0);
+                    node = grid.view.getNodeByRecord(record);
+                    boundEl = Ext.fly(node).down('.x-grid-cell').dom;
+
+                    jasmine.fireMouseEvent(boundEl, 'click');
+
+                    expect(plugin.activeEditor.boundEl.dom).toBe(boundEl);
+
+                    record = grid.store.getAt(1);
+                    node = grid.view.getNodeByRecord(record);
+
+                    // Update the boundEl to our new cell.
+                    boundEl = Ext.fly(node).down('.x-grid-cell').dom;
+
+                    jasmine.fireMouseEvent(boundEl, 'click');
+
+                    expect(plugin.activeEditor.boundEl.dom).toBe(boundEl);
+                });
             });
         });
     });
@@ -727,12 +849,12 @@ describe('Ext.grid.plugin.CellEditing', function () {
         });
 
         describe('positioning the editor', function () {
-            it('should default to "l-l?"', function () {
+            it('should default to "l-l!"', function () {
                 field = column.field;
 
                 expect(field.xtype).toBe('textfield');
                 waitsFor(function() {
-                    return plugin.activeEditor && plugin.activeEditor.alignment === 'l-l?';
+                    return plugin.activeEditor && plugin.activeEditor.alignment === 'l-l!';
                 });
             });
 
@@ -740,7 +862,7 @@ describe('Ext.grid.plugin.CellEditing', function () {
                 // Wait for the beforeEach's startEdit to get started
                 waitsFor(function() {
                     return plugin.activeEditor && plugin.activeEditor.field.hasFocus;
-                });
+                }, 'editor to focus', 1000);
 
                 // Need to be able to correctly startEdit while editing to move edit location
                 runs(function() {
@@ -749,7 +871,7 @@ describe('Ext.grid.plugin.CellEditing', function () {
 
                 waitsFor(function() {
                     return field.hasFocus && field.getRegion().top === Ext.fly(plugin.activeEditor.container).getRegion().top;
-                });
+                }, 'something funky to happen', 1000);
             });
 
             it('should not reposition when shown', function () {
@@ -819,33 +941,33 @@ describe('Ext.grid.plugin.CellEditing', function () {
                 }, 'editing to start on the focused cell');
             });
 
-            describe('when currently editing', function () {
-                it('should complete the edit when ENTER is pressed', function () {
+            describe('when currently editing', function() {
+                it('should complete the edit when ENTER is pressed', function() {
                     var str = 'Utley is Top Dog',
                         model = store.getAt(0);
 
                     expect(model.get('name')).toBe('Lisa');
                     field.setValue(str);
 
-                    triggerEditorKey(field.inputEl, 13);
+                    jasmine.fireKeyEvent(field.inputEl.dom, 'keydown', 13);
 
-                    waitsFor(function () {
+                    waitsFor(function() {
                         return model.get('name') === str;
-                    });
+                    }, 'model to be set', 1000);
 
-                    runs(function () {
+                    runs(function() {
                         expect(model.get('name')).toBe(str);
                     });
                 });
 
-                it('should cancel the edit when ESCAPE is pressed', function () {
-                    triggerEditorKey(field.inputEl, 27);
+                it('should cancel the edit when ESCAPE is pressed', function() {
+                    jasmine.pressKey(field, 'esc');
 
-                    waitsFor(function () {
+                    waitsFor(function() {
                         return !plugin.editing;
-                    });
+                    }, 'editing to stop', 1000);
 
-                    runs(function () {
+                    runs(function() {
                         expect(plugin.editing).toBe(false);
                     });
                 });
@@ -862,7 +984,7 @@ describe('Ext.grid.plugin.CellEditing', function () {
 
                 // Wait for the beforeEach's startEdit to take effect
                 waitsFor(function() {
-                    return plugin.activeEditor && plugin.activeEditor.field.hasFocus;
+                    return plugin.activeEditor && plugin.activeEditor.field.hasFocus && view.actionableMode === true;
                 }, 'beforeEach startEdit to take effect');
 
                 // First complete the edit (we start an edit in the top-level beforeEach).
@@ -936,6 +1058,26 @@ describe('Ext.grid.plugin.CellEditing', function () {
 
                     runs(function () {
                         expect(plugin.editing).toBe(false);
+                    });
+                });
+
+                describe('grow and auto-sizing', function () {
+                    var str = 'Attention all planets of the Solar Federation!\nAttention all planets of the Solar Federation!\nWe have assumed control!';
+
+                    it('should auto-size when written to', function () {
+                        spyOn(field, 'autoSize');
+
+                        field.setValue(str);
+
+                        expect(field.autoSize).toHaveBeenCalled();
+                    });
+
+                    it('should grow', function () {
+                        var previousHeight = field.getHeight();
+
+                        field.setValue(str);
+
+                        expect(field.getHeight()).toBeGreaterThan(previousHeight);
                     });
                 });
             });
@@ -1094,6 +1236,11 @@ describe('Ext.grid.plugin.CellEditing', function () {
     });
 
     describe('not completing the edit', function () {
+        beforeEach(function() {
+
+            // Must wait for async focus events from previous suite to complete.
+            waits(10);
+        });
         it('should preserve the correct editing context', function () {
             var listener = function () {
                 return false;
@@ -1122,7 +1269,7 @@ describe('Ext.grid.plugin.CellEditing', function () {
             waitsFor(function() {
                 ed = plugin.activeEditor;
                 return !!ed;
-            });
+            }, 'editing to start at cell(0, 1)');
             runs(function() {
                 context = plugin.context;
 
@@ -1161,12 +1308,13 @@ describe('Ext.grid.plugin.CellEditing', function () {
                     jasmine.fireKeyEvent(ed.field.inputEl, 'keydown', 9);
 
                     waitsFor(function () {
-                        ed = plugin.activeEditor;
-                        return ed.editing;
-                    });
+                        return !!plugin.activeEditor.editing;
+                    }, 'editing to start', 1000);
 
                     runs(function () {
-                        expect(ed.editing).toBe(true);
+                        // ed is the old editor
+                        expect(ed.editing).toBe(false);
+                        expect(plugin.activeEditor.editing).toBe(true);
                         expect(plugin.activeColumn.dataIndex).toBe('email');
                     });
                 });
@@ -1189,9 +1337,8 @@ describe('Ext.grid.plugin.CellEditing', function () {
                 store.sync();
 
                 waitsFor(function () {
-                    ed = plugin.activeEditor;
-                    return ed.editing;
-                });
+                    return !!plugin.activeEditor.editing;
+                }, 'editing to start', 1000);
 
                 runs(function () {
                     expect(ed.editing).toBe(true);

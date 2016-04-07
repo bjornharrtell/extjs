@@ -8,6 +8,11 @@ Ext.define('Ext.event.gesture.DoubleTap', {
     priority: 300,
 
     inheritableStatics: {
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         DIFFERENT_TARGET: 'Different Target'
     },
 

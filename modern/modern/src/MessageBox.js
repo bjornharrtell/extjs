@@ -34,7 +34,7 @@ Ext.define('Ext.MessageBox', {
 
         /**
          * @cfg {String} iconCls
-         * CSS class for the icon. The icon should be 40px x 40px.
+         * @inheritdoc Ext.Button#iconCls
          * @accessor
          */
         iconCls: null,

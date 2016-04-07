@@ -925,13 +925,13 @@ $spinner-trigger-down-background-image: dynamic('form/spinner-down');
  * @var {string/list}
  * The glyph for the "up" spinner trigger trigger when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$spinner-trigger-up-glyph: dynamic($fa-var-caret-up 16px $font-icon-font-family);
+$spinner-trigger-up-glyph: dynamic($ext-var-spinner-up 16px ExtJS);
 
 /**
  * @var {string/list}
  * The glyph for the "down" spinner trigger trigger when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$spinner-trigger-down-glyph: dynamic($fa-var-caret-down 16px $font-icon-font-family);
+$spinner-trigger-down-glyph: dynamic($ext-var-spinner-down 16px ExtJS);
 
 /**
  * @var {color}
@@ -1016,13 +1016,13 @@ $form-checkbox-background-image: dynamic('form/checkbox');
  * @var {string/list}
  * The glyph for the checkbox when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$form-checkbox-glyph: dynamic($fa-var-square-o $form-checkbox-size $font-icon-font-family);
+$form-checkbox-glyph: dynamic($ext-var-checkbox-unchecked $form-checkbox-size ExtJS);
 
 /**
  * @var {string/list}
  * The glyph for the checkbox in "checked" state when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$form-checkbox-checked-glyph: dynamic($fa-var-check-square-o $form-checkbox-size $font-icon-font-family);
+$form-checkbox-checked-glyph: dynamic($ext-var-checkbox-checked $form-checkbox-size ExtJS);
 
 /**
  * @var {color}

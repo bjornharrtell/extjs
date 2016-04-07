@@ -1,18 +1,41 @@
 /**
  * @class Ext.field.Radio
  */
+/*
+Some Fashion error here, checkmark mixin is not taking effect like it does for checkbox.scss
 .x-field-radio .x-field-mask {
-    &::after {
-        color: transparent;
-    }
+  &::after {
+    @include checkmark(#ccc);
+  }
+}
+*/
+
+.x-field-radio .x-field-mask {
+  &::after {
+    position: absolute;
+    top: 0;
+    right: 12px;
+    bottom: 0;
+    content: '3';
+    // TODO: Use FontAwesome
+    font-family: 'Pictos';
+    font-size: 1.3em;
+    text-align: right;
+    line-height: 2.1em;
+    color: #ccc;
+  }
+}
+
+.x-input-radio {
+  visibility: hidden;
 }
 
 .x-input-radio:checked + .x-field-mask::after {
-    color: $ios7-blue;
+  color: $ios7-blue;
 }
 
 .x-item-disabled {
-	.x-input-radio:checked + .x-field-mask::after {
-		color: lighten($ios7-blue, 20%);
-	}
+  .x-input-radio:checked + .x-field-mask::after {
+    color: lighten($ios7-blue, 20%);
+  }
 }

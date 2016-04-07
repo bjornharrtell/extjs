@@ -1,16 +1,14 @@
 Ext.define('Admin.view.dashboard.Members', {
     extend: 'Ext.grid.Panel',
-    xtype: 'dashboardmemberspanel',
+    xtype: 'members',
     
-    cls: 'dashboard-member-grid shadow-panel',
+    cls: 'dashboard-member-grid shadow',
     bodyPadding: 15,
     scroll: 'none',
     hideHeaders: true,
     title: 'Members',  
 
-    bind: {
-        store: '{subscriptionstore}'
-    },
+    bind: '{subscriptions}',
 
     columns: [
         {

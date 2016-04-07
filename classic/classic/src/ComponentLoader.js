@@ -122,7 +122,14 @@ Ext.define('Ext.ComponentLoader', {
 
     /**
      * @cfg {Boolean} scripts True to parse any inline script tags in the response. This only used when using the html
-     * {@link #renderer}.
+     * {@link #renderer}. The scripts will be executed with the target Component as the scope (`this` reference).
+     */
+
+    /**
+     * @cfg {Object} [rendererScope=`this`]
+     * The scope (`this` reference)to execute the {@link #renderer} function in. If the {@link #scripts} option is
+     * `true`, *inline* script source (not scripts with a `src` attribute) is also executed in this scope.
+     * Defaults to this Component.
      */
 
     /**
@@ -202,6 +209,7 @@ The function must return false is loading is not successful. Below is a sample o
 
     setOptions: function(active, options){
         active.removeAll = Ext.isDefined(options.removeAll) ? options.removeAll : this.removeAll;
+        active.rendererScope = options.rendererScope || this.rendererScope || this.target;
     },
 
     /**

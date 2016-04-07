@@ -346,4 +346,92 @@ describe('Ext.grid.NavigationModel', function() {
         });
     });
 
+    describe('With widget column', function() {
+        var People = Ext.define(null, {
+                extend: 'Ext.data.Model',
+                idProperty: 'peopleId',
+                fields: [
+                    {name: 'name', type: 'string'},
+                    {name: 'age', type: 'int'},
+                    {name: 'location', type: 'string'}
+                ]
+            }),
+            store,
+            grid,
+            navModel,
+            widgetColumn,
+            pos;
+
+        function createGrid(storeCfg, gridCfg) {
+            store = Ext.create('Ext.data.Store', Ext.apply({
+                model: People,
+                data: [
+                    {name: 'Jimmy', age: 22, location: 'United States'},
+                    {name: 'Sally', age: 25, location: 'England'},
+                    {name: 'Billy', age: 26, location: 'Mexico'}
+                ]
+            }, storeCfg));
+            grid = Ext.create('Ext.grid.Panel', Ext.apply({
+                itemId: 'peopleGrid',
+                width: 400,
+                height: 200,
+                margin: 20,
+                frame: true,
+                title: 'People',
+                renderTo: Ext.getBody(),
+                store: store,
+                selModel: 'cellmodel',
+                columns: [{
+                    header: 'Name',
+                    flex: 1,
+                    dataIndex: 'name'
+                }, {
+                    id : 'locId',
+                    text: 'Location',
+                    width: 160,
+                    dataIndex: 'location',
+                    xtype: 'widgetcolumn',
+                    stopSelection: false,
+                    widget: {
+                        xtype: 'button',
+                        itemId: 'projButton',
+                        listeners: {
+                            click: function(button) {
+                                pos = grid.getSelectionModel().getPosition();
+                            }
+                        }
+                    }
+                }, {
+                    xtype : 'widgetcolumn',
+                    header: 'Age',
+                    width : 80,
+                    dataIndex: 'age',
+                    stopSelection : true,
+                    widget : {
+                            xtype : 'numberfield'
+                    }
+                }]
+            }, gridCfg));
+            navModel = grid.getNavigationModel();
+            widgetColumn = grid.down('widgetcolumn');
+        }
+
+        beforeEach(function() {
+            createGrid();
+        });
+        afterEach(function() {
+            grid.destroy();
+        });
+        it('should select when clicking a widget is stopSelection is false', function() {
+            var row0Button = widgetColumn.getWidget(store.getAt(0));
+            
+            jasmine.fireMouseEvent(row0Button.el, 'click');
+
+            // The selection must get set
+            waitsFor(function() {
+                return !!pos;
+            });
+        });
+    });
+
 });

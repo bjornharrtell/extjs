@@ -874,12 +874,28 @@ Ext.Loader = (new function() {  // jshint ignore:line
             Loader.flushMissingQueue();
             isLoading = Loader.missingCount + Loader.scriptsLoading;
             
-            if(isLoading && !wasLoading) {
+            if (isLoading && !wasLoading) {
                 Ready.block();
                 Loader.isLoading = !!isLoading;
             } else if (!isLoading && wasLoading) {
                 Loader.triggerReady();
             }
+
+            //<debug>
+            if (!Loader.scriptsLoading && Loader.missingCount) {
+                // Things look bad, but since load requests may come later, defer this
+                // for a bit then check if things are still stuck.
+                Ext.defer(function () {
+                    if (!Loader.scriptsLoading && Loader.missingCount) {
+                        Ext.log.error('[Loader] The following classes failed to load:');
+                        for (var name in Loader.missingQueue) {
+                            Ext.log.error('[Loader] ' + name + ' from ' +
+                                Loader.missingQueue[name]);
+                        }
+                    }
+                }, 1000);
+            }
+            //</debug>
         }
     });
 
@@ -1154,7 +1170,8 @@ Ext.Loader = (new function() {  // jshint ignore:line
 
 //-----------------------------------------------------------------------------
 
-Ext._endTime = new Date().getTime();
+// Use performance.now when available to keep timestamps consistent.
+Ext._endTime = Ext.ticks();
 
 // This hook is to allow tools like DynaTrace to deterministically detect the availability
 // of Ext.onReady. Since Loader takes over Ext.onReady this must be done here and not in

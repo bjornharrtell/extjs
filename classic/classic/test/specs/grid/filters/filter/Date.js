@@ -1,8 +1,12 @@
 describe('Ext.grid.filters.filter.Date', function () {
     var grid, plugin, store, columnFilter, menu, headerCt, rootMenuItem, datepicker,
-        pickerEl, headerNode, selectedNode, before, after, on;
+        pickerEl, headerNode, selectedNode, before, after, on,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
 
     function createGrid(listCfg, gridCfg, storeCfg) {
+        synchronousLoad = false;
         store = new Ext.data.Store(Ext.apply({
             fields:['name', 'email', 'phone', { name: 'dob', type: 'date'}],
             data: [
@@ -37,6 +41,8 @@ describe('Ext.grid.filters.filter.Date', function () {
         plugin = grid.filters;
         columnFilter = grid.columnManager.getHeaderByDataIndex('dob').filter;
         plugin = grid.filters;
+        synchronousLoad = true;
+        store.flushLoad();
     }
 
     function setPicker(val) {
@@ -81,7 +87,21 @@ describe('Ext.grid.filters.filter.Date', function () {
         return datepicker;
     }
 
+    beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+    });
+
     function tearDown() {
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+
         grid = plugin = store = columnFilter = menu = headerCt = rootMenuItem = datepicker = pickerEl = headerNode = selectedNode = before = after = on = Ext.destroy(grid);
     }
 

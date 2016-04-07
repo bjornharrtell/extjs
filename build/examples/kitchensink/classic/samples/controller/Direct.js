@@ -18,18 +18,20 @@ Ext.define('KitchenSink.controller.Direct', {
         'Ext.app.domain.Direct'
     ],
     
+    id: 'Direct',
+    
     config: {
         /**
          * @cfg {String} apiUrl
-         * Default URL to use for Ext.Direct service discovery requests.
+         * Default URL to use for Ext Direct service discovery requests.
          */
         apiUrl: 'data/direct/api.php',
         
         /**
-         * @cfg {String} [varName=Ext.app.REMOTING_API]
-         * Default variable name to use for Ext.Direct API declaration.
+         * @cfg {String} [varName="Ext.REMOTING_API"]
+         * Default variable name to use for Ext Direct API declaration.
          */
-        varName: 'Ext.app.REMOTING_API',
+        varName: 'Ext.REMOTING_API',
         
         listen: {
             controller: {

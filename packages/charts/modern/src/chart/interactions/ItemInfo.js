@@ -43,10 +43,8 @@ Ext.define('Ext.chart.interactions.ItemInfo', {
          * Defines the gestures that should trigger the item info panel to be displayed.
          */
         gestures: {
-            'start' : { event: 'tap', handler: 'onInfoGesture'}
+            tap: 'onInfoGesture'
         },
-
-        // TODO:ps The trigger above should be 'itemtap', not 'tap'.
 
         /**
          * @cfg {Object} panel

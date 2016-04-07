@@ -1,16 +1,17 @@
 Ext.define('Admin.view.dashboard.Network', {
     extend: 'Ext.panel.Panel',
-    
+    xtype: 'network',
+
     requires: [
         'Ext.chart.CartesianChart',
         'Ext.chart.axis.Category',
         'Ext.chart.axis.Numeric',
         'Ext.chart.series.Line',
+        'Ext.chart.interactions.PanZoom',
         'Ext.ProgressBar'
     ],
 
-    xtype: 'dashboardnetworkpanel',
-    cls: 'dashboard-main-chart shadow-panel',
+    cls: 'dashboard-main-chart shadow',
     height: 380,
 
     bodyPadding: 15,
@@ -23,20 +24,14 @@ Ext.define('Admin.view.dashboard.Network', {
 
     tools: [
         {
-            xtype: 'tool',
+            type: 'refresh',
             toggleValue: false,
-            cls: 'x-fa fa-refresh dashboard-tools',
             listeners: {
                 click: 'onRefreshToggle'
-            },
-            width: 20,
-            height: 20
+            }
         },
         {
-            xtype: 'tool',                                    
-            cls: 'x-fa fa-wrench dashboard-tools',
-            width: 20,
-            height: 20
+            type: 'wrench'
         }
     ],
 
@@ -47,69 +42,8 @@ Ext.define('Admin.view.dashboard.Network', {
             layout: 'fit',
             items: [
                 {
-                    xtype: 'cartesian',
-                    animation : !Ext.isIE9m && Ext.os.is.Desktop,
-                    insetPadding:0,
-                    bind: {
-                        store: '{dashboardfulllinechartstore}'
-                    },
-                    axes: [
-                        {
-                            type: 'category',
-                            fields: [
-                                'xvalue'
-                            ],
-                            hidden: true,
-                            position: 'bottom'
-                        },
-                        {
-                            type: 'numeric',
-                            fields: [
-                                'y1value',
-                                'y2value'
-                            ],
-                            grid: {
-                                odd: {
-                                    fill: '#e8e8e8'
-                                }
-                            },
-                            hidden: true,
-                            position: 'left'
-                        }
-                    ],
-                    series: [
-                        {
-                            type: 'line',
-                            colors: [
-                                'rgba(103, 144, 199, 0.6)'
-                            ],
-                            useDarkerStrokeColor: false,
-                            xField: 'xvalue',
-                            yField: [
-                                'y1value'
-                            ],
-                            fill: true,
-                            smooth: true
-                        },
-                        {
-                            type: 'line',
-                            colors: [
-                                'rgba(238, 146, 156, 0.6)'
-                            ],
-                            useDarkerStrokeColor: false,
-                            xField: 'xvalue',
-                            yField: [
-                                'y2value'
-                            ],
-                            fill: true,
-                            smooth: true
-                        }
-                    ],
-                    interactions: [
-                        {
-                            type: 'panzoom'
-                        }
-                    ]
+                    xtype: 'chartnetwork',
+                    bind: '{networkData}'
                 }
             ]
         },
@@ -141,14 +75,14 @@ Ext.define('Admin.view.dashboard.Network', {
                             },
                             items: [
                                 {
-                                    xtype: 'box',
+                                    xtype: 'component',
                                     flex: 1,
                                     cls: 'top-info-container',
                                     html: '<div class="inner"><span class="x-fa fa-pie-chart"></span><span class="dashboard-analytics-percentage"> 25% </span>server load</div>',
                                     padding: '15 10 10 0'
                                 },
                                 {
-                                    xtype: 'box',
+                                    xtype: 'component',
                                     flex: 1,
                                     cls: 'top-info-container',
                                     html: '<div class="inner"><span class="x-fa fa-user"></span><span class="dashboard-analytics-percentage"> 156 </span> online users</div>',
@@ -168,7 +102,7 @@ Ext.define('Admin.view.dashboard.Network', {
                             value: 0.4
                         },
                         {
-                            xtype: 'box',
+                            xtype: 'component',
                             flex: 1,
                             cls: 'left-top-text',
                             html: 'Tip: Download the analytics mobile app for real time updates on the server.',
@@ -202,74 +136,18 @@ Ext.define('Admin.view.dashboard.Network', {
                             padding:'0 0 10 0',
                             items: [
                                 {
-                                    xtype: 'box',
+                                    xtype: 'component',
                                     flex: 1,
                                     cls: 'graph-analysis-right-inner-container',
                                     html: 'Visitors'
                                 },
                                 {
-                                    xtype: 'container',
+                                    xtype: 'chartvisitors',
                                     flex: 1,
-                                    alignTarget: 'right',
                                     cls: 'graph-analysis-right-inner-container right-value',
-                                    layout: 'fit',
-                                    items: [
-                                        {
-                                            xtype: 'cartesian',
-                                            animation : !Ext.isIE9m && Ext.os.is.Desktop,
-                                            minHeight: 50,
-                                            background: 'rgba(255, 255, 255, 1)',
-                                            colors: [
-                                                'rgba(225,233,244, 0.8)'
-                                            ],
-                                            insetPadding: {
-                                                top: 0,
-                                                left: 0,
-                                                right: 0,
-                                                bottom: 0
-                                            },
-                                            bind: {
-                                                store: '{dashboardvisitorchartstore}'
-                                            },
-                                            axes: [
-                                                {
-                                                    type: 'category',
-                                                    fields: [
-                                                        'xvalue'
-                                                    ],
-                                                    hidden: true,
-                                                    position: 'bottom'
-                                                },
-                                                {
-                                                    type: 'numeric',
-                                                    fields: [
-                                                        'y1value'
-                                                    ],
-                                                    grid: {
-                                                        odd: {
-                                                            fill: '#e8e8e8'
-                                                        }
-                                                    },
-                                                    hidden: true,
-                                                    position: 'left'
-                                                }
-                                            ],
-                                            series: [
-                                                {
-                                                    type: 'area',
-                                                    xField: 'xvalue',
-                                                    yField: [
-                                                        'y1value'
-                                                    ]
-                                                }
-                                            ],
-                                            interactions: [
-                                                {
-                                                    type: 'panzoom'
-                                                }
-                                            ]
-                                        }
-                                    ]
+                                    bind: {
+                                        store: '{visitors}'
+                                    }
                                 }
                             ]
                         },
@@ -283,73 +161,18 @@ Ext.define('Admin.view.dashboard.Network', {
                             padding:'0 0 10 0',
                             items: [
                                 {
-                                    xtype: 'box',
+                                    xtype: 'component',
                                     flex: 1,
                                     cls: 'graph-analysis-right-inner-container',
                                     html: 'Bounce Rates'
                                 },
                                 {
-                                    xtype: 'container',
+                                    xtype: 'chartbounces',
                                     flex: 1,
                                     cls: 'graph-analysis-right-inner-container right-value',
-                                    layout: 'fit',
-                                    items: [
-                                        {
-                                            xtype: 'cartesian',
-                                            animation : !Ext.isIE9m && Ext.os.is.Desktop,
-                                            minHeight: 50,
-                                            background: 'rgba(255, 255, 255, 1)',
-                                            colors: [
-                                                'rgba(250,222,225, 0.8)'
-                                            ],
-                                            insetPadding: {
-                                                top: 0,
-                                                left: 0,
-                                                right: 0,
-                                                bottom: 0
-                                            },
-                                            bind: {
-                                                store: '{dashboardcouncechartstore}'
-                                            },
-                                            axes: [
-                                                {
-                                                    type: 'category',
-                                                    fields: [
-                                                        'xvalue'
-                                                    ],
-                                                    hidden: true,
-                                                    position: 'bottom'
-                                                },
-                                                {
-                                                    type: 'numeric',
-                                                    fields: [
-                                                        'y2value'
-                                                    ],
-                                                    grid: {
-                                                        odd: {
-                                                            fill: '#e8e8e8'
-                                                        }
-                                                    },
-                                                    hidden: true,
-                                                    position: 'left'
-                                                }
-                                            ],
-                                            series: [
-                                                {
-                                                    type: 'area',
-                                                    xField: 'xvalue',
-                                                    yField: [
-                                                        'y2value'
-                                                    ]
-                                                }
-                                            ],
-                                            interactions: [
-                                                {
-                                                    type: 'panzoom'
-                                                }
-                                            ]
-                                        }
-                                    ]
+                                    bind: {
+                                        store: '{bounces}'
+                                    }
                                 }
                             ]
                         },
@@ -363,13 +186,13 @@ Ext.define('Admin.view.dashboard.Network', {
                             padding:'0 0 10 0',
                             items: [
                                 {
-                                    xtype: 'box',
+                                    xtype: 'component',
                                     flex: 1,
                                     cls: 'graph-analysis-right-inner-container',
                                     html: 'Today\'s Sales'
                                 },
                                 {
-                                    xtype: 'box',
+                                    xtype: 'component',
                                     flex: 1,
                                     cls: 'graph-analysis-right-inner-container right-value',
                                     html: '189,000'
@@ -386,13 +209,13 @@ Ext.define('Admin.view.dashboard.Network', {
                             padding:'0 0 10 0',
                             items: [
                                 {
-                                    xtype: 'box',
+                                    xtype: 'component',
                                     flex: 1,
                                     cls: 'graph-analysis-right-inner-container',
                                     html: 'Broken Links'
                                 },
                                 {
-                                    xtype: 'box',
+                                    xtype: 'component',
                                     flex: 1,
                                     cls: 'graph-analysis-right-inner-container right-value',
                                     html: '4'

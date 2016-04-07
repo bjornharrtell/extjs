@@ -9,9 +9,10 @@ Ext.define('Admin.Application', {
 
     defaultToken : 'dashboard',
 
-    //controllers: [
-        // TODO - Add Global View Controllers here
-    //],
+    // The name of the initial view to create. This class will gain a "viewport" plugin
+    // if it does not extend Ext.Viewport.
+    //
+    mainView: 'Admin.view.main.Main',
 
     onAppUpdate: function () {
         Ext.Msg.confirm('Application Update', 'This application has an update, reload?',

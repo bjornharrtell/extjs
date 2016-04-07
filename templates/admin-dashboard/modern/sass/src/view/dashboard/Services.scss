@@ -1,0 +1,98 @@
+.services-text {
+    margin: 0 0 10px 5px;
+    max-height: 6.3em;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.services-legend {
+    white-space: nowrap;
+    overflow: hidden;
+    line-height: 1.15em;
+
+    .phone & {
+        display: none;
+    }
+
+    .legend-item {
+        width: 33%;
+        display: inline-block;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .legend-icon {
+        width: 1.15em;
+        height: 1.15em;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: .4em;
+    }
+
+    .legend-text {
+        font-size: .85em;
+    }
+}
+
+@media (max-width: 400px) {
+    .services-legend {
+        display: none;
+    }
+}
+
+@media (min-width: 401px) {
+    .x-big .services-text {
+        max-height: 5em;
+    }
+}
+
+@include progress-ui(
+    $ui: 'finance',
+    $bar-background-color: $grid-item-ban-btn-color,
+    $height: 5px,
+    $border-width: 0,
+    $border-radius: 0
+);
+
+@include progress-ui(
+    $ui: 'research',
+    $bar-background-color: $legend-research,
+    $height: 5px,
+    $border-width: 0,
+    $border-radius: 0
+);
+
+@include progress-ui(
+    $ui: 'marketing',
+    $bar-background-color: $legend-marketing,
+    $height: 5px,
+    $border-width: 0,
+    $border-radius: 0
+);
+
+.legend-finance {
+    background-color: $grid-item-ban-btn-color;
+}
+.legend-research {
+    background-color: $legend-research;
+}
+
+.legend-marketing {
+    background-color: $legend-marketing;
+}
+
+.left-aligned-div{
+    float:left;
+}
+
+.right-aligned-div{
+    float: right;
+}
+
+.bottom-indent {
+    margin-bottom: 16px;
+}
+
+.service-marketing {
+    margin-bottom: 8px;
+}

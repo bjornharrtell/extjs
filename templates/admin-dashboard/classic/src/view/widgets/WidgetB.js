@@ -2,7 +2,7 @@ Ext.define('Admin.view.widgets.WidgetB', {
     extend: 'Ext.panel.Panel',
     xtype: 'widget-b',
 
-    cls: 'admin-widget shadow-panel',
+    cls: 'admin-widget shadow',
 
     items: [
         {
@@ -42,7 +42,7 @@ Ext.define('Admin.view.widgets.WidgetB', {
                     flex: 1,
                     items: [
                         {
-                            ui: 'blue',
+                            ui: 'facebook',
                             iconCls: 'x-fa fa-facebook'
                         },
                         {

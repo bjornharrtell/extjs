@@ -186,6 +186,10 @@ Ext.define('Ext.field.Select', {
         }
     },
 
+    /**
+     * Gets the currently selected value
+     * @returns {String} Value Field from Selected Model
+     */
     getValue: function() {
         var selection = this.getSelection();
         return selection ? selection.get(this.getValueField()) : null;

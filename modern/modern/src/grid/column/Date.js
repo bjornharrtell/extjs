@@ -3,8 +3,7 @@
  * {@link #format}.
  *
  *     @example
- *     Ext.create('Ext.data.Store', {
- *         storeId:'sampleStore',
+ *     var store = Ext.create('Ext.data.Store', {
  *         fields:[
  *             { name: 'symbol', type: 'string' },
  *             { name: 'date',   type: 'date' },
@@ -22,7 +21,7 @@
  *
  *     Ext.create('Ext.grid.Grid', {
  *         title: 'Date Column Demo',
- *         store: Ext.data.StoreManager.lookup('sampleStore'),
+ *         store: store,
  *         columns: [
  *             { text: 'Symbol',   dataIndex: 'symbol', flex: 1 },
  *             { text: 'Date',     dataIndex: 'date',   xtype: 'datecolumn',   format:'Y-m-d' },

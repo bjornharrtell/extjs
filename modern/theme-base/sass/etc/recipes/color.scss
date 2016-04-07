@@ -1,13 +1,12 @@
 /**
- * @class Color
- * @author David Kaneda - http://www.davidkaneda.com
- *
+ * @class Global_CSS
  */
 
 /**
+ * @ignore
  * Returns the brightness (out of 100) of a specified color.
  * @param {color} $color The color you want the brightness value of
- * @return {measurement}
+ * @return {number}
  */
 @function brightness($color) {
     $r: red($color) / 255 * 100;
@@ -20,15 +19,17 @@
 }
 
 /**
-* @private
-*/
+ * @private
+ * @ignore
+ */
 @function color-difference($c1, $c2) {
     @return (max(red($c1), red($c2)) - min(red($c1), red($c2))) + (max(green($c1), green($c2)) - min(green($c1), green($c2))) + (max(blue($c1), blue($c2)) - min(blue($c1), blue($c2)));
 }
 
 /**
-* @private
-*/
+ * @private
+ * @ignore
+ */
 @function color-luminance($value) {
     @if $value <= 0.03928 {
         @return $value / 12.92;
@@ -38,9 +39,10 @@
 }
 
 /**
+ * @ignore
  * Returns the luminosity for a specified color
- * @param {color} The color to check
- * @return {measurement}
+ * @param {color} color The color to check
+ * @return {number}
  */
 @function luminosity($color) {
     $r: color-luminance(red($color) / 255);
@@ -52,9 +54,11 @@
 }
 
 /**
+ * @ignore
  * Returns the contrast ratio between two colors
- * @param {color1} The color to check
- * @return {measurement}
+ * @param {color} color1 The color to check
+ * @param {color} color2 The color to check against
+ * @return {number}
  */
 @function contrast-ratio($color1, $color2) {
     $l1: luminosity($color1);

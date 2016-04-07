@@ -1,0 +1,6 @@
+.x-grid-header-container > .x-body,
+.x-grid-headergroup-inner {
+    // height: auto is required to ensure headercontainer and headergroup are sized
+    // correctly in firefox and IE11 (overrides height:100% from x-body)
+    height: auto;
+}

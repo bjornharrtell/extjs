@@ -10,7 +10,7 @@ Ext.define('KitchenSink.view.draw.FreeDraw', {
         'KitchenSink.view.FreeDrawComponent'
     ],
 
-    layout: 'fit',
+    layout: 'anchor',
     width: 650,
 
     // <example>
@@ -33,25 +33,21 @@ Ext.define('KitchenSink.view.draw.FreeDraw', {
         }
     }],
 
-    items: [
-        {
-            xtype: 'free-paint-component',
-            id: 'free-paint',
-            width: '100%',
-            height: 500
-        }
-    ],
+    items: [{
+        xtype: 'free-paint-component',
+        id: 'free-paint',
+        anchor: '100%',
+        height: 500
+    }],
 
-    constructor: function(config) {
-        var contentPanel = Ext.getCmp('content-panel');
-        this.callParent(arguments);
-        contentPanel.setScrollable(false);
+    onAdded: function(container, pos, instanced) { 
+        this.callParent([container, pos, instanced]); 
+        container.setScrollable(false);
     },
 
-    destroy: function() {
-        var contentPanel = Ext.getCmp('content-panel');
-        contentPanel.setScrollable(true);
-        this.callParent(arguments);
+    onRemoved: function(destroying) {
+        this.ownerCt.setScrollable(true);
+        this.callParent([destroying]);
     }
 
 });

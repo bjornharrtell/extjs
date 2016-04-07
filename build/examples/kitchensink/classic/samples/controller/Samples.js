@@ -16,7 +16,8 @@ Ext.define('KitchenSink.controller.Samples', {
         'StandardCharts',
         'Pie',
         'StockPrice',
-        'LinearGeoData'
+        'LinearGeoData',
+        'CheckTree'
     ],
 
     controllers: [

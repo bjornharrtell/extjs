@@ -423,7 +423,9 @@ Ext.define('Ext.form.field.Field', {
     },
 
     /**
-     * @private Called when the field's dirty state changes.
+     * @method
+     * @private
+     * Called when the field's dirty state changes.
      * @param {Boolean} isDirty
      */
     onDirtyChange: Ext.emptyFn,
@@ -539,6 +541,7 @@ Ext.define('Ext.form.field.Field', {
     },
 
     /**
+     * @method
      * Display one or more error messages associated with this field, using 
      * {@link Ext.form.Labelable#msgTarget} to determine how to display the messages and 
      * applying {@link Ext.form.Labelable#invalidCls} to the field's UI element.

@@ -136,7 +136,8 @@ Ext.define('Ext.chart.series.Cartesian', {
             chart = this.getChart(),
             animation = me.getAnimation() || chart && chart.getAnimation(),
             itemInstancing = me.getItemInstancing(),
-            sprites = me.sprites, sprite;
+            sprites = me.sprites,
+            sprite;
 
         if (!chart) {
             return [];
@@ -150,9 +151,9 @@ Ext.define('Ext.chart.series.Cartesian', {
 
         if (animation) {
             if (itemInstancing) {
-                sprite.itemsMarker.getTemplate().fx.setConfig(animation);
+                sprite.itemsMarker.getTemplate().setAnimation(animation);
             }
-            sprite.fx.setConfig(animation);
+            sprite.setAnimation(animation);
         }
         return sprites;
     },

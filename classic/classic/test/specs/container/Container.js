@@ -2524,6 +2524,14 @@ describe("Ext.container.Container", function() {
         it('should return the next child using a selector', function() {
             expect(container.nextChild(age, 'field[name=bio]')).toBe(container.getComponent(4));
         });
+
+        it("should return null if there is no child", function() {
+            expect(container.nextChild(null, 'field[name=bio]')).toBeNull();
+        });
+
+        it("should return null if there are no matches", function() {
+            expect(container.nextChild(age, 'madeupxtype')).toBeNull();
+        });
     });
 
     describe('prevChild', function () {
@@ -2576,6 +2584,14 @@ describe("Ext.container.Container", function() {
 
         it('should return the previous child using a selector', function () {
             expect(container.prevChild(age, 'field[name=name]')).toBe(container.getComponent(0));
+        });
+
+        it("should return null if there is no child", function() {
+            expect(container.prevChild(null, 'field[name=name]')).toBeNull();
+        });
+
+        it("should return null if there are no matches", function() {
+            expect(container.prevChild(age, 'madeupxtype')).toBeNull();
         });
     });
 

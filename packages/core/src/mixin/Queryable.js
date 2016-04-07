@@ -61,7 +61,7 @@ Ext.define('Ext.mixin.Queryable', {
      * The passed in selector must comply with an Ext.ComponentQuery selector, or it can be an actual Ext.Component.
      * @param {String/Ext.Component} [selector] An Ext.ComponentQuery selector. If no selector is
      * specified, the first child will be returned.
-     * @return Ext.Component The matching child Ext.Component (or `null` if no match was found).
+     * @return {Ext.Component} The matching child Ext.Component (or `null` if no match was found).
      */
     child: function (selector) {
         var children = this.getQueryRoot().getRefItems();
@@ -87,7 +87,7 @@ Ext.define('Ext.mixin.Queryable', {
      * The passed in selector must comply with an Ext.ComponentQuery selector, or it can be an actual Ext.Component.
      * @param {String/Ext.Component} [selector] An Ext.ComponentQuery selector or Ext.Component. If no selector is
      * specified, the first child will be returned.
-     * @return Ext.Component The matching descendant Ext.Component (or `null` if no match was found).
+     * @return {Ext.Component} The matching descendant Ext.Component (or `null` if no match was found).
      */
     down: function (selector) {
         if (selector && selector.isComponent) {

@@ -16,9 +16,14 @@ describe('Ext.menu.Item', function () {
         menu = item = null;
     });
 
-    function clickItem(theItem) {
+    function clickItem(theItem, doClick) {
         theItem = theItem || item;
         jasmine.fireMouseEvent(theItem.itemEl.dom, 'click');
+            
+        // Simulated events does not cause default action on anchors with href
+        if (doClick) {
+            theItem.itemEl.dom.click();
+        }
     }
 
     describe('on click', function () {
@@ -308,7 +313,7 @@ describe('Ext.menu.Item', function () {
                 }]);
 
                 menu.activeItem = menu.focusedItem = item;
-                clickItem();
+                clickItem(item, Ext.isIE9m);
 
                 waitsFor(function () {
                     return location.hash === '#ledzep';
@@ -336,7 +341,7 @@ describe('Ext.menu.Item', function () {
                 }]);
 
                 menu.activeItem = menu.focusedItem = item;
-                clickItem();
+                clickItem(item, Ext.isIE9m);
 
                 waitsFor(function () {
                     return location.hash === hashValue;

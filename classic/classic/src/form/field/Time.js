@@ -224,7 +224,7 @@ Ext.define('Ext.form.field.Time', {
         }
 
         for (i = 0; i < len; i++) {
-            if (!isEqual(v2[i], v1[i])) {
+            if (!(v2[i] instanceof Date) || !(v1[i] instanceof Date) || !isEqual(v2[i], v1[i])) {
                 return false;
             }
         }

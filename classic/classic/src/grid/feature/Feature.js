@@ -85,7 +85,7 @@ Ext.define('Ext.grid.feature.Feature', {
 
     wrapsItem: false,
 
-    /*
+    /**
      * @property {Boolean} isFeature
      * `true` in this class to identify an object as an instantiated Feature, or subclass thereof.
      */
@@ -137,6 +137,15 @@ Ext.define('Ext.grid.feature.Feature', {
         return new this.self(this.initialConfig);
     },
 
+    /**
+     * Protected method called during {@link Ext.view.Table View} construction.  The 
+     * owning {@link Ext.grid.Panel Grid} is passed as a param.
+     * @param {Ext.grid.Panel} grid The View's owning Grid.  **Note** that in a 
+     * {@link Ext.grid.Panel#cfg-enableLocking locking Grid} the passed grid will be 
+     * either the normal grid or the locked grid, which is the view's direct owner.
+     * @method
+     * @protected
+     */
     init: Ext.emptyFn,
 
     /**

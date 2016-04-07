@@ -2,6 +2,10 @@
     outline: none;
 }
 
+.#{$prefix}menu-body {
+    position: relative;
+}
+
 .#{$prefix}menu-item {
     white-space: nowrap;
     overflow: hidden;

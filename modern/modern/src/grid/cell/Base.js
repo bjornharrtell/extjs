@@ -71,6 +71,10 @@ Ext.define('Ext.grid.cell.Base', {
 
     hiddenCls: Ext.baseCSSPrefix + 'grid-cell-hidden',
 
+    getComputedWidth: function() {
+        return this.getHidden() ? 0 : this.getWidth();
+    },
+
     updateAlign: function(align, oldAlign) {
         var prefix  = Ext.baseCSSPrefix + 'grid-cell-align-';
 

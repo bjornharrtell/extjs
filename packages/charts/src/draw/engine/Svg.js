@@ -152,11 +152,13 @@ Ext.define('Ext.draw.engine.Svg', {
         var me = this,
             rect = me.getRect(),
             ctx = me.ctx;
-        if (sprite.attr.hidden || sprite.attr.opacity === 0) {
+
+        if (sprite.attr.hidden || sprite.attr.globalAlpha === 0) {
             ctx.save();
             ctx.restore();
             return;
         }
+
         sprite.element = ctx.save();
         sprite.preRender(this);
         sprite.useAttributes(ctx, rect);
@@ -237,7 +239,7 @@ Ext.define('Ext.draw.engine.Svg', {
 
     remove: function (sprite, destroySprite) {
         if (sprite && sprite.element) {
-            //if sprite has an associated svg element remove it from the surface
+            // If sprite has an associated SVG element, remove it from the surface.
             if (this.ctx) {
                 this.ctx.removeElement(sprite.element);
             } else {

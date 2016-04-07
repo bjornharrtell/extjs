@@ -358,31 +358,31 @@ $include-checkbox-grid-ui: dynamic($include-grid-cell-field-ui);
  * @var {color}
  * The text color of display fields rendered in the context of a grid cell
  */
-$grid-cell-display-field-color: dynamic($form-display-field-color);
+$grid-cell-display-field-color: dynamic($grid-cell-field-color);
 
 /**
  * @var {number}
  * The font-size of display fields rendered in the context of a grid cell
  */
-$grid-cell-display-field-font-size: dynamic($form-display-field-font-size);
+$grid-cell-display-field-font-size: dynamic($grid-cell-field-font-size);
 
 /**
  * @var {string}
  * The font-family of display fields rendered in the context of a grid cell
  */
-$grid-cell-display-field-font-family: dynamic($form-display-field-font-family);
+$grid-cell-display-field-font-family: dynamic($grid-cell-field-font-family);
 
 /**
  * @var {string}
  * The font-weight of display fields rendered in the context of a grid cell
  */
-$grid-cell-display-field-font-weight: dynamic($form-display-field-font-weight);
+$grid-cell-display-field-font-weight: dynamic($grid-cell-field-font-weight);
 
 /**
  * @var {number}
  * The line-height of display fields rendered in the context of a grid cell
  */
-$grid-cell-display-field-line-height: dynamic($form-display-field-line-height);
+$grid-cell-display-field-line-height: dynamic($grid-row-cell-line-height);
 
 /**
  * @var {boolean}

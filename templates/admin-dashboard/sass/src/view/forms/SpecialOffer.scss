@@ -1,0 +1,62 @@
+.forms-specialoffer {
+    background-color: $wizard-primary-background-color;
+    color: #fff;
+    text-align: center;
+    position: relative;
+
+    h3 {
+        font-size: 24px;
+        font-weight: 300;
+        margin-bottom: 10px;
+    }
+}
+
+.specialoffer-outer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 0 1.4em;
+}
+
+.specialoffer-outer:before {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+}
+
+.specialoffer-inner {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.specialoffer-icon-wrap {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 1.2em;
+    height: 100px;
+    width: 100px;
+    display: inline-block;
+}
+
+.specialoffer-text {
+    font-weight: 400;
+    margin: 1em 0;
+}
+
+.specialoffer-discount {
+    font-weight: 700;
+    font-size: 1.2em;
+}
+
+.specialoffer-link {
+    padding: 1em 1.2em .3em;
+    font-size: 1.2em;
+    color: #fff;
+    text-decoration: none;
+}
+
+.specialoffer-link:before {
+    padding-right: 0.5em;
+}

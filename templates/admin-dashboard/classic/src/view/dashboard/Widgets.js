@@ -2,7 +2,7 @@ Ext.define('Admin.view.dashboard.Widgets', {
     extend: 'Ext.Panel',
     xtype: 'dashboardwidgetspanel',
 
-    cls: 'dashboard-widget-block shadow-panel',
+    cls: 'dashboard-widget-block shadow',
     bodyPadding: 15,
     
     title: 'Widgets',

@@ -202,7 +202,7 @@ Ext.define('Ext.grid.filters.filter.List', {
 
     constructor: function (config) {
         var me = this,
-            options, store;
+            gridStore;
 
         me.callParent([config]);
 
@@ -213,6 +213,41 @@ Ext.define('Ext.grid.filters.filter.List', {
         //</debug>
 
         me.labelIndex = me.labelIndex || me.column.dataIndex;
+
+        // In order to fully support the `active` config, we need to do some preprocessing in case we need
+        // to fetch store data in order to create the options menu items.
+        //
+        // For instance, imagine if a list filter has the following definition:
+        //
+        //    filter: {
+        //        type: 'list',
+        //        value: 'Bruce Springsteen'
+        //    }
+        //
+        // Since there is no `options` or `store` config, it will need to infer its options store data from
+        // the grid store. Since it is also active by default if not explicitly configured as `value: false`,
+        // it must register listeners with the grid store now so its own column filter store will be created
+        // and filtered immediately and properly sync its options when the grid store changes.
+        //
+        // So here we need to subscribe to very specific events. We can't subscribe to a catch-all like
+        // 'datachanged' because the listener will get called too many times. This will respond to the following
+        // scenarios:
+        //  1. Removing a filter
+        //  2. Adding a filter
+        //  3. (Re)loading the store
+        //  4. Updating a model
+        //
+        // Note we need to make sure it's not the empty store (if it is, the store is being bound to a VM).
+        if (!me.options && (me.value != null) && me.active) {
+            gridStore = me.getGridStore();
+
+            if (!gridStore.isEmptyStore) {
+                gridStore.on(me.getGridStoreListeners());
+            }
+
+            me.grid.on('reconfigure', me.onReconfigure, me);
+            me.inferOptionsFromGridStore = true;
+        }
     },
 
     destroy: function () {
@@ -231,6 +266,10 @@ Ext.define('Ext.grid.filters.filter.List', {
             }
 
             me.store = null;
+        }
+
+        if (me.inferOptionsFromGridStore) {
+            me.grid.un('reconfigure', me.onReconfigure, me);
         }
 
         if (gridStoreListeners) {
@@ -324,20 +363,11 @@ Ext.define('Ext.grid.filters.filter.List', {
                 data: storeData
             });
 
-            // In order to fully support the `active` config, we need to do some preprocessing in case we need to fetch store data
-            // in order to create the options menu items.
-            //
-            // In addition, if the List filter is auto-creating its store from the unique values in the grid store (i.e., no `options` or
-            // `store` configs), it will need to listen to grid store events to properly sync its options when the grid store changes.
-            //
-            // Here we need to subscribe to very specific events. We can't subscribe to a catch-all like 'datachanged' because the listener
-            // will get called too many times.
-            // This will respond to the following scenarios:
-            //  1. Removing a filter
-            //  2. Adding a filter
-            //  3. (Re)loading the store
-            //  4. Updating a model
-            me.getGridStore().on(me.getGridStoreListeners());
+            // Note that the grid store listeners may have been bound in the constructor if it was determined
+            // that the grid filter was active and defined with a value.
+            if (!me.gridStoreListeners) {
+                me.getGridStore().on(me.getGridStoreListeners());
+            }
 
             me.loaded = true;
         }
@@ -389,7 +419,7 @@ Ext.define('Ext.grid.filters.filter.List', {
         // A ListMenu which is completely unconfigured acquires its store from the unique values of its field in the store.
         // Note that the gridstore may have already been filtered on load if the column filter had been configured as active
         // with no items checked by default.
-        else if (gridStore.getCount() || gridStore.data.filtered) {
+        else if (gridStore.getCount() || gridStore.isFiltered()) {
             me.bindMenuStore(gridStore);
         }
         // If there are no records in the grid store, then we know it's async and we need to listen for its 'load' event.
@@ -476,7 +506,7 @@ Ext.define('Ext.grid.filters.filter.List', {
             labelIndex = me.labelIndex,
             items, i, length, recData, idValue, labelValue;
 
-        if (store.isFiltered()) {
+        if (store.isFiltered() && !store.remoteFilter) {
             data = data.getSource();
         }
 
@@ -521,6 +551,14 @@ Ext.define('Ext.grid.filters.filter.List', {
         // If the menu item options (and the options store) are being auto-generated from the grid store, then it
         // needs to know when the grid store has changed its data so it can remain in sync.
         if (!this.preventDefault) {
+            this.bindMenuStore(store);
+        }
+    },
+
+    onReconfigure: function (grid, store) {
+        // We need to listen for reconfigure not only for when the list filter has inferred its options from the
+        // grid store but also when the grid has a VM and is late-binding the store.
+        if (store) {
             this.bindMenuStore(store);
         }
     },
@@ -587,3 +625,4 @@ Ext.define('Ext.grid.filters.filter.List', {
         }
     }
 });
+

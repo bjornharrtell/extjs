@@ -2,7 +2,7 @@ Ext.define('Admin.view.widgets.WidgetA', {
     extend: 'Ext.panel.Panel',
     xtype: 'widget-a',
 
-    cls: 'admin-widget shadow-panel',
+    cls: 'admin-widget shadow',
 
     items: [
         {

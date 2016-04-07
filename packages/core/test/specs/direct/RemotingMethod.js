@@ -248,7 +248,7 @@ describe("Ext.direct.RemotingMethod", function() {
                     expect(function() {
                         method.getCallData([1, cb, null, { metadata: [] }]);
                     }).toThrow("Not enough parameters in options.metadata " +
-                               "for Ext.Direct method metaOrdered");
+                               "for Ext Direct method metaOrdered");
                 });
             });
             
@@ -295,7 +295,7 @@ describe("Ext.direct.RemotingMethod", function() {
                     expect(function() {
                         method.getCallData([cb, null, { metadata: { foo: 1 } }]);
                     }).toThrow("Named parameter bar is missing in options.metadata " +
-                               "for Ext.Direct method metaNamedStrict");
+                               "for Ext Direct method metaNamedStrict");
                 });
             });
             
@@ -341,7 +341,7 @@ describe("Ext.direct.RemotingMethod", function() {
                     expect(function() {
                         method.getCallData([cb, null, { metadata: { bar: 2 } }]);
                     }).toThrow("Named parameter foo is missing in options.metadata " +
-                               "for Ext.Direct method metaNamedNonStrict");
+                               "for Ext Direct method metaNamedNonStrict");
                 });
             });
         });

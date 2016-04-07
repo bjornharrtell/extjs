@@ -46,7 +46,7 @@ $list-item-font-size: dynamic(1rem);
 
 /**
  * @var {number}
- * List item font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * List item font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $list-item-font-size-big: dynamic($list-item-font-size);
 
@@ -58,7 +58,7 @@ $list-item-line-height: dynamic(1.25em);
 
 /**
  * @var {number}
- * List item line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * List item line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $list-item-line-height-big: dynamic(1.2);
 
@@ -76,7 +76,7 @@ $list-item-padding: dynamic(.3em .6em);
 
 /**
  * @var {number/list}
- * List item padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * List item padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $list-item-padding-big: dynamic(.46em .6em);
 
@@ -112,7 +112,7 @@ $list-group-header-font-size: dynamic($list-item-font-size);
 
 /**
  * @var {number}
- * List item font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * List item font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $list-group-header-font-size-big: dynamic($list-group-header-font-size);
 
@@ -124,7 +124,7 @@ $list-group-header-line-height: dynamic($list-item-line-height);
 
 /**
  * @var {number}
- * List item line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * List item line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $list-group-header-line-height-big: dynamic($list-item-line-height-big);
 
@@ -142,6 +142,6 @@ $list-group-header-padding: dynamic($list-item-padding);
 
 /**
  * @var {number/list}
- * List item padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * List item padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $list-group-header-padding-big: dynamic($list-item-padding-big);

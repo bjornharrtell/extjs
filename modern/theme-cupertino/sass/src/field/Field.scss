@@ -5,6 +5,24 @@
 // Private variables
 $form-clear-size: 2.2em;
 
+@mixin checkmark($color: $ios7-blue) {
+  @extend .x-checkmark-base;
+  color: $color;
+}
+
+.x-checkmark-base {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  bottom: 0;
+  content: '3';
+  // TODO: Use FontAwesome
+  font-family: 'Pictos';
+  font-size: 1.3em;
+  text-align: right;
+  line-height: 2.1em;
+}
+
 .x-field {
 	min-height: $form-field-height;
 	background: #fff;

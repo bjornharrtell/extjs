@@ -206,13 +206,30 @@
 }
 
 .#{$prefix}grid-dirty-cell {
-    background: theme-background-image('grid/dirty') no-repeat 0 0;
+    @if $enable-font-icons and ($grid-cell-dirty-glyph != null) {
+        > .#{$prefix}grid-cell-inner:after {
+            @include font-icon($grid-cell-dirty-glyph, $pseudo: false);
+            color: $grid-cell-dirty-glyph-color;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    } @else {
+        background: theme-background-image('grid/dirty') no-repeat 0 0;
+    }
 }
 
 @if $include-rtl {
     .#{$prefix}rtl.#{$prefix}grid-dirty-cell {
-        background-image: theme-background-image('grid/dirty-rtl');
-        background-position: right 0;
+        @if $enable-font-icons and ($grid-cell-dirty-glyph-rtl != null) {
+            > .#{$prefix}grid-cell-inner:after {
+                @include font-icon($grid-cell-dirty-glyph-rtl, $pseudo: false);
+                right: 0;
+            }
+        } @else {
+            background-image: theme-background-image('grid/dirty-rtl');
+            background-position: right 0;
+        }
     }
 }
 

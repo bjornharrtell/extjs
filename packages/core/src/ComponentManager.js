@@ -220,10 +220,15 @@ Ext.define('Ext.ComponentManager', {
             fromElement = e.fromElement,
             toComponent = Ext.Component.fromElement(toElement),
             fromComponent = Ext.Component.fromElement(fromElement),
-            commonAncestor = me.getCommonAncestor(fromComponent, toComponent),
-            event,
+            commonAncestor,
             targetComponent;
 
+        // Focus moves *within* a component should not cause component focus leave/enter
+        if (toComponent === fromComponent) {
+            return;
+        }
+
+        commonAncestor = me.getCommonAncestor(fromComponent, toComponent);
         if (fromComponent && !(fromComponent.destroyed || fromComponent.destroying)) {
             if (fromComponent.handleBlurEvent) {
                 fromComponent.handleBlurEvent(e);
@@ -277,6 +282,51 @@ Ext.define('Ext.ComponentManager', {
             this.all = {};
             this.references = {};
             this.onAvailableCallbacks = {};
+        },
+
+        /**
+         * Find the Widget or Component to which the given Element belongs.
+         *
+         * @param {Ext.dom.Element/HTMLElement} el The element from which to start to find
+         * an owning Component.
+         * @param {Ext.dom.Element/HTMLElement} [limit] The element at which to stop upward
+         * searching for an owning Component, or the number of Components to traverse before
+         * giving up. Defaults to the document's HTML element.
+         * @param {String} [selector] An optional {@link Ext.ComponentQuery} selector to
+         * filter the target.
+         * @return {Ext.Widget/Ext.Component} The widget, component or `null`.
+         *
+         * @private
+         * @since 6.0.1
+         */
+        fromElement: function (node, limit, selector) {
+            var target = Ext.getDom(node),
+                cache = this.all,
+                depth = 0,
+                topmost, cmpId, cmp;
+
+            if (typeof limit !== 'number') {
+                topmost = Ext.getDom(limit);
+                limit = Number.MAX_VALUE;
+            }
+
+            while (target && target.nodeType === 1 && depth < limit && target !== topmost) {
+                cmpId = target.getAttribute('data-componentid') || target.id;
+
+                if (cmpId) {
+                    cmp = cache[cmpId];
+                    if (cmp && (!selector || Ext.ComponentQuery.is(cmp, selector))) {
+                        return cmp;
+                    }
+
+                    // Increment depth on every *Component* found, not Element
+                    depth++;
+                }
+
+                target = target.parentNode;
+            }
+
+            return null;
         }
     },
 
@@ -308,7 +358,7 @@ function () {
      * Looks up an existing {@link Ext.Component Component} by {@link Ext.Component#id id}
      *
      * @param {String} id The component {@link Ext.Component#id id}
-     * @return Ext.Component The Component, `undefined` if not found, or `null` if a
+     * @return {Ext.Component} The Component, `undefined` if not found, or `null` if a
      * Class was found.
      * @member Ext
     */

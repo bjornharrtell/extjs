@@ -1,8 +1,11 @@
 describe("Ext.util.FocusableContainer", function() {
-    var autoId = 0,
+    var forward = true,
+        backward = false,
+        autoId = 0,
         focusAndWait = jasmine.focusAndWait,
         pressTab = jasmine.pressTabKey,
         pressArrow = jasmine.pressArrowKey,
+        waitForFocus = jasmine.waitForFocus,
         expectFocused = jasmine.expectFocused,
         expectAria = jasmine.expectAriaAttr,
         expectNoAria = jasmine.expectNoAriaAttr,
@@ -37,6 +40,9 @@ describe("Ext.util.FocusableContainer", function() {
                 'background-color': 'green'
             },
             layout: 'hbox',
+            defaults: {
+                xtype: 'button'
+            },
             renderTo: Ext.getBody()
         }, config);
         
@@ -56,10 +62,6 @@ describe("Ext.util.FocusableContainer", function() {
         fcEl = fc.getFocusableContainerEl();
         
         return fc;
-    }
-    
-    function expectTabIndex(wantIndex, el) {
-        jasmine.expectTabIndex(wantIndex, el || fcEl);
     }
     
     beforeEach(function() {
@@ -135,7 +137,7 @@ describe("Ext.util.FocusableContainer", function() {
                 });
                 
                 it("should place tabindex on container el", function() {
-                    expectTabIndex(42);
+                    expectAria(fc, 'tabIndex', '42');
                 });
                 
                 it("should create keyNav", function() {
@@ -146,12 +148,53 @@ describe("Ext.util.FocusableContainer", function() {
                     expectAria(first, 'tabIndex', '-1');
                 });
                 
-                it("should set tabindex on the second child", function() {
-                    expectAria(second, 'tabIndex', '-1');
+                it("should NOT set tabindex on the second child", function() {
+                    expectNoAria(second, 'tabIndex');
+                });
+                
+                it("should set tabindex on the third child", function() {
+                    expectAria(third, 'tabIndex', '-1');
+                });
+                
+                it("should call destroy", function() {
+                    fc.destroy();
+                    
+                    expect(fc.doDestroyFocusableContainer).toHaveBeenCalled();
+                });
+            });
+            
+            describe("enableFocusableContainer stays true with no enabled children", function() {
+                beforeEach(function() {
+                    setupContainer({ renderTo: undefined });
+                    
+                    first.disable();
+                    third.disable();
+                    
+                    fc.render(Ext.getBody());
+                });
+                
+                it("should call init", function() {
+                    expect(fc.doInitFocusableContainer).toHaveBeenCalled();
+                });
+                
+                it("should NOT set tabindex on container el", function() {
+                    expectNoAria(fc, 'tabIndex');
+                });
+                
+                it("should create keyNav", function() {
+                    expect(fc.focusableKeyNav).toBeDefined();
+                });
+                
+                it("should not set tabindex on the first child", function() {
+                    expectNoAria(first, 'tabIndex');
+                });
+                
+                it("should not set tabindex on the second child", function() {
+                    expectNoAria(second, 'tabIndex');
                 });
                 
                 it("should not set tabindex on the third child", function() {
-                    expectAria(third, 'tabIndex', '-1');
+                    expectNoAria(third, 'tabIndex');
                 });
                 
                 it("should call destroy", function() {
@@ -251,7 +294,57 @@ describe("Ext.util.FocusableContainer", function() {
             fc.el.set({ tabIndex: -1 });
             fc.show();
             
-            expect(fc.el.getAttribute('tabIndex')).toBe('0');
+            expect(fc.el.dom.getAttribute('tabIndex')).toBe('0');
+        });
+    });
+    
+    describe("predicates", function() {
+        describe("isFocusableContainerActive", function() {
+            var button;
+            
+            function expectActive(want) {
+                var have = fc.isFocusableContainerActive();
+                
+                expect(have).toBe(want);
+            }
+            
+            beforeEach(function() {
+                makeContainer({
+                    items: [{ text: 'foo' }]
+                });
+                
+                button = fc.down('button');
+            });
+            
+            afterEach(function() {
+                button = null;
+            });
+            
+            it("should return true by default", function() {
+                expectActive(true);
+            });
+            
+            it("should return false when container el is not tabbable", function() {
+                fcEl.dom.removeAttribute('tabIndex');
+                
+                expectActive(false);
+            });
+            
+            describe("after activating a child", function() {
+                beforeEach(function() {
+                    focusAndWait(button);
+                });
+                
+                it("should return true when child is focused", function() {
+                    expectActive(true);
+                });
+                
+                it("should return false if active child is not tabbable", function() {
+                    button.getFocusEl().dom.removeAttribute('tabIndex');
+                    
+                    expectActive(false);
+                });
+            });
         });
     });
     
@@ -269,13 +362,13 @@ describe("Ext.util.FocusableContainer", function() {
                     });
                     
                     it("finds foo going forward", function() {
-                        var child = fc.findNextFocusableChild(null, true);
+                        var child = fc.findNextFocusableChild({ step: true });
                         
                         expect(child).toBe(fooBtn);
                     });
                     
                     it("finds bar going backward", function() {
-                        var child = fc.findNextFocusableChild(null, false);
+                        var child = fc.findNextFocusableChild({ step: false });
                         
                         expect(child).toBe(barBtn);
                     });
@@ -320,10 +413,10 @@ describe("Ext.util.FocusableContainer", function() {
         });
         
         describe("from existing child", function() {
-            var fooBtn, barBtn, fooInput, barInput;
+            var fooBtn, barBtn, fooInput, barInput, disabled1, disabled2;
         
             function expectToFind(whatNext, whereFrom, goingForward) {
-                var child = fc.findNextFocusableChild(whereFrom, goingForward);
+                var child = fc.findNextFocusableChild({ child: whereFrom, step: goingForward });
             
                 expect(child).toBe(whatNext);
             }
@@ -332,136 +425,439 @@ describe("Ext.util.FocusableContainer", function() {
                 makeContainer({
                     items: [
                         { xtype: 'tbtext', text: 'text1' },
+                        { xtype: 'button', text: 'disabled1', disabled: true },
                         { xtype: 'button', text: 'fooBtn' },
                         { xtype: 'tbseparator' },
                         { xtype: 'textfield', fieldLabel: 'foo field' },
+                        { xtype: 'button', text: 'disabled2', disabled: true },
                         { xtype: 'button', text: 'barBtn' },
                         { xtype: 'tbfill' },
                         { xtype: 'combobox', fieldLabel: 'bar combo' }
                     ]
                 });
-            
+                
                 fooBtn = fc.down('button[text=fooBtn]');
                 barBtn = fc.down('button[text=barBtn]');
-            
+                
+                disabled1 = fc.down('button[text=disabled1]');
+                disabled2 = fc.down('button[text=disabled2]');
+                
                 fooInput = fc.down('textfield');
                 barInput = fc.down('combobox');
             });
+            
+            afterEach(function() {
+                fooBtn = barBtn = fooInput = barInput = disabled1 = disabled2 = null;
+            });
         
             describe("forward", function() {
-                it("finds fooInput from fooBtn", function() {
-                    expectToFind(fooInput, fooBtn, true);
+                describe("disabled buttons not changed", function() {
+                    it("finds fooBtn as the first item", function() {
+                        expectToFind(fooBtn, null, forward);
+                    });
+                    
+                    it("finds fooInput from fooBtn", function() {
+                        expectToFind(fooInput, fooBtn, forward);
+                    });
+                    
+                    it("finds barBtn from fooInput", function() {
+                        expectToFind(barBtn, fooInput, forward);
+                    });
+                    
+                    it("finds barInput from barBtn", function() {
+                        expectToFind(barInput, barBtn, forward);
+                    });
+                    
+                    it("finds fooBtn from barInput (wraps over)", function() {
+                        expectToFind(fooBtn, barInput, forward);
+                    });
                 });
-            
-                it("finds barBtn from fooInput", function() {
-                    expectToFind(barBtn, fooInput, true);
+                
+                describe("disabled1 state changed", function() {
+                    beforeEach(function() {
+                        disabled1.enable();
+                    });
+                    
+                    it("finds disabled1 as the first item", function() {
+                        expectToFind(disabled1, null, forward);
+                    });
+                    
+                    it("finds fooBtn from disabled1", function() {
+                        expectToFind(fooBtn, disabled1, forward);
+                    });
+                    
+                    it("finds fooInput from fooBtn", function() {
+                        expectToFind(fooInput, fooBtn, forward);
+                    });
+                    
+                    it("finds barBtn from fooInput", function() {
+                        expectToFind(barBtn, fooInput, forward);
+                    });
+                    
+                    it("finds barInput from barBtn", function() {
+                        expectToFind(barInput, barBtn, forward);
+                    });
+                    
+                    it("finds disabled1 from barInput (wraps over)", function() {
+                        expectToFind(disabled1, barInput, forward);
+                    });
                 });
-            
-                it("finds barInput from barBtn", function() {
-                    expectToFind(barInput, barBtn, true);
-                });
-            
-                it("finds fooBtn from barInput (wraps over)", function() {
-                    expectToFind(fooBtn, barInput, true);
+                
+                describe("disabled2 state changed", function() {
+                    beforeEach(function() {
+                        disabled2.enable();
+                    });
+                    
+                    it("finds fooBtn as the first item", function() {
+                        expectToFind(fooBtn, null, forward);
+                    });
+                    
+                    it("finds fooInput from fooBtn", function() {
+                        expectToFind(fooInput, fooBtn, forward);
+                    });
+                    
+                    it("finds disabled2 from fooInput", function() {
+                        expectToFind(disabled2, fooInput, forward);
+                    });
+                    
+                    it("finds barBtn from disabled2", function() {
+                        expectToFind(barBtn, disabled2, forward);
+                    });
+                    
+                    it("finds barInput from barBtn", function() {
+                        expectToFind(barInput, barBtn, forward);
+                    });
+                    
+                    it("finds fooBtn from barInput (wraps over)", function() {
+                        expectToFind(fooBtn, barInput, forward);
+                    });
                 });
             });
         
             describe("backward", function() {
-                it("finds barBtn from barInput", function() {
-                    expectToFind(barBtn, barInput, false);
+                describe("disabled buttons not changed", function() {
+                    it("finds barInput as the first item", function() {
+                        expectToFind(barInput, null, backward);
+                    });
+                    
+                    it("finds barBtn from barInput", function() {
+                        expectToFind(barBtn, barInput, backward);
+                    });
+                    
+                    it("finds fooInput from barBtn", function() {
+                        expectToFind(fooInput, barBtn, backward);
+                    });
+                    
+                    it("finds fooBtn from fooInput", function() {
+                        expectToFind(fooBtn, fooInput, backward);
+                    });
+                    
+                    it("finds barInput from fooBtn (wraps over)", function() {
+                        expectToFind(barInput, fooBtn, backward);
+                    });
                 });
-            
-                it("finds fooInput from barBtn", function() {
-                    expectToFind(fooInput, barBtn, false);
+                
+                describe("disabled1 state changed", function() {
+                    beforeEach(function() {
+                        disabled1.enable();
+                    });
+                    
+                    it("finds barInput as the first item", function() {
+                        expectToFind(barInput, null, backward);
+                    });
+                    
+                    it("finds barBtn from barInput", function() {
+                        expectToFind(barBtn, barInput, backward);
+                    });
+                    
+                    it("finds fooInput from barBtn", function() {
+                        expectToFind(fooInput, barBtn, backward);
+                    });
+                    
+                    it("finds fooBtn from fooInput", function() {
+                        expectToFind(fooBtn, fooInput, backward);
+                    });
+                    
+                    it("finds disabled1 from fooBtn", function() {
+                        expectToFind(disabled1, fooBtn, backward);
+                    });
+                    
+                    it("finds barInput from disabled1 (wraps over)", function() {
+                        expectToFind(barInput, disabled1, backward);
+                    });
                 });
-            
-                it("finds fooBtn from fooInput", function() {
-                    expectToFind(fooBtn, fooInput, false);
+                
+                describe("disabled2 state changed", function() {
+                    beforeEach(function() {
+                        disabled2.enable();
+                    });
+                    
+                    it("finds barInput as the first item", function() {
+                        expectToFind(barInput, null, backward);
+                    });
+                    
+                    it("finds barBtn from barInput", function() {
+                        expectToFind(barBtn, barInput, backward);
+                    });
+                    
+                    it("finds disabled2 from barBtn", function() {
+                        expectToFind(disabled2, barBtn, backward);
+                    });
+                    
+                    it("finds fooInput from disabled2", function() {
+                        expectToFind(fooInput, disabled2, backward);
+                    });
+                    
+                    it("finds fooBtn from fooInput", function() {
+                        expectToFind(fooBtn, fooInput, backward);
+                    });
+                    
+                    it("finds barInput from fooBtn (wraps over)", function() {
+                        expectToFind(barInput, fooBtn, backward);
+                    });
                 });
+            });
+        });
+    });
+    
+    describe("child state handling", function() {
+        var first, second;
+        
+        afterEach(function() {
+            first = second = null;
+        });
+        
+        describe("initially enabled children", function() {
+            beforeEach(function() {
+                makeContainer({
+                    items: [{
+                        itemId: 'first',
+                        text: 'first'
+                    }, {
+                        itemId: 'second',
+                        text: 'second'
+                    }]
+                });
+                
+                first = fc.down('#first');
+                second = fc.down('#second');
+            });
             
-                it("finds barInput from fooBtn (wraps over)", function() {
-                    expectToFind(barInput, fooBtn, false);
+            it("should activate container el", function() {
+                expectAria(fc, 'tabIndex', '0');
+            });
+            
+            it("should deactivate container el when all children become disabled", function() {
+                first.disable();
+                second.disable()
+                
+                expectNoAria(fc, 'tabIndex');
+            });
+        });
+        
+        describe("initially disabled children", function() {
+            beforeEach(function() {
+                makeContainer({
+                    items: [{
+                        itemId: 'first',
+                        text: 'first',
+                        disabled: true
+                    }, {
+                        itemId: 'second',
+                        text: 'second',
+                        disabled: true
+                    }]
+                });
+                
+                first = fc.down('#first');
+                second = fc.down('#second');
+            });
+            
+            it("should not activate container el", function() {
+                expectNoAria(fc, 'tabIndex');
+            });
+            
+            it("should activate container el when one child becomes enabled", function() {
+                first.enable();
+                
+                expectAria(fc, 'tabIndex', '0');
+            });
+        });
+        
+        describe("child state changes", function() {
+            beforeEach(function() {
+                makeContainer({
+                    items: [{
+                        itemId: 'first',
+                        text: 'first'
+                    }, {
+                        itemId: 'second',
+                        text: 'second'
+                    }]
+                });
+                
+                first = fc.down('#first');
+                second = fc.down('#second');
+            });
+            
+            it("should set lastFocusedChild when child is focused", function() {
+                focusAndWait(first);
+                
+                runs(function() {
+                    expect(fc.lastFocusedChild).toBe(first);
+                });
+            });
+            
+            describe("children become disabled, none focused", function() {
+                beforeEach(function() {
+                    first.disable();
+                    second.disable();
+                });
+                
+                it("should deactivate container el", function() {
+                    expectNoAria(fc, 'tabIndex');
+                });
+                
+                it("should not reset first child tabIndex", function() {
+                    expectNoAria(first, 'tabIndex');
+                });
+                
+                it("should not reset second child tabIndex", function() {
+                    expectNoAria(second, 'tabIndex');
+                });
+                
+                describe("one child becoming enabled", function() {
+                    beforeEach(function() {
+                        second.enable();
+                    });
+                    
+                    it("should activate container el", function() {
+                        expectAria(fc, 'tabIndex', '0');
+                    });
+                    
+                    it("should not reset first child tabIndex", function() {
+                        expectNoAria(first, 'tabIndex');
+                    });
+                    
+                    it("should reset second child tabIndex", function() {
+                        expectAria(second, 'tabIndex', '-1');
+                    });
+                });
+                
+                describe("both children become enabled", function() {
+                    beforeEach(function() {
+                        first.enable();
+                        second.enable();
+                    });
+                    
+                    it("should activate container el", function() {
+                        expectAria(fc, 'tabIndex', '0');
+                    });
+                    
+                    it("should reset first child tabIndex", function() {
+                        expectAria(first, 'tabIndex', '-1');
+                    });
+                    
+                    it("should reset second child tabIndex", function() {
+                        expectAria(second, 'tabIndex', '-1');
+                    });
+                });
+            });
+            
+            describe("last focusable child becoming disabled", function() {
+                beforeEach(function() {
+                    runs(function() {
+                        first.disable();
+                    });
+                    
+                    focusAndWait(second);
+                    
+                    runs(function() {
+                        second.disable();
+                    });
+                });
+                
+                it("should not reset lastFocusedChild when child is disabled", function() {
+                    expect(fc.lastFocusedChild).toBe(second);
+                });
+                
+                it("should deactivate container el", function() {
+                    expectNoAria(fc, 'tabIndex');
+                });
+                
+                it("should not reset tabIndex on the child", function() {
+                    expectNoAria(second, 'tabIndex');
+                });
+                
+                describe("becoming enabled again", function() {
+                    beforeEach(function() {
+                        second.tabIndex = 42;
+                        second.enable();
+                    });
+                    
+                    it("should not activate container el", function() {
+                        expectNoAria(fc, 'tabIndex');
+                    });
+                    
+                    it("should not interfere with child tabIndex", function() {
+                        expectAria(second, 'tabIndex', '42');
+                    });
+                });
+                
+                describe("all children become enabled", function() {
+                    beforeEach(function() {
+                        first.tabIndex = 101;
+                        second.tabIndex = 102;
+                        second.enable();
+                        first.enable();
+                    });
+                    
+                    it("should not activate container el", function() {
+                        expectNoAria(fc, 'tabIndex');
+                    });
+                    
+                    it("should reset first child tabIndex", function() {
+                        expectAria(first, 'tabIndex', '-1');
+                    });
+                    
+                    it("should not interfere with second child tabIndex", function() {
+                        expectAria(second, 'tabIndex', '102');
+                    });
                 });
             });
         });
     });
     
     describe("focus handling", function() {
-        var fooBtn, barBtn;
+        var beforeBtn, fooBtn, barBtn;
         
         beforeEach(function() {
-            // Bar button is outside of the container
-            barBtn = makeButton({ text: 'barBtn' });
+            // Before button is outside of the container
+            beforeBtn = makeButton({ text: 'beforeBtn' });
         });
             
         afterEach(function() {
-            if (barBtn) {
-                barBtn.destroy();
+            if (beforeBtn) {
+                beforeBtn.destroy();
             }
             
-            barBtn = null;
+            beforeBtn = null;
         });
             
-        describe("no children", function() {
-            beforeEach(function() {
-                makeContainer();
-                
-                focusAndWait(fcEl);
-            });
-            
-            describe("focusing in", function() {
-                it("should keep focus on the container el", function() {
-                    expectFocused(fc, true);
-                });
-            });
-            
-            describe("focusing out", function() {
-                beforeEach(function() {
-                    focusAndWait(barBtn);
-                });
-                
-                it("should keep its el tabbable", function() {
-                    expectTabIndex(0);
-                });
-            });
-        });
-        
-        describe("no focusable children", function() {
-            beforeEach(function() {
-                makeContainer({
-                    items: [{ xtype: 'button', text: 'fooBtn', disabled: true }]
-                });
-                
-                focusAndWait(fcEl);
-            });
-            
-            describe("focusing in", function() {
-                it("should keep focus on the container el", function() {
-                    expectFocused(fc, true);
-                });
-            });
-            
-            describe("focusing out", function() {
-                beforeEach(function() {
-                    focusAndWait(barBtn);
-                });
-                
-                it("should keep its el tabbable", function() {
-                    expectTabIndex(0);
-                });
-            });
-        });
-        
         describe("have focusables", function() {
             beforeEach(function() {
                 makeContainer({
-                    items: [{ xtype: 'button', text: 'fooBtn' }]
+                    items: [
+                        { xtype: 'button', text: 'fooBtn' },
+                        { xtype: 'button', text: 'barBtn' }
+                    ]
                 });
                 
-                fooBtn = fc.down('button');
+                fooBtn = fc.down('button[text=fooBtn]');
+                barBtn = fc.down('button[text=barBtn]');
             });
             
-            describe("placing focus", function() {
+            describe("focusing container el", function() {
                 beforeEach(function() {
                     focusAndWait(fcEl, fooBtn);
                 });
@@ -470,19 +866,27 @@ describe("Ext.util.FocusableContainer", function() {
                     it("should focus first child", function() {
                         expectFocused(fooBtn);
                     });
-        
+                    
+                    it("should make first child tabbable", function() {
+                        expectAria(fooBtn, 'tabIndex', '0');
+                    });
+                    
                     it("should make itself untabbable", function() {
-                        expectTabIndex(-1);
+                        expectNoAria(fc, 'tabIndex');
                     });
                 });
             
                 describe("out of FocusableContainer", function() {
                     beforeEach(function() {
-                        focusAndWait(barBtn);
+                        focusAndWait(beforeBtn);
                     });
-                
+                    
+                    it("should keep first child tabbable", function() {
+                        expectAria(fooBtn, 'tabIndex', '0');
+                    });
+                    
                     it("should not make itself tabbable", function() {
-                        expectTabIndex(-1);
+                        expectNoAria(fc, 'tabIndex');
                     });
                 });
             });
@@ -498,29 +902,77 @@ describe("Ext.util.FocusableContainer", function() {
                     });
                     
                     it("should make the child tabbable", function() {
-                        expectTabIndex(0, fooBtn);
+                        expectAria(fooBtn, 'tabIndex', '0');
                     });
-                
+                    
                     it("should make its el untabbable", function() {
-                        expectTabIndex(-1);
+                        expectNoAria(fc, 'tabIndex');
                     });
                 });
                 
                 describe("out of FocusableContainer", function() {
                     beforeEach(function() {
-                        focusAndWait(barBtn);
+                        focusAndWait(beforeBtn);
                     });
                     
                     it("should not prevent focus from leaving", function() {
-                        expectFocused(barBtn);
+                        expectFocused(beforeBtn);
                     });
                     
                     it("should keep the child tabbable", function() {
-                        expectTabIndex(0, fooBtn);
+                        expectAria(fooBtn, 'tabIndex', '0');
                     });
                     
                     it("should keep its el untabbable", function() {
-                        expectTabIndex(-1);
+                        expectNoAria(fc, 'tabIndex');
+                    });
+                });
+            });
+            
+            describe("disabling currently focused child", function() {
+                beforeEach(function() {
+                    focusAndWait(fooBtn);
+                });
+                
+                describe("when there are other focusable children remaining", function() {
+                    beforeEach(function() {
+                        fooBtn.disable();
+                    });
+                    
+                    it("should focus next child", function() {
+                        expectFocused(barBtn);
+                    });
+                    
+                    it("should not make container el focusable", function() {
+                        expectNoAria(fcEl, 'tabIndex');
+                    });
+                    
+                    it("should update lastFocusedChild", function() {
+                        expect(fc.lastFocusedChild).toBe(barBtn);
+                    });
+                });
+                
+                describe("when there are no focusable children remaining", function() {
+                    beforeEach(function() {
+                        barBtn.disable();
+                        
+                        fooBtn.findFocusTarget = function() {
+                            return beforeBtn;
+                        };
+                        
+                        fooBtn.disable();
+                    });
+                    
+                    it("should focus findFocusTarget result", function() {
+                        expectFocused(beforeBtn);
+                    });
+                    
+                    it("should deactivate container el", function() {
+                        expectNoAria(fc, 'tabIndex');
+                    });
+                    
+                    it("should not update lastFocusedChild", function() {
+                        expect(fc.lastFocusedChild).toBe(fooBtn);
                     });
                 });
             });
@@ -629,15 +1081,13 @@ describe("Ext.util.FocusableContainer", function() {
         });
     });
     
-    // Some tests in this suite are failing in IE8; most probably because of
-    // asynchronous focusing implications, as well as general browser slowness.
-    (Ext.isIE8 ? xdescribe : describe)("keyboard event handling", function() {
+    describe("keyboard event handling", function() {
         var forward = true,
             backward = false,
             beforeBtn, afterBtn, fooBtn, barBtn, fooInput, barInput, slider,
             disabledBtn1, disabledBtn2;
         
-        function tabAndExpect(from, direction, to) {
+        function tabAndExpect(from, direction, to, debug) {
             pressTab(from, direction);
             
             expectFocused(to);
@@ -648,6 +1098,84 @@ describe("Ext.util.FocusableContainer", function() {
             
             expectFocused(to);
         }
+        
+        // Unfortunately we cannot test that the actual problem is solved,
+        // which is scrolling the parent container caused by default action
+        // on arrow keys. This is because synthetic injected events do not cause
+        // default action. The best we can do is to check that event handlers
+        // are calling preventDefault() on the events.
+        // See https://sencha.jira.com/browse/EXTJS-18186
+        describe("preventing parent scroll", function() {
+            var upSpy, downSpy, rightSpy, leftSpy;
+            
+            beforeEach(function() {
+                makeContainer({
+                    renderTo: undefined,
+                    items: [{
+                        xtype: 'button',
+                        text: 'fooBtn'
+                    }, {
+                        xtype: 'button',
+                        text: 'barBtn'
+                    }]
+                });
+                
+                fooBtn = fc.down('button[text=fooBtn]');
+                barBtn = fc.down('button[text=barBtn]');
+                
+                upSpy = spyOn(fc, 'onFocusableContainerUpKey').andCallThrough();
+                downSpy = spyOn(fc, 'onFocusableContainerDownKey').andCallThrough();
+                rightSpy = spyOn(fc, 'onFocusableContainerRightKey').andCallThrough();
+                leftSpy = spyOn(fc, 'onFocusableContainerLeftKey').andCallThrough();
+                
+                fc.render(Ext.getBody());
+            });
+            
+            afterEach(function() {
+                fooBtn = barBtn = null;
+                upSpy = downSpy = rightSpy = leftSpy = null;
+            });
+            
+            it("should preventDefault on the Up arrow key", function() {
+                pressArrow(barBtn, 'up');
+                
+                waitForFocus(fooBtn);
+                
+                runs(function() {
+                    expect(upSpy.mostRecentCall.args[0].defaultPrevented).toBe(true);
+                });
+            });
+            
+            it("should preventDefault on the Down arrow key", function() {
+                pressArrow(fooBtn, 'down');
+                
+                waitForFocus(barBtn);
+                
+                runs(function() {
+                    expect(downSpy.mostRecentCall.args[0].defaultPrevented).toBe(true);
+                });
+            });
+            
+            it("should preventDefault on the Right arrow key", function() {
+                pressArrow(fooBtn, 'right');
+                
+                waitForFocus(barBtn);
+                
+                runs(function() {
+                    expect(rightSpy.mostRecentCall.args[0].defaultPrevented).toBe(true);
+                });
+            });
+            
+            it("should preventDefault on the Left arrow key", function() {
+                pressArrow(barBtn, 'left');
+                
+                waitForFocus(fooBtn);
+                
+                runs(function() {
+                    expect(leftSpy.mostRecentCall.args[0].defaultPrevented).toBe(true);
+                });
+            });
+        });
         
         describe("enableFocusableContainer === true", function() {
             beforeEach(function() {
@@ -754,6 +1282,29 @@ describe("Ext.util.FocusableContainer", function() {
                     it("should shift-tab back to barBtn from afterBtn", function() {
                         tabAndExpect(barBtn, forward, afterBtn);
                         tabAndExpect(afterBtn, backward, barBtn);
+                    });
+                    
+                    describe("disabled state changes", function() {
+                        it("should choose fooBtn when shift-tabbing from afterBtn", function() {
+                            tabAndExpect(barBtn, forward, afterBtn);
+                            
+                            runs(function() {
+                                barBtn.disable();
+                            });
+                            
+                            tabAndExpect(afterBtn, backward, fooBtn);
+                        });
+                        
+                        it("should choose disabledBtn1 when tabbing from beforeBtn", function() {
+                            tabAndExpect(barBtn, backward, beforeBtn);
+                            
+                            runs(function() {
+                                barBtn.disable();
+                                disabledBtn1.enable();
+                            });
+                            
+                            tabAndExpect(beforeBtn, forward, disabledBtn1);
+                        });
                     });
                 });
             });
@@ -938,6 +1489,45 @@ describe("Ext.util.FocusableContainer", function() {
                 
                 it("should shift-tab from afterBtn to barInput", function() {
                     tabAndExpect(afterBtn, backward, barInput);
+                });
+                
+                describe("disabled state changes", function() {
+                    beforeEach(function() {
+                        disabledBtn1.enable();
+                        disabledBtn2.enable();
+                    });
+                    
+                    it("should tab from beforeBtn to disabledBtn1", function() {
+                        tabAndExpect(beforeBtn, forward, disabledBtn1);
+                    });
+                    
+                    it("should shift-tab from disabledBtn1 to beforeBtn", function() {
+                        tabAndExpect(disabledBtn1, backward, beforeBtn);
+                    });
+                    
+                    it("should tab from disabledBtn1 to fooBtn", function() {
+                        tabAndExpect(disabledBtn1, forward, fooBtn);
+                    });
+                    
+                    it("should shift-tab from fooBtn to disabledBtn1", function() {
+                        tabAndExpect(fooBtn, backward, disabledBtn1);
+                    });
+                    
+                    it("should tab from barBtn to disabledBtn2", function() {
+                        tabAndExpect(barBtn, forward, disabledBtn2);
+                    });
+                    
+                    it("should shift-tab from disabledBtn2 to barBtn", function() {
+                        tabAndExpect(disabledBtn2, backward, barBtn);
+                    });
+                    
+                    it("should tab from disabledBtn2 to barInput", function() {
+                        tabAndExpect(disabledBtn2, forward, barInput);
+                    });
+                    
+                    it("should shift-tab from barInput to disabledBtn2", function() {
+                        tabAndExpect(barInput, backward, disabledBtn2);
+                    });
                 });
             });
             

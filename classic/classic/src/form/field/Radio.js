@@ -205,7 +205,8 @@ Ext.define('Ext.form.field.Radio', {
     },
 
     /**
-     * @private Handle click on the radio button
+     * @private
+     * Handle click on the radio button
      */
     onBoxClick: function() {
         var me = this;

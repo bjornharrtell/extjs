@@ -68,7 +68,7 @@ Ext.define('Ext.layout.Box', {
     itemClass: 'x-layout-tablebox-item',
 
     setContainer: function(container) {
-        this.callParent(arguments);
+        this.callParent([container]);
 
         container.innerElement.addCls(this.layoutBaseClass);
 
@@ -83,7 +83,5 @@ Ext.define('Ext.layout.Box', {
         item.toggleCls(this.itemClass, isInner);
     },
 
-    onItemFlexChange: function() {
-
-    }
+    onItemFlexChange: Ext.emptyFn
 });

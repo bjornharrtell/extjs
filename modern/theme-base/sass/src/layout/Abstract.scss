@@ -20,6 +20,13 @@ body {
     height: 100%;
 }
 
+.x-domscroller > .x-inner {
+    height: auto;
+    width: auto;
+    min-width: 100%;
+    min-height: 100%;
+}
+
 .x-sized {
     position: relative;
 }

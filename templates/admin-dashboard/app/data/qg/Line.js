@@ -34,5 +34,5 @@ Ext.define('Admin.data.qg.Line', {
             "xvalue": 70,
             "yvalue": 450
         }
-    ]	
+    ]
 });

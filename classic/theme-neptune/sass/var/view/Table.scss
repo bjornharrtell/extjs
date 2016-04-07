@@ -20,3 +20,5 @@ $grid-row-cell-selected-background-color: dynamic(mix(#fff, $base-light-color, 2
 $grid-row-cell-selected-border-color: dynamic($grid-row-cell-selected-background-color);
 
 $grid-row-cell-focus-border-color: dynamic(mix(#ddd, $base-color, 20%));
+
+$grid-cell-dirty-glyph-color: dynamic($error-color);

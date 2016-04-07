@@ -293,10 +293,7 @@ Ext.define('Ext.form.field.Base', {
      * @param {Boolean} Read only flag
      */
 
-    /**
-     * @private
-     */
-    initComponent : function() {
+    initComponent: function() {
         var me = this;
 
         me.callParent();
@@ -445,9 +442,6 @@ Ext.define('Ext.form.field.Base', {
         return Ext.isObject(style) ? Ext.DomHelper.generateStyles(style, null, true) : style || '';
     },
 
-    /**
-     * @private
-     */
     onRender: function() {
         // This noOptimize can be removed after SDKTOOLS-946 is fixed
         // @noOptimize.callParent
@@ -553,6 +547,7 @@ Ext.define('Ext.form.field.Base', {
     },
     
     /**
+     * @method
      * Transform the raw value before it is set
      * @protected
      * @param {Object} value The value
@@ -642,9 +637,6 @@ Ext.define('Ext.form.field.Base', {
             
     },
 
-    /**
-     * @private
-     */
     onDisable: function() {
         var me = this,
             inputEl = me.inputEl;
@@ -667,9 +659,6 @@ Ext.define('Ext.form.field.Base', {
         }
     },
 
-    /**
-     * @private
-     */
     onEnable: function() {
         var me = this,
             inputEl = me.inputEl,
@@ -726,9 +715,6 @@ Ext.define('Ext.form.field.Base', {
         }
     },
 
-    /**
-     * @private
-     */
     initEvents : function(){
         var me = this,
             inputEl = me.inputEl,
@@ -765,21 +751,25 @@ Ext.define('Ext.form.field.Base', {
     onFieldMutation: function(e) {
         // When using propertychange, we want to skip out on various values, since they won't cause
         // the underlying value to change.
+        if (!this.readOnly && !(e.type === 'propertychange' && this.ignoreChangeRe.test(e.browserEvent.propertyName))) {
+            this.startCheckChangeTask();
+        }
+    },
+
+    startCheckChangeTask: function() {
         var me = this,
             task = me.checkChangeTask;
 
-        if (!me.readOnly && !(e.type === 'propertychange' && me.ignoreChangeRe.test(e.browserEvent.propertyName))) {
-            if (!task) {
-                me.checkChangeTask = task = new Ext.util.DelayedTask(me.doCheckChangeTask, me);
-            }
-            if (!me.bindNotifyListener) {
-                // We continually create/destroy the listener as needed (see doCheckChangeTask) because we're listening
-                // to a global event, so we don't want the event to be triggered unless absolutely necessary. In this case,
-                // we only need to fix the value when we have a pending change to check.
-                me.bindNotifyListener = Ext.on('beforebindnotify', me.onBeforeNotify, me, {destroyable: true});
-            }
-            task.delay(me.checkChangeBuffer);
+        if (!task) {
+            me.checkChangeTask = task = new Ext.util.DelayedTask(me.doCheckChangeTask, me);
         }
+        if (!me.bindNotifyListener) {
+            // We continually create/destroy the listener as needed (see doCheckChangeTask) because we're listening
+            // to a global event, so we don't want the event to be triggered unless absolutely necessary. In this case,
+            // we only need to fix the value when we have a pending change to check.
+            me.bindNotifyListener = Ext.on('beforebindnotify', me.onBeforeNotify, me, {destroyable: true});
+        }
+        task.delay(me.checkChangeBuffer);
     },
 
     doCheckChangeTask: function() {
@@ -801,7 +791,8 @@ Ext.define('Ext.form.field.Base', {
     },
 
     /**
-     * @private Called when the field's dirty state changes. Adds/removes the {@link #dirtyCls} on the main element.
+     * @private
+     * Called when the field's dirty state changes. Adds/removes the {@link #dirtyCls} on the main element.
      * @param {Boolean} isDirty
      */
     onDirtyChange: function (isDirty) {
@@ -923,7 +914,8 @@ Ext.define('Ext.form.field.Base', {
     },
 
     /**
-     * @private Overrides the method from the Ext.form.Labelable mixin to also add the invalidCls to the inputEl,
+     * @private
+     * Overrides the method from the Ext.form.Labelable mixin to also add the invalidCls to the inputEl,
      * as that is required for proper styling in IE with nested fields (due to lack of child selector)
      */
     renderActiveError: function() {

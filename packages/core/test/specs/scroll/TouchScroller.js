@@ -579,6 +579,16 @@
     });
 
     describe("getClientSize", function() {
+        var scrollbarWidth = 0,
+            scrollbarHeight = 0;
+
+        if (Ext.supports.touchScroll === 1) {
+            // Some touch scroll platforms use native DOM scrolling and show scrollbars
+            // We must account for these when calculating expected client sizes.
+            scrollbarWidth = Ext.getScrollbarSize().width;
+            scrollbarHeight = Ext.getScrollbarSize().height;
+        }
+
         beforeEach(function() {
             el.destroy();
 
@@ -611,7 +621,7 @@
             makeScroller();
 
             var size = scroller.getClientSize();
-            expect(size.x).toBe(200 - (20 * 2));
+            expect(size.x).toBe(200 - (20 * 2) - scrollbarWidth);
             expect(size.y).toBe(200 - (10 * 2));
         });
 
@@ -622,7 +632,7 @@
 
             var size = scroller.getClientSize();
             expect(size.x).toBe(200 - (20 * 2));
-            expect(size.y).toBe(200 - (10 * 2));
+            expect(size.y).toBe(200 - (10 * 2) - scrollbarHeight);
         });
 
         it("should read by the clientWidth and clientHeight of the element", function() {
@@ -633,8 +643,8 @@
             makeScroller();
 
             var size = scroller.getClientSize();
-            expect(size.x).toBe(200 - (20 * 2));
-            expect(size.y).toBe(200 - (10 * 2));
+            expect(size.x).toBe(200 - (20 * 2) - scrollbarWidth);
+            expect(size.y).toBe(200 - (10 * 2) - scrollbarHeight);
         });
     });
 
@@ -871,6 +881,54 @@
             expect(scroller.getPosition()).toEqual({
                 x: 180,
                 y: 80
+            });
+        });
+        
+        it('should fire scrollstart and scrollend', function() {
+            var scrollStartFired = 0,
+                scrollEndFired = 0;
+
+            makeOverflow();
+            scroller.on({
+                scrollstart: function() {
+                    scrollStartFired++;
+                },
+                scrollend: function() {
+                    scrollEndFired++;
+                }
+            });
+            scroller.scrollTo(20, 20);
+
+            // Wait for scroll to finish. We must wait for any extraneous
+            // events to fire. Each should only fire once.
+            waits(50);
+            runs(function() {
+                expect(scrollStartFired).toBe(1);
+                expect(scrollEndFired).toBe(1);
+            });
+        });
+
+        it('should fire scrollstart and scrollend when animated', function() {
+            var scrollStartFired = 0,
+                scrollEndFired = 0;
+
+            makeOverflow();
+            scroller.on({
+                scrollstart: function() {
+                    scrollStartFired++;
+                },
+                scrollend: function() {
+                    scrollEndFired++;
+                }
+            });
+            scroller.scrollTo(20, 20, true);
+
+            // Wait for scroll animation to finish. We must wait for any extraneous
+            // events to fire. Each should only fire once.
+            waits(1000);
+            runs(function() {
+                expect(scrollStartFired).toBe(1);
+                expect(scrollEndFired).toBe(1);
             });
         });
     });
@@ -1172,21 +1230,37 @@
                 });
 
                 it("should sync the partner's scroll position when the scroller is scrolled", function() {
+                    // The partner should take action upon scroll start and end
+                    spyOn(scroller2, 'fireScrollStart').andCallThrough();
+                    spyOn(scroller2, 'fireScrollEnd').andCallThrough();
+
                     scroller.scrollTo(10, 20);
 
                     expect(scroller2.getPosition()).toEqual({
                         x: 10,
                         y: 20
                     });
+
+                    // The passive side should also have fired its start and end scroll events
+                    expect(scroller2.fireScrollStart.callCount).toBe(1);
+                    expect(scroller2.fireScrollEnd.callCount).toBe(1);
                 });
 
                 it("should sync the scroller's scroll position when the partner is scrolled", function() {
+                    // The scroller should take action upon scroll start and end
+                    spyOn(scroller, 'fireScrollStart').andCallThrough();
+                    spyOn(scroller, 'fireScrollEnd').andCallThrough();
+
                     scroller2.scrollTo(10, 20);
 
                     expect(scroller.getPosition()).toEqual({
                         x: 10,
                         y: 20
                     });
+
+                    // The passive side should also have fired its start and end scroll events
+                    expect(scroller.fireScrollStart.callCount).toBe(1);
+                    expect(scroller.fireScrollEnd.callCount).toBe(1);
                 });
             });
 
@@ -1337,23 +1411,85 @@
             helper.touchEnd(element || el, cfg);
         }
 
-        function expectScrollPosition(position) {
-            expect(-innerElement.getX()).toBe(position.x);
-            expect(-innerElement.getY()).toBe(position.y);
+        function expectScrollPosition(position, testScroller) {
+            if (!testScroller) {
+                testScroller = scroller;
+            }
+            var innerElXY = testScroller.getInnerElement().getOffsetsTo(testScroller.getElement());
+
+            expect(-innerElXY[0]).toBe(position.x);
+            expect(-innerElXY[1]).toBe(position.y);
         }
 
-        function makeScroller(config) {
-            el.appendChild({
+        function makeScroller(config, newElement) {
+            var scrollerEl,
+                newScroller;
+
+            if (newElement) {
+                scrollerEl = Ext.getBody().createChild({
+                    style: 'height:100px;width:100px;'
+                });
+            } else {
+                scrollerEl = el;
+            }
+
+            scrollerEl.appendChild({
                 style: 'height:200px;width:200px;'
             }, true);
 
-            scroller = new Ext.scroll.TouchScroller(Ext.apply({
-                element: el,
+            newScroller = new Ext.scroll.TouchScroller(Ext.apply({
+                element: scrollerEl,
                 autoRefresh: false
             }, config));
 
-            innerElement = scroller.getInnerElement();
+            if (!newElement) {
+                scroller = newScroller;
+                innerElement = scroller.getInnerElement();
+            }
+            return newScroller;
         }
+
+        describe('synchronizing partners', function() {
+            var scroller1, scroller2;
+
+            afterEach(function() {
+                Ext.destroy(scroller2._element, scroller1, scroller2);
+            });
+
+            it("should sync the partner's scroll position when the scroller is scrolled", function() {
+                scroller1 = makeScroller();
+                scroller2 = makeScroller(null, true);
+                scroller1.addPartner(scroller2);
+
+                // The partner should take action upon scroll start and end
+                spyOn(scroller2, 'fireScrollStart').andCallThrough();
+                spyOn(scroller2, 'fireScrollEnd').andCallThrough();
+
+                runs(function() {
+                    start({ x: 50, y: 50 }, scroller1.getElement());
+                    move({ x: 50, y: 40 }, scroller1.getElement());
+                    end({ x: 50, y: 40 }, scroller1.getElement());
+
+                    // Both should have indicated that they are scrolling
+                    expect(scroller1.isScrolling).toBe(true);
+                    expect(scroller2.isScrolling).toBe(true);
+                });
+
+                // Wait for the whole thing to settle down and declare itself finished
+                waitsFor(function() {
+                    return !(scroller1.isScrolling || scroller2.isScrolling);
+                }, 'both scrollers to finish scrolling');
+
+                // Then check synchronization conditions, and the the correct call sequences have been followed
+                runs(function() {
+                    expectScrollPosition({ x: 0, y: scroller1.getPosition().y }, scroller2);
+
+                    // The passive side should also have fired its start and end scroll events
+                    expect(scroller2.fireScrollStart.callCount).toBe(1);
+                    expect(scroller2.fireScrollEnd.callCount).toBe(1);
+                });
+            });
+        });
 
         describe("x:'auto' and y:'auto'", function() {
             it("should size to the content", function() {

@@ -78,6 +78,7 @@ Ext.manifest = Ext.manifest || "${build.json.bootstrap.rel.path}";
                 and
                 microload
                     -operation=manifest
+                    -fashion=${use.fashion}
                     -bootstrap
                     +ignoreDisabled
                     -exclude=${manifest.root.excludes}

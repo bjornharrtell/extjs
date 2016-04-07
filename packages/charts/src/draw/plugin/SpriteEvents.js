@@ -121,6 +121,7 @@ Ext.define('Ext.draw.plugin.SpriteEvents', {
     hasSpriteMouseMoveListeners: function () {
         var listeners = this.drawContainer.hasListeners,
             name;
+
         for (name in this.spriteMouseMoveEvents) {
             if (name in listeners) {
                 return true;

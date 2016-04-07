@@ -4,7 +4,7 @@
  * typically required to validate data and handle returned data packets
  * (reading data, error conditions, etc).
  *
- * The Ext.direct namespace includes several classes for a closer integration
+ * The `Ext.direct` namespace includes several classes for a closer integration
  * with the server-side. The Ext.data namespace also includes classes for working
  * with Ext.data.Stores which are backed by data from an Ext Direct method.
  *
@@ -83,10 +83,10 @@ Ext.define('Ext.direct.Manager', {
     
     config: {
         /**
-         * @cfg {String} [varName="Ext.app.REMOTING_API"]
-         * Default variable name to use for Ext.Direct API declaration.
+         * @cfg {String} [varName="Ext.REMOTING_API"]
+         * Default variable name to use for Ext Direct API declaration.
          */
-        varName: 'Ext.app.REMOTING_API'
+        varName: 'Ext.REMOTING_API'
     },
     
     apiNotFoundError: 'Ext Direct API was not found at {0}',
@@ -150,10 +150,12 @@ Ext.define('Ext.direct.Manager', {
      * it will auto-connect.
      *
      *      var pollProv = new Ext.direct.PollingProvider({
+     *          id: 'polling1',
      *          url: 'php/poll2.php'
      *      });
      *
      *      Ext.direct.Manager.addProvider({
+     *          id: 'remoting1',
      *          type: 'remoting',           // create a Ext.direct.RemotingProvider
      *          url:  'php/router.php',     // url to connect to the Ext Direct server-side router.
      *          actions: {                  // each property within the actions object represents an Action
@@ -170,6 +172,7 @@ Ext.define('Ext.direct.Manager', {
      *          },
      *          namespace: 'myApplication', // namespace to create the Remoting Provider in
      *      }, {
+     *          id:   'polling2',
      *          type: 'polling',            // create an Ext.direct.PollingProvider
      *          url:  'php/poll.php'
      *      },
@@ -222,7 +225,7 @@ Ext.define('Ext.direct.Manager', {
      * 
      *      Ext.direct.Manager.loadProvider({
      *          url: 'php/api.php',
-     *          varName: 'MY_REMOTING_API' // defaults to 'Ext.app.REMOTING_API'
+     *          varName: 'MY_REMOTING_API' // defaults to 'Ext.REMOTING_API'
      *      });
      *
      * @param {Object} config Remoting API configuration.
@@ -468,7 +471,7 @@ Ext.define('Ext.direct.Manager', {
                 api, provider, error;
             
             try {
-                // Variable name could be nested (default is Ext.app.REMOTING_API),
+                // Variable name could be nested (default is Ext.REMOTING_API),
                 // so we use eval() to get the actual value.
                 api = Ext.apply(options.config, eval(varName));
                 

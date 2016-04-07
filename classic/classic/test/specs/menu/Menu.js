@@ -1,5 +1,7 @@
 describe("Ext.menu.Menu", function() {
-    var menu;
+    var pressArrow = jasmine.pressArrowKey,
+        waitForFocus = jasmine.waitForFocus,
+        menu, itGoodBrowsers = Ext.isWebKit || Ext.isGecko ? it : xit;
 
     function makeMenu(cfg) {
         menu = new Ext.menu.Menu(cfg || {});
@@ -7,9 +9,35 @@ describe("Ext.menu.Menu", function() {
     }
 
     afterEach(function() {
-        menu.hide();
-        Ext.destroy(menu);
-        menu = null;
+        if (menu) {
+            menu.hide();
+            Ext.destroy(menu);
+            menu = null;
+        }
+    });
+
+    describe('dockedItems', function () {
+        it('should move body below docked title', function () {
+            makeMenu({
+                title: 'Some Menu',
+
+                items: [{
+                    text: 'Hello'
+                }, {
+                    text: 'World'
+                }]
+            });
+
+            menu.show();
+
+            var bodyXY = menu.body.getXY();
+            var menuXY = menu.el.getXY();
+            var title = menu.dockedItems.items[0];
+            var titleHeight = title.el.getHeight();
+            var titleXY = title.el.getXY();
+
+            expect(bodyXY[1]).toBe(titleXY[1] + titleHeight);
+        });
     });
 
     describe("reference", function() {
@@ -687,6 +715,127 @@ describe("Ext.menu.Menu", function() {
         });
     });
     
+    describe("focus anchor", function() {
+        var focusAndWait = jasmine.focusAndWait,
+            expectFocused = jasmine.expectFocused,
+            pressTab = jasmine.simulateTabKey,
+            foo, bar, item;
+        
+        function showItem(level, text) {
+            var tempMenu, tempItem;
+            
+            tempMenu = menu;
+            
+            for (var i = 1; i <= level; i++) {
+                tempItem = tempMenu.down('[text="submenu ' + i + '"]');
+                
+                if (tempItem && tempItem.menu) {
+                    tempMenu = tempItem.menu;
+                    
+                    tempItem.focus();
+                    tempItem.expandMenu(null, 0);
+                }
+            }
+            
+            if (tempMenu && text) {
+                item = tempMenu.down('[text="' + text + '"]');
+            }
+            
+            if (item) {
+                item.focus();
+            }
+            
+            return item;
+        }
+        
+        beforeEach(function() {
+            foo = new Ext.button.Button({
+                renderTo: Ext.getBody(),
+                text: 'foo'
+            });
+            
+            bar = new Ext.button.Button({
+                renderTo: Ext.getBody(),
+                text: 'bar'
+            });
+            
+            makeMenu({
+                defaults: {
+                    hideOnClick: false
+                },
+                
+                items: [{
+                    text: 'item 1'
+                }, {
+                    text: 'item 2',
+                }, {
+                    text: 'submenu 1',
+                    menu: [{
+                        text: 'item 1'
+                    }, {
+                        text: 'item 2'
+                    }, {
+                        text: 'submenu 2', 
+                        menu: [{
+                            text: 'item 1'
+                        }, {
+                            text: 'should be enough'
+                        }]
+                    }]
+                }]
+            });
+            
+            focusAndWait(foo);
+            
+            runs(function() {
+                menu.show();
+            });
+        });
+        
+        afterEach(function() {
+            Ext.destroy(foo, bar);
+            foo = bar = item = null;
+        });
+        
+        it("should capture focus anchor when opening", function() {
+            expect(menu.focusAnchor).toBe(foo.el.dom);
+        });
+        
+        it("should tab from 1st level menu to bar", function() {
+            showItem(0, 'item 1');
+            
+            pressTab(item, true);
+            
+            expectFocused(bar);
+        });
+        
+        it("should shift-tab from 1st level menu to foo", function() {
+            menu.focusAnchor = bar.el.dom;
+            
+            showItem(0, 'item 2');
+            
+            pressTab(item, false);
+            
+            expectFocused(foo);
+        });
+        
+        it("should tab from 2nd level menu to bar", function() {
+            showItem(1, 'item 1');
+            
+            pressTab(item, true);
+            
+            expectFocused(bar);
+        });
+        
+        it("should tab from 3rd level menu to bar", function() {
+            showItem(2, "should be enough");
+            
+            pressTab(item, true);
+            
+            expectFocused(bar);
+        });
+    });
+    
     describe("cleanup", function() {
         var Manager = Ext.menu.Manager;
         
@@ -709,6 +858,202 @@ describe("Ext.menu.Menu", function() {
             var doesContain = Ext.Array.contains(Manager.visible, menu);
             
             expect(doesContain).toBe(false);
+        });
+    });
+
+    describe('hide on click', function() {
+        var testWindow,
+            button,
+            topMenu,
+            topMenuItem,
+            menu2,
+            menu2Item,
+            menu3,
+            menu3Item,
+            clicked;
+
+        beforeEach(function() {
+            testWindow = new Ext.window.Window({
+                renderTo: Ext.getBody(),
+                width: 300,
+                tbar: [button = new Ext.button.Button({
+                    xtype: 'button',
+                    text: 'Foo',
+                    menu: topMenu = new Ext.menu.Menu({
+                        onBeforeShow: function() {
+                            return true
+                        },
+                        items: topMenuItem = new Ext.menu.Item({
+                            text: 'Top menu item',
+                            menu: menu2 = new Ext.menu.Menu({
+                                items: menu2Item = new Ext.menu.Item({
+                                    text: 'Second level menu item',
+                                    menu: menu3 = new Ext.menu.Menu({
+                                        items: menu3Item = new Ext.menu.Item({
+                                            text: 'Third level menu',
+                                            handler: function() {
+                                                clicked = true;
+                                            }
+                                        })
+                                    })
+                                })
+                            })
+                        })
+                    })
+                })]
+            });
+            testWindow.show();
+        });
+        afterEach(function() {
+            testWindow.destroy();
+        });
+        itGoodBrowsers('should hide on click, and on reshow of parent, should not show again', function() {
+            button.el.focus();
+            
+            waitsFor(function() {
+                return button.hasFocus;
+            }, 'button to recieve focus');
+            runs(function() {
+                jasmine.fireMouseEvent(button.el, 'click');
+                jasmine.fireKeyEvent(button.el, 'keydown', Ext.event.Event.DOWN);
+            });
+            waitsFor(function() {
+                return topMenu.isVisible() && topMenuItem.hasFocus;
+            }, 'topMenuItem to recieve focus');
+            runs(function() {
+                jasmine.fireKeyEvent(topMenuItem.el, 'keydown', Ext.event.Event.RIGHT);
+            });
+            waitsFor(function() {
+                return menu2.isVisible() && menu2Item.hasFocus;
+            }, 'menu2Item to recieve focus');
+            runs(function() {
+                jasmine.fireKeyEvent(menu2Item.el, 'keydown', Ext.event.Event.RIGHT);
+            });
+            waitsFor(function() {
+                return menu3.isVisible && menu3Item.hasFocus;
+            }, 'menu3Item to recieve focus');
+
+            runs(function() {
+                // All three menus must be visible
+                expect(topMenu.isVisible()).toBe(true);
+                expect(menu2.isVisible()).toBe(true);
+                expect(menu3.isVisible()).toBe(true);
+
+                // click the last menu item
+                jasmine.fireMouseEvent(menu3Item.el, 'click');
+            });
+
+            // All menus must have hidden and focus must revert to the button
+            waitsFor(function() {
+                return clicked === true && !topMenu.isVisible() && !menu2.isVisible() && !menu3.isVisible() && button.hasFocus;
+            }, 'all menus to hide');
+            
+            runs(function() {
+                jasmine.fireMouseEvent(button.el, 'click');
+            });
+            waitsFor(function() {
+                return topMenu.isVisible();
+            }, 'topMenu to show for the second time');
+            runs(function() {
+                expect(menu2.isVisible()).toBe(false);
+                expect(menu3.isVisible()).toBe(false);
+            });
+        });
+    });
+    
+    describe("keyboard interaction", function() {
+        var item, submenu, subitem;
+        
+        beforeEach(function() {
+            makeMenu({
+                items: [{
+                    text: 'item'
+                }, {
+                    text: 'submenu',
+                    menu: [{
+                        text: 'subitem'
+                    }]
+                }]
+            });
+            
+            item = menu.down('[text=item]');
+            submenu = menu.down('[text=submenu]');
+            subitem = submenu.menu.down('[text=subitem]');
+        });
+        
+        afterEach(function() {
+            item = submenu = subitem = null;
+        });
+        
+        // Unfortunately we cannot test that the actual problem is solved,
+        // which is scrolling the parent container caused by default action
+        // on arrow keys. This is because synthetic injected events do not cause
+        // default action. The best we can do is to check that event handlers
+        // are calling preventDefault() on the events.
+        // See https://sencha.jira.com/browse/EXTJS-18186
+        describe("preventing parent scroll", function() {
+            var upSpy, downSpy, rightSpy, leftSpy;
+            
+            beforeEach(function() {
+                upSpy = spyOn(menu, 'onFocusableContainerUpKey').andCallThrough();
+                downSpy = spyOn(menu, 'onFocusableContainerDownKey').andCallThrough();
+                rightSpy = spyOn(menu, 'onFocusableContainerRightKey').andCallThrough();
+                
+                menu.show();
+            });
+            
+            afterEach(function() {
+                upSpy = downSpy = rightSpy = leftSpy = null;
+            });
+            
+            it("should preventDefault on the Up arrow key", function() {
+                pressArrow(submenu, 'up');
+                
+                waitForFocus(item);
+                
+                runs(function() {
+                    expect(upSpy.mostRecentCall.args[0].defaultPrevented).toBe(true);
+                });
+            });
+            
+            it("should preventDefault on the Down arrow key", function() {
+                pressArrow(item, 'down');
+                
+                waitForFocus(submenu);
+                
+                runs(function() {
+                    expect(downSpy.mostRecentCall.args[0].defaultPrevented).toBe(true);
+                });
+            });
+            
+            it("should preventDefault on the Right key", function() {
+                pressArrow(submenu, 'right');
+                
+                runs(function() {
+                    waitForFocus(subitem);
+                });
+                
+                runs(function() {
+                    expect(rightSpy.mostRecentCall.args[0].defaultPrevented).toBe(true);
+                });
+            });
+            
+            it("should preventDefault on the Left key", function() {
+                runs(function() {
+                    leftSpy = spyOn(submenu.menu, 'onFocusableContainerLeftKey').andCallThrough();
+                    
+                    submenu.activated = true;
+                    submenu.expandMenu(null, 0);
+                    
+                    pressArrow(subitem, 'left');
+                });
+                
+                waitForFocus(submenu);
+                
+                runs(function() {
+                    expect(leftSpy.mostRecentCall.args[0].defaultPrevented).toBe(true);
+                });
+            });
         });
     });
 });

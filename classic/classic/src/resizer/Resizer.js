@@ -415,7 +415,7 @@ Ext.define('Ext.resizer.Resizer', {
      * @private
      * Relay the Tracker's mousedown event as beforeresize
      * @param {Ext.resizer.ResizeTracker} tracker
-     * @param {Ext.event.Event} The event
+     * @param {Ext.event.Event} e The event
      */
     onBeforeResize: function(tracker, e) {
         return this.fireResizeEvent('beforeresize', tracker, e);
@@ -425,7 +425,7 @@ Ext.define('Ext.resizer.Resizer', {
      * @private
      * Relay the Tracker's drag event as resizedrag
      * @param {Ext.resizer.ResizeTracker} tracker
-     * @param {Ext.event.Event} The event
+     * @param {Ext.event.Event} e The event
      */
     onResize: function(tracker, e) {
         return this.fireResizeEvent('resizedrag', tracker, e);
@@ -435,7 +435,7 @@ Ext.define('Ext.resizer.Resizer', {
      * @private
      * Relay the Tracker's dragend event as resize
      * @param {Ext.resizer.ResizeTracker} tracker
-     * @param {Ext.event.Event} The event
+     * @param {Ext.event.Event} e The event
      */
     onResizeEnd: function(tracker, e) {
         return this.fireResizeEvent('resize', tracker, e);
@@ -446,7 +446,7 @@ Ext.define('Ext.resizer.Resizer', {
      * Fire a resize event, checking if we have listeners before firing.
      * @param {String} name The name of the event
      * @param {Ext.resizer.ResizeTracker} tracker
-     * @param {Ext.event.Event} The event
+     * @param {Ext.event.Event} e The event
      */
     fireResizeEvent: function(name, tracker, e) {
         var me = this,

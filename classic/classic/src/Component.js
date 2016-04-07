@@ -135,15 +135,6 @@ Ext.define('Ext.Component', {
         INVALID_ID_CHARS_Re: /[\.,\s]/g,
         
         /**
-         * @property {String} componentIdAttribute
-         * Name of the element attribute containing its Component id. Used to look up Components
-         * by their Elements.
-         *
-         * @private
-         */
-        componentIdAttribute: 'data-componentid',
-        
-        /**
          * @property {String} ariaHighContrastModeCls CSS class to be applied
          * to the document body when High Contrast mode is detected in Windows.
          * @private
@@ -163,11 +154,7 @@ Ext.define('Ext.Component', {
         },
 
         /**
-         * Find a Component that the given Element belongs to.
-         *
-         * Note that configured Elements (one not created by the owner Component) must set a special
-         * {@link Ext.Component#componentIdAttribute componentIdAttribute} on the Element dom to tell
-         * the ComponentManager to which Component it belongs.
+         * Find the Widget or Component to which the given Element belongs.
          *
          * @param {Ext.dom.Element/HTMLElement} el The element from which to start to find an owning Component.
          * @param {Ext.dom.Element/HTMLElement} [limit] The element at which to stop upward searching for an
@@ -177,32 +164,7 @@ Ext.define('Ext.Component', {
          * @return {Ext.Component/null} Component, or null
          */
         fromElement: function(node, limit, selector) {
-            var cmpIdAttr = this.componentIdAttribute,
-                target = Ext.getDom(node),
-                cache = Ext.ComponentManager.all,
-                depth = 0,
-                topmost, cmpId, cmp;
-
-            if (typeof limit !== 'number') {
-                topmost = Ext.getDom(limit);
-                limit = Number.MAX_VALUE;
-            }
-
-            while (target && target.nodeType === 1 && depth < limit && target !== topmost) {
-                cmpId = target.getAttribute(cmpIdAttr) || target.id;
-                if (cmpId) {
-                    cmp = cache[cmpId];
-                    if (cmp && (!selector || Ext.ComponentQuery.is(cmp, selector))) {
-                        return cmp;
-                    }
-
-                    // Increment depth on every *Component* found, not Element
-                    depth++;
-                }
-                target = target.parentNode;
-            }
-
-            return null;
+            return Ext.ComponentManager.fromElement(node, limit, selector);
         },
 
         /**
@@ -1196,6 +1158,14 @@ Ext.define('Ext.Component', {
     shrinkWrap: 2,
 
     /**
+     * @cfg stateEvents
+     * @inheritdoc Ext.state.Stateful#cfg-stateEvents
+     * @localdoc By default the following stateEvents are added:
+     * 
+     *  - {@link #event-resize}
+     */
+
+    /**
      * @cfg {String/Object} style
      * A custom style specification to be applied to this component's Element. Should be a valid argument to
      * {@link Ext.dom.Element#applyStyles}.
@@ -1270,6 +1240,23 @@ Ext.define('Ext.Component', {
      * @private
      */
     uiCls: [],
+
+    /**
+     * @cfg {String/String[]} userCls
+     * One or more CSS classes to add to the component's primary element. This config
+     * is intended solely for use by the component instantiator (the "user"), not by
+     * derived classes.
+     *
+     * For example:
+     *
+     *      items: [{
+     *          xtype: 'button',
+     *          userCls: 'my-button'
+     *      ...
+     *      }]
+     * @accessor
+     */
+    userCls: null,
 
     /**
      * @cfg {Number} [weight]
@@ -2237,9 +2224,28 @@ Ext.define('Ext.Component', {
      * @protected
      */
     afterComponentLayout: function(width, height, oldWidth, oldHeight) {
-        var me = this;
+        var me = this,
+            scroller;
 
         if (++me.componentLayoutCounter === 1) {
+
+            // Update the scroller very early in first layout so that it has the overflow element
+            // before any 'boxready', onResize, or 'resize' code gets to run.
+            scroller = me.scrollable; // initConfig has already run by now
+            if (scroller) {
+                if (me.touchScroll && scroller.isTouchScroller) {
+                    scroller.setInnerElement(me.getScrollerEl());
+                }
+
+                scroller.setElement(me.getOverflowEl());
+
+                // IE browsers don't restore scroll position if the component was scrolled and
+                // then hidden and shown again, so we must do it manually.
+                // See EXTJS-16233.
+                if (Ext.isIE) {
+                    Ext.on('show', me.onGlobalShow, me);
+                }
+            }
             me.afterFirstLayout(width, height);
         }
 
@@ -2670,10 +2676,15 @@ Ext.define('Ext.Component', {
                 y: false
             });
             oldScrollable.destroy();
+            scrollable = null;
         }
 
         if (me.rendered && !me.destroying && !me.destroyed) {
-            me.getOverflowStyle(); // refresh the scrollFlags
+            if (scrollable) {
+                me.getOverflowStyle(); // refresh the scrollFlags
+            } else {
+                me.scrollFlags = me._scrollFlags.none;
+            }
             me.updateLayout();
         }
 
@@ -2720,7 +2731,8 @@ Ext.define('Ext.Component', {
     },
 
     /**
-     * @private Template method called before a Component is positioned.
+     * @private
+     * Template method called before a Component is positioned.
      *
      * Ensures that the position is adjusted so that the Component is constrained if so configured.
      */
@@ -2949,10 +2961,16 @@ Ext.define('Ext.Component', {
         }
 
         if (!me.disabled) {
+            if (container) {
+                container.beforeFocusableChildDisable(me);
+            }
+            
             me.addCls(me.disabledCls);
+            
             if (me.rendered) {
                 me.onDisable();
-            } else {
+            }
+            else {
                 me.disableOnRender = true;
             }
 
@@ -3004,8 +3022,13 @@ Ext.define('Ext.Component', {
             // A parent is asking us to enable, but if we were disabled directly, keep
             // our current state
             if (!(fromParent && inherited.hasOwnProperty('disabled'))) {
+                if (container) {
+                    container.beforeFocusableChildEnable(me);
+                }
+                
                 me.disableOnRender = false;
                 me.removeCls(me.disabledCls);
+                
                 if (me.rendered) {
                     me.onEnable();
                 }
@@ -3063,8 +3086,38 @@ Ext.define('Ext.Component', {
 
     /**
      * Retrieves plugin from this component's collection by its `ptype`.
-     * @param {String} ptype The Plugin's ptype as specified by the class's `alias` configuration.
-     * @return {Ext.plugin.Abstract} plugin instance.
+     * 
+     *     var grid = Ext.create('Ext.grid.Panel', {
+     *         store: {
+     *             fields: ['name'],
+     *             data: [{
+     *                 name: 'Scott Pilgrim'
+     *             }]
+     *         },
+     *         columns: [{
+     *             header: 'Name',
+     *             dataIndex: 'name',
+     *             editor: 'textfield',
+     *             flex: 1
+     *         }],
+     *         selType: 'cellmodel',
+     *         plugins: {
+     *             ptype: 'cellediting',
+     *             clicksToEdit: 1,
+     *             pluginId: 'myplugin'
+     *         },
+     *         height: 200,
+     *         width: 400,
+     *         renderTo: Ext.getBody()
+     *     });
+     *     
+     *     grid.findPlugin('cellediting');  // the cellediting plugin
+     * 
+     * **Note:** See also {@link #getPlugin}
+     * 
+     * @param {String} ptype The Plugin's `ptype` as specified by the class's 
+     * {@link Ext.Class#cfg-alias alias} configuration.
+     * @return {Ext.plugin.Abstract} plugin instance or `undefined` if not found
      */
     findPlugin: function(ptype) {
         var i,
@@ -3226,8 +3279,37 @@ Ext.define('Ext.Component', {
 
     /**
      * Retrieves a plugin from this component's collection by its `pluginId`.
-     * @param {String} pluginId
-     * @return {Ext.plugin.Abstract} plugin instance.
+     * 
+     *     var grid = Ext.create('Ext.grid.Panel', {
+     *         store: {
+     *             fields: ['name'],
+     *             data: [{
+     *                 name: 'Scott Pilgrim'
+     *             }]
+     *         },
+     *         columns: [{
+     *             header: 'Name',
+     *             dataIndex: 'name',
+     *             editor: 'textfield',
+     *             flex: 1
+     *         }],
+     *         selType: 'cellmodel',
+     *         plugins: {
+     *             ptype: 'cellediting',
+     *             clicksToEdit: 1,
+     *             pluginId: 'myplugin'
+     *         },
+     *         height: 200,
+     *         width: 400,
+     *         renderTo: Ext.getBody()
+     *     });
+     *     
+     *     grid.getPlugin('myplugin');  // the cellediting plugin
+     * 
+     * **Note:** See also {@link #findPlugin}
+     * 
+     * @param {String} pluginId The `pluginId` set on the plugin config object
+     * @return {Ext.plugin.Abstract} plugin instance or `null` if not found
      */
     getPlugin: function(pluginId) {
         var i,
@@ -3455,6 +3537,25 @@ Ext.define('Ext.Component', {
         }
 
         return state;
+    },
+
+    getUserCls: function () {
+        return this.userCls;
+    },
+
+    setUserCls: function (cls) {
+        var me = this,
+            was = me.userCls;
+
+        if (cls !== was) {
+            me.userCls = cls;
+
+            if (me.rendered) {
+                me.el.replaceCls(was, cls);
+            }
+        }
+
+        return was;
     },
 
     /**
@@ -4146,7 +4247,6 @@ Ext.define('Ext.Component', {
      */
     onBoxReady: function(width, height) {
         var me = this,
-            scroller = me.scrollable,
             label;
         
         // We have to do this lookup onBoxReady instead of afterRender
@@ -4178,21 +4278,6 @@ Ext.define('Ext.Component', {
         // Because if we have to be wrapped, the resizer wrapper must be dragged as a pseudo-Component
         if (me.draggable) {
             me.initDraggable();
-        }
-
-        if (scroller) {
-            if (me.touchScroll && scroller.isTouchScroller) {
-                scroller.setInnerElement(me.getScrollerEl());
-            }
-
-            scroller.setElement(me.getOverflowEl());
-
-            // IE browsers don't restore scroll position if the component was scrolled and
-            // then hidden and shown again, so we must do it manually.
-            // See EXTJS-16233.
-            if (Ext.isIE) {
-                Ext.on('show', me.onGlobalShow, me);
-            }
         }
 
         if (me.hasListeners.boxready) {
@@ -4376,6 +4461,7 @@ Ext.define('Ext.Component', {
     },
 
     /**
+     * @method
      * Called after the component is moved, this method is empty by default but can be implemented by any
      * subclass that needs to perform custom logic after a move occurs.
      *
@@ -4404,13 +4490,8 @@ Ext.define('Ext.Component', {
         if (me.floating && me.constrain) {
             me.doConstrain();
         }
-
-        // check oldWidth to ensure the scroller does not get needlessly refreshed on
-        // initial component layout (oldWidth/Height are undefined when onResize is called
-        // as a result of the initial component layout)
-        if (oldWidth) {
-            me.refreshScroll();
-        }
+        
+        me.refreshScroll();
 
         if (me.hasListeners.resize) {
             me.fireEvent('resize', me, width, height, oldWidth, oldHeight);
@@ -5116,6 +5197,27 @@ Ext.define('Ext.Component', {
 
     /**
      * Sets the style for this Component's primary element.
+     * 
+     * Styles should be a valid DOM element style property.  
+     * [Valid style property names](http://www.w3schools.com/jsref/dom_obj_style.asp) 
+     * (_along with the supported CSS version for each_)
+     * 
+     *     var name = Ext.create({
+     *         xtype: 'component',
+     *         renderTo: Ext.getBody(),
+     *         html: 'Phineas Flynn'
+     *     });
+     *     
+     *     // two-param syntax
+     *     name.setStyle('color', 'white');
+     *     
+     *     // single-param syntax
+     *     name.setStyle({
+     *         fontWeight: 'bold',
+     *         backgroundColor: 'gray',
+     *         padding: '10px'
+     *     });
+     * 
      * @param {String/Object} property The style property to be set, or an object of
      * multiple styles.
      * @param {String} [value] The value to apply to the given property, or null if an
@@ -5343,7 +5445,7 @@ Ext.define('Ext.Component', {
         } else {
             me.setPagePosition(x, y, animate);
         }
-        me.show();
+        return me.show();
     },
 
     /**
@@ -5476,13 +5578,17 @@ Ext.define('Ext.Component', {
      * template. If this component was not configured with a template, the components
      * content area will be updated via Ext.Element update.
      * @param {Boolean} [loadScripts=false] Only legitimate when using the `html`
-     * configuration.
+     * configuration. Causes embedded script tags to be executed. Inline source will be executed
+     * with this Component as the scope (`this` reference).
      * @param {Function} [callback] Only legitimate when using the `html` configuration.
      * Callback to execute when scripts have finished loading.
+     * @param {Object} [scriptScope=`this`] The scope (`this` reference) in which to
+     * execute *inline* script elements content. Scripts with a `src` attribute cannot
+     * be executed with this scope.
      *
      * @since 3.4.0
      */
-    update: function(htmlOrData, loadScripts, callback) {
+    update: function(htmlOrData, loadScripts, callback, scriptScope) {
         var me = this,
             isData = (me.tpl && !Ext.isString(htmlOrData)),
             scroller = me.getScrollable(),
@@ -5511,7 +5617,7 @@ Ext.define('Ext.Component', {
             if (isData) {
                 me.tpl[me.tplWriteMode](el, me.data || {});
             } else {
-                el.setHtml(me.html, loadScripts, callback);
+                el.setHtml(me.html, loadScripts, callback, scriptScope || me);
             }
 
             if (doLayout) {
@@ -5527,8 +5633,8 @@ Ext.define('Ext.Component', {
         }
     },
 
-    setHtml: function (html) {
-        this.update(html);
+    setHtml: function (html, loadScripts, scriptScope) {
+        this.update(html, loadScripts, null, scriptScope);
     },
 
     applyData: function (data) {

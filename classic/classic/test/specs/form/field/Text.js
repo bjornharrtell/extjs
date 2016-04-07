@@ -53,7 +53,7 @@ describe("Ext.form.field.Text", function() {
         });
 
         it("should have inputType = 'text'", function() {
-            expect(component.inputType).toEqual('text');
+            expect(component.inputType).toBe('text');
         });
         it("should have vtypeText = undefined", function() {
             expect(component.vtypeText).not.toBeDefined();
@@ -65,10 +65,10 @@ describe("Ext.form.field.Text", function() {
             expect(component.grow).toBeFalsy();
         });
         it("should have growMin = 30", function() {
-            expect(component.growMin).toEqual(30);
+            expect(component.growMin).toBe(30);
         });
         it("should have growMax = 800", function() {
-            expect(component.growMax).toEqual(800);
+            expect(component.growMax).toBe(800);
         });
         it("should have vtype = undefined", function() {
             expect(component.vtype).not.toBeDefined();
@@ -83,25 +83,25 @@ describe("Ext.form.field.Text", function() {
             expect(component.allowBlank).toBe(true);
         });
         it("should have minLength = 0", function() {
-            expect(component.minLength).toEqual(0);
+            expect(component.minLength).toBe(0);
         });
         it("should have maxLength = MAX_VALUE", function() {
-            expect(component.maxLength).toEqual(Number.MAX_VALUE);
+            expect(component.maxLength).toBe(Number.MAX_VALUE);
         });
         it("should have enforceMaxLength = falsy", function() {
             expect(component.enforceMaxLength).toBeFalsy();
         });
         it("should have minLengthText = 'The minimum length for this field is {0}'", function() {
-            expect(component.minLengthText).toEqual('The minimum length for this field is {0}');
+            expect(component.minLengthText).toBe('The minimum length for this field is {0}');
         });
         it("should have maxLengthText = 'The maximum length for this field is {0}'", function() {
-            expect(component.maxLengthText).toEqual('The maximum length for this field is {0}');
+            expect(component.maxLengthText).toBe('The maximum length for this field is {0}');
         });
         it("should have selectOnFocus = falsy", function() {
             expect(component.selectOnFocus).toBeFalsy();
         });
         it("should have blankText = 'This field is required'", function() {
-            expect(component.blankText).toEqual('This field is required');
+            expect(component.blankText).toBe('This field is required');
         });
         it("should have validator = undefined", function() {
             expect(component.vtypeText).not.toBeDefined();
@@ -110,13 +110,13 @@ describe("Ext.form.field.Text", function() {
             expect(component.regex).not.toBeDefined();
         });
         it("should have regexText = ''", function() {
-            expect(component.regexText).toEqual('');
+            expect(component.regexText).toBe('');
         });
-        it("should have emptyText = undefined", function() {
-            expect(component.emptyText).not.toBeDefined();
+        it("should have emptyText = ''", function() {
+            expect(component.emptyText).toBe('');
         });
         it("should have emptyCls = 'x-form-empty-field'", function() {
-            expect(component.emptyCls).toEqual('x-form-empty-field');
+            expect(component.emptyCls).toBe('x-form-empty-field');
         });
         it("should have enableKeyEvents = falsy", function() {
             expect(component.enableKeyEvents).toBeFalsy();
@@ -709,6 +709,25 @@ describe("Ext.form.field.Text", function() {
                 });
                 expect(component.inputEl.dom.placeholder).toEqual('empty');
             });
+
+            it("should be able to be added with setEmptyText", function() {
+                makeComponent({
+                    renderTo: Ext.getBody()
+                });
+                component.setEmptyText('Foo');
+                expect(component.emptyText).toBe('Foo');
+                expect(component.inputEl.dom.placeholder).toEqual('Foo');
+            });
+
+            it("should be able to be removed with setEmptyText", function() {
+                makeComponent({
+                    emptyText : 'Bar',
+                    renderTo: Ext.getBody()
+                });
+                component.setEmptyText('');
+                expect(component.emptyText).toBe('');
+                expect(component.inputEl.dom.hasAttribute('placeholder')).toBe(false);
+            });
         }
         else {
             describe("when the value is empty", function() {
@@ -777,6 +796,67 @@ describe("Ext.form.field.Text", function() {
                     expect(component.getValue()).toEqual('value');
                     expect(component.getRawValue()).toEqual('value');
                 });
+            });
+
+            describe("using setEmptyText", function() {
+                describe("when value is empty", function() {
+
+                    it("should be able to add empty text", function() {
+                        makeComponent({
+                            renderTo: Ext.getBody()
+                        });
+                        component.setEmptyText('Foo');
+                        expect(component.emptyText).toBe('Foo');
+                        expect(component.inputEl.dom.value).toBe('Foo');
+                        expect(component.inputEl).toHaveCls(component.emptyCls);
+                    })
+
+                    it("should be able to remove empty text", function() {
+                         makeComponent({
+                            emptyText : 'Bar',
+                            renderTo: Ext.getBody()
+                        });
+                        component.setEmptyText('');
+                        expect(component.emptyText).toBe('');
+                        expect(component.inputEl.dom.value).toBe('');
+                        expect(component.inputEl).not.toHaveCls(component.emptyCls);
+                    });
+
+                });
+
+                describe("when value is not empty", function() {
+
+                    it("should be able to add empty text", function() {
+                        makeComponent({
+                            value : 'value',
+                            renderTo: Ext.getBody()
+                        });
+                        component.setEmptyText('Foo');
+                        expect(component.emptyText).toEqual('Foo');
+                        expect(component.inputEl.dom.value).toEqual('value');
+                        expect(component.inputEl.hasCls(component.emptyCls)).toBe(false);
+                        component.setValue();
+                        expect(component.inputEl.dom.value).toEqual('Foo');
+                        expect(component.inputEl.hasCls(component.emptyCls)).toBe(true);
+                    })
+
+                    it("should be able to remove empty text", function() {
+                         makeComponent({
+                            emptyText : 'Bar',
+                            value : 'value',
+                            renderTo: Ext.getBody()
+                        });
+                        component.setEmptyText();
+                        expect(component.emptyText).toBe('');
+                        expect(component.inputEl.dom.value).toEqual('value');
+                        component.setValue();
+                        expect(component.inputEl.dom.value).toEqual('');
+                        expect(component.inputEl.hasCls(component.emptyCls)).toBe(false);
+                    });
+
+                });
+
+
             });
 
             // TODO check that the empty text is removed/added when focusing/blurring the field
@@ -1163,6 +1243,16 @@ describe("Ext.form.field.Text", function() {
 
         it("should remove characters matching the RE from the value that is returned", function() {
             expect(component.getValue()).toEqual('a cd');
+        });
+
+        it("should remove all occurences that match RE from the value that is returned without specifying the global flag", function() {
+            component.destroy();
+            makeComponent({
+                stripCharsRe: /[B9]/i,
+                renderTo: Ext.getBody()
+            });
+            component.setRawValue('TB9hib9s iB9s testing tB9he mB9aB9sk witB9hb9ouB9tb9 tb9hb9e gB9 fB9B9lab9g');
+            expect(component.getValue()).toBe('This is testing the mask without the g flag');
         });
 
         it("should update the raw field value with the stripped value", function() {
@@ -2213,7 +2303,7 @@ describe("Ext.form.field.Text", function() {
                         // use a fixed size element vs. text for the field label for
                         // consistency of measurement cross-browser
                         fieldLabel: '<span style="display:inline-block;width:' + labelInnerWidth +
-                            'px;background-color:red;">&nbsp;</span>',
+                            'px;background-color:red;box-sizing:border-box;">&nbsp;</span>',
                         labelSeparator: ''
                     }, cfg));
                 }
@@ -2230,7 +2320,8 @@ describe("Ext.form.field.Text", function() {
                     describe(labelAlign + " label", function() {
                         var leftLabel = (labelAlign === 'left');
 
-                        it("should layout", function() {
+                        // https://sencha.jira.com/browse/EXTJS-12634
+                        (Ext.isIE8 ? xit : it)("should layout", function() {
                             create({
                                 labelAlign: labelAlign
                             });
@@ -2267,7 +2358,8 @@ describe("Ext.form.field.Text", function() {
                             expect(component.errorWrapEl).toBeNull();
                         });
 
-                        it("should layout with side error", function() {
+                        // https://sencha.jira.com/browse/EXTJS-12634
+                        (Ext.isIE8 ? xit : it)("should layout with side error", function() {
                             create({
                                 labelAlign: labelAlign,
                                 msgTarget: 'side'
@@ -2318,7 +2410,8 @@ describe("Ext.form.field.Text", function() {
                             });
                         });
 
-                        it("should layout with hidden side error", function() {
+                        // https://sencha.jira.com/browse/EXTJS-12634
+                        (Ext.isIE8 ? xit : it)("should layout with hidden side error", function() {
                             create({
                                 labelAlign: labelAlign,
                                 msgTarget: 'side'
@@ -2369,7 +2462,7 @@ describe("Ext.form.field.Text", function() {
                             });
                         });
 
-                        // TODO: EXTJSIV-12634
+                        // TODO: EXTJS-12634
                         (Ext.isIE10m && !shrinkHeight ? xit : it)("should layout with under error", function() {
                             create({
                                 labelAlign: labelAlign,
@@ -2421,7 +2514,8 @@ describe("Ext.form.field.Text", function() {
                             });
                         });
 
-                        it("should layout with hidden label", function() {
+                        // https://sencha.jira.com/browse/EXTJS-12634
+                        (Ext.isIE8 ? xit : it)("should layout with hidden label", function() {
                             create({
                                 labelAlign: labelAlign,
                                 hideLabel: true
@@ -2445,7 +2539,8 @@ describe("Ext.form.field.Text", function() {
                             expect(component.errorWrapEl).toBeNull();
                         });
 
-                        it("should layout with hidden label and side error", function() {
+                        // https://sencha.jira.com/browse/EXTJS-12634
+                        (Ext.isIE8 ? xit : it)("should layout with hidden label and side error", function() {
                             create({
                                 labelAlign: labelAlign,
                                 hideLabel: true,
@@ -2489,7 +2584,8 @@ describe("Ext.form.field.Text", function() {
                             });
                         });
 
-                        it("should layout with hidden label and hidden side error", function() {
+                        // https://sencha.jira.com/browse/EXTJS-12634
+                        (Ext.isIE8 ? xit : it)("should layout with hidden label and hidden side error", function() {
                             create({
                                 labelAlign: labelAlign,
                                 hideLabel: true,
@@ -2533,7 +2629,7 @@ describe("Ext.form.field.Text", function() {
                             });
                         });
 
-                        // TODO: EXTJSIV-12634
+                        // TODO: EXTJS-12634
                         (Ext.isIE10m && !shrinkHeight ? xit : it)("should layout with hidden label and under error", function() {
                             create({
                                 labelAlign: labelAlign,
@@ -2583,7 +2679,7 @@ describe("Ext.form.field.Text", function() {
                 makeSideLabelSuite('left'); // labelAlign: 'left'
                 makeSideLabelSuite('right'); // labelAlign: 'right'
 
-                // TODO: EXTJSIV-12634
+                // TODO: EXTJS-12634
                 (Ext.isIE10m && !shrinkHeight ? xdescribe : describe)("top label", function() {
                     it("should layout", function() {
                         create({
@@ -2953,7 +3049,7 @@ describe("Ext.form.field.Text", function() {
         makeLayoutSuite(3, true); // shrinkWrap both, autoFitErrors
 
         it("should work around the webkit min-width table-cell bug", function() {
-            // See EXTJSIV-12665 and https://bugs.webkit.org/show_bug.cgi?id=130239
+            // See EXTJS-12665 and https://bugs.webkit.org/show_bug.cgi?id=130239
             var field = Ext.widget({
                 xtype: 'textfield',
                 renderTo: document.body

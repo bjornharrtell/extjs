@@ -1,0 +1,89 @@
+$dashboard-item-spacing: 20px;
+
+.dashboard > * > .x-inner,
+.dashboard > * > * > .x-inner {
+    padding: $dashboard-item-spacing 0 0 $dashboard-item-spacing;
+}
+
+.dashboard-item {
+    margin: 0 $dashboard-item-spacing $dashboard-item-spacing 0;
+    float: left;
+}
+
+.small-100 {
+    width: calc(100% - #{$dashboard-item-spacing});
+}
+
+.small-60 {
+    width: calc(60% - #{$dashboard-item-spacing});
+}
+
+.small-50 {
+    width: calc(50% - #{$dashboard-item-spacing});
+}
+
+.small-40 {
+    width: calc(40% - #{$dashboard-item-spacing});
+}
+
+.small-20 {
+    width: calc(20% - #{$dashboard-item-spacing});
+}
+
+@media (min-width: 1000px) {
+    .big-100 {
+        width: calc(100% - #{$dashboard-item-spacing});
+    }
+
+    .big-60 {
+        width: calc(60% - #{$dashboard-item-spacing});
+    }
+
+    .big-50 {
+        width: calc(50% - #{$dashboard-item-spacing});
+    }
+
+    .big-40 {
+        width: calc(40% - #{$dashboard-item-spacing});
+    }
+
+    .big-33 {
+        width: calc(33.3% - #{$dashboard-item-spacing});
+    }
+
+    .big-20 {
+        width: calc(20% - #{$dashboard-item-spacing});
+    }
+}
+
+// Custom Tool type: 'wrench'
+.#{$prefix}tool-wrench {
+    @include font-icon($fa-var-wrench);
+    background: none;
+}
+
+.quick-graph-panel {
+    .x-panel-header {
+        padding-left: 1.375em;
+    }
+
+    .x-panel-title-icon {
+        position: relative;
+
+        &:before {
+            position: absolute;
+            height: 1.875em;
+            width: 1.875em;
+            top: -.4375em;
+            left: -.4375em;
+            border-radius: 1.875em;
+            background-color: #f1f1f1;
+            line-height: 1.875em;
+            text-align: center;
+        }
+    }
+
+    .x-panel-title-text {
+        padding-left: .53em;
+    }
+}

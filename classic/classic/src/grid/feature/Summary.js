@@ -151,6 +151,7 @@ Ext.define('Ext.grid.feature.Summary', {
         me.callParent(arguments);
 
         if (dock) {
+            grid.addBodyCls(me.panelBodyCls + dock);
             grid.headerCt.on({
                 add: me.onStoreUpdate,
                 afterlayout: me.onStoreUpdate,
@@ -184,8 +185,7 @@ Ext.define('Ext.grid.feature.Summary', {
                     })[0];
                 },
                 afterrender: function() {
-                    grid.body.addCls(me.panelBodyCls + dock);
-                    view.on('scroll', me.onViewScroll, me);
+                    grid.getView().getScrollable().addPartner(me.summaryBar.getScrollable());
                     me.onStoreUpdate();
                 },
                 single: true
@@ -305,7 +305,7 @@ Ext.define('Ext.grid.feature.Summary', {
 
     createSummaryRecord: function (view) {
         var me = this,
-            columns = view.headerCt.getVisibleGridColumns(),
+            columns = view.headerCt.getGridColumns(),
             remoteRoot = me.remoteRoot,
             summaryRecord = me.summaryRecord,
             colCount = columns.length, i, column,
@@ -378,15 +378,21 @@ Ext.define('Ext.grid.feature.Summary', {
             oldRowDom = p.firstChild;
         }
         // Summary row is a regular row in a THEAD inside the View.
-        // Downlinked through the summary record's ID'
+        // Downlinked through the summary record's ID
         else {
             oldRowDom = me.view.el.down(selector, true);
-            p = oldRowDom ? oldRowDom.parentNode : null;
+            
+            // If the old row doesn't exist, it means that the store update we are
+            // reacting to is a remove of the last row. So we will be appending
+            // to the node container.
+            p = oldRowDom ? oldRowDom.parentNode : view.getNodeContainer();
         }
 
         if (p) {
             p.insertBefore(newRowDom, oldRowDom);
-            p.removeChild(oldRowDom);
+            if (oldRowDom) {
+                p.removeChild(oldRowDom);
+            }
         }
         // If docked, the updated row will need sizing because it's outside the View
         if (dock) {
@@ -418,3 +424,4 @@ Ext.define('Ext.grid.feature.Summary', {
         me.callParent();
     }
 });
+

@@ -1,16 +1,151 @@
-.binding-selection-view .customer {
-    float: left;
-    width: 150px;
-    padding: 8px;
-    margin: 8px 8px 4px 8px;
-}
-
-.x-rtl .binding-selection-view .customer {
-    float: right;
-}
+/* DATAVIEW ITEM HEADING */
 
 .binding-selection-view h1 {
     font-size: 14px;
     font-weight: bold;
     text-align: center;
+    margin-top: 0px;
+    color: #555;
+}
+
+
+
+/* DATAVIEW ITEMS */
+
+.binding-selection-view .customer {
+    float: left;
+	width: 150px;
+	padding: 6px 12px;
+	margin: 0px 1px 5px 1px;
+	clear: both;
+	position: relative;
+	left: 50%;
+	margin-bottom: 5px;
+	margin-left: -75px;
+	display: inline-block;
+	background-color: #F5F5F5;
+	border: 1px solid #E4E4E4;
+	color: #555;
+}
+
+.binding-selection-view .customer.x-item-selected {
+	color: black;
+}
+
+
+
+/* DATAVIEW ITEM - SELECTED INDICATOR */
+
+.binding-selection-view .customer .indicator {
+	border: 2px solid #DDDDDD;
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	vertical-align: sub;
+	margin-right: 12px;
+	position: relative;
+	overflow: hidden;
+
+	-webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+	border-radius: 50%;
+}
+
+.binding-selection-view .customer.x-item-selected .indicator {
+	border-color: #FFB073;
+
+	-webkit-transition: border-color .3s !important;
+    -moz-transition: border-color .3s !important;
+    -o-transition: border-color .3s !important;
+    transition: border-color .3s !important;
+}
+
+
+
+/* DATAVIEW ITEM - SELECTED INDICATOR :: after effect */
+
+.binding-selection-view .customer .indicator:after {
+	content: '';
+	position: absolute;
+	top: 0px;
+	left: -100%;
+	height: 12px;
+	width: 12px;
+	background-color: #FFB073;
+
+	-webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+	border-radius: 50%;
+
+	-webkit-transition: left .3s !important;
+    -moz-transition: left .3s !important;
+    -o-transition: left .3s !important;
+    transition: left .3s !important;
+}
+
+.x-ie8 .binding-selection-view .customer .indicator:after {
+	display: none;
+}
+
+.binding-selection-view .customer.x-item-selected .indicator:after {
+	left: 0px;
+}
+
+
+
+/* DATAVIEW ITEM - RTL INDICATOR  :: hidden unless RTL */
+
+.binding-selection-view .customer .indicator.rtl {
+	display: none;
+}
+
+.binding-selection-view .customer .indicator.rtl:after {
+	display: none;
+}
+
+
+
+
+
+
+
+/****    RTL    ****/
+
+
+
+/* RTL DATAVIEW ITEMS */
+
+.x-rtl .binding-selection-view .customer {
+    /*float: right;*/
+    text-align: center;
+}
+
+
+/* RTL DATAVIEW ITEM - SELECTED INDICATOR */
+
+.x-rtl .binding-selection-view .customer .indicator {
+	display: none;
+}
+
+.x-rtl .binding-selection-view .customer .indicator:after {
+	display: none;
+}
+
+.x-rtl .binding-selection-view .customer .indicator.rtl {
+	display: inline-block;
+    position: absolute;
+    right: 0px;
+}
+
+.x-rtl .binding-selection-view .customer .indicator.rtl:after {
+	display: inline-block;
+	left: 100%;
+}
+
+.x-rtl .binding-selection-view .customer.x-item-selected .indicator:after {
+	left: 0px;
+}
+
+.x-ie9 .x-rtl .binding-selection-view .customer.x-item-selected .indicator {
+	background-color: #FFB073;
 }

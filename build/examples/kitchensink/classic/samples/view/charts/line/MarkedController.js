@@ -17,6 +17,21 @@ Ext.define('KitchenSink.view.charts.line.MarkedController', {
         return v + '%';
     },
 
+    onToggleMarkers: function () {
+        var chart = this.lookupReference('chart'),
+            seriesList = chart.getSeries(),
+            ln = seriesList.length,
+            i = 0,
+            series;
+
+        for (; i < ln; i++) {
+            series = seriesList[i];
+            series.setShowMarkers(!series.getShowMarkers());
+        }
+
+        chart.redraw();
+    },
+
     onPreview: function () {
         var chart = this.lookupReference('chart');
         chart.preview();

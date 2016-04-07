@@ -53,6 +53,8 @@ describe("Ext.layout.container.VBox", function(){
                 title: 'Hello',
                 width: 400,
                 height: 300,
+                x: 10,
+                y: 10,
                 layout: 'fit',
                 items: [{
                     xtype: 'form',
@@ -74,43 +76,43 @@ describe("Ext.layout.container.VBox", function(){
                         boxLabel: 'Checkbox 1'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 2'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 3'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 4'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 5'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 6'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 7'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 8'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 9'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 10'
                     }, {
                         xtype: 'checkbox',
-                        boxLabel: 'Checkbox 1'
+                        boxLabel: 'Checkbox 11'
                     }, {
                         xtype: 'button',
                         text: 'Add'
                     }]
                 }]
             });
-            myWin.show();
             form = myWin.down('form');
             lastCheckbox = form.child('checkbox:last');
+            myWin.show();
             scroller = form.getScrollable();
         });
 
@@ -132,7 +134,15 @@ describe("Ext.layout.container.VBox", function(){
             }, 'last checkbox to gain focus');
 
             runs(function() {
-                expect(scroller.getPosition().y).toBe(scrollY);
+                var currentY = scroller.getPosition().y;
+                
+                // IE needs a bit of fuzziness
+                if (Ext.isIE) {
+                    expect(currentY).toBeWithin(1, scrollY);
+                }
+                else {
+                    expect(currentY).toBe(scrollY);
+                }
             });
         });
     });
@@ -2944,18 +2954,26 @@ describe("Ext.layout.container.VBox", function(){
                     scrollable: true,
                     items: [{
                         height: 300,
-                        width: 300
+                        width: 500
                     }, {
                         height: 300,
-                        width: 300
+                        width: 500
                     }]
                 });
+                
                 var scrollable = ct.getScrollable();
-                scrollable.setY(50);
-                scrollable.setX(30);
+                scrollable.scrollTo(50, 30);
+                
+                // Make sure that we're where we want to be
+                var position = scrollable.getPosition();
+                expect(position).toEqual({ x: 50, y: 30 });
+                
                 ct.setSize(401, 401);
-                expect(scrollable.getY()).toBe(50);
-                expect(scrollable.getX()).toBe(30);
+                
+                var position = scrollable.getPosition();
+
+                // There IS no x overflow, so the x scroll request cannot have had any effect
+                expect(position).toEqual({ x: 0, y: 30 });
             });
 
             it("should restore the horizontal/vertical scroll position with programmatic scrolling", function() {
@@ -2969,18 +2987,26 @@ describe("Ext.layout.container.VBox", function(){
                     },
                     items: [{
                         height: 300,
-                        width: 300
+                        width: 500
                     }, {
                         height: 300,
-                        width: 300
+                        width: 500
                     }]
                 });
+                
                 var scrollable = ct.getScrollable();
-                scrollable.setY(50);
-                scrollable.setX(30);
+                scrollable.scrollTo(50, 30);
+                
+                // Make sure that we're where we want to be
+                var position = scrollable.getPosition();
+                expect(position).toEqual({ x: 50, y: 30 });
+                
                 ct.setSize(401, 401);
-                expect(scrollable.getY()).toBe(50);
-                expect(scrollable.getX()).toBe(30);
+                
+                var position = scrollable.getPosition();
+
+                // There IS no x overflow, so the x scroll request cannot have had any effect
+                expect(position).toEqual({ x: 0, y: 30 });
             });
         });
     });

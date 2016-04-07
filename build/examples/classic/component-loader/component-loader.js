@@ -9,10 +9,13 @@ Ext.onReady(function(){
         renderTo: document.body,
         width: 800,
         height: 400,
+        bodyPadding: 5,
         layout: {
             type: 'hbox',
-            align: 'stretch',
-            padding: 5
+            align: 'stretch'
+        },
+        defaults: {
+            border: true
         },
         items: [{
             flex: 1,
@@ -21,7 +24,8 @@ Ext.onReady(function(){
             bodyPadding: 5,
             loader: {
                 autoLoad: true,
-                url: 'content.htm'
+                url: 'content.html',
+                scripts: true
             }
         }, {
             flex: 1,
@@ -37,10 +41,10 @@ Ext.onReady(function(){
         }, {
             flex: 1,
             margin: '0 0 0 3',
+            bodyPadding: 5,
             layout: {
                 type: 'vbox',
-                align: 'stretch',
-                padding: '5 5 0 5'
+                align: 'stretch'
             },
             defaults: {
                 margin: '0 0 5 0'
@@ -50,10 +54,10 @@ Ext.onReady(function(){
             dockedItems: [{
                 dock: 'bottom',
                 xtype: 'toolbar',
-                items: [' ',{
+                items: [{
                     fieldLabel: '# to load',
                     labelWidth: 60,
-                    inputWidth: 60,
+                    width: 160,
                     xtype: 'numberfield',
                     value: 5,
                     minValue: 1,

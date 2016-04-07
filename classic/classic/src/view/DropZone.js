@@ -90,7 +90,8 @@ Ext.define('Ext.view.DropZone', {
     },
 
     /**
-     * @private Determines whether the record at the specified offset from the passed record
+     * @private
+     * Determines whether the record at the specified offset from the passed record
      * is in the drag payload.
      * @param records
      * @param record

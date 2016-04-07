@@ -6,8 +6,9 @@ describe("Ext.button.Cycle", function() {
     }
 
     function makeButton (config) {
-        // ARIA errors are expected
+        // ARIA errors and warnings are expected
         spyOn(Ext.log, 'error');
+        spyOn(Ext.log, 'warn');
         
         button = new Ext.button.Cycle(Ext.apply({
             text: 'Button',

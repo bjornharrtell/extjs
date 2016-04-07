@@ -318,7 +318,7 @@ Ext.define('Ext.grid.selection.Rows', {
 
         /**
          * Used during drag/shift+downarrow range selection on start.
-         * @param {Number} The start row index of the row drag selection.
+         * @param {Number} start The start row index of the row drag selection.
          * @private
          */
         setRangeStart: function(start) {
@@ -333,7 +333,7 @@ Ext.define('Ext.grid.selection.Rows', {
 
         /**
          * Used during drag/shift+downarrow range selection on change of row.
-         * @param {Number} The end row index of the row drag selection.
+         * @param {Number} end The end row index of the row drag selection.
          * @private
          */
         setRangeEnd: function(end) {

@@ -150,6 +150,24 @@ Ext.define('Ext.Widget', {
         style: null
     },
 
+    config: {
+        /**
+         * @cfg {String/String[]} userCls
+         * One or more CSS classes to add to the component's primary element. This config
+         * is intended solely for use by the component instantiator (the "user"), not by
+         * derived classes.
+         *
+         * For example:
+         *
+         *      items: [{
+         *          xtype: 'button',
+         *          userCls: 'my-button'
+         *      ...
+         *      }]
+         */
+        userCls: null
+    },
+
     eventedConfig: {
         /**
          * @cfg {Number/String} width
@@ -284,11 +302,11 @@ Ext.define('Ext.Widget', {
 
     /**
      * A template method for modifying the {@link #element} config before it is processed.
-     * By default adds the result of `this.getTemplate()` as the `children` array of {@link
-     * #element} if `children` were not specified in the original {@link #element} config.
-     * Typically this method should not need to be implemented in subclasses.  Instead the
-     * {@link #element} property should be use to configure the element template for a
-     * given Widget subclass.
+     * By default adds the result of `this.getTemplate()` as the `children` array of 
+     * {@link #element} if `children` were not specified in the original 
+     * {@link #element} config.  Typically this method should not need to be implemented 
+     * in subclasses.  Instead the {@link #element} property should be use to configure 
+     * the element template for a given Widget subclass.
      *
      * This method is called once when the first instance of each Widget subclass is
      * created.  The element config object that is returned is cached and used as the template
@@ -393,6 +411,9 @@ Ext.define('Ext.Widget', {
                 // element reference needs to be established ASAP, so add the reference
                 // immediately, not "on-demand"
                 element = me.el = me.addElementReference(reference, referenceNode);
+
+                // Poke our id in our magic attribute to enable Component#fromElement
+                element.dom.setAttribute('data-componentid', id);
             } else {
                 me.addElementReferenceOnDemand(reference, referenceNode);
             }
@@ -580,27 +601,19 @@ Ext.define('Ext.Widget', {
             referenceEl.component = me;
 
             if (listeners) {
-                // TODO: these references will be needed when we use delegation to listen
+                // TODO: These references will be needed when we use delegation to listen
                 // for element events, but for now, we'll just attach the listeners directly
                 // referenceEl.reference = name;
                 // referenceEl.component = me;
                 // referenceEl.listeners = listeners;
 
-                // at this point "listeners" exists on the class prototype.  We need to clone
+                // At this point "listeners" exists on the class prototype.  We need to clone
                 // it before poking the scope reference onto it, because it is used as the
                 // options object by Observable and so can't be safely shared.
+                //
                 listeners = Ext.clone(listeners);
 
-                // the outermost listeners object always needs the scope option.  this covers
-                // a listeners object with the following shape
-                //
-                //    {
-                //        click: 'onClick'
-                //        scope: this
-                //    }
-                listeners.scope = me;
-
-                // if the listener is specified as an object it needs to have the scope
+                // If the listener is specified as an object it needs to have the scope
                 // option added to that object, for example:
                 //
                 //    {
@@ -609,6 +622,7 @@ Ext.define('Ext.Widget', {
                 //            scope: this
                 //        }
                 //    }
+                //
                 for (eventName in listeners) {
                     listener = listeners[eventName];
                     if (typeof listener === 'object') {
@@ -616,9 +630,20 @@ Ext.define('Ext.Widget', {
                     }
                 }
 
-                // hopefully in the future we can stop calling on() here, and just use
+                // The outermost listeners object always needs the scope option. This covers
+                // a listeners object with the following shape:
+                //
+                //    {
+                //        click: 'onClick'
+                //        scope: this
+                //    }
+                //
+                listeners.scope = me; // do this *after* the above loop over listeners
+
+                // Hopefully in the future we can stop calling on() here, and just use
                 // event delegation to dispatch events to Widgets that have declared their
-                // listeners in their template
+                // listeners in their template.
+                //
                 referenceEl.on(listeners);
             }
 
@@ -802,6 +827,10 @@ Ext.define('Ext.Widget', {
         reattachToBody: function() {
             // See detachFromBody
             this.isDetached = false;
+        },
+
+        updateUserCls: function (newCls, oldCls) {
+            this.element.replaceCls(oldCls, newCls);
         }
     }
 }, function(Widget) {

@@ -1,5 +1,5 @@
 describe("Ext.Evented", function () {
-    ['extension', 'metadata'].forEach(function (mode) {
+    function createSuite(mode) {
         function getCls(cfg) {
             var base;
             cfg = cfg || {};
@@ -234,5 +234,8 @@ describe("Ext.Evented", function () {
                 });
             });
         });
-    });
+    }
+    
+    createSuite('extension');
+    createSuite('metadata');
 });

@@ -40,7 +40,7 @@ $field-label-padding: dynamic(.23em .6em);
 
 /**
  * @var {color}
- * Field label padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Field label padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $field-label-padding-big: dynamic(.2em .6em);
 
@@ -58,7 +58,7 @@ $field-label-font-size: dynamic(1rem);
 
 /**
  * @var {number}
- * Field label font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Field label font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $field-label-font-size-big: dynamic($field-label-font-size);
 
@@ -70,7 +70,7 @@ $field-label-line-height: dynamic(1.23em);
 
 /**
  * @var {number}
- * Field label line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Field label line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $field-label-line-height-big: dynamic(1.6em);
 

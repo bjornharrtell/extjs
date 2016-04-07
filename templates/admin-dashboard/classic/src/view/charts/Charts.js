@@ -1,11 +1,21 @@
 Ext.define('Admin.view.charts.Charts', {
     extend: 'Ext.container.Container',
+    xtype: 'charts',
+
+    requires: [
+        'Admin.view.charts.Area',
+        'Admin.view.charts.Bar',
+        'Admin.view.charts.ChartsModel',
+        'Admin.view.charts.Gauge',
+        'Admin.view.charts.Pie3D',
+        'Admin.view.charts.Polar',
+        'Admin.view.charts.Stacked',
+        'Ext.ux.layout.ResponsiveColumn'
+    ],
 
     viewModel: {
         type: 'charts'
     },
-
-    id: 'charts',
 
     layout: 'responsivecolumn',
 
@@ -18,27 +28,27 @@ Ext.define('Admin.view.charts.Charts', {
     items: [
         {
             xtype: 'chartsareapanel',
-            responsiveCls: 'big-50 small-100'
+            userCls: 'big-50 small-100'
         },
         {
             xtype: 'chartspie3dpanel',
-            responsiveCls: 'big-50 small-100'
+            userCls: 'big-50 small-100'
         },
         {
             xtype: 'chartspolarpanel',
-            responsiveCls: 'big-50 small-100'
+            userCls: 'big-50 small-100'
         },
         {
             xtype: 'chartsstackedpanel',
-            responsiveCls: 'big-50 small-100'
+            userCls: 'big-50 small-100'
         },
         {
             xtype: 'chartsbarpanel',
-            responsiveCls: 'big-50 small-100'
+            userCls: 'big-50 small-100'
         },
         {
             xtype: 'chartsgaugepanel',
-            responsiveCls: 'big-50 small-100'
+            userCls: 'big-50 small-100'
         }
     ]
 });

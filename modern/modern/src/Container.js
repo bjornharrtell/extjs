@@ -72,7 +72,7 @@ Ext.define('Ext.Container', {
 
     requires: [
         'Ext.layout.*',
-        'Ext.ItemCollection',
+        'Ext.util.ItemCollection',
         'Ext.Mask'
     ],
 
@@ -319,12 +319,15 @@ Ext.define('Ext.Container', {
     constructor: function(config) {
         var me = this;
 
-        me._items = me.items = new Ext.ItemCollection();
+        me._items = me.items = new Ext.util.ItemCollection();
         me.innerItems = [];
 
+        me.getReferences = me.getFirstReferences;
         me.onItemAdd = me.onFirstItemAdd;
 
         me.callParent(arguments);
+
+        delete me.getReferences;
 
         if (me.manageBorders) {
             me.element.addCls('x-managed-borders');
@@ -565,8 +568,15 @@ Ext.define('Ext.Container', {
 
     //<debug>
     updateLayout: function(newLayout, oldLayout) {
-        if (oldLayout && oldLayout.isLayout) {
-            Ext.Logger.error('Replacing a layout after one has already been initialized is not currently supported.');
+        // This all should be refactored in EXTJS-18332
+        if (!oldLayout || !oldLayout.isLayout) {
+            return;
+        }
+
+        if (!oldLayout.isCompatible(newLayout)) {
+            Ext.Logger.error('Replacing a layout after one has already been initialized is not supported. ' +
+                this.$className + '#' + this.getId() + ' (' + oldLayout.$className + ' / ' +
+                (Ext.isString(newLayout) ? newLayout : JSON.stringify(newLayout)) + ')');
         }
     },
     //</debug>
@@ -592,31 +602,25 @@ Ext.define('Ext.Container', {
         //</debug>
     },
 
-    applyDefaults: function(defaults) {
-        if (defaults) {
-            this.factoryItem = this.factoryItemWithDefaults;
-            return defaults;
-        }
-    },
-
+    /**
+     * Called when an item is added to this container either during initialization of the {@link #cfg-items} config,
+     * or when new items are {@link #method-add added), or {@link #method-insert inserted}.
+     *
+     * If the passed object is *not* an instanced component, it converts the passed object into an instanced
+     * child component.
+     *
+     * It applies {@link #cfg-defaults} applied for contained child items - that is items
+     * which are not {@link Ext.Component#cfg-floating floating} or {@link Ext.Component#cfg-docked docked}.
+     *
+     * Derived classes can override this method to process context appropriate short-hands
+     * such as {@link Ext.Toolbar} and "->" to insert a spacer.
+     *
+     * @param {Mixed} item The item being added. May be a raw config object or an instanced
+     * Component or some other short-hand understood by the container.
+     * @return {Ext.Component} The component to be added.
+     * @protected
+     */
     factoryItem: function(item) {
-        //<debug>
-        if (!item) {
-            Ext.Logger.error("Invalid item given: " + item + ", must be either the config object to factory a new item, " +
-                "or an existing component instance");
-        }
-        //</debug>
-
-        var me = this;
-        // This forces default type to be resolved prior to any other configs that may be using it to create children
-        if (!me.$hasCachedDefaultItemClass) {
-            me.getDefaultType();
-            me.$hasCachedDefaultItemClass = true;
-        }
-        return Ext.factory(item, me.defaultItemClass);
-    },
-
-    factoryItemWithDefaults: function(item) {
         //<debug>
         if (!item) {
             Ext.Logger.error("Invalid item given: " + item + ", must be either the config object to factory a new item, " +
@@ -627,10 +631,6 @@ Ext.define('Ext.Container', {
         var me = this,
             defaults = me.getDefaults(),
             instance;
-
-        if (!defaults) {
-            return Ext.factory(item, me.defaultItemClass);
-        }
 
         // Existing instance
         if (item.isComponent) {
@@ -657,6 +657,13 @@ Ext.define('Ext.Container', {
                     )) {
                     item = Ext.mergeIf({}, item, defaults);
                 }
+            }
+
+            // This forces default type to be resolved prior to any other configs that
+            // may be using it to create children
+            if (!me.$hasCachedDefaultItemClass) {
+                me.getDefaultType();
+                me.$hasCachedDefaultItemClass = true;
             }
 
             instance = Ext.factory(item, me.defaultItemClass);
@@ -896,6 +903,7 @@ Ext.define('Ext.Container', {
      *     myContainer.removeInnerAt(0); // removes the first item of the innerItems property
      *
      * @param {Number} index The index of the Component to remove.
+     * @return {Ext.Component} The removed Component
      */
     removeInnerAt: function(index) {
         var item = this.getInnerItems()[index];
@@ -1479,11 +1487,24 @@ Ext.define('Ext.Container', {
         applyReference: function (reference) {
           // Need to call like this because applyReference from container comes via a mixin
             return this.setupReference(reference);
+        },
+
+        /**
+         * This method is in place on the instance during construction to ensure that any
+         * {@link #lookup} or {@link #getReferences} calls have the {@link #items} initialized
+         * prior to the lookup.
+         * @private
+         */
+        getFirstReferences: function () {
+            var me = this;
+
+            delete me.getReferences;
+            me.getItems(); // create our items if we haven't yet
+
+            return me.getReferences.apply(me, arguments);
         }
     }
 
 }, function() {
     this.prototype.defaultItemClass = this;
 });
-
-

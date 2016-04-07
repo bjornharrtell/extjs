@@ -25,7 +25,7 @@ $kitchensink-header-use-gradient: true;
 
     @if $theme-name == 'theme-neptune' {
         .#{$prefix}nlg & {
-            background-image: url(images/header-bg.png);
+            background-image: url(get-resource-path('images/header-bg.png', 'toolkit'));
         }
     }
 }
@@ -45,6 +45,6 @@ $kitchensink-header-use-gradient: true;
     width: 40px;
     height: 25px;
 
-    background: url(images/logo.png) no-repeat center 4px;
+    background: url(get-resource-path('images/logo.png', 'toolkit')) no-repeat center 4px;
 }
 

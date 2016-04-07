@@ -13,7 +13,7 @@ Ext.define('Admin.view.search.Results', {
         type: 'searchresults'
     },
 
-    cls: 'shadow-panel',
+    cls: 'shadow',
     activeTab: 0,
     margin: 20,
 
@@ -21,13 +21,12 @@ Ext.define('Admin.view.search.Results', {
         {
             xtype: 'gridpanel',
             cls: 'allRecordsCls',
+            scrollable: false,
             hideHeaders: true,
             border: false,
             title: 'All',
             routeId: 'all',
-            bind: {
-                store: '{allresultsstore}'
-            },
+            bind: '{allResults}',
             viewConfig: {
                 preserveScrollOnRefresh: true,
                 stripeRows: false
@@ -38,7 +37,12 @@ Ext.define('Admin.view.search.Results', {
                     renderer: function(value, metaData, record, rowIndex) {
                         var page = "<div class='resultsItemCls'><div class='resultsTitleCls'>"+record.data.title+"</div><div class='resultsUrlCls'><a href='#'>"+record.data.url+"</a></div><div class='resultsContentCls'>"+record.data.content+"</div></div>";
                         if (rowIndex === 3) {
-                            page = "<div class='imageRowCls'><img src='resources/images/img2.jpg' alt='Smiley face' height='100' width='100' class='imagecls'><img src='resources/images/img2.jpg' alt='Smiley face' height='100' width='100' class='imagecls'></div>";
+                            page = "<div class='imageRowCls'>" +
+                                "<img src='resources/images/img1.jpg' alt='Dandelion' " +
+                                    "class='search-result-attachment'>" +
+                                "<img src='resources/images/img2.jpg' alt='Landscape' " +
+                                    "class='search-result-attachment'>" +
+                                "</div>";
                         }
                         return page;
                     },
@@ -51,9 +55,7 @@ Ext.define('Admin.view.search.Results', {
                     xtype: 'pagingtoolbar',
                     dock: 'bottom',
                     displayInfo: true,
-                    bind: {
-                        store: '{allresultsstore}'
-                    }
+                    bind: '{allResults}'
                 }
             ]
         },
@@ -63,9 +65,7 @@ Ext.define('Admin.view.search.Results', {
             cls: 'user-grid',
             title: 'User Results',
             routeId: 'user',
-            bind: {
-                store: '{usersStore}'
-            },
+            bind: '{usersResults}',
             columns: [
                 {
                     xtype: 'gridcolumn',
@@ -140,9 +140,7 @@ Ext.define('Admin.view.search.Results', {
                     dock: 'bottom',
                     itemId: 'userPaginationToolbar',
                     displayInfo: true,
-                    bind: {
-                        store: '{usersStore}'
-                    }
+                    bind: '{usersResults}'
                 }
             ]
         },
@@ -153,9 +151,7 @@ Ext.define('Admin.view.search.Results', {
             hideHeaders: true,
             title: 'Messages',
             routeId: 'messages',
-            bind: {
-                store: '{EmailInboxStore}'
-            },
+            bind: '{inboxResults}',
             columns: [
                 {
                     xtype: 'gridcolumn',
@@ -197,9 +193,7 @@ Ext.define('Admin.view.search.Results', {
                     dock: 'bottom',
                     itemId: 'pagingToolbar',
                     prependButtons: true,
-                    bind: {
-                        store: '{EmailInboxStore}'
-                    }
+                    bind: '{inboxResults}'
                 }
             ]
         }

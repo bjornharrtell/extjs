@@ -194,7 +194,7 @@ Ext.define('Ext.form.field.Checkbox', {
         'inputAttrTpl'
     ],
 
-    /*
+    /**
      * @property {Boolean} isCheckbox
      * `true` in this class to identify an object as an instantiated Checkbox, or subclass thereof.
      */
@@ -418,7 +418,8 @@ Ext.define('Ext.form.field.Checkbox', {
     },
 
     /**
-     * @private Handle click on the checkbox button
+     * @private
+     * Handle click on the checkbox button
      */
     onBoxClick: function() {
         var me = this;

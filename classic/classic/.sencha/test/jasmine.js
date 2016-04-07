@@ -113,16 +113,6 @@ jasmine.ExpectationResult = function(params) {
 
   var trace = (params.trace || new Error(this.message));
   this.trace = this.passed_ ? '' : trace + '';
-  
-  // If the test passed, there's a negligible chance that anybody will look
-  // into the expected and actual results. However there is a non-zero chance
-  // that somebody would want to investigate a failure.
-  // Considering that both actual and expected properties are often closures
-  // that retain A LOT of componentry, we clean 'em up automatically when
-  // the test passed, but only clean up failures when we're running in TC.
-  if (window.Cmd || this.passed_) {
-    this.expected = this.actual = null;
-  }
 };
 
 jasmine.ExpectationResult.prototype.toString = function () {
@@ -564,8 +554,9 @@ if (isCommonJS) exports.waits = waits;
  * @param {Function} latchFunction
  * @param {String} optional_timeoutMessage
  * @param {Number} optional_timeout
+ * @param {Number} optional_timeout_increment
  */
-var waitsFor = function(latchFunction, optional_timeoutMessage, optional_timeout) {
+var waitsFor = function(latchFunction, optional_timeoutMessage, optional_timeout, optional_timeout_increment) {
   jasmine.getEnv().currentSpec.waitsFor.apply(jasmine.getEnv().currentSpec, arguments);
 };
 if (isCommonJS) exports.waitsFor = waitsFor;
@@ -1972,7 +1963,7 @@ jasmine.Matchers.prototype.toThrow = function(expected) {
       }
     }
   };
-  
+
   // This is to allow setting breakpoints for console messages
   // that are not expected to be suppressed by jasmine.toThrow and alike
   Ext.global.console.dir.$emptyFn = Ext.global.console.log.$emptyFn = true;
@@ -2293,6 +2284,16 @@ jasmine.Matchers.prototype.toBeApprox = function(expected, errorMargin) {
     return this.actual >= min && this.actual <= max;
 };
 
+jasmine.Matchers.prototype.toBeWithin = function(deviation, value) {
+    var actual = this.actual;
+
+    if (deviation > 0) {
+        return actual >= (value - deviation) && actual <= (value + deviation);
+    }
+    else {
+        return actual >= (value + deviation) && actual <= (value - deviation);
+    }
+};
 /**
  * @constructor
  */
@@ -2407,6 +2408,10 @@ jasmine.NestedResults.prototype.addResult = function(result) {
  */
 jasmine.NestedResults.prototype.passed = function() {
   return this.passedCount === this.totalCount;
+};
+
+jasmine.NestedResults.prototype.cleanup = function() {
+    this.items_ = null;
 };
 /**
  * Base class for pretty printing for expectation results.
@@ -2698,7 +2703,7 @@ jasmine.Queue.prototype.next_ = function() {
             var calledSynchronously = true;
             var completedSynchronously = false;
 
-            var onComplete = function () {
+            var onComplete = function() {
                 if (jasmine.Queue.LOOP_DONT_RECURSE && calledSynchronously) {
                     completedSynchronously = true;
                     return;
@@ -2712,15 +2717,18 @@ jasmine.Queue.prototype.next_ = function() {
                 self.index++;
 
                 var now = new Date().getTime();
+                
                 if (self.env.updateInterval && now - self.env.lastUpdate > self.env.updateInterval) {
                     self.env.lastUpdate = now;
                     self.env.setTimeout(function() {
                         self.next_();
                     }, 0);
-                } else {
+                }
+                else {
                     if (jasmine.Queue.LOOP_DONT_RECURSE && completedSynchronously) {
                         goAgain = true;
-                    } else {
+                    }
+                    else {
                         self.next_();
                     }
                 }
@@ -2734,12 +2742,14 @@ jasmine.Queue.prototype.next_ = function() {
             }
 
             calledSynchronously = false;
+            
             if (completedSynchronously) {
                 onComplete();
             }
-
-        } else {
+        }
+        else {
             self.running = false;
+            
             if (self.onComplete) {
                 self.onComplete();
             }
@@ -2772,7 +2782,6 @@ jasmine.Queue.prototype.finish = function() {
     
     me.finished = true;
 }
-
 /**
  * Runner
  *
@@ -2850,8 +2859,7 @@ jasmine.Runner.prototype.topLevelSuites = function() {
 jasmine.Runner.prototype.results = function() {
   return this.queue.results();
 };
-
-jasmine.Runner.prototype.filter = function (suiteIds, specIds) {
+jasmine.Runner.prototype.filter = function(suiteIds, specIds) {
     // convert [1, 2] into { 1: true, 2: true }
     //
     if (typeof suiteIds.length == 'number') {
@@ -3025,14 +3033,17 @@ jasmine.Spec.prototype.waits = function(timeout) {
 /**
  * Waits for the latchFunction to return true before proceeding to the next block.
  *
- * @param {Function} latchFunction
- * @param {String} optional_timeoutMessage
- * @param {Number} optional_timeout
+ * @param {Function} latchFunction Function to execute
+ * @param {String} optional_timeoutMessage Message to use if the condition is never met
+ * @param {Number} optional_timeout Time to wait for condition to be met.
+ * @param {Number} optional_timeout_increment Number of milliseconds to wait between invocations.
  */
-jasmine.Spec.prototype.waitsFor = function(latchFunction, optional_timeoutMessage, optional_timeout) {
+jasmine.Spec.prototype.waitsFor = function(latchFunction, optional_timeoutMessage, optional_timeout, optional_timeout_increment) {
   var latchFunction_ = null;
   var optional_timeoutMessage_ = null;
   var optional_timeout_ = null;
+  var optional_timeout_increment_ = null;
+  var numberFound = false;
 
   for (var i = 0; i < arguments.length; i++) {
     var arg = arguments[i];
@@ -3044,12 +3055,20 @@ jasmine.Spec.prototype.waitsFor = function(latchFunction, optional_timeoutMessag
         optional_timeoutMessage_ = arg;
         break;
       case 'number':
-        optional_timeout_ = arg;
+        // SECOND number is the increment
+        if (numberFound) {
+            optional_timeout_increment_ = arg;
+        }
+        // FIRST number is the timeout
+        else {
+            optional_timeout_ = arg;
+            numberFound = true;
+        }
         break;
     }
   }
 
-  var waitsForFunc = new jasmine.WaitsForBlock(this.env, optional_timeout_, latchFunction_, optional_timeoutMessage_, this);
+  var waitsForFunc = new jasmine.WaitsForBlock(this.env, optional_timeout_, latchFunction_, optional_timeoutMessage_, optional_timeout_increment_, this);
   this.addToQueue(waitsForFunc);
   return this;
 };
@@ -3215,14 +3234,14 @@ jasmine.Spec.prototype.removeAllSpies = function() {
     allowedGlobals.addGlobal =
     allowedGlobals.id = true; // In Ext JS 4 Ext.get(window) adds an id property
     
-    // Ext.sparkline.Base puts this tooltip on its prototype
-    if (Ext.toolkit === 'classic') {
-        allowedComponents['sparklines-tooltip'] = true;
-    }
-    else {
+    if (Ext.toolkit === 'modern') {
         // Modern MessageBox owns a modal mask component
         allowedComponents[Ext.Msg.id] = true;
         allowedComponents[Ext.Msg.getModal().id] = true;
+    }
+    else {
+        // Ext.sparkline.Base puts this tooltip on its prototype
+        allowedComponents['sparklines-tooltip'] = true;
     }
     
     // Ext.MessageBox and its children are going to be present in all tests.
@@ -3293,12 +3312,15 @@ jasmine.Spec.prototype.removeAllSpies = function() {
     
     // Override: check for DOM and global variable leaks
     proto.finishCallback = function() {
-        this.checkDomLeak();
-        this.checkGlobalsLeak();
-        this.checkComponentLeak();
+        if (!jasmine.DISABLE_LEAK_CHECKS) {
+            this.checkDomLeak();
+            this.checkGlobalsLeak();
+            this.checkComponentLeak();
+        }
         
         if (Ext.toolkit === 'classic') {
             this.checkLayoutSuspension();
+            this.checkFocusSuspension();
         }
 
         // TODO: this causes too many failures so is disabled for now.
@@ -3308,6 +3330,22 @@ jasmine.Spec.prototype.removeAllSpies = function() {
         Ext.event.publisher.Gesture.instance.reset();
 
         this.env.reporter.reportSpecResults(this);
+        
+        // Once the results have been reported, we don't need to keep them anymore;
+        // except when we're running under Cmd. Unlike local reporter, Cmd collects
+        // results in batches per suite so we need to keep the results until the
+        // collection is done. Cmd will then run the suite cleanup.
+        if (!window.Cmd) {
+            this.cleanupResults();
+        }
+    };
+    
+    proto.cleanupResults = function() {
+        var results = this.results();
+        
+        if (results) {
+            results.cleanup();
+        }
     };
 
     proto.checkDomLeak = function() {
@@ -3338,7 +3376,7 @@ jasmine.Spec.prototype.removeAllSpies = function() {
             Ext.log({
                 dump: badNodes,
                 level: 'error',
-                msg: 'CLEAN UP YOUR DOM LEAKS!! --> ' + ids
+                msg: 'CLEAN UP YOUR DOM LEAKS IN SPEC: ' + this.getFullName()
             });
 
             this.fail('document.body contains childNodes after spec execution --> ' + this.getFullName());
@@ -3407,6 +3445,17 @@ jasmine.Spec.prototype.removeAllSpies = function() {
         if (count !== 0) {
             this.fail('Spec completed with layouts suspended: count=' + count);
             Ext.Component.layoutSuspendCount = 0;
+        }
+    };
+    
+    proto.checkFocusSuspension = function(spec) {
+        // If the ExtJS version supports focus suspension...
+        if (Ext.suspendFocus) {
+            var count = Ext.event.publisher.Focus.instance.suspendCount;
+            if (count) {
+                this.fail('Spec completed with focus suspended: count=' + count);
+                Ext.event.publisher.Focus.instance.suspendCount = 0;
+            }
         }
     };
 
@@ -3574,8 +3623,10 @@ jasmine.Suite.prototype.finish = function(onComplete) {
   if (typeof(onComplete) == 'function') {
     onComplete();
   }
-  
-  this.env = this.before_ = this.after_ = this.children_ = null;
+
+  // MUST NOT null the children_ property because that is needed to 
+  // traverse the suite's child nodes upon expand and collapse.
+  this.env = this.before_ = this.after_ = null;
   this.suites_ = this.specs_ = null;
 };
 
@@ -3773,7 +3824,15 @@ jasmine.Suite.prototype.execute = function(onComplete) {
         }
         
         return all.length ? Ext.Array.flatten(all) : all;
-    }
+    };
+    
+    proto.cleanupResults = function() {
+        var results = this.results();
+        
+        if (results) {
+            results.cleanup();
+        }
+    };
 })();
 jasmine.WaitsBlock = function(env, timeout, spec) {
   this.timeout = timeout;
@@ -3799,13 +3858,15 @@ jasmine.WaitsBlock.prototype.execute = function (onComplete) {
  * @param {Number} timeout The maximum time in milliseconds to wait for the condition to become true.
  * @param {Function} latchFunction A function which returns true when the desired condition has been met.
  * @param {String} message The message to display if the desired condition hasn't been met within the given time period.
+ * @param {NUmber} timeout_increment Time in milliseconds to wait between invocations.
  * @param {jasmine.Spec} spec The Jasmine spec.
  */
-jasmine.WaitsForBlock = function(env, timeout, latchFunction, message, spec) {
+jasmine.WaitsForBlock = function(env, timeout, latchFunction, message, timeout_increment, spec) {
   this.timeout = timeout || env.defaultTimeoutInterval;
   this.latchFunction = latchFunction;
   this.message = message;
   this.totalTimeSpentWaitingForLatch = 0;
+  this.timeout_increment = timeout_increment || jasmine.WaitsForBlock.TIMEOUT_INCREMENT;
   jasmine.Block.call(this, env, null, spec);
 };
 jasmine.util.inherit(jasmine.WaitsForBlock, jasmine.Block);
@@ -3837,11 +3898,11 @@ jasmine.WaitsForBlock.prototype.execute = function(onComplete) {
     this.abort = true;
     onComplete();
   } else {
-    this.totalTimeSpentWaitingForLatch += jasmine.WaitsForBlock.TIMEOUT_INCREMENT;
+    this.totalTimeSpentWaitingForLatch += this.timeout_increment;
     var self = this;
     this.env.setTimeout(function() {
       self.execute(onComplete);
-    }, jasmine.WaitsForBlock.TIMEOUT_INCREMENT);
+    }, this.timeout_increment);
   }
 };
 // Mock setTimeout, clearTimeout
@@ -4371,11 +4432,20 @@ jasmine.simulateTabKey = jasmine.syncPressTabKey = function(from, forward) {
     }
 
     from = from.isComponent ? from.getFocusEl() : from;
-    var to = getNextTabTarget(from, forward);
 
     jasmine.fireKeyEvent(from, 'keydown', 9, forward);
-    to.focus();
-    jasmine.fireKeyEvent(from, 'keyup',   9, forward);
+    
+    // Compute the next target *after* firing keydown;
+    // a handler somewhere could have changed tabbability!
+    // Not only that but the focused element could have changed
+    // as well so we have to account for it.
+    var to = getNextTabTarget(document.activeElement || from, forward);
+    
+    if (to) {
+        to.focus();
+    }
+    
+    jasmine.fireKeyEvent(to || from, 'keyup',   9, forward);
 
     return to;
 };
@@ -4476,12 +4546,13 @@ jasmine.waitAWhile = jasmine.waitsAWhile = function(timeout) {
 
 jasmine.focusAndWait = function(cmp, waitFor) {
     // Apparently IE has yet another odd problem with focusing some elements;
-    // if dom.focus() is called before the element is fully rendered, focusing
-    // will fail and focus will stay with the document body. This happens with
+    // if dom.focus() is called before the element is fully initialized, focusing
+    // will fail and focus will jump to the document body. This happens with
     // text inputs at the very least, maybe with some others as well.
-    // Inserting a small timeout to let the browser finish with element setup
-    // seems to help, at least with IE9 and 10.
-    if (Ext.isIE) {
+    // In IE9-10 we work around this issue by giving it a bit of time to finish
+    // whatever initialization it was doing; in IE8 some harsher measures are
+    // required, see Ext.dom.Element override.
+    if (Ext.isIE10m) {
         jasmine.waitAWhile();
     }
     
@@ -4620,7 +4691,6 @@ var fakeScope = {
     id: "fakeScope",
     fakeScope: true
 };
-
 /**
  * Class to act as a bridge between the MockAjax class and Ext.data.Request
  */
@@ -4803,7 +4873,17 @@ MockAjax.prototype.setRequestHeader = function(header, value){
  * Simulate the XHR getAllResponseHeaders method
  */
 MockAjax.prototype.getAllResponseHeaders = function(){
-    return '';
+    var headers = this.responseHeaders,
+        lines = [],
+        header;
+    
+    for (header in headers) {
+        if (headers.hasOwnProperty(header)) {
+            lines.push(header + ': ' + headers[header]);
+        }
+    }
+    
+    return lines.join('\r\n');
 };
 
 /**
@@ -4811,7 +4891,7 @@ MockAjax.prototype.getAllResponseHeaders = function(){
  * @param {Object} name
  */
 MockAjax.prototype.getResponseHeader = function(name){
-    return this.headers[header];
+    return this.responseHeaders[header];
 };
 
 /**

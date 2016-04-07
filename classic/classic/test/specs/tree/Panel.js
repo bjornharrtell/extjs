@@ -7,7 +7,10 @@ describe("Ext.tree.Panel", function(){
             type: 'memory'
         }
     }),
-    tree, view, makeTree, testNodes, store, rootNode;
+    tree, view, makeTree, testNodes, store, rootNode,
+        synchronousLoad = true,
+        treeStoreLoad = Ext.data.TreeStore.prototype.load,
+        loadStore;
     
     function spyOnEvent(object, eventName, fn) {
         var obj = {
@@ -19,6 +22,15 @@ describe("Ext.tree.Panel", function(){
     }
 
     beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.TreeStore.prototype.load = function() {
+            treeStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+
         MockAjaxManager.addMethods();
         testNodes = [{
             id: 'A',
@@ -117,9 +129,54 @@ describe("Ext.tree.Panel", function(){
     });
     
     afterEach(function(){
+        // Undo the overrides.
+        Ext.data.TreeStore.prototype.load = treeStoreLoad;
+
         Ext.destroy(tree);
         tree = makeTree = null;
         MockAjaxManager.removeMethods();
+    });
+    
+    describe('Checkbox tree nodes', function() {
+        var eventRec,
+            record,
+            row,
+            checkbox;
+
+        beforeEach(function() {
+            eventRec = null;
+            makeTree(testNodes, {
+                listeners: {
+                    checkchange: function(rec) {
+                        eventRec = rec;
+                    }
+                }
+            });
+            store.getRoot().cascadeBy(function(r) {
+                r.set('checked', false);
+            });
+            tree.expandAll();
+            record = store.getAt(1);
+            row = Ext.get(view.getRow(record));
+            checkbox = row.down(view.checkboxSelector, true);
+        });
+
+        it('should fire the checkchange event', function() {
+            jasmine.fireMouseEvent(checkbox, 'click');
+            expect(eventRec).toBe(record);
+            expect(record.get('checked')).toBe(true);
+        });
+        it('should veto checkchange if false is returned from a beforecheckchange handler', function() {
+            tree.on({
+                beforecheckchange: function(rec) {
+                    eventRec = rec;
+                    return false;
+                }
+            });
+            jasmine.fireMouseEvent(checkbox, 'click');
+            expect(eventRec).toBe(record);
+            expect(record.get('checked')).toBe(false);
+        });
     });
 
     // https://sencha.jira.com/browse/EXTJS-16367
@@ -181,6 +238,28 @@ describe("Ext.tree.Panel", function(){
             expect(store.getAt(2).id).toBe('I');
             expect(store.getAt(3).id).toBe('M');
         });
+
+        it("should preserve events", function() {
+            var spy = jasmine.createSpy();
+            var root2 = {
+                expanded: true,
+                children: testNodes
+            };
+            makeTree();
+            tree.on({
+                beforeitemcollapse: spy, 
+                beforeitemexpand: spy, 
+                itemcollapse: spy, 
+                itemexpand: spy
+            });
+            tree.setRootNode(root2);
+
+            rootNode = tree.getRootNode();
+            rootNode.childNodes[0].expand();
+            rootNode.childNodes[0].collapse();
+
+            expect(spy.callCount).toBe(4);
+        });
     });
 
     describe('Binding to a TreeStore', function() {
@@ -224,6 +303,56 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
+    describe("mouse click to expand/collapse", function() {
+        function makeAutoTree(animate, data) {
+            makeTree(data, {
+                animate: animate
+            }, null, {
+                expanded: true
+            });
+        }
+
+        describe("Clicking on expander", function() {
+            it("should not fire a click event on click of expnder", function() {
+                makeAutoTree(true, [{
+                    id: 'a',
+                    expanded: false,
+                    children: [{
+                        id: 'b'
+                    }]
+                }]);
+                var spy = jasmine.createSpy(),
+                    cellClickSpy = jasmine.createSpy(),
+                    itemClickSpy = jasmine.createSpy(),
+                    height = tree.getHeight(),
+                    expander = view.getCell(1, 0).down(view.expanderSelector),
+                    cell10 = new Ext.grid.CellContext(view).setPosition(1, 0);
+
+                // Focus must be on the tree cell upon expand
+                tree.on('expand', function() {
+                    expect(Ext.Element.getActiveElement).toBe(cell10.getCell(true));
+                });
+                tree.on('afteritemexpand', spy);
+                tree.on('cellclick', cellClickSpy);
+                tree.on('itemclick', itemClickSpy);
+                jasmine.fireMouseEvent(expander, 'click');
+                waitsFor(function() {
+                    return spy.callCount > 0;
+                });
+                runs(function() {
+                    expect(tree.getHeight()).toBeGreaterThan(height);
+
+                    // Clicking on an expander should not trigger a cell click
+                    expect(cellClickSpy).not.toHaveBeenCalled();
+
+                    // Clicking on an expander should not trigger an item click
+                    expect(itemClickSpy).not.toHaveBeenCalled();
+                });
+            });
+        });
+        
+    });
+    
     describe("auto height with expand/collapse", function() {
         function makeAutoTree(animate, data) {
             makeTree(data, {
@@ -433,20 +562,25 @@ describe("Ext.tree.Panel", function(){
             });
         });
         it("should only refresh once when removeAll called", function() {
-            var nodeA = tree.getStore().getNodeById('A');
+            var nodeA = tree.getStore().getNodeById('A'),
+                buffered;
 
             expect(tree.view.refreshCounter).toBe(1);
             tree.expandAll();
+            buffered = view.bufferedRenderer && view.all.getCount >= view.bufferedRenderer.viewSize;
 
             // With all the nodes fully preloaded, a recursive expand
             // should do one refresh.
-            expect(tree.view.refreshCounter).toBe(2);
+            expect(view.refreshCounter).toBe(2);
 
             // The bulkremove event fired by NodeInterface.removeAll should trigger the NodeStore call onNodeCollapse.
             // In response, the NodeStore removes all child nodes, and fired bulkremove. The BufferedRendererTreeView
             // override processes the removal without calling view's refresh.
+            // Refresh will only be called if buffered rendering has been *used*, ie if the number of rows has reached
+            // the buffered renderer's view size. If not, a regular non-buffered type update will handle the remove
+            // and the refresh count will still be 2.
             nodeA.removeAll();
-            expect(tree.view.refreshCounter).toBe(view.bufferedRenderer ? 3 : 2);
+            expect(view.refreshCounter).toBe(buffered ? 3 : 2);
         });
     });
 
@@ -2476,6 +2610,30 @@ describe("Ext.tree.Panel", function(){
             // The old root should have no listeners
             expect(Ext.Object.getKeys(oldRoot.hasListeners).length).toBe(0);
 
+        });
+    });
+
+    describe('sorting a collapsed node', function() {
+        it('should not expand a collapsed node upon sort', function() {
+            makeTree(testNodes, null, {
+                folderSort: true,
+                sorters: [{
+                    property: 'text',
+                    direction: 'ASC'
+                }]
+            });
+            rootNode.expand();
+            var aNode = tree.store.getNodeById('A');
+
+            // Sort the "A" node
+            aNode.sort(function(a, b) {
+                return a.get('text').localeCompare(b.get('text'));
+            });
+
+            // Should NOT have resulted in expansion
+            expect(tree.store.indexOf(aNode.childNodes[0])).toBe(-1);
+            expect(tree.store.indexOf(aNode.childNodes[1])).toBe(-1);
+            expect(tree.store.indexOf(aNode.childNodes[2])).toBe(-1);
         });
     });
 });

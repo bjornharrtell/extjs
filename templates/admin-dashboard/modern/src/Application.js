@@ -8,44 +8,16 @@ Ext.define('Admin.Application', {
     
     name: 'Admin',
 
-    // requires: [
-    //     'Ext.Widget',
-    // ],
-    models: [
-        'PersonalInfo',
-        'PanelSetting',
-        'YearwiseData',
-        'DataXY',
-        'MultiDataXY',
-        'email.Friend',
-        'email.Email',
-        'Subscription',
-        'FriendsList',
-        'ChatMessages'
+    defaultToken : 'dashboard',
+
+    mainView: 'Admin.view.main.Main',
+
+    profiles: [
+        'Phone',
+        'Tablet'
     ],
+
     stores: [
         'NavigationTree'
-    ],
-    views: [
-        'main.Viewport',
-        'dashboard.MainContainer',
-        'main.MainNavigationView',
-        'email.MainContainer',
-        'pages.BlankPageContainer',
-        'pages.Error404Window',
-        'pages.Error500Window',
-        'pages.FAQ',
-        'pages.LockScreenWindow',
-        'pages.Login',
-        'pages.PasswordReminder',
-        'pages.Register',
-        'search.Results',
-        'pages.UserProfileContainer',
-
-        'widgets.WidgetsContainer',
-        'charts.MainContainer'
-    ],
-    launch: function () {
-        // TODO - Launch the application
-    }
+    ]
 });

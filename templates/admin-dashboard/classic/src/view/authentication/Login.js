@@ -1,6 +1,6 @@
 Ext.define('Admin.view.authentication.Login', {
     extend: 'Admin.view.authentication.LockingWindow',
-    xtype: 'pageslogin',
+    xtype: 'login',
 
     requires: [
         'Admin.view.authentication.Dialog',
@@ -81,7 +81,7 @@ Ext.define('Admin.view.authentication.Login', {
                         },
                         {
                             xtype: 'box',
-                            html: '<a href="#authentication.passwordreset" class="link-forgot-password"> Forgot Password ?</a>'
+                            html: '<a href="#passwordreset" class="link-forgot-password"> Forgot Password ?</a>'
                         }
                     ]
                 },
@@ -106,7 +106,7 @@ Ext.define('Admin.view.authentication.Login', {
                 {
                     xtype: 'button',
                     scale: 'large',
-                    ui: 'soft-blue',
+                    ui: 'facebook',
                     iconAlign: 'right',
                     iconCls: 'x-fa fa-facebook',
                     text: 'Login with Facebook',

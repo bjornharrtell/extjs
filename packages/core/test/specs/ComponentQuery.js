@@ -1097,4 +1097,13 @@ describe("Ext.ComponentQuery", function() {
             expect(result[0]).toBe(foo);
         });
     });
+    
+    describe('querying non Ext classes', function() {
+        it('should be able to query on raw objects', function() {
+            var target = {foo: 'bar'},
+                candidates = [{foo: 'ik'}, {foo: 'screeble'}, target, {foo: 'razz'}, {foo: 'poot'}];
+
+            expect(Ext.ComponentQuery.query('[foo=bar]', candidates)[0]).toBe(target);
+        });
+    });
 });

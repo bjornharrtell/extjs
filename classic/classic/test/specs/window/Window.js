@@ -1,8 +1,7 @@
 describe("Ext.window.Window", function() {
-    var win,
-        container;
+    var win, container;
     
-    function makeWindow(config) {
+    function makeWindow(config, noShow) {
         config = Ext.apply(config || {}, {
             width: 200,
             height: 200,
@@ -12,7 +11,9 @@ describe("Ext.window.Window", function() {
         
         win = new Ext.window.Window(config);
         
-        win.show();
+        if (!noShow) {
+            win.show();
+        }
         
         return win;
     }
@@ -116,6 +117,7 @@ describe("Ext.window.Window", function() {
                 expect(w).toBe(winWidth);
             }
         });
+        
         it("should hide the shadow on hide to a target", function() {
             var el = Ext.getBody().appendChild({}),
                 windowHidden = false;
@@ -262,6 +264,50 @@ describe("Ext.window.Window", function() {
             // Resize browser window, and position should not change
             Ext.globalEvents.fireResize();
             expect(win.el.getXY()).toEqual(pos);
+        });
+        it('Should apply constraint insets and not allow moving past them', function() {
+            var cw,ww,x,y,box,diff;
+
+            container = Ext.create('Ext.panel.Panel', {
+                renderTo: document.body,
+                height: 200,
+                width: 200,
+                items: [{
+                    id: 'constrainedWin',
+                    xtype: 'window',
+                    title: 'Constrained Window',
+                    height: 100,
+                    width: 100,
+                    constraintInsets: '20 -20 -20 20',
+                    constrain: true,
+                    autoShow: true
+                }]
+            });
+            win = Ext.getCmp('constrainedWin');
+            win.setPosition([0,0]);
+            x = win.getLocalX();
+            y = win.getLocalY();
+            cw = container.getWidth();
+            ww = win.getWidth(),
+            box = Ext.Element.parseBox(win.constraintInsets);
+            // We need to subtract 1 because the position
+            // is constraintInset exclusive
+            diff = (cw - ww - x - 1); 
+            
+            // Testing top left            
+            win.setPosition([-500,-500]);
+            expect(win.getLocalXY()).toEqual([x,y]);
+            // Testing top right
+            win.setPosition([500,-500]);
+            expect(win.getLocalXY()).toEqual([x+diff-box.left,y]);
+
+            // Testing bottom left
+            win.setPosition([-500,500]);
+            expect(win.getLocalXY()).toEqual([x,y+diff-box.top]);
+
+            // Testing bottom right
+            win.setPosition([500,500]);
+            expect(win.getLocalXY()).toEqual([x+diff+box.right,y+diff+box.bottom]);
         });
     });
     
@@ -421,8 +467,9 @@ describe("Ext.window.Window", function() {
                 expect(size.width).toBe(100);
                 expect(size.height).toBe(100);
             });
-
-            it("should restore to the previous percentage size when configured", function(){
+            
+            // TODO Re-enable when https://sencha.jira.com/browse/EXTJS-18476 is completed
+            (Ext.isIE8 ? xit : it)("should restore to the previous percentage size when configured", function() {
                 win = new Ext.window.Window({
                     width: '60%',
                     height: '30%',
@@ -430,12 +477,14 @@ describe("Ext.window.Window", function() {
                     maximizable: true,
                     autoShow: true
                 });
+                
                 var initSize = win.getSize();
                 win.maximize();
                 win.restore();
+                
                 var size = win.getSize();
-                expect(initSize.width).toBe(size.width);
-                expect(initSize.height).toBe(size.height);
+                expect(size.width).toBe(initSize.width);
+                expect(size.height).toBe(initSize.height);
             });
 
             it("should restore a shrink wrapped height", function(){
@@ -681,9 +730,11 @@ describe("Ext.window.Window", function() {
                         text: 'B',
                         itemId: 'b'
                     }]
-                });
+                }, true);
                 
                 cmp = win.down('#b');
+                
+                win.show();
                 
                 waitForFocus(cmp);
                 
@@ -811,37 +862,41 @@ describe("Ext.window.Window", function() {
             });
         });
         
-        it("should focus defaultFocus when header is clicked", function() {
-            var btn = new Ext.button.Button({
-                renderTo: Ext.getBody(),
-                text: 'button'
+        describe("when header is clicked", function() {
+            var btn;
+            
+            beforeEach(function() {
+                btn = new Ext.button.Button({
+                    renderTo: Ext.getBody(),
+                    text: 'button'
+                });
+                
+                makeWindow({
+                    draggable: false,
+                    defaultFocus: 'textfield',
+                    items: [{
+                        xtype: 'textfield',
+                        fieldLabel: 'foo',
+                        itemId: 'foo'
+                    }]
+                });
+                
+                cmp = win.down('#foo');
+                
+                focusAndWait(btn);
             });
             
-            makeWindow({
-                draggable: false,
-                defaultFocus: 'textfield',
-                items: [{
-                    xtype: 'textfield',
-                    fieldLabel: 'foo',
-                    itemId: 'foo'
-                }]
-            });
-            
-            cmp = win.down('#foo');
-            
-            waitForFocus(cmp);
-            
-            focusAndWait(btn);
-            
-            runs(function() {
-                jasmine.fireMouseEvent(win.header.el, 'click');
-            });
-            
-            expectFocused(cmp);
-            
-            runs(function() {
-                btn.destroy();
+            afterEach(function() {
+                Ext.destroy(btn);
                 btn = null;
+            });
+            
+            it("should focus defaultFocus when header is clicked", function() {
+                runs(function() {
+                    jasmine.fireMouseEvent(win.header.el, 'click');
+                });
+                
+                expectFocused(cmp);
             });
         });
     });

@@ -465,10 +465,11 @@ Ext.define('Ext.chart.AbstractChart', {
      * at the time of {@link #performLayout} call. I.e. 'performLayout'
      * should be called again when current layout is done.
      */
-    thicknessChanged: false,
+    isThicknessChanged: false,
 
     /**
-     * @private The z-indexes to use for the various surfaces
+     * @private
+     * The z-indexes to use for the various surfaces
      */
     surfaceZIndexes: {
         background: 0,
@@ -656,7 +657,7 @@ Ext.define('Ext.chart.AbstractChart', {
     resumeThicknessChanged: function () {
         if (this.axisThicknessSuspendCount > 0) {
             this.axisThicknessSuspendCount--;
-            if (this.axisThicknessSuspendCount === 0 && this.thicknessChanged) {
+            if (this.axisThicknessSuspendCount === 0 && this.isThicknessChanged) {
                 this.onThicknessChanged();
             }
         }
@@ -664,10 +665,10 @@ Ext.define('Ext.chart.AbstractChart', {
 
     onThicknessChanged: function () {
         if (this.axisThicknessSuspendCount === 0) {
-            this.thicknessChanged = false;
+            this.isThicknessChanged = false;
             this.performLayout();
         } else {
-            this.thicknessChanged = true;
+            this.isThicknessChanged = true;
         }
     },
 
@@ -750,7 +751,7 @@ Ext.define('Ext.chart.AbstractChart', {
                 height: height
             });
         }
-        oldBackground.fx.setConfig(this.getAnimation());
+        oldBackground.setAnimation(this.getAnimation());
         return oldBackground;
     },
 
@@ -993,6 +994,7 @@ Ext.define('Ext.chart.AbstractChart', {
     circularCopyArray: function(inArray, startIndex, count) {
         var outArray = [],
             i, len = inArray && inArray.length;
+
         if (len) {
             for (i = 0; i < count; i++) {
                 outArray.push(inArray[(startIndex + i) % len]);
@@ -1004,6 +1006,7 @@ Ext.define('Ext.chart.AbstractChart', {
     circularCopyObject: function(inObject, startIndex, count) {
         var me = this,
             name, value, outObject = {};
+
         if (count) {
             for (name in inObject) {
                 if (inObject.hasOwnProperty(name)) {
@@ -1023,9 +1026,11 @@ Ext.define('Ext.chart.AbstractChart', {
         var me = this,
             configColors = me.config.colors,
             theme = me.getTheme();
+
         if (Ext.isArray(configColors) && configColors.length > 0) {
             configColors = me.applyColors(configColors);
         }
+
         return configColors || (theme && theme.getColors());
     },
 
@@ -1044,13 +1049,12 @@ Ext.define('Ext.chart.AbstractChart', {
         var me = this,
             theme = me.getTheme(),
             colors = newColors || (theme && theme.getColors()),
-            colorCount = colors.length,
             colorIndex = 0,
             series = me.getSeries(),
             seriesCount = series && series.length,
             i, seriesItem, seriesColors, seriesColorCount;
 
-        if (colorCount) {
+        if (colors.length) {
             for (i = 0; i < seriesCount; i++) {
                 seriesItem = series[i];
                 seriesColorCount = seriesItem.themeColorCount();
@@ -1123,8 +1127,8 @@ Ext.define('Ext.chart.AbstractChart', {
         me.updateColors(colors);
 
         // It may be necessary to perform a layout here.
-        // But instead of the 'scheduleLayout' call, we can call
-        // 'redraw' instead. If after the redraw call the thickness
+        // But instead of the 'chart.scheduleLayout' call, we can call
+        // 'chart.redraw'. If after the redraw call the thickness
         // of any axis changes, this will automatically trigger
         // chart layout (see Ext.chart.axis.sprite.Axis.doThicknessChanged).
         // Otherwise, no layout is necessary.
@@ -1412,7 +1416,7 @@ Ext.define('Ext.chart.AbstractChart', {
         if (len) {
             for (i = 0; i < len; ++i) {
                 interaction = interactions[i];
-                if (interaction.tyoe === type) {
+                if (interaction.type === type) {
                     out = interaction;
                     break;
                 }
@@ -1461,7 +1465,7 @@ Ext.define('Ext.chart.AbstractChart', {
     // Note: the actual layout is performend in a subclass.
     performLayout: function () {
         var me = this,
-            size = me.innerElement.getSize(),
+            size = me.getChartSize(true),
             chartRect = [0, 0, size.width, size.height],
             background = me.getBackground();
 
@@ -1474,6 +1478,20 @@ Ext.define('Ext.chart.AbstractChart', {
             width: size.width,
             height: size.height
         });
+    },
+
+    /**
+     * @private
+     * Cache chart size as element.getSize results in a relatively expensive call
+     * to getComputedStyle, which may slow the rendering of a frame by as much as 2%.
+     */
+    getChartSize: function (isRecompute) {
+        var me = this;
+
+        if (isRecompute) {
+            me.chartSize = null;
+        }
+        return me.chartSize || (me.chartSize = me.innerElement.getSize());
     },
 
     // Converts page coordinates into chart's 'main' surface coordinates.
@@ -1554,19 +1572,20 @@ Ext.define('Ext.chart.AbstractChart', {
      */
     onDataChanged: function () {
         var me = this;
+
         if (me.isInitializing) {
             return;
         }
+
         var rect = me.getMainRect(),
             store = me.getStore(),
             series = me.getSeries(),
-            axes = me.getAxes(),
-            colors = me.getColors(),
-            i, ln;
+            axes = me.getAxes();
 
         if (!store || !axes || !series) {
             return;
         }
+
         if (!rect) { // The chart hasn't been rendered yet.
             me.on({
                 redraw: me.onDataChanged,
@@ -1575,11 +1594,40 @@ Ext.define('Ext.chart.AbstractChart', {
             });
             return;
         }
-        for (i = 0, ln = series.length; i < ln; i++) {
-            series[i].processData();
-        }
-        me.updateColors(colors);
+
+        me.processData();
         me.redraw();
+    },
+
+    /**
+     * @private
+     * The number of records in the chart's store last time the data was changed.
+     */
+    recordCount: 0,
+
+    /**
+     * @private
+     */
+    processData: function () {
+        var me = this,
+            recordCount = me.getStore().getCount(),
+            seriesList = me.getSeries(),
+            ln = seriesList.length,
+            isNeedUpdateColors = false,
+            i = 0,
+            series;
+
+        for (; i < ln; i++) {
+            series = seriesList[i];
+            series.processData();
+            if (!isNeedUpdateColors && series.isStoreDependantColorCount) {
+                isNeedUpdateColors = true;
+            }
+        }
+        if (isNeedUpdateColors && recordCount > me.recordCount) {
+            me.updateColors(me.getColors());
+            me.recordCount = recordCount;
+        }
     },
 
     /**
@@ -1615,6 +1663,7 @@ Ext.define('Ext.chart.AbstractChart', {
             newHighlightItem.series.setAttributesForItem(newHighlightItem, {highlighted: true});
             this.fireEvent('itemhighlight', this, newHighlightItem, oldHighlightItem);
         }
+        this.fireEvent('itemhighlightchange', this, newHighlightItem, oldHighlightItem);
     },
 
     destroyChart: function () {

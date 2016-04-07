@@ -16,13 +16,17 @@ Ext.define('Ext.util.AbstractMixedCollection', {
     isMixedCollection: true,
 
     /**
-     * @private Mutation counter which is incremented upon add and remove.
+     * Mutation counter which is incremented upon add and remove.
+     *
+     * @private
      */
     generation: 0,
     
     /**
-     * @private Mutation counter for the index map which is synchronized with the collection's mutation counter
+     * Mutation counter for the index map which is synchronized with the collection's mutation counter
      * when the index map is interrogated and found to be out of sync and needed a rebuild.
+     *
+     * @private
      */
     indexGeneration: 0,
     
@@ -210,6 +214,46 @@ Ext.define('Ext.util.AbstractMixedCollection', {
             me.fireEvent('replace', key, old, o);
         }
         return o;
+    },
+    
+    /**
+     * Reorders each of the items based on a mapping from old index to new index. Internally this
+     * just translates into a sort. The 'sort' event is fired whenever reordering has 
+     * occurred.
+     * @param {Object} mapping Mapping from old item index to new item index
+     */
+    reorder: function(mapping) {
+        var me = this,
+            items = me.items,
+            index = 0,
+            length = items.length,
+            order = [],
+            remaining = [],
+            oldIndex;
+
+        me.suspendEvents();
+
+        //object of {oldPosition: newPosition} reversed to {newPosition: oldPosition}
+        for (oldIndex in mapping) {
+            order[mapping[oldIndex]] = items[oldIndex];
+        }
+
+        for (index = 0; index < length; index++) {
+            if (mapping[index] == undefined) {
+                remaining.push(items[index]);
+            }
+        }
+
+        for (index = 0; index < length; index++) {
+            if (order[index] == undefined) {
+                order[index] = remaining.shift();
+            }
+        }
+
+        me.clear();
+        me.addAll(order);
+
+        me.resumeEvents();
     },
 
     /**

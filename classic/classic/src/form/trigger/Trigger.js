@@ -23,7 +23,7 @@ Ext.define('Ext.form.trigger.Trigger', {
 
     /**
      * @cfg {String} cls
-     * CSS class to add to the trigger element.
+     * @inheritdoc Ext.panel.Header#iconCls
      */
 
     /**

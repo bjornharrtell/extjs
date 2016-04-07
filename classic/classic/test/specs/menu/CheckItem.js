@@ -28,7 +28,7 @@ describe("Ext.menu.CheckItem", function(){
         c = null;
     });
 
-    function clickIt (event) {
+    function clickIt(event) {
         jasmine.fireMouseEvent(c, event || 'click');
     }
 
@@ -418,6 +418,41 @@ describe("Ext.menu.CheckItem", function(){
                 c.setText('frob');
                 
                 expectAria('aria-label', 'frob submenu');
+            });
+        });
+    });
+    
+    describe("pointer interaction", function() {
+        beforeEach(function() {
+            makeItem();
+            
+            menu.show();
+        });
+        
+        // Tests here are asynchronous because we want to catch focus flip-flops,
+        // and these tender animals are easily scared
+        it("should not close the menu when clicked on textEl", function() {
+            runs(function() {
+                clickIt();
+            });
+            
+            // Can't wait for something because we want *nothing* to happen.
+            waits(50);
+            
+            runs(function() {
+                expect(c.isVisible()).toBe(true);
+            });
+        });
+        
+        it("should not close the menu when clicked on checkEl", function() {
+            runs(function() {
+                clickIt();
+            });
+            
+            waits(50);
+            
+            runs(function() {
+                expect(c.isVisible()).toBe(true);
             });
         });
     });

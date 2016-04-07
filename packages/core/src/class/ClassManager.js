@@ -531,6 +531,36 @@ var makeCtor = Ext.Class.makeCtor,
         },
 
         /**
+         * Changes the mapping of an `xtype` to map to the specified component class.
+         * @param {String/Ext.Class} cls The class or class name to which `xtype` is mapped.
+         * @param {String} xtype The `xtype` to map or redefine as `cls`.
+         * @since 6.0.1
+         * @private
+         */
+        setXType: function (cls, xtype) {
+            var className = cls.$className,
+                C = className ? cls : Manager.get(className = cls),
+                proto = C.prototype,
+                xtypes = proto.xtypes,
+                xtypesChain = proto.xtypesChain,
+                xtypesMap = proto.xtypesMap;
+
+            if (!proto.hasOwnProperty('xtypes')) {
+                proto.xtypes = xtypes = [];
+                proto.xtypesChain = xtypesChain = xtypesChain ? xtypesChain.slice(0) : [];
+                proto.xtypesMap = xtypesMap = Ext.apply({}, xtypesMap);
+            }
+
+            Manager.addAlias(className, 'widget.'  + xtype, true);
+
+            xtypes.push(xtype);
+            xtypesChain.push(xtype);
+            xtypesMap[xtype] = true;
+
+            //TODO consider updating derived class xtypesChain / xtypesMap
+        },
+
+        /**
          * Sets a name reference to a class.
          *
          * @param {String} name
@@ -586,6 +616,33 @@ var makeCtor = Ext.Class.makeCtor,
         getByAlias: function(alias) {
             return Manager.get(Manager.getNameByAlias(alias));
         },
+
+        /**
+         * Get a component class name from a config object.
+         * @param {Object} config The config object.
+         * @param {String} [aliasPrefix] A prefix to use when getting
+         * a class name by alias.
+         * @return {Ext.Class} The class.
+         *
+         * @private
+         */
+        getByConfig: function(config, aliasPrefix) {
+            var xclass = config.xclass,
+                name;
+
+            if (xclass) {
+                name = xclass;
+            } else {
+                name = config.xtype;
+                if (name) {
+                    aliasPrefix = 'widget.';
+                } else {
+                    name = config.type;
+                }
+                name = Manager.getNameByAlias(aliasPrefix + name);
+            }
+            return Manager.get(name);
+        },        
 
         /**
          * Get the name of the class by its reference or its instance. This is
@@ -722,7 +779,7 @@ var makeCtor = Ext.Class.makeCtor,
                 uses = data.uses,
                 mixins = data.mixins,
                 mixinsIsArray,
-                compat = data.compatibility,
+                compat = 1, // default if 'compatibility' is not specified
                 depedenciesLoaded,
                 classReady = function () {
                     var cls, dependencies, i, key, temp;
@@ -804,7 +861,14 @@ var makeCtor = Ext.Class.makeCtor,
 
             Manager.overrideMap[className] = true;
 
-            if (!compat || Ext.checkVersion(compat)) {
+            // If specified, parse strings as versions, but otherwise treat as a
+            // boolean (maybe "compatibility: Ext.isIE8" or something).
+            //
+            if ('compatibility' in data && Ext.isString(compat = data.compatibility)) {
+                compat = Ext.checkVersion(compat);
+            }
+
+            if (compat) {
                 // Override the target class right after it's created
                 me.onCreated(classReady, me, overriddenClassName);
             }
@@ -1004,7 +1068,7 @@ var makeCtor = Ext.Class.makeCtor,
      * Overrides members of the specified `target` class.
      * 
      * **NOTE:** the overridden class must have been defined using 
-     * {@link #define Ext.define} in order to use the `override` config.
+     * {@link Ext#define Ext.define} in order to use the `override` config.
      * 
      * Methods defined on the overriding class will not automatically call the methods of 
      * the same name in the ancestor class chain.  To call the parent's method of the 
@@ -1763,8 +1827,7 @@ var makeCtor = Ext.Class.makeCtor,
             Ext.classSystemMonitor && Ext.classSystemMonitor(className, 'Ext.ClassManager#undefine', arguments);
             //</debug>
         
-            var classes = Manager.classes,
-                parts, partCount, namespace, i;
+            var classes = Manager.classes;
 
             delete classes[className];
             delete Manager.existCache[className];

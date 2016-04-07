@@ -1,4 +1,8 @@
 /**
+ * @class Ext.grid.Grid
+ */
+
+/**
  * @var {color}
  * Grid cell text color
  */
@@ -42,7 +46,7 @@ $grid-cell-font-size: dynamic($list-item-font-size);
 
 /**
  * @var {number}
- * Grid cell font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Grid cell font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $grid-cell-font-size-big: dynamic($grid-cell-font-size);
 
@@ -54,7 +58,7 @@ $grid-cell-line-height: dynamic($list-item-line-height);
 
 /**
  * @var {number}
- * Grid cell line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Grid cell line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $grid-cell-line-height-big: dynamic($list-item-line-height-big);
 
@@ -72,7 +76,7 @@ $grid-cell-padding: dynamic($list-item-padding);
 
 /**
  * @var {number/list}
- * Grid cell padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Grid cell padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $grid-cell-padding-big: dynamic($list-item-padding-big);
 
@@ -108,7 +112,7 @@ $grid-group-header-font-size: dynamic($list-group-header-font-size);
 
 /**
  * @var {number}
- * Grid group header font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Grid group header font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $grid-group-header-font-size-big: dynamic($grid-group-header-font-size);
 
@@ -120,7 +124,7 @@ $grid-group-header-line-height: dynamic($list-group-header-line-height);
 
 /**
  * @var {number}
- * Grid group header line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Grid group header line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $grid-group-header-line-height-big: dynamic($list-group-header-line-height-big);
 
@@ -138,7 +142,7 @@ $grid-group-header-padding: dynamic($list-group-header-padding);
 
 /**
  * @var {number/list}
- * Grid group header padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Grid group header padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $grid-group-header-padding-big: dynamic($list-group-header-padding-big);
 
@@ -174,7 +178,7 @@ $grid-summary-row-cell-font-size: dynamic($grid-cell-font-size);
 
 /**
  * @var {number}
- * Grid summary row cell font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Grid summary row cell font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $grid-summary-row-cell-font-size-big: dynamic($grid-summary-row-cell-font-size);
 
@@ -186,7 +190,7 @@ $grid-summary-row-cell-line-height: dynamic($grid-cell-line-height);
 
 /**
  * @var {number}
- * Grid summary row cell line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Grid summary row cell line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $grid-summary-row-cell-line-height-big: dynamic($grid-cell-line-height-big);
 
@@ -204,6 +208,6 @@ $grid-summary-row-cell-padding: dynamic($grid-cell-padding);
 
 /**
  * @var {number/list}
- * Grid summary row cell padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Grid summary row cell padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $grid-summary-row-cell-padding-big: dynamic($grid-cell-padding-big);

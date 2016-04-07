@@ -275,4 +275,45 @@ describe('Ext.grid.header.Container', function () {
             jasmine.expectFocused(grid.headerCt.gridVisibleColumns[1]);
         });
     });
+
+    describe('Disabling column hiding', function() {
+        beforeEach(function() {
+            createGrid();
+        });
+        
+        it('should disable hiding the last visible column', function() {
+            var menu,
+                col = grid.columns[0],
+                colItem,
+                colMenu,
+                nameItem,
+                emailItem;
+
+            // Open the header menu and mouseover the "Columns" item.
+            col.triggerEl.show();
+            jasmine.fireMouseEvent(col.triggerEl.dom, 'click');
+            menu = col.activeMenu;
+            colItem = menu.child('#columnItem');
+            jasmine.fireMouseEvent(colItem.el.dom, 'mouseover');
+
+            // Wait for the column show/hide menu to appear
+            waitsFor(function() {
+                colMenu = colItem.menu;
+                return colMenu && colMenu.isVisible();
+            });
+            
+            // Hide the "Name" column, leaving only the "Email" column visible
+            runs(function() {
+                nameItem = colMenu.child('[text=Name]');
+                emailItem = colMenu.child('[text=Email]');
+                jasmine.fireMouseEvent(nameItem.el.dom, 'click');
+            });
+
+            // The "Email" column is the last visible column, so its
+            // hide menu check item must be disabled.
+            waitsFor(function() {
+                return emailItem.disabled;
+            });
+        });
+    });
 });

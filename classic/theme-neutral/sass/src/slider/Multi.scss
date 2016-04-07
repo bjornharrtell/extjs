@@ -177,7 +177,7 @@ $slider-bottom-margin: floor($slider-vert-margin);
         &:before {
             width: $slider-track-size;
             height: 100%;
-            left: 50%;
+            left: $vertical-slider-thumb-width / 2;
             top: 0;
             margin-left: -($slider-track-size / 2);
         }

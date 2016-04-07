@@ -41,7 +41,7 @@ $toolbar-padding: dynamic(.46rem .5rem);
 
 /**
  * @var {number/list}
- * Toolbar padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Toolbar padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $toolbar-padding-big: dynamic(.4rem .67rem);
 
@@ -54,7 +54,7 @@ $toolbar-horizontal-spacing: dynamic(.2rem);
 /**
  * @var {number}
  * The space in between horizontally aligned Toolbar items in the
- * {@link Ext.Component#$enable-big big} sizing scheme
+ * {@link Global_CSS#$enable-big big} sizing scheme
  */
 $toolbar-horizontal-spacing-big: dynamic(.3rem);
 
@@ -67,7 +67,7 @@ $toolbar-vertical-spacing: dynamic(.2rem);
 /**
  * @var {number}
  * The space in between vertically aligned Toolbar items in the
- * {@link Ext.Component#$enable-big big} sizing scheme
+ * {@link Global_CSS#$enable-big big} sizing scheme
  */
 $toolbar-vertical-spacing-big: dynamic(.3rem);
 
@@ -92,7 +92,7 @@ $toolbar-title-font-size: dynamic(1rem);
 /**
  * @var {number}
  * Toolbar {@link Ext.Title Title} font-size in the
- * {@link Ext.Component#$enable-big big} sizing scheme
+ * {@link Global_CSS#$enable-big big} sizing scheme
  */
 $toolbar-title-font-size-big: dynamic($toolbar-title-font-size);
 

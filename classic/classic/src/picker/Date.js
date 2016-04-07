@@ -395,10 +395,6 @@ Ext.define('Ext.picker.Date', {
      * @param {Date} date The selected date
      */
 
-    /**
-     * @private
-     * @inheritdoc
-     */
     initComponent: function() {
         var me = this,
             clearTime = Ext.Date.clearTime;
@@ -554,7 +550,7 @@ Ext.define('Ext.picker.Date', {
      * @inheritdoc
      * @private
      */
-    initEvents: function(){
+    initEvents: function() {
         var me = this,
             pickerField = me.pickerField,
             eDate = Ext.Date,
@@ -569,18 +565,19 @@ Ext.define('Ext.picker.Date', {
             me.el.on('mousedown', me.onMouseDown, me);
         }
 
+        // Month button is pointer interactive only, it should not be allowed to focus.
+        me.monthBtn.el.on('mousedown', me.onMouseDown, me);
+
         me.prevRepeater = new Ext.util.ClickRepeater(me.prevEl, {
             handler: me.showPrevMonth,
             scope: me,
-            preventDefault: true,
-            stopDefault: true
+            mousedownStopEvent: true
         });
 
         me.nextRepeater = new Ext.util.ClickRepeater(me.nextEl, {
             handler: me.showNextMonth,
             scope: me,
-            preventDefault: true,
-            stopDefault: true
+            mousedownStopEvent: true
         });
 
         me.keyNav = new Ext.util.KeyNav(me.eventEl, Ext.apply({
@@ -588,6 +585,7 @@ Ext.define('Ext.picker.Date', {
 
             left: function(e) {
                 if (e.ctrlKey) {
+                    e.preventDefault();
                     me.showPrevMonth();
                 } else {
                     me.update(eDate.add(me.activeDate, day, -1));
@@ -596,6 +594,7 @@ Ext.define('Ext.picker.Date', {
 
             right: function(e){
                 if (e.ctrlKey) {
+                    e.preventDefault();
                     me.showNextMonth();
                 } else {
                     me.update(eDate.add(me.activeDate, day, 1));
@@ -640,7 +639,7 @@ Ext.define('Ext.picker.Date', {
                 // it does so as if the input field was focused all the time.
                 // This is the desired behavior and we try not to interfere with it
                 // in the picker itself, see below.
-                me.handleTabClick(e);
+                me.handleTabKey(e);
                 
                 // Allow default behaviour of TAB - it MUST be allowed to navigate.
                 return true;
@@ -685,7 +684,7 @@ Ext.define('Ext.picker.Date', {
         e.preventDefault();
     },
 
-    handleTabClick: function (e) {
+    handleTabKey: function(e) {
         var me = this,
             t = me.getSelectedDate(me.activeDate),
             handler = me.handler;
@@ -698,6 +697,11 @@ Ext.define('Ext.picker.Date', {
                 handler.call(me.scope || me, me, me.value);
             }
             me.onSelect();
+        }
+        // Even if the above condition is not met we have to let the field know
+        // that we're tabbing out - that's user action we can do nothing about
+        else {
+            me.fireEventArgs('tabout', [me]);
         }
     },
 
@@ -926,7 +930,7 @@ Ext.define('Ext.picker.Date', {
         return me;
     },
     
-    doShowMonthPicker: function(){
+    doShowMonthPicker: function() {
         // Wrap in an extra call so we can prevent the button
         // being passed as an animation parameter.
         this.showMonthPicker();
@@ -1085,12 +1089,17 @@ Ext.define('Ext.picker.Date', {
      * @param {Ext.event.Event} e
      */
     handleMouseWheel: function(e) {
+        var delta;
+        
         e.stopEvent();
-        if(!this.disabled){
-            var delta = e.getWheelDelta();
-            if(delta > 0){
+        
+        if (!this.disabled) {
+            delta = e.getWheelDelta();
+            
+            if (delta > 0) {
                 this.showPrevMonth();
-            } else if(delta < 0){
+            }
+            else if (delta < 0) {
                 this.showNextMonth();
             }
         }
@@ -1107,12 +1116,15 @@ Ext.define('Ext.picker.Date', {
             handler = me.handler;
 
         e.stopEvent();
-        if(!me.disabled && t.dateValue && !Ext.fly(t.parentNode).hasCls(me.disabledCellCls)){
+        
+        if (!me.disabled && t.dateValue && !Ext.fly(t.parentNode).hasCls(me.disabledCellCls)) {
             me.setValue(new Date(t.dateValue));
             me.fireEvent('select', me, me.value);
+            
             if (handler) {
                 handler.call(me.scope || me, me, me.value);
             }
+            
             // event handling is turned off on hide
             // when we are using the picker in a field
             // therefore onSelect comes AFTER the select

@@ -1,42 +1,68 @@
 /**
- * This plugin provides drag and/or drop functionality for a TreeView.
+ * This plugin provides drag and drop functionality for a {@link Ext.tree.View TreeView}.
+ * 
+ * A specialized instance of {@link Ext.dd.DragZone DragZone} and {@link Ext.dd.DropZone 
+ * DropZone} are attached to the tree view.  The DropZone will participate in drops 
+ * from DragZones having the same {@link #ddGroup} including drops from within the same 
+ * tree.
+ * 
+ * During the drop operation a data object is passed to a participating DropZone's drop 
+ * handlers.  The drag data object has the following properties:
  *
- * It creates a specialized instance of {@link Ext.dd.DragZone DragZone} which knows how to drag out of a
- * {@link Ext.tree.View TreeView} and loads the data object which is passed to a cooperating
- * {@link Ext.dd.DragZone DragZone}'s methods with the following properties:
+ * - **copy:** {@link Boolean} <br> The value of {@link #copy}.  Or `true` if {@link 
+ * #allowCopy} is true **and** the control key was pressed as the drag operation began.
+ * 
+ * - **view:** {@link Ext.tree.View TreeView} <br> The source tree view from which the 
+ * drag originated
+ * 
+ * - **ddel:** HTMLElement <br> The drag proxy element which moves with the cursor
+ * 
+ * - **item:** HTMLElement <br> The tree view node upon which the mousedown event was 
+ * registered
+ * 
+ * - **records:** {@link Array} <br> An Array of {@link Ext.data.Model Model}s 
+ * representing the selected data being dragged from the source tree view.
  *
- *   - copy : Boolean
+ * By adding this plugin to a view, two new events will be fired from the client 
+ * tree view as well as its owning Tree: `{@link #beforedrop}` and `{@link #drop}`.
  *
- *     The value of the TreeView's `copy` property, or `true` if the TreeView was configured with `allowCopy: true` *and*
- *     the control key was pressed when the drag operation was begun.
- *
- *   - view : TreeView
- *
- *     The source TreeView from which the drag originated.
- *
- *   - ddel : HTMLElement
- *
- *     The drag proxy element which moves with the mouse
- *
- *   - item : HTMLElement
- *
- *     The TreeView node upon which the mousedown event was registered.
- *
- *   - records : Array
- *
- *     An Array of {@link Ext.data.Model Models} representing the selected data being dragged from the source TreeView.
- *
- * It also creates a specialized instance of {@link Ext.dd.DropZone} which cooperates with other DropZones which are
- * members of the same ddGroup which processes such data objects.
- *
- * Adding this plugin to a view means that two new events may be fired from the client TreeView, {@link #beforedrop} and
- * {@link #drop}.
- *
- * Note that the plugin must be added to the tree view, not to the tree panel. For example using viewConfig:
- *
- *     viewConfig: {
- *         plugins: { ptype: 'treeviewdragdrop' }
- *     }
+ *     var store = Ext.create('Ext.data.TreeStore', {
+ *         root: {
+ *             expanded: true,
+ *             children: [{
+ *                 text: "detention",
+ *                 leaf: true
+ *             }, {
+ *                 text: "homework",
+ *                 expanded: true,
+ *                 children: [{
+ *                     text: "book report",
+ *                     leaf: true
+ *                 }, {
+ *                     text: "algebra",
+ *                     leaf: true
+ *                 }]
+ *             }, {
+ *                 text: "buy lottery tickets",
+ *                 leaf: true
+ *             }]
+ *         }
+ *     });
+ *     
+ *     Ext.create('Ext.tree.Panel', {
+ *         title: 'Simple Tree',
+ *         width: 200,
+ *         height: 200,
+ *         store: store,
+ *         rootVisible: false,
+ *         renderTo: document.body,
+ *         viewConfig: {
+ *             plugins: {
+ *                 ptype: 'treeviewdragdrop',
+ *                 dragText: 'Drag and drop to reorganize'
+ *             }
+ *         }
+ *     });
  */
 Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
     extend: 'Ext.plugin.Abstract',
@@ -49,19 +75,22 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
 
     /**
      * @event beforedrop
+     * **This event is fired through the {@link Ext.tree.View TreeView} and its owning 
+     * {@link Ext.tree.Panel Tree}. You can add listeners to the tree or tree {@link 
+     * Ext.tree.Panel#viewConfig view config} object**
      *
-     * **This event is fired through the TreeView. Add listeners to the TreeView object**
-     *
-     * Fired when a drop gesture has been triggered by a mouseup event in a valid drop position in the TreeView.
+     * Fired when a drop gesture has been triggered by a mouseup event in a valid drop 
+     * position in the tree view.
      * 
-     * Returning `false` to this event signals that the drop gesture was invalid, and if the drag proxy will animate
-     * back to the point from which the drag began.
-     *
-     * The dropHandlers parameter can be used to defer the processing of this event. For example to wait for the result of 
-     * a message box confirmation or an asynchronous server call. See the details of this property for more information.
+     * Returning `false` to this event signals that the drop gesture was invalid and 
+     * animates the drag proxy back to the point from which the drag began.
+     * 
+     * The dropHandlers parameter can be used to defer the processing of this event. For 
+     * example, you can force the handler to wait for the result of a message box 
+     * confirmation or an asynchronous server call (_see the details of the dropHandlers 
+     * property for more information_).
      *  
-     *     @example
-     *     view.on('beforedrop', function(node, data, overModel, dropPosition, dropHandlers) {
+     *     tree.on('beforedrop', function(node, data, overModel, dropPosition, dropHandlers) {
      *         // Defer the handling
      *         dropHandlers.wait = true;
      *         Ext.MessageBox.confirm('Drop', 'Are you sure', function(btn){
@@ -72,59 +101,99 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      *             }
      *         });
      *     });
+     * 
+     * Any other return value continues with the data transfer operation unless the wait 
+     * property is set.
      *
-     * Any other return value continues with the data transfer operation, unless the wait property is set.
+     * @param {HTMLElement} node The {@link Ext.tree.View tree view} node **if any** over 
+     * which the cursor was positioned.
      *
-     * @param {HTMLElement} node The TreeView node **if any** over which the mouse was positioned.
+     * @param {Object} data The data object gathered at mousedown time by the 
+     * cooperating {@link Ext.dd.DragZone DragZone}'s {@link Ext.dd.DragZone#getDragData 
+     * getDragData} method.  It contains the following properties:
+     * @param {Boolean} data.copy The value of {@link #copy}.  Or `true` if 
+     * {@link #allowCopy} is true **and** the control key was pressed as the drag 
+     * operation began.
+     * @param {Ext.tree.View} data.view The source tree view from which the drag 
+     * originated
+     * @param {HTMLElement} data.ddel The drag proxy element which moves with the cursor
+     * @param {HTMLElement} data.item The tree view node upon which the mousedown event 
+     * was registered
+     * @param {Ext.data.TreeModel[]} data.records An Array of Models representing the 
+     * selected data being dragged from the source tree view
      *
-     * @param {Object} data The data object gathered at mousedown time by the cooperating
-     * {@link Ext.dd.DragZone DragZone}'s {@link Ext.dd.DragZone#getDragData getDragData} method it contains the following
-     * properties:
-     * @param {Boolean} data.copy The value of the TreeView's `copy` property, or `true` if the TreeView was configured with
-     * `allowCopy: true` and the control key was pressed when the drag operation was begun
-     * @param {Ext.tree.View} data.view The source TreeView from which the drag originated.
-     * @param {HTMLElement} data.ddel The drag proxy element which moves with the mouse
-     * @param {HTMLElement} data.item The TreeView node upon which the mousedown event was registered.
-     * @param {Ext.data.Model[]} data.records An Array of {@link Ext.data.Model Model}s representing the selected data being
-     * dragged from the source TreeView.
+     * @param {Ext.data.TreeModel} overModel The Model over which the drop gesture took place
      *
-     * @param {Ext.data.Model} overModel The Model over which the drop gesture took place.
-     *
-     * @param {String} dropPosition `"before"`, `"after"` or `"append"` depending on whether the mouse is above or below
-     * the midline of the node, or the node is a branch node which accepts new child nodes.
+     * @param {String} dropPosition `"before"` or `"after"` depending on whether the 
+     * cursor is above or below the mid-line of the node.
      *
      * @param {Object} dropHandlers
-     * This parameter allows the developer to control when the drop action takes place. It is useful if any asynchronous
-     * processing needs to be completed before performing the drop. This object has the following properties:
+     * This parameter allows the developer to control when the drop action takes place. 
+     * It is useful if any asynchronous processing needs to be completed before 
+     * performing the drop. This object has the following properties:
      * 
-     * @param {Boolean} dropHandlers.wait Indicates whether the drop should be deferred. Set this property to true to defer the drop.
-     * @param {Function} dropHandlers.processDrop A function to be called to complete the drop operation.
-     * @param {Function} dropHandlers.cancelDrop A function to be called to cancel the drop operation.
+     * @param {Boolean} dropHandlers.wait Indicates whether the drop should be deferred. 
+     * Set this property to true to defer the drop.
+     * @param {Function} dropHandlers.processDrop A function to be called to complete 
+     * the drop operation.
+     * @param {Function} dropHandlers.cancelDrop A function to be called to cancel the 
+     * drop operation.
      */
 
     /**
      * @event drop
+     * **This event is fired through the {@link Ext.tree.View TreeView} and its owning 
+     * {@link Ext.tree.Panel Tree}. You can add listeners to the tree or tree {@link 
+     * Ext.tree.Panel#viewConfig view config} object**
+     * 
+     * Fired when a drop operation has been completed and the data has been moved or 
+     * copied.
      *
-     * **This event is fired through the TreeView. Add listeners to the TreeView object** Fired when a drop operation
-     * has been completed and the data has been moved or copied.
+     * @param {HTMLElement} node The {@link Ext.tree.View tree view} node **if any** over 
+     * which the cursor was positioned.
      *
-     * @param {HTMLElement} node The TreeView node **if any** over which the mouse was positioned.
+     * @param {Object} data The data object gathered at mousedown time by the 
+     * cooperating {@link Ext.dd.DragZone DragZone}'s {@link Ext.dd.DragZone#getDragData 
+     * getDragData} method.  It contains the following properties:
+     * @param {Boolean} data.copy The value of {@link #copy}.  Or `true` if 
+     * {@link #allowCopy} is true **and** the control key was pressed as the drag 
+     * operation began.
+     * @param {Ext.tree.View} data.view The source tree view from which the drag 
+     * originated
+     * @param {HTMLElement} data.ddel The drag proxy element which moves with the cursor
+     * @param {HTMLElement} data.item The tree view node upon which the mousedown event 
+     * was registered
+     * @param {Ext.data.TreeModel[]} data.records An Array of Models representing the 
+     * selected data being dragged from the source tree view
      *
-     * @param {Object} data The data object gathered at mousedown time by the cooperating
-     * {@link Ext.dd.DragZone DragZone}'s {@link Ext.dd.DragZone#getDragData getDragData} method it contains the following
-     * properties:
-     * @param {Boolean} data.copy The value of the TreeView's `copy` property, or `true` if the TreeView was configured with
-     * `allowCopy: true` and the control key was pressed when the drag operation was begun
-     * @param {Ext.tree.View} data.view The source TreeView from which the drag originated.
-     * @param {HTMLElement} data.ddel The drag proxy element which moves with the mouse
-     * @param {HTMLElement} data.item The TreeView node upon which the mousedown event was registered.
-     * @param {Ext.data.Model[]} data.records An Array of {@link Ext.data.Model Model}s representing the selected data being
-     * dragged from the source TreeView.
+     * @param {Ext.data.TreeModel} overModel The Model over which the drop gesture took 
+     * place.
      *
-     * @param {Ext.data.Model} overModel The Model over which the drop gesture took place.
-     *
-     * @param {String} dropPosition `"before"`, `"after"` or `"append"` depending on whether the mouse is above or below
-     * the midline of the node, or the node is a branch node which accepts new child nodes.
+     * @param {String} dropPosition `"before"` or `"after"` depending on whether the 
+     * cursor is above or below the mid-line of the node.
+     */
+    
+    /**
+     * @cfg {Boolean} [copy=false]
+     * Set as `true` to copy the records from the source grid to the destination drop 
+     * grid.  Otherwise, dragged records will be moved.
+     * 
+     * **Note:** This only applies to records dragged between two different grids with 
+     * unique stores.
+     * 
+     * See {@link #allowCopy} to allow only control-drag operations to copy records.
+     */
+    
+    /**
+     * @cfg {Boolean} [allowCopy=false]
+     * Set as `true` to allow the user to hold down the control key at the start of the 
+     * drag operation and copy the dragged records between grids.  Otherwise, dragged 
+     * records will be moved.
+     * 
+     * **Note:** This only applies to records dragged between two different grids with 
+     * unique stores.
+     * 
+     * See {@link #copy} to enable the copying of all dragged records.
      */
 
     //<locale>
@@ -136,6 +205,9 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      *
      * - `{0}` The number of selected items.
      * - `{1}` 's' when more than 1 items (only useful for English).
+     * 
+     * **NOTE:** The node's {@link Ext.tree.Panel#cfg-displayField text} will be shown 
+     * when a single node is dragged unless `dragText` is a simple text string.
      */
     dragText : '{0} selected node{1}',
     //</locale>
@@ -266,8 +338,15 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
      * An {@link Ext.grid.ViewDropZone DropZone} which handles mouseover and dropping records in any grid which shares the same {@link #dropGroup}.
      */
 
-    init : function(view) {
-        view.on('render', this.onViewRender, this, {single: true});
+    init: function(view) {
+        Ext.applyIf(view, {
+            copy: this.copy,
+            allowCopy: this.allowCopy
+        });
+
+        view.on('render', this.onViewRender, this, {
+            single: true
+        });
     },
 
     destroy: function() {
@@ -276,10 +355,13 @@ Ext.define('Ext.tree.plugin.TreeViewDragDrop', {
         me.callParent();
     },
 
-    onViewRender : function(view) {
+    onViewRender: function(view) {
         var me = this,
+            ownerGrid = view.ownerCt.ownerGrid || view.ownerCt,
             scrollEl;
 
+        ownerGrid.relayEvents(view, ['beforedrop', 'drop']);
+        
         if (me.enableDrag) {
             if (me.containerScroll) {
                 scrollEl = view.getEl();

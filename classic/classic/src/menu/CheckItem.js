@@ -157,11 +157,22 @@ Ext.define('Ext.menu.CheckItem', {
     
     afterRender: function() {
         var me = this;
+        
         me.callParent();
+        
         me.checked = !me.checked;
         me.setChecked(!me.checked, true);
+        
         if (me.checkChangeDisabled) {
             me.disableCheckChange();
+        }
+        
+        // For reasons unknown, clicking a div inside anchor element might cause
+        // the anchor to be blurred in Firefox. We can't allow this to happen
+        // because blurring will cause focusleave which will hide the menu
+        // before click event fires. See https://sencha.jira.com/browse/EXTJS-18882
+        if (Ext.isGecko && me.checkEl) {
+            me.checkEl.on('mousedown', me.onMouseDownCheck);
         }
     },
     
@@ -196,11 +207,18 @@ Ext.define('Ext.menu.CheckItem', {
         }
         me.checkChangeDisabled = false;
     },
+    
+    onMouseDownCheck: function(e) {
+        e.preventDefault();
+    },
 
     onClick: function(e) {
         var me = this;
 
-        if (!me.disabled && !me.checkChangeDisabled && !(me.checked && me.group)) {
+        // If pointer type is touch, we should only toggle check status if there's no submenu or they tapped in the checkEl
+        // This is because there's no hover to invoke the submenu on touch devices, so a tap is needed to show it. That tap
+        // should not toggle unless it's on the checkbox.
+        if (!(me.disabled || me.checkChangeDisabled || me.checked && me.group || me.menu && "touch" === e.pointerType && !me.checkEl.contains(e.target))) {
             me.setChecked(!me.checked);
 
             // Clicked using SPACE or ENTER just un-checks.

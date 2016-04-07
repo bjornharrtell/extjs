@@ -267,6 +267,14 @@ Ext.define('Ext.picker.Month', {
             body = me.bodyEl;
 
         me.callParent();
+        
+        // Month picker is not focusable and essentially is pointer only thing.
+        // Clicking on it will focus the document body, which may disrupt the state
+        // of the floating parent such as Date picker or a menu, and cause it to hide.
+        // To work around that, we stop the mousedown events completely.
+        if (me.up('[floating=true]')) {
+            me.el.on('mousedown', me.onElClick, me);
+        }
 
         me.mon(body, 'click', me.onBodyClick, me);
         me.mon(body, 'dblclick', me.onBodyClick, me);
@@ -446,6 +454,10 @@ Ext.define('Ext.picker.Month', {
         var year = this.value[1];
         offset = offset || 0;
         return year === null ? defaultValue : year + offset;
+    },
+    
+    onElClick: function(e) {
+        e.stopEvent();
     },
 
     /**

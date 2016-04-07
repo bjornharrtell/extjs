@@ -87,7 +87,8 @@ Ext.define('Ext.ux.BoxReorderer', {
     },
 
     /**
-     * @private Clear up on Container destroy
+     * @private
+     * Clear up on Container destroy
      */
     onContainerDestroy: function() {
         var dd = this.dd;

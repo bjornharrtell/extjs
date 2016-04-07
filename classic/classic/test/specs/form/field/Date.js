@@ -35,44 +35,129 @@ describe("Ext.form.field.Date", function() {
         expect(Ext.getClass(component).xtype).toBe("datefield");
     });
 
-    describe('keynav', function () {
-        describe('SPACE', function () {
-            it('should set the current date in the textfield', function () {
-                // Get today's timestamp and reset the hours, minutes, seconds and milliseconds because datepicker
-                // dates don't have time values.
-                var today = (new Date()).setHours(0, 0, 0, 0);
-
-                makeComponent({
-                    renderTo: Ext.getBody()
-                });
-
-                clickTrigger();
-
-                // Fire the key event through the target of the keyNav
-                jasmine.fireKeyEvent(component.picker.keyNav.map.target, 'keydown', Ext.event.Event.SPACE);
-
-                var value = component.getValue();
-                expect(value).not.toBeNull();
-                expect(value.getTime()).toBe(today);
+    describe("keyboard interaction", function() {
+        // Get today's timestamp and reset the hours, minutes, seconds and milliseconds
+        // because datepicker dates don't have time values.
+        var today = (new Date()).setHours(0, 0, 0, 0),
+            picker;
+        
+        function expectValue(cmp, want) {
+            var value = cmp.getValue();
+            
+            if (want) {
+                expect(value.getTime()).toBe(want);
+            }
+            else {
+                expect(value).toBe(want);
+            }
+        }
+        
+        beforeEach(function() {
+            makeComponent({
+                renderTo: Ext.getBody()
             });
         });
-
-        describe('ESCAPE', function () {
-            it('should hide the picker', function () {
-                var picker;
-
-                makeComponent({
-                    renderTo: Ext.getBody()
-                });
-
+        
+        afterEach(function() {
+            picker = null;
+        });
+        
+        describe("focus remains in picker", function() {
+            beforeEach(function() {
                 clickTrigger();
+                
                 picker = component.picker;
+            });
+            
+            describe("Space key", function() {
+                it("should set the current date in the field", function() {
+                    // Fire the key event through the target of the keyNav
+                    jasmine.fireKeyEvent(component.picker.keyNav.map.target, 'keydown', Ext.event.Event.SPACE);
+                    
+                    expectValue(component, today);
+                });
+            });
 
-                expect(picker.hidden).toBe(false);
+            describe("Escape key", function() {
+                it("should close the picker", function() {
+                    expect(picker.hidden).toBe(false);
 
-                jasmine.fireKeyEvent(component.inputEl, 'keydown', Ext.event.Event.ESC);
+                    jasmine.fireKeyEvent(component.inputEl, 'keydown', Ext.event.Event.ESC);
 
-                expect(picker.hidden).toBe(true);
+                    expect(picker.hidden).toBe(true);
+                });
+            });
+        });
+        
+        describe("Tab key", function() {
+            var waitForFocus = jasmine.waitForFocus,
+                expectFocused = jasmine.expectFocused,
+                pressTabKey = jasmine.syncPressTabKey,
+                btn;
+            
+            beforeEach(function() {
+                btn = new Ext.button.Button({
+                    renderTo: Ext.getBody(),
+                    text: 'foo'
+                });
+            });
+            
+            afterEach(function() {
+                Ext.destroy(btn);
+                btn = null;
+            });
+            
+            describe("on enabled dates", function() {
+                beforeEach(function() {
+                    clickTrigger();
+                    
+                    picker = component.picker;
+                    
+                    pressTabKey(picker.eventEl, true);
+                    
+                    waitForFocus(btn);
+                });
+                
+                it("should close the picker", function() {
+                    expect(picker.hidden).toBe(true);
+                });
+                
+                // Floating pickers are rendered at the bottom of the DOM;
+                // if we're tabbing off the cliff the button won't be selected
+                // as it comes before the picker in the DOM order
+                it("should focus the button", function() {
+                    expectFocused(btn);
+                });
+                
+                it("should select the date", function() {
+                    expectValue(component, today);
+                });
+            });
+            
+            describe("on disabled dates", function() {
+                beforeEach(function() {
+                    component.setDisabledDates([Ext.Date.format(new Date(), 'm/d/Y')]);
+                    
+                    clickTrigger();
+                    
+                    picker = component.picker;
+                    
+                    pressTabKey(picker.eventEl, true);
+                    
+                    waitForFocus(btn);
+                });
+                
+                it("should close the picker", function() {
+                    expect(picker.hidden).toBe(true);
+                });
+                
+                it("should focus the button", function() {
+                    expectFocused(btn);
+                });
+                
+                it("should not select the date", function() {
+                    expectValue(component, null);
+                });
             });
         });
     });

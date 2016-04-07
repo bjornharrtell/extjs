@@ -162,3 +162,9 @@ $tree-checkbox-glyph: dynamic($form-checkbox-glyph);
  * The glyph for the Tree checkbox in "checked" state when {@link Global_CSS#$enable-font-icons} is `true`.
  */
 $tree-checkbox-checked-glyph: dynamic($form-checkbox-checked-glyph);
+
+/**
+ * @var {string/list}
+ * Glyph for the tree's "ok" drag/drop icon when {@link Global_CSS#$enable-font-icons} is `true`.
+ */
+$tree-statusproxy-ok-glyph: dynamic($fa-var-plus-circle $statusproxy-glyph-font-size $font-icon-font-family);

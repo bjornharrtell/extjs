@@ -1,9 +1,12 @@
 /* FONT PATH
  * -------------------------- */
 
+//# fashion -inline
 @font-face {
   font-family: 'FontAwesome';
   src: url('#{$fa-font-path}/fontawesome-webfont.eot?v=#{$fa-version}');
+  //# fashion +inline:eot
+  //# fashion +inline:ttf
   src: url('#{$fa-font-path}/fontawesome-webfont.eot?#iefix&v=#{$fa-version}') format('embedded-opentype'),
     url('#{$fa-font-path}/fontawesome-webfont.woff2?v=#{$fa-version}') format('woff2'),
     url('#{$fa-font-path}/fontawesome-webfont.woff?v=#{$fa-version}') format('woff'),

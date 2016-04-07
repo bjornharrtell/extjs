@@ -2,6 +2,11 @@
  * @class Global_CSS
  */
 
+@import "compass/css3/images";
+
+$default-gradient: matte !default;
+$support-for-original-webkit-gradients: false;
+
 /**
  * Adds a background gradient into a specified selector.
  *
@@ -11,10 +16,10 @@
  *
  *     @include background-gradient(#444, color-stops(#333, #222, #111));
  *
- * @param {color} $bg-color
+ * @param {Color} $bg-color
  * The base color of the gradient.
  *
- * @param {string/list} $type
+ * @param {String/List} [$type=matte]
  * The style of the gradient, one of five pre-defined options: matte, bevel, glossy, recessed, or linear:
  *
  *     @include background-gradient(red, 'glossy');
@@ -25,15 +30,9 @@
  *
  * Values 'flat' and 'none' will result in no gradient, just flat background-color
  *
- * @param {string} $direction
+ * @param {String} $direction
  * The direction of the gradient.
  */
-
-@import "compass/css3/images";
-
-$default-gradient: matte !default;
-$support-for-original-webkit-gradients: false;
-
 @mixin background-gradient($bg-color, $type: $default-gradient, $direction: top, $contrast: 1) {
     $flat: $type == null or $type == none or $type == flat;
 

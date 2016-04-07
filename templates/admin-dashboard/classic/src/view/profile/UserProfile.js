@@ -1,43 +1,41 @@
 Ext.define('Admin.view.profile.UserProfile', {
-    extend: 'Ext.container.Container',
-    xtype: 'userprofile',
+    extend: 'Admin.view.profile.UserProfileBase',
+    xtype: 'profile',
+    cls: 'userProfile-container',
 
     requires: [
         'Ext.ux.layout.ResponsiveColumn'
     ],
 
-    controller: 'userprofile',
-    viewModel: {
-        type: 'userprofile'
-    },
-    cls: 'userProfile-container',
-
     layout: 'responsivecolumn',
 
     items: [
         {
-            xtype: 'profilesharepanel',
+            xtype: 'profileshare',
             
             // Always 100% of container
-            responsiveCls: 'big-100'
+            userCls: 'big-100 small-100 shadow'
         },
         {
-            xtype: 'profilesocialpanel',
+            xtype: 'profilesocial',
             
             // Use 50% of container when viewport is big enough, 100% otherwise
-            responsiveCls: 'big-50 small-100'
+            userCls: 'big-50 small-100 shadow'
         },
         {
-            xtype: 'profiledescriptionpanel',
-            responsiveCls: 'big-50 small-100'
+            xtype: 'profiledescription',
+
+            userCls: 'big-50 small-100 shadow'
         },
         {
-            xtype: 'profiletimelinepanel',
-            responsiveCls: 'big-50 small-100'
+            xtype: 'profilenotifications',
+
+            userCls: 'big-50 small-100 shadow'
         },
         {
-            xtype: 'profilenotificationspanel',
-            responsiveCls: 'big-50 small-100'
+            xtype: 'profiletimeline',
+
+            userCls: 'big-50 small-100 shadow'
         }
     ]
 });

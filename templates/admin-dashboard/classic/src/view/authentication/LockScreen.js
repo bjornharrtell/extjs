@@ -4,10 +4,11 @@ Ext.define('Admin.view.authentication.LockScreen', {
 
     requires: [
         'Admin.view.authentication.Dialog',
-        'Ext.Img',
+        'Ext.button.Button',
         'Ext.container.Container',
         'Ext.form.field.Text',
-        'Ext.button.Button'
+        'Ext.layout.container.HBox',
+        'Ext.layout.container.VBox'
     ],
 
     title: 'Session Expired',
@@ -98,7 +99,7 @@ Ext.define('Admin.view.authentication.LockScreen', {
                         {
                             xtype: 'component',
                             html: '<div style="text-align:right">' +
-                                '<a href="#authentication.login" class="link-forgot-password">'+
+                                '<a href="#login" class="link-forgot-password">'+
                                     'or, sign in using other credentials</a>' +
                                 '</div>'
                         }

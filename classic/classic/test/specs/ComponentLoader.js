@@ -396,6 +396,63 @@ describe("Ext.ComponentLoader", function(){
             });
         });
         
+        describe("panel", function(){
+            beforeEach(function(){
+                comp = new Ext.panel.Panel({
+                    title: 'Panel',
+                    height: 400,
+                    width: 600,
+                    renderTo: document.body
+                });
+                makeLoader({
+                    renderer: 'html'
+                });
+            });
+
+            it('should use the component as the scope for inline scripts', function() {
+                var callbackScope = {};
+
+                loader.load({
+                    scripts: true,
+                    success: function() {
+                        this.foo = 'bar';
+                    },
+                    scope: callbackScope
+                });
+                mockComplete('<script>this.setTitle("New title");</script>New content');
+                
+                waitsFor(function() {
+                    return comp.getTitle() === 'New title';
+                }, 'the inline script to be executed');
+
+                runs(function() {
+                    // Check that content is updated.
+                    expect(comp.body.dom.textContent || comp.body.dom.innerText).toBe('New content');
+
+                    // Check that success callback had the right scope
+                    expect(callbackScope.foo).toBe('bar');
+                });
+            });
+            it('should use the rendererScope as the scope for inline scripts', function() {
+                var passedRendererScope = {};
+
+                loader.load({
+                    scripts: true,
+                    rendererScope: passedRendererScope
+                });
+                mockComplete('<script>this.foo = "bar";</script>New content');
+
+                waitsFor(function() {
+                    return passedRendererScope.foo === 'bar'
+                }, 'callback to be executed with the correct scope');
+
+                runs(function() {
+                    // Check that content is updated.
+                    expect(comp.body.dom.textContent || comp.body.dom.innerText).toBe('New content');
+                });
+            });
+        });
+        
         describe("custom renderer", function(){
             it("should use a custom renderer if one is specified", function(){
                 var o = {

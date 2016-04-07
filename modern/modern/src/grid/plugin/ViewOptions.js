@@ -170,13 +170,6 @@ Ext.define('Ext.grid.plugin.ViewOptions', {
 
     init: function(grid) {
         this.setGrid(grid);
-        grid.add(this.getSheet());
-        this.getSheet().translate(this.getSheetWidth());
-
-        this.getSheet().down('button[role=donebutton]').on({
-            tap: 'onDoneButtonTap',
-            scope: this
-        });
     },
 
     updateGrid: function(grid, oldGrid) {
@@ -409,6 +402,7 @@ Ext.define('Ext.grid.plugin.ViewOptions', {
             if (!headerNode) {
                 idx = header.getParent().indexOf(header);
                 headerNode = parentNode.insertChild(idx, {
+                    groupable: false,
                     header: true,
                     hidden: header.isHidden(),
                     hiddenCls: hiddenCls,
@@ -486,7 +480,7 @@ Ext.define('Ext.grid.plugin.ViewOptions', {
                 sheet.getModal().destroy();
                 sheet.setModal(null);
             }
-            sheet.hide();
+            sheet.hide(null);
         }, this, {single: true});
 
         this.sheetVisible = false;
@@ -496,6 +490,8 @@ Ext.define('Ext.grid.plugin.ViewOptions', {
         var me = this,
             sheet = me.getSheet(),
             modal = null;
+
+        me.setup();
 
         if (!me.sheetVisible) {
             // Since we may have shown the header in response to a longpress we don't
@@ -526,6 +522,25 @@ Ext.define('Ext.grid.plugin.ViewOptions', {
     },
 
     privates: {
+        setup: function() {
+            var me = this,
+                sheet;
+
+            if (me.doneSetup) {
+                return;
+            }
+            me.doneSetup = true;
+
+            sheet = me.getSheet();
+            me.getGrid().add(sheet);
+            sheet.translate(me.getSheetWidth());
+
+            sheet.down('button[role=donebutton]').on({
+                tap: 'onDoneButtonTap',
+                scope: me
+            });
+        },
+
         updateListInfo: function() {
             var grid = this.getGrid(),
                 store = grid.getStore(),

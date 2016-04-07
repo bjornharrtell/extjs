@@ -465,6 +465,26 @@ describe("Ext.layout.container.Card", function() {
             });
 
             describe('when items are derived panels', function () {
+                var synchronousLoad = true,
+                    proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+                    loadStore;
+
+                beforeEach(function() {
+                    // Override so that we can control asynchronous loading
+                    loadStore = Ext.data.ProxyStore.prototype.load = function() {
+                        proxyStoreLoad.apply(this, arguments);
+                        if (synchronousLoad) {
+                            this.flushLoad.apply(this, arguments);
+                        }
+                        return this;
+                    };
+                });
+
+                afterEach(function() {
+                    // Undo the overrides.
+                    Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+                });
+
                 function doTest(isBuffered, isLocked) {
                     describe('buffered = ' + isBuffered + ', locked = ' + isLocked, function () {
                         it('should keep scroll position, simple layout', function () {

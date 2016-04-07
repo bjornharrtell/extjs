@@ -185,14 +185,14 @@
     height: $splitter-size;
     margin-left: round(-$collapse-tool-size / 2);
     @if $enable-font-icons {
-        $spliiter-collapse-tool-horizontal-line-height: $splitter-size;
+        $splitter-collapse-tool-horizontal-line-height: $splitter-size;
         @if $splitter-collapse-tool-border-width != null {
-            $spliiter-collapse-tool-horizontal-line-height:
-                    ($spliiter-collapse-tool-horizontal-line-height - vertical($splitter-collapse-tool-border-width));
+            $splitter-collapse-tool-horizontal-line-height:
+                    ($splitter-collapse-tool-horizontal-line-height - vertical($splitter-collapse-tool-border-width));
         }
         &:before {
             width: 100%;
-            line-height: $spliiter-collapse-tool-horizontal-line-height;
+            line-height: $splitter-collapse-tool-horizontal-line-height;
         }
     }
 }

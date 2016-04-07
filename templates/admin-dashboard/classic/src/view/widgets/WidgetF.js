@@ -2,7 +2,7 @@ Ext.define('Admin.view.widgets.WidgetF', {
     extend: 'Admin.view.widgets.WidgetE',
     xtype: 'widget-f',
 
-    cls:'admin-widget info-card-item info-card-large-wrap shadow-panel',
+    cls:'admin-widget info-card-item info-card-large-wrap shadow',
 
     height: 280,
 

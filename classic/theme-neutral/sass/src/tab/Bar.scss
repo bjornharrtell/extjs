@@ -380,20 +380,20 @@
     .#{$prefix}tab-bar-horizontal > .#{$prefix}tab-bar-body-#{$ui} {
         min-height: $ui-body-height;
 
-        .#{$prefix}ie9m & {
-            // border-box model is busted in IE9m when min-height is used. Won't include
+        .#{$prefix}ie8m & {
+            // border-box model is busted in IE8m when min-height is used. Won't include
             // the padding
-            min-height: $ui-body-height - $ui-strip-height - vertical($ui-padding);
+            min-height: $ui-body-height - $ui-strip-height - vertical($ui-padding) + top($ui-strip-border-width);
         }
     }
 
     .#{$prefix}tab-bar-vertical > .#{$prefix}tab-bar-body-#{$ui} {
         min-width: $ui-body-height;
 
-        .#{$prefix}ie9m & {
-            // border-box model is busted in IE9m when min-width is used. Won't include
+        .#{$prefix}ie8m & {
+            // border-box model is busted in IE8m when min-width is used. Won't include
             // the padding
-            min-width: $ui-body-height - $ui-strip-height - vertical($ui-padding);
+            min-width: $ui-body-height - $ui-strip-height - vertical($ui-padding) + top($ui-strip-border-width);
         }
     }
 

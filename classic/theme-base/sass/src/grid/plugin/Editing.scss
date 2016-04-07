@@ -11,6 +11,7 @@
     // Checkboxes are now absolutely positioned so reset the positioning (see EXTJSIV-10302).
     .#{$prefix}grid-editor .#{$prefix}form-cb {
         position: static;
+        display: inline-block;
     }   
 }
 

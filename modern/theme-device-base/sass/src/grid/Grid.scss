@@ -28,26 +28,15 @@
 }
 
 .#{$prefix}grid-header-container {
-    border-width: 0 1px 1px 0;
+    border-width: 0 0 1px 1px;
     border-style: solid;
     height: 65px;
     font-weight: bold;
-
-    .#{$prefix}grid-header-container-inner {
-        width: 100000px;
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
-
-    .#{$prefix}grid-column {
-        display: inline-block;
-    }
 }
 
 .#{$prefix}grid-column {
     height: 64px;
-    border-width: 1px 1px 0 1px;
+    border-width: 1px 1px 0 0;
     border-style: solid;
     line-height: 64px;
     vertical-align: middle;
@@ -94,7 +83,8 @@
     position: relative;
     vertical-align: bottom;
     height: 64px;
-    padding-top: 32px;
+    border-style: solid;
+    border-width: 1px 0 0;
 
     .#{$prefix}inner > .#{$prefix}innerhtml {
         height: 32px;
@@ -122,6 +112,13 @@
             }
         }
     }
+}
+
+.#{$prefix}grid-headergroup-text {
+    height: 32px;
+    line-height: 32px;
+    border-style: solid;
+    border-width: 0 1px 0 0;
 }
 
 .#{$prefix}grid-pagingtoolbar-prev {
@@ -219,4 +216,46 @@
         vertical-align: middle;
         line-height: 28px;
     }
+}
+
+//-----------------------------------------------
+
+.#{$prefix}grid-multiselection-column {
+    position: relative;
+    padding: 0;
+
+    &:after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 60px;
+        height: 64px;
+        line-height: 64px;
+        font-family: 'Pictos';
+        font-size: 26px;
+        text-align: center;
+        content: $pictos-var-check;
+    }
+}
+
+.#{$prefix}grid-multiselection-cell {
+    position: relative;
+    padding: 0;
+
+    &:after {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        font-family: 'Pictos';
+        font-size: 20px;
+        text-align: center;
+        content: $pictos-var-minus2;
+    }
+}
+
+.#{$prefix}item-selected .#{$prefix}grid-multiselection-cell:after {
+    content: $pictos-var-check2;
 }

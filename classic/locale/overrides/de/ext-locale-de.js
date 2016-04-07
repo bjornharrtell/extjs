@@ -63,6 +63,12 @@ Ext.define("Ext.locale.de.view.View", {
     emptyText: ""
 });
 
+Ext.define("Ext.locale.de.panel.Panel", {
+    override: "Ext.panel.Panel",
+    collapseToolText: "reduzieren",
+    expandToolText: "erweitern"
+});
+
 Ext.define("Ext.locale.de.grid.plugin.DragDrop", {
     override: "Ext.grid.plugin.DragDrop",
     dragText: "{0} Zeile(n) ausgewählt"

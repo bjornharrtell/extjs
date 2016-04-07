@@ -372,6 +372,15 @@ Ext.define('Ext.chart.interactions.ItemEdit', {
             chart.fireEvent('enditemedit', chart, me, me.item, target);
         }
         me.highlight(me.item = null);
+    },
+
+    destroy: function () {
+        // Peek at the config, so we don't create one just to destroy it,
+        // if a user has set 'tooltip' config to 'false'.
+        var tooltip = this.getConfig('tooltip', true);
+
+        Ext.destroy(tooltip);
+        this.callParent();
     }
 
 });

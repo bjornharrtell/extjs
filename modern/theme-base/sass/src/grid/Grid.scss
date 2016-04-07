@@ -1,17 +1,26 @@
-.x-grid .x-dock-body > .x-body {
+.#{$prefix}grid .#{$prefix}dock-body > .#{$prefix}body {
     width: 100%;
 }
+
+.#{$prefix}grid {
+    .#{$prefix}grid-emptytext {
+        text-align: center;
+        pointer-events: none;
+        color: #333;
+        @include st-box();
+        @include st-box-orient(vertical);
+        @include st-box-pack(center);
+    }
+}
+
 .#{$prefix}grid-header-container {
     overflow: hidden;
 }
 
-.#{$prefix}grid-headergroup-inner {
-    white-space: nowrap;
-    > .#{$prefix}innerhtml {
-        text-align: center;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+.#{$prefix}grid-headergroup-text {
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .#{$prefix}grid-row {
@@ -67,46 +76,6 @@
 
 .#{$prefix}grid-columnoptions {
     border-width: 0 0 1px;
-}
-
-.#{$prefix}grid-multiselection-column {
-    position: relative;
-    padding: 0;
-
-    &:after {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 60px;
-        height: 64px;
-        line-height: 64px;
-        font-family: 'Pictos';
-        font-size: 26px;
-        text-align: center;
-        content: icon-character-for-name('check');
-    }
-}
-
-.#{$prefix}grid-multiselection-cell {
-    position: relative;
-    padding: 0;
-
-    &:after {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 60px;
-        height: 60px;
-        line-height: 60px;
-        font-family: 'Pictos';
-        font-size: 20px;
-        text-align: center;
-        content: icon-character-for-name('minus2');
-    }
-}
-
-.#{$prefix}item-selected .#{$prefix}grid-multiselection-cell:after {
-    content: icon-character-for-name('check2');
 }
 
 .#{$prefix}grid-pagingtoolbar {

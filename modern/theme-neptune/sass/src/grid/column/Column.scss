@@ -1,35 +1,15 @@
-.x-grid-header-container-inner {
-    @include st-box;
-    @include st-box-align;
+.#{$prefix}grid-header-container {
     background-color: $grid-column-background-color;
 }
 
-.x-grid-column {
-    @include st-box;
-    @include st-box-align(center);
-}
-
-.x-grid-headergroup-inner {
-    display: inline-table;
-    vertical-align: bottom;
-    > .x-innerhtml {
-        position: relative;
-        z-index: 1;
-    }
-
-    .x-grid-column {
-        @include st-inline-box;
-        vertical-align: bottom;
-    }
-}
-
 .x-grid-column,
-.x-grid-headergroup-inner > .x-innerhtml {
+.x-grid-headergroup-text {
     border-width: 0 1px 1px 0;
     border-style: solid;
     border-color: $grid-column-border-color;
 
     color: $grid-column-color;
+    background-color: $grid-column-background-color;
 
     @include font($grid-column-font-weight, $grid-column-font-size, $grid-column-line-height, $grid-column-font-family);
     padding: $grid-column-padding;

@@ -29,9 +29,8 @@
                 profile = 'modern';
             }
             else {
-                profile = 'classic';
                 //profile = tags.desktop ? 'classic' : 'modern';
-                //profile = tags.phone ? 'modern' : 'classic';
+                profile = tags.phone ? 'modern' : 'classic';
             }
 
             Ext.manifest = profile; // this name must match a build profile name

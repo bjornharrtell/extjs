@@ -117,6 +117,34 @@ Ext.define('Ext.resizer.ResizeTracker', {
         }
     },
 
+    onMouseDown: function (e, target) {
+        // Logic to resize components on top of iframes. To properly handle iframes "below"
+        // the resizable component, we cannot wait for triggerStart or onStart because if
+        // mouse moves out of the component and over the iframe we won't detect that the
+        // drag has started. So we have to mask the iframes now. We cannot do this in
+        // general because other draggable things cannot assume that mouseDown is safe
+        // for this purpose. In particular ComponentDragger on a maximaizable window will
+        // get tricked by the maximize button onMouseDown and mask everything but will
+        // noever get the onMopuseUp to unmask.
+        var targetEl = Ext.fly(target.parentNode);
+            
+        this.callParent(arguments);
+        
+        if (targetEl && targetEl.shim) {
+            targetEl.maskIframes();
+        }
+    },
+
+    onMouseUp: function(e) {
+        var targetEl = Ext.fly(this.dragTarget.parentNode);
+        
+        this.callParent(arguments);
+        
+        if (targetEl && targetEl.shim) {
+            targetEl.unmaskIframes();
+        }
+    },
+
     onDrag: function(e) {
         // dynamic resizing, update dimensions during resize
         if (this.dynamic || this.proxy) {

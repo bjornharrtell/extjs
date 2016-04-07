@@ -822,7 +822,12 @@ Ext.Function = (function() {
      *
      * @param {Number} id The id returned by `{@link Ext#asap}`.
      */
-    Ext.asapCancel = hasImmediate ? clearImmediate : clearTimeout;
+    Ext.asapCancel = hasImmediate ?
+        function(id) {
+            clearImmediate(id);
+        } : function(id) {
+            clearTimeout(id);
+        };
 
     /**
      * @method

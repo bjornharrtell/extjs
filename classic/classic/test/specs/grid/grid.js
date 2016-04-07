@@ -1,7 +1,24 @@
 describe("grid-general", function() {
-    var grid, store;
+    var grid, store,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
 
-    afterEach(function(){
+    beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+    });
+
+    afterEach(function() {
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+
         grid = store = Ext.destroy(grid, store);
     });
 
@@ -21,15 +38,13 @@ describe("grid-general", function() {
                 transform = dom.style[transformStyleName];
                 return transform ? parseInt(transform.split(',')[1], 10) : 0;
             } else {
-                return parseInt(dom.style.position.top || '0', 10);
+                return parseInt(dom.style.top || '0', 10);
             }
         }
 
     function createSuite(buffered) {
         describe(buffered ? "with buffered rendering" : "without buffered rendering", function() {
-            var testIt = Ext.isWebKit ? it : xit,
-                testNonIE = Ext.isIE ? xit : it,
-                GridModel = Ext.define(null, {
+            var GridModel = Ext.define(null, {
                     extend: 'Ext.data.Model',
                     fields: [
                         'field1',
@@ -134,6 +149,13 @@ describe("grid-general", function() {
                 view = colRef = null;
                 Ext.data.Model.schema.clear();
             });
+
+            function getCellText(row, col) {
+                var cell = view.getCell(store.getAt(row), colRef[col]),
+                    selectorView = grid.lockedGrid ? grid.lockedGrid.getView() : view;
+
+                return cell.down(selectorView.innerSelector).dom.innerHTML;
+            }
 
             describe("misc tests", function() {
                 // EXTJS-16436
@@ -1089,6 +1111,33 @@ describe("grid-general", function() {
 
                     expect(called).toBe(3);
                 });
+
+                it("should treat dynamic renderers as needed to run in all cases", function() {
+                    var x = 0;
+
+                    var VC = Ext.define(null, {
+                        extend: 'Ext.app.ViewController',
+                        doRender: function() {
+                            return 'x' + ++x;
+                        }
+                    });
+
+                    makeGrid([{
+                        dataIndex: 'field1'
+                    }, {
+                        renderer: 'doRender'
+                    }],
+                    1, // ONE row of data, so that the first call of the custom renderer
+                       // increments x to one, and the second call renders 2.
+                    {
+                        controller: new VC()
+                    });
+
+                    var rec = store.getAt(0);
+                    expect(getCellText(0, 1)).toBe('x1');
+                    rec.set('field1', 'foo');
+                    expect(getCellText(0, 1)).toBe('x2');
+                });
             });
             
             describe("model operations", function() {
@@ -1110,13 +1159,6 @@ describe("grid-general", function() {
             });
             
             describe("reconfigure", function() {
-                function getCellText(row, col) {
-                    var cell = view.getCell(store.getAt(row), colRef[col]),
-                        selectorView = grid.lockedGrid ? grid.lockedGrid.getView() : view;
-
-                    return cell.down(selectorView.innerSelector).dom.innerHTML;
-                }
-
                 function makeReconfigureSuite(beforeRender) {
                     function makeReconfigureGrid(columns, data, cfg, options, locked) {
                         cfg = cfg || {};
@@ -1214,6 +1256,10 @@ describe("grid-general", function() {
                                     it("should react to store load", function() {
                                         store.loadData([{}, {}, {}, {}, {}, {}]);
                                         expectNodeLength(6);
+                                    });
+
+                                    it("should bind the new store to the loadMask", function() {
+                                        expect(grid.getView().loadMask.store).toBe(store);
                                     });
 
                                     it("should bind to the selection model", function() {
@@ -1319,6 +1365,10 @@ describe("grid-general", function() {
                                     it("should react to store load", function() {
                                         store.loadData([{}, {}, {}, {}, {}, {}]);
                                         expectNodeLength(6);
+                                    });
+
+                                    it("should bind the new store to the loadMask", function() {
+                                        expect(grid.getView().loadMask.store).toBe(store);
                                     });
 
                                     it("should bind to the selection model", function() {
@@ -2131,18 +2181,6 @@ describe("grid-general", function() {
                         // Important
                         // The scrollHeight matching must allow a 1px deviation.
                         // ScrollHeight is sometimes reported as 1px more than the actual content height.
-                        this.addMatchers({
-                            toBeWithin: function(deviation, value) {
-                                var actual = this.actual;
-
-                                if (deviation > 0) {
-                                    return actual >= (value - deviation) && actual <= (value + deviation);
-                                } else {
-                                    return actual >= (value + deviation) && actual <= (value - deviation);
-                                }
-                            }
-                        });
-
                         var i, j,
                             row;
 
@@ -2174,7 +2212,7 @@ describe("grid-general", function() {
                         viewSize = bufferedRenderer.viewSize;
                     });
 
-                    testIt('should handle removing range above the rendered view', function() {
+                    it('should handle removing range above the rendered view', function() {
                         var oldRowStartIndex;
 
                         rowHeight = bufferedRenderer.rowHeight;
@@ -2206,7 +2244,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(rows.startIndex * rowHeight - view.body.getBorderWidth('t'));
                     });
 
-                    testIt('should handle removing range which intersects the top of the rendered view', function() {
+                    it('should handle removing range which intersects the top of the rendered view', function() {
                         rowHeight = bufferedRenderer.rowHeight;
 
                         // Constant row height, so we know the scroll range
@@ -2230,7 +2268,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(rows.startIndex * rowHeight - view.body.getBorderWidth('t'));
                     });
 
-                    testIt('should handle removing range wholly within the rendered view', function() {
+                    it('should handle removing range wholly within the rendered view', function() {
                         rowHeight = bufferedRenderer.rowHeight;
 
                         // Constant row height, so we know the scroll range
@@ -2254,7 +2292,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(rows.startIndex * rowHeight - view.body.getBorderWidth('t'));
                     });
 
-                    testIt('should handle removing range which intersects the bottom of the rendered view', function() {
+                    it('should handle removing range which intersects the bottom of the rendered view', function() {
                         rowHeight = bufferedRenderer.rowHeight;
 
                         // Constant row height, so we know the scroll range
@@ -2278,7 +2316,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(rows.startIndex * rowHeight - view.body.getBorderWidth('t'));
                     });
 
-                    testIt('should handle removing range which removes everything from halfway down rendered view', function() {
+                    it('should handle removing range which removes everything from halfway down rendered view', function() {
                         rowHeight = bufferedRenderer.rowHeight;
 
                         // Constant row height, so we know the scroll range
@@ -2302,7 +2340,7 @@ describe("grid-general", function() {
                     });
 
 
-                    testIt('should handle removing range which removes from top to halfway down rendered view', function() {
+                    it('should handle removing range which removes from top to halfway down rendered view', function() {
                         rowHeight = bufferedRenderer.rowHeight;
 
                         // Constant row height, so we know the scroll range
@@ -2331,7 +2369,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(0);
                     });
 
-                    testIt('should handle removing range below the rendered view', function() {
+                    it('should handle removing range below the rendered view', function() {
                         rowHeight = bufferedRenderer.rowHeight;
 
                         // Constant row height, so we know the scroll range
@@ -2355,7 +2393,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(rows.startIndex * rowHeight - view.body.getBorderWidth('t'));
                     });
 
-                    testIt('should handle removing range which encompasses the rendered view and leaves less than view size rows remaining', function() {
+                    it('should handle removing range which encompasses the rendered view and leaves less than view size rows remaining', function() {
                         rowHeight = bufferedRenderer.rowHeight;
 
                         // Constant row height, so we know the scroll range
@@ -2379,7 +2417,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(0);
                     });
 
-                    testIt('should handle removing range which encompasses the rendered view', function() {
+                    it('should handle removing range which encompasses the rendered view', function() {
                         rowHeight = bufferedRenderer.rowHeight;
 
                         // Constant row height, so we know the scroll range
@@ -2403,7 +2441,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(Math.max(rows.startIndex * rowHeight, 0));
                     });
 
-                    testIt('should handle removing range which leaves less than the viewSize rows in store', function() {
+                    it('should handle removing range which leaves less than the viewSize rows in store', function() {
                         rowHeight = bufferedRenderer.rowHeight;
 
                         // Constant row height, so we know the scroll range
@@ -2427,7 +2465,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(0);
                     });
                     
-                    testIt('Should prepend to the rendered block when inserting at position 0', function() {
+                    it('Should prepend to the rendered block when inserting at position 0', function() {
                         var cell00;
                         scrollTop = view.getScrollY();
                         
@@ -2450,7 +2488,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(0);
                     });
 
-                    testIt('should handle adding range above the rendered view', function() {
+                    it('should handle adding range above the rendered view', function() {
                         var oldRowStartIndex;
 
                         rowHeight = bufferedRenderer.rowHeight;
@@ -2485,7 +2523,7 @@ describe("grid-general", function() {
                         expect(getViewTop(view.body)).toBe(rows.startIndex * rowHeight - view.body.getBorderWidth('t'));
                     });
 
-                    testIt('should render rows when buffered block is less than the view size', function() {
+                    it('should render rows when buffered block is less than the view size', function() {
                         var v = viewSize,
                             targetViewSize = v - 10;
 
@@ -2699,7 +2737,7 @@ describe("grid-general", function() {
             });
 
             describe("locking columns", function(){
-                testNonIE("should synchronize horizontal scrollbar presence between locked and normal side.", function(){
+                it("should synchronize horizontal scrollbar presence between locked and normal side.", function(){
                     var indexes = [],
                         fn = function(){
                             indexes.push(arguments[4]);
@@ -3212,9 +3250,24 @@ describe("grid-general", function() {
                                 }], 10);
 
                                 var measureView = (withLocking ? grid.normalGrid : grid).getView(),
-                                    viewHeight = measureView.getHeight();
+                                    viewHeight = measureView.getHeight(),
+                                    measureNode = Ext.fly(measureView.getNode(0));
 
-                                singleRowHeight = Ext.fly(measureView.getNode(0)).getHeight();
+                                singleRowHeight = measureNode.getHeight();
+                                
+                                // In IE8 we're adding bottom border on all the rows to work around
+                                // the lack of :last-child selector, and we compensate that by setting
+                                // a negative top margin that equals the border width, so that top and
+                                // bottom borders overlap on adjacent rows. Negative margin does not
+                                // affect the row's reported height though so we have to compensate
+                                // for that effectively invisible additional border width here.
+                                // Note that this code mostly duplicates the actual row height
+                                // calculation performed in BufferedRenderer.getScrollHeight(),
+                                // and the same compensation is applied there as well.
+                                if (Ext.isIE8) {
+                                    singleRowHeight -= measureNode.getBorderWidth('b');
+                                }
+                                
                                 maxRowsBeforeScroll = Math.floor(viewHeight / singleRowHeight);
                                 viewHeight -= Ext.getScrollbarSize().width;
                                 maxRowsBeforeScrollWithHorizontalScrollBar = Math.floor(viewHeight / singleRowHeight);
@@ -6104,7 +6157,7 @@ describe("grid-general", function() {
                     });
                 }
 
-                function saveAndReload(stateId) {
+                function saveAndRecreate(stateId) {
                     grid.saveState();
                     Ext.destroy(grid);
 
@@ -6126,14 +6179,14 @@ describe("grid-general", function() {
 
                                 it('should retain column width', function () {
                                     grid[partner].columnManager.getColumns()[0].setWidth(250);
-                                    saveAndReload(stateId);
+                                    saveAndRecreate(stateId);
 
                                     expect(grid[partner].columnManager.getColumns()[0].getWidth()).toBe(250);
                                 });
 
                                 it('should retain column visibility', function () {
                                     grid[partner].columnManager.getColumns()[0].hide();
-                                    saveAndReload(stateId);
+                                    saveAndRecreate(stateId);
 
                                     expect(grid[partner].columnManager.getColumns()[0].hidden).toBe(true);
                                 });
@@ -6147,7 +6200,7 @@ describe("grid-general", function() {
                                     // Let's sort again.
                                     column.sort();
 
-                                    saveAndReload(stateId);
+                                    saveAndRecreate(stateId);
 
                                     expect(grid[partner].columnManager.getColumns()[0].sortState).toBe('DESC');
                                 });
@@ -6326,10 +6379,10 @@ describe("grid-general", function() {
                     if (!store.data.peekPage(1)) {
                         return true;
                     }
-                    view.scrollBy(0, 100);
+                    view.scrollBy(null, 100);
                     scrollRequestCount++;
                 }
-            });
+            }, 'Page one to have been purged from the PageCache', 20000);
 
             runs(function() {
                 scrollEventCount = 0;
@@ -6338,7 +6391,7 @@ describe("grid-general", function() {
             
             waitsFor(function() {
                 return scrollEventCount === 1;
-            });
+            }, 'A scroll event to fire', 20000);
             runs(function() {
                 satisfyRequests();
 
@@ -6357,7 +6410,7 @@ describe("grid-general", function() {
                 }
 
                 if (scrollEventCount === scrollRequestCount) {
-                    view.scrollBy(0, scrollSize);
+                    view.scrollBy(null, scrollSize);
                     scrollRequestCount++;
                 }
             });
@@ -6392,7 +6445,7 @@ describe("grid-general", function() {
                 }
 
                 if (scrollEventCount === scrollRequestCount) {
-                    view.scrollBy(0, scrollSize);
+                    view.scrollBy(null, scrollSize);
                     scrollRequestCount++;
                 }
             });
@@ -6749,6 +6802,67 @@ describe("grid-general", function() {
                     expect(grid.view.getScrollY()).toBe(0);
                 });
             });
+        });
+    });
+
+    describe('Locking a column when grid configured with enableLocking, but no locked columns', function() {
+        it('should not throw an error, and should maintain scroll position', function() {
+            var scrollY;
+
+            grid = new Ext.grid.Panel({
+                renderTo: Ext.getBody(),
+                width: 400,
+                height: 400,
+                title: 'Lock a column',
+                columns: [{
+                    dataIndex: 'name',
+                    text: 'Name'
+                }, {
+                    dataIndex: 'age',
+                    text: 'Age'
+                }],
+
+                enableLocking: true,
+
+                store: {
+                    fields: [{
+                        name: 'name',
+                        type: 'string'
+                    }, {
+                        name: 'age',
+                        type: 'int'
+                    }],
+                    data: (function() {
+                        var data = [];
+                        var len = 44; // <-- 43 records does not trigger error
+                        while (len--) {
+                            data.unshift({
+                                name: 'User ' + len,
+                                age: Ext.Number.randomInt(0, 100)
+                            });
+                        }
+                        return data;
+                    })()
+                },
+                bbar: ['->', Ext.versions.extjs.version]
+            });
+
+            // Scroll to end (ensureVisible sanitzes the inputs)
+            grid.ensureVisible(100);
+
+            // Locked grid is hidden because there are no locked columns
+            expect(grid.lockedGrid.isVisible()).toBe(false);
+
+            // Cache vertical scroll pos
+            scrollY = grid.normalGrid.view.getScrollY();
+
+            grid.lock(grid.getVisibleColumnManager().getColumns()[1]);
+
+            // Should result in showing the locked grid
+            expect(grid.lockedGrid.isVisible()).toBe(true);
+
+            // Scroll position should be preserved
+            expect(grid.lockedGrid.view.getScrollY()).toBe(scrollY);
         });
     });
 });

@@ -48,6 +48,8 @@ Ext.define('Ext.grid.RowEditor', {
     // the roweditor is hidden for laying out things like a TriggerField.
     hideMode: 'offsets',
 
+    _cachedNode : false,
+
     initComponent: function() {
         var me = this,
             grid = me.editingPlugin.grid,
@@ -125,7 +127,7 @@ Ext.define('Ext.grid.RowEditor', {
             scope: me,
             show: me.repositionIfVisible
         });
-        
+
         form = me.getForm();
         form.trackResetOnLoad = true;
         form.on('validitychange', me.onValidityChange, me);
@@ -280,30 +282,80 @@ Ext.define('Ext.grid.RowEditor', {
             context = me.context,
             row;
 
-        // Recover our row node after a view refresh
-        if (context && (row = view.getRow(context.record))) {
-            context.row = row;
-            me.reposition();
-            if (me.tooltip && me.tooltip.isVisible()) {
-                me.tooltip.setTarget(context.row);
+        // Ignore refresh caused by the completion process
+        if (!me.completing) {
+            // Recover our row node after a view refresh
+            if (context && (row = view.getRow(context.record))) {
+                context.row = row;
+                me.reposition();
+                if (me.tooltip && me.tooltip.isVisible()) {
+                    me.tooltip.setTarget(context.row);
+                }
+            } else {
+                me.editingPlugin.cancelEdit();
             }
-        } else {
-            me.editingPlugin.cancelEdit();
         }
     },
 
-    onViewItemRemove: function(record, index, item, view) {
-
+    onViewItemRemove: function(records, index, items, view) {
+        var me = this,
+            grid,
+            store,
+            gridView,
+            context,
+            record,
+            plugin;
         // If the itemremove is due to refreshing, ignore it.
         // If the row for the current context record has gone after the
         // refresh, editing will be canceled there. See onViewRefresh above.
         if (!view.refreshing) {
-            var context = this.context;
-            if (context && record === context.record) {
-                // if the record being edited was removed, cancel editing
-                // Deactivate field so that we do not attempt to focus the underlying cell; it's gone.
+            plugin = me.editingPlugin;
+            grid = plugin.grid;
+            store = grid.getStore();
+            gridView = me.editingPlugin.view;
+            context = this.context;
+            // Checking if this is a deleted record or an element being derendered
+            if (store.getById(me.getRecord().getId()) && !me._cachedNode) {
+                // if this is an items being derendered and is also being edited
+                // the flag _cachedNode will be set to true and an itemadd event will
+                // be added to monitor when the editor should be reactivated.
+                if (plugin.editing) {
+                    this._cachedNode = true;
+                    this.mon(gridView, {
+                        itemadd: me.onViewItemAdd,
+                        scope: me
+                    });
+                }
+            } else if (!me._cachedNode) {
                 this.activeField = null;
                 this.editingPlugin.cancelEdit();
+            }
+        }
+    },
+
+    onViewItemAdd: function(records, index, items, view) {
+        var me = this,
+            gridView,
+            plugin = me.editingPlugin;
+        
+        // Checks if BufferedRenderer is adding the items 
+        // if there was an item being edited, and it belongs to this batch
+        // then update the row and node associations.
+        if (me._cachedNode && plugin.editing) {
+            gridView = plugin.view;
+            // Checks if there is an array of records being added
+            // and if within this array, any record matches the one being edited before
+            // if it does, the editor context is updated, the itemadd
+            // event listener is removed and _cachedNode is cleared.
+
+            for (var i=0;i<records.length;i++){
+                if (records[i] === me.context.record){
+                    me.context.node = items[i];
+                    me.context.row = gridView.getRow(items[i]);
+                    me.context.cell = gridView.getCellByPosition(me.context, true);
+                    me.clearCache();
+                    break;
+                }
             }
         }
     },
@@ -324,15 +376,18 @@ Ext.define('Ext.grid.RowEditor', {
 
             // Only reposition if the row is in the DOM (buffered rendering may mean the context row is not there)
             if (row && viewEl.contains(row)) {
-                if (scrollTopChanged) {
+                // This makes sure the Editor is repositioned if it was scrolled out of buffer range
+                if(me.getLocalY()) {
+                    me.setLocalY(0);
+                }
 
+                if (scrollTopChanged) {
                     // The row element in the context may be stale due to buffered rendering removing out-of-view rows, then re-inserting newly rendered ones
                     me.context.row = row;
                     me.reposition(null, true);
                     if ((me.tooltip && me.tooltip.isVisible()) || me.hiddenTip) {
                         me.repositionTip();
                     }
-
                     me.syncEditorClip();
                 }
             }
@@ -449,9 +504,21 @@ Ext.define('Ext.grid.RowEditor', {
 
     onFieldFocus: function(field) {
         // Cache the active field so that we can restore focus into its cell onHide
+
+        // Makes the cursor always be placed at the end of the textfield
+        // when the field is being edited for the first time (IE only).
+        if(Ext.isIE) {
+            field.inputEl.dom.value = field.inputEl.dom.value;
+        }
         this.activeField = field;
         this.context.setColumn(field.column);
-        field.column.getView().getScrollable().scrollIntoView(field.el);
+
+        // skipFocusScroll should be true right after the editor has been started
+        if(!this.skipFocusScroll) {
+            field.column.getView().getScrollable().scrollIntoView(field.el);
+        } else {
+            this.skipFocusScroll = null;
+        }
     },
 
     onFieldTab: function(e) {
@@ -554,7 +621,6 @@ Ext.define('Ext.grid.RowEditor', {
         var me = this,
             context = me.context,
             row = context && context.row,
-            yOffset = 0,
             wrapEl = me.wrapEl,
             rowTop,
             localY,
@@ -566,15 +632,8 @@ Ext.define('Ext.grid.RowEditor', {
 
             deltaY = me.syncButtonPosition(me.getScrollDelta());
 
-            if (!me.editingPlugin.grid.rowLines) { 
-                // When the grid does not have rowLines we add a bottom border to the previous
-                // row when the row is focused, but subtract the border width from the 
-                // top padding to keep the row from changing size.  This adjusts the top offset
-                // of the cell edtor to account for the added border.
-                yOffset = -parseInt(Ext.fly(row).first().getStyle('border-bottom-width'), 10);
-            }
             rowTop = me.calculateLocalRowTop(row);
-            localY = me.calculateEditorTop(rowTop) + yOffset;
+            localY = me.calculateEditorTop(rowTop);
 
             // If not being called from scroll handler...
             // If the editor's top will end up above the fold
@@ -848,6 +907,9 @@ Ext.define('Ext.grid.RowEditor', {
             alreadyVisible = me.isVisible(),
             wrapEl = me.wrapEl;
 
+        if (me._cachedNode) {
+            me.clearCache();
+        }
         // Ensure that the render operation does not lay out
         // The show call will update the layout
         Ext.suspendLayouts();
@@ -869,6 +931,8 @@ Ext.define('Ext.grid.RowEditor', {
             // On first show we need to ensure that we have the scroll positions cached
             me.onViewScroll();
         }
+
+        me.setLocalY(0);
         
         // Select at the clicked position.
         context.grid.getSelectionModel().selectByPosition({
@@ -888,12 +952,11 @@ Ext.define('Ext.grid.RowEditor', {
         if (alreadyVisible) {
             me.reposition(true);
         } else {
-            // We need to make sure that the target row is visible in the grid view. For
-            // example, a row could be added to the view and then immediately edited. In
-            // this case, we need to ensure that the row is visible in the view before the
-            // editor is shown and is positioned.
-            // See EXTJS-17349.
-            grid.ensureVisible(record);
+            // this will prevent the onFieldFocus method from calling
+            // scrollIntoView right after startEdit as this will be
+            // handled by the Editing plugin.
+            me.skipFocusScroll = true;
+            
             me.show();
         }
     },
@@ -1019,6 +1082,9 @@ Ext.define('Ext.grid.RowEditor', {
             length = items.length,
             i;
 
+        if (me._cachedNode) {
+            me.clearCache();
+        }
         me.hide();
         form.clearInvalid();
 
@@ -1034,6 +1100,18 @@ Ext.define('Ext.grid.RowEditor', {
         }
     },
 
+    /*
+    * @private
+    */
+    clearCache : function() {
+        var me = this;
+        me.mun(me.editingPlugin.view, {
+            itemadd : me.onViewItemAdd,
+            scope: me
+        });
+        me._cachedNode = false;
+    },
+
     completeEdit: function() {
         var me = this,
             form = me.getForm();
@@ -1042,8 +1120,10 @@ Ext.define('Ext.grid.RowEditor', {
             return false;
         }
 
+        me.completing = true;
         form.updateRecord(me.context.record);
         me.hide();
+        me.completing = false;
         return true;
     },
 
@@ -1064,16 +1144,23 @@ Ext.define('Ext.grid.RowEditor', {
 
     onHide: function() {
         var me = this,
+            context = me.context,
             column,
-            focusContext;
+            focusContext,
+            activeEl = Ext.Element.getActiveElement();
 
-        // Try to push focus into the cell below the active field
-        if (me.activeField) {
+        // If they used ESC or ENTER in a Field
+        if (me.el.contains(activeEl)) {
             column = me.activeField.column;
-            focusContext = new Ext.grid.CellContext(column.getView()).setPosition(me.context.record, column);
-            focusContext.view.getNavigationModel().setPosition(focusContext);
-            me.activeField = null;
         }
+        // If they used a button
+        else {
+            column = context.column;
+        }
+        focusContext = new Ext.grid.CellContext(column.getView()).setPosition(me.context.record, column);
+        focusContext.view.getNavigationModel().setPosition(focusContext);
+        me.activeField = null;
+
         me.wrapEl.hide();
         me.callParent(arguments);
         if (me.tooltip) {

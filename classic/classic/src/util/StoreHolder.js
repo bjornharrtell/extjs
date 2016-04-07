@@ -13,7 +13,7 @@ Ext.define('Ext.util.StoreHolder', {
         'Ext.data.StoreManager'
     ],
     mixinId: 'storeholder',
-    
+
     /**
      * Binds a store to this instance.
      * @param {Ext.data.AbstractStore/String} [store] The store to bind or ID of the store.
@@ -40,14 +40,16 @@ Ext.define('Ext.util.StoreHolder', {
                     me.unbindStoreListeners(oldStore);
                 }
             }
+
             if (store) {
                 me[propertyName] = store = Ext.data.StoreManager.lookup(store);
                 me.bindStoreListeners(store);
-                me.onBindStore(store, initial, propertyName, oldStore);
+                me.onBindStore(store, oldStore);
             } else {
                 me[propertyName] = null;
             }
         }
+
         return me;
     },
 
@@ -72,7 +74,7 @@ Ext.define('Ext.util.StoreHolder', {
      * Unbinds listeners from this component to the store. By default it will remove
      * anything bound by the bindStoreListeners method, however it can be overridden
      * in a subclass to provide any more complicated handling.
-     * @protected 
+     * @protected
      * @param {Ext.data.AbstractStore} store The store to unbind from
      */
     unbindStoreListeners: function(store) {
@@ -87,7 +89,7 @@ Ext.define('Ext.util.StoreHolder', {
      * Binds listeners for this component to the store. By default it will add
      * anything bound by the getStoreListeners method, however it can be overridden
      * in a subclass to provide any more complicated handling.
-     * @protected 
+     * @protected
      * @param {Ext.data.AbstractStore} store The store to bind to
      */
     bindStoreListeners: function(store) {
@@ -105,6 +107,7 @@ Ext.define('Ext.util.StoreHolder', {
     },
 
     /**
+     * @method
      * Gets the listeners to bind to a new store.
      * @protected
      * @param {Ext.data.Store} store The Store which is being bound to for which a listeners object should be returned.
@@ -114,6 +117,7 @@ Ext.define('Ext.util.StoreHolder', {
     getStoreListeners: Ext.emptyFn,
 
     /**
+     * @method
      * Template method, it is called when an existing store is unbound
      * from the current instance.
      * @protected
@@ -123,11 +127,12 @@ Ext.define('Ext.util.StoreHolder', {
     onUnbindStore: Ext.emptyFn,
 
     /**
+     * @method
      * Template method, it is called when a new store is bound
      * to the current instance.
      * @protected
      * @param {Ext.data.AbstractStore} store The store being bound
      * @param {Boolean} initial True if this store is being bound as initialization of the instance.
      */
-    onBindStore: Ext.emptyFn    
+    onBindStore: Ext.emptyFn
 });

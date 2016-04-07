@@ -10,6 +10,41 @@ Ext.define('Ext.data.request.Ajax', {
     requires: [
         'Ext.data.flash.BinaryXhr'
     ],
+
+    statics: {
+
+        /**
+         * Checks if the response status was successful
+         * @param {Number} status The status code
+         * @return {Object} An object containing success/status state
+         * @private
+         */
+        parseStatus: function(status) {
+            // see: https://prototype.lighthouseapp.com/projects/8886/tickets/129-ie-mangles-http-response-status-code-204-to-1223
+            status = status == 1223 ? 204 : status;
+
+            var success = (status >= 200 && status < 300) || status == 304,
+                isException = false;
+
+            if (!success) {
+                switch (status) {
+                    case 12002:
+                    case 12029:
+                    case 12030:
+                    case 12031:
+                    case 12152:
+                    case 13030:
+                        isException = true;
+                        break;
+                }
+            }
+
+            return {
+                success: success,
+                isException: isException
+            };
+        }
+    },
     
     start: function(data) {
         var me = this,
@@ -361,7 +396,7 @@ Ext.define('Ext.data.request.Ajax', {
         }
         
         try {
-            result = me.parseStatus(xhr.status);
+            result = Ext.data.request.Ajax.parseStatus(xhr.status);
             
             if (result.success) {
                 // This is quite difficult to reproduce, however if we abort a request
@@ -408,37 +443,6 @@ Ext.define('Ext.data.request.Ajax', {
     },
 
     /**
-     * Checks if the response status was successful
-     * @param {Number} status The status code
-     * @return {Object} An object containing success/status state
-     */
-    parseStatus: function(status) {
-        // see: https://prototype.lighthouseapp.com/projects/8886/tickets/129-ie-mangles-http-response-status-code-204-to-1223
-        status = status == 1223 ? 204 : status;
-
-        var success = (status >= 200 && status < 300) || status == 304,
-            isException = false;
-
-        if (!success) {
-            switch (status) {
-                case 12002:
-                case 12029:
-                case 12030:
-                case 12031:
-                case 12152:
-                case 13030:
-                    isException = true;
-                    break;
-            }
-        }
-        
-        return {
-            success: success,
-            isException: isException
-        };
-    },
-
-    /**
      * Creates the response object
      * @param {Object} request
      * @private
@@ -471,8 +475,12 @@ Ext.define('Ext.data.request.Ajax', {
             requestId: me.id,
             status: xhr.status,
             statusText: xhr.statusText,
-            getResponseHeader: me._getHeader,
-            getAllResponseHeaders: me._getHeaders
+            getResponseHeader: function(header) {
+                return headers[header.toLowerCase()];
+            },
+            getAllResponseHeaders: function() {
+                return headers;
+            }
         };
 
         if (isXdr) {

@@ -2,7 +2,6 @@ $touch-theme-neptune: true;
 
 /**
  * @class Global_CSS
- * Global CSS variables and mixins.
  */
 
 /**
@@ -125,9 +124,9 @@ $font-family: dynamic(helvetica, arial, sans-serif);
 $font-size: dynamic(81.25%);
 
 /**
- * @var {number} $font-size
+ * @var {number}
  * The base font-size to be used throughout the theme in the
- * {@link Ext.Component#$enable-big big} sizing scheme
+ * {@link Global_CSS#$enable-big big} sizing scheme
  */
 $font-size-big: dynamic(93.75%);
 
@@ -154,12 +153,6 @@ $confirm-color: dynamic(#92cf00);  // Green
  * Color used for elements like selected rows and certain overlays like the picker mask.
  */
 $active-color: dynamic(darken(saturate($base-color, 55%), 10%));
-
-/**
- * @var {color} $neutral-color
- * Color used for the neautral `ui` for Toolbars and Tabbars.
- */
-$neutral-color: #e0e0e0;
 
 /**
  * @var {measurement} $global-row-height

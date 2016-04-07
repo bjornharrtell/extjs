@@ -1,6 +1,6 @@
 Ext.define('Admin.view.dashboard.Sales', {
     extend: 'Ext.panel.Panel',
-    xtype: 'dashboardsalespanel',
+    xtype: 'sales',
 
     requires: [
         'Ext.chart.CartesianChart',
@@ -9,20 +9,15 @@ Ext.define('Admin.view.dashboard.Sales', {
         'Ext.chart.series.Bar'
     ],
 
-    cls: 'quick-graph-panel shadow-panel',
+    title: 'Sales',
+    ui: 'light',
+    iconCls: 'x-fa fa-briefcase',
+    headerPosition: 'bottom',
+
+    cls: 'quick-graph-panel shadow',
     height: 130,
     layout: 'fit',
-    headerPosition: 'bottom',
-    iconCls: 'x-fa fa-briefcase',
 
-    title: 'Sales',
-    tools: [
-        {
-            xtype: 'tool',
-            cls: 'quick-graph-panel-tool x-fa fa-ellipsis-v'
-        }
-    ],
-    
     items: [
         {
             xtype: 'cartesian',
@@ -32,9 +27,7 @@ Ext.define('Admin.view.dashboard.Sales', {
             colors: [
                 '#ffffff'
             ],
-            bind: {
-                store: '{dashboard.QGBarStore}'
-            },
+            bind: '{quarterlyGrowth}',
             axes: [
                 {
                     type: 'category',

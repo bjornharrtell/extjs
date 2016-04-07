@@ -63,10 +63,6 @@ Ext.define('Ext.grid.column.RowNumberer', {
      */
     producesHTML: false,
 
-    /**
-     * @cfg {Boolean} ignoreExport
-     * @inheritdoc
-     */
     ignoreExport: true,
 
     constructor: function (config) {
@@ -84,9 +80,6 @@ Ext.define('Ext.grid.column.RowNumberer', {
         me.scope = me;
     },
 
-    /**
-     * @private
-     */
     resizable: false,
     hideable: false,
     menuDisabled: true,
@@ -96,9 +89,6 @@ Ext.define('Ext.grid.column.RowNumberer', {
     innerCls: Ext.baseCSSPrefix + 'grid-cell-inner-row-numberer',
     rowspan: undefined,
 
-    /**
-     * @private
-     */
     defaultRenderer: function(value, metaData, record, rowIdx, colIdx, dataSource, view) {
         var rowspan = this.rowspan,
             page = dataSource.currentPage,

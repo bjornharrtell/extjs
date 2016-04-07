@@ -175,7 +175,6 @@ Ext.define('Ext.grid.column.Column', {
          * @cfg {Boolean} editable
          * Set this to true to make this column editable.
          * Only applicable if the grid is using an {@link Ext.grid.plugin.Editable Editable} plugin.
-         * @type {Boolean}
          */
         editable: false,
 
@@ -193,7 +192,6 @@ Ext.define('Ext.grid.column.Column', {
          * An optional config object that should not really be modified. This is used to create
          * a default editor used by the {@link Ext.grid.plugin.Editable Editable} plugin when no
          * {@link #editor} is specified.
-         * @type {Object}
          */
         defaultEditor: {
             xtype: 'textfield',
@@ -239,7 +237,7 @@ Ext.define('Ext.grid.column.Column', {
          */
         summaryRenderer: null,
 
-        minWidth: 20,
+        minWidth: 40,
         baseCls: Ext.baseCSSPrefix + 'grid-column',
         sortedCls: Ext.baseCSSPrefix + 'column-sorted',
         sortDirection: null,
@@ -285,7 +283,15 @@ Ext.define('Ext.grid.column.Column', {
          * **Note** See {@link Ext.grid.Grid} documentation for other, better alternatives
          * to rendering cell content.
          */
-        tpl: null
+        tpl: null,
+
+        /**
+         * @cfg {Number} computedWidth
+         * The computed width for this column, may come from either 
+         * {@link #width} or {@link #flex}.
+         * @readonly
+         */
+        computedWidth: null
     },
 
     applyTpl: function (tpl) {
@@ -330,7 +336,35 @@ Ext.define('Ext.grid.column.Column', {
 
     updateWidth: function(width, oldWidth) {
         this.callParent([width, oldWidth]);
-        this.fireEvent('columnresize', this, width);
+        // If width === null, it means we've been set to flex and the, layout
+        // is trying to update us, don't want to trigger here
+        if (width !== null) {
+            this.setComputedWidth(width);
+        }
+    },
+
+    updateFlex: function(flex, oldFlex) {
+        var me = this,
+            listener = me.resizeListener;
+
+        me.callParent([flex, oldFlex]);
+        if (!flex) {
+            me.resizeListener = Ext.destroy(listener);
+        } else if (!listener) {
+            me.resizeListener = me.on('resize', me.onFlexResize, me, {destroyable: true});
+        }
+    },
+
+    onFlexResize: function() {
+        this.setComputedWidth(this.element.getWidth(false, true));
+    },
+
+    getComputedWidth: function() {
+        return this.isVisible(true) ? this.callParent() : 0;
+    },
+
+    updateComputedWidth: function(computedWidth, oldComputedWidth) {
+        this.fireEvent('columnresize', this, computedWidth, oldComputedWidth);
     },
 
     updateDataIndex: function(dataIndex) {
@@ -358,5 +392,10 @@ Ext.define('Ext.grid.column.Column', {
         }
 
         this.fireEvent('sort', this, direction, oldDirection);
+    },
+
+    destroy: function() {
+        this.resizeListener = Ext.destroy(this.resizeListener);
+        this.callParent();
     }
 });

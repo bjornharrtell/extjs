@@ -45,6 +45,15 @@ Ext.define('Ext.tree.NavigationModel', {
         this.isTreeGrid = this.view.ownerGrid.getVisibleColumnManager().getColumns().length > 1;
     },
 
+
+    onCellClick: function(view, cell, cellIndex, record, row, recordIndex, clickEvent) {
+        this.callParent([view, cell, cellIndex, record, row, recordIndex, clickEvent]);
+
+        // Return false if node toggled.
+        // Do not process the cell click further when we do an expand/collapse
+        return !clickEvent.nodeToggled;
+    },
+
     onKeyLeft: function(keyEvent) {
         var me = this,
             view = keyEvent.view,
@@ -107,7 +116,7 @@ Ext.define('Ext.tree.NavigationModel', {
     },
 
     toggleCheck: function(keyEvent) {
-        this.view.onCheckChange(this.record);
+        this.view.onCheckChange(keyEvent);
     },
 
     // (asterisk) on keypad expands all nodes.

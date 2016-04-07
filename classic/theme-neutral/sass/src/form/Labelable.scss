@@ -102,6 +102,12 @@
         min-height: $ui-height;
         padding-top: $padding-top;
         padding-right: $ui-horizontal-spacing;
+        @if $include-rtl {
+            &.#{$prefix}rtl {
+                padding-left: $ui-horizontal-spacing;
+                padding-right: 0;
+            }
+        }
 
         @if $include-ie {
             .#{$prefix}ie8 & {

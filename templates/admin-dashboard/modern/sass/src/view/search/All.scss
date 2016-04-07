@@ -1,0 +1,42 @@
+.search-all {
+    background-color: #fff;
+
+    .search-result-item {
+        padding: 20px;
+
+        .x-innerhtml {
+            padding: 0;
+        }
+    }
+    
+    .search-result-item-selected .search-result-item {
+        background-color: #f2e3b2;
+    }
+
+    img {
+        margin: 10px 10px 0 0;
+    }
+
+    .list-cls {
+        @include list-item-title();
+    }
+
+    a {
+        text-decoration:none;
+        color: $base-color;
+        font-size: 14px;
+        font-weight: normal;
+        margin-bottom: 3px;
+        display: inline-block;
+    }
+
+    .x-list-item {
+        .x-innerhtml {
+            font-size: 14px;
+        }
+    }
+
+    .x-dataview-inner {
+        width: 100% !important;
+    }
+}

@@ -153,8 +153,8 @@ describe("Ext.Element.static", function() {
     describe("getViewSize", function() {
         it("should return the window height and width", function() {
             expect(Ext.Element.getViewSize()).toEqual({
-                width : window.innerWidth,
-                height: window.innerHeight
+                width: Ext.isIE8 ? document.documentElement.scrollWidth : window.innerWidth,
+                height: Ext.isIE8 ? document.documentElement.scrollHeight : window.innerHeight
             });
         });
     });

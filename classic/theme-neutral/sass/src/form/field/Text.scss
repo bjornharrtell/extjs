@@ -296,6 +296,11 @@
         color: $ui-empty-color;
     }
 
+    // selectors with vendor specific pseudo classes cannot be combined with other selectors
+    .#{$prefix}form-text-#{$ui}:-ms-input-placeholder {
+        color: $ui-empty-color;
+    }
+
     .#{$prefix}form-invalid-field-#{$ui} {
         background-color: $ui-invalid-background-color;
         @if not is-null($ui-invalid-background-image) {

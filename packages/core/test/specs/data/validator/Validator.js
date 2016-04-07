@@ -66,5 +66,50 @@ describe("Ext.data.validator.Validator", function() {
             expect(factory('') instanceof Ext.data.validator.Validator).toBe(true);   
         });
     });
-    
+
+    describe("custom validator", function() {
+        var validator;
+
+        beforeEach(function() {
+            Ext.define('Ext.data.validator.Custom', {
+                extend: 'Ext.data.validator.Validator',
+                alias: 'data.validator.custom'
+            });
+
+            validator = Ext.data.validator.Validator.create({
+                type: 'custom'
+            });
+        });
+
+        afterEach(function() {
+            validator.destroy();
+            Ext.undefine('Ext.data.validator.Custom');
+            Ext.Factory.dataValidator.instance.clearCache();
+        });
+
+        it("should be able to create a custom validator", function() {
+            expect(validator instanceof Ext.data.validator.Custom).toBe(true);
+            expect(validator instanceof Ext.data.validator.Validator).toBe(true);
+        });
+
+        it("should pass value and record to Validator validate method", function() {
+            spyOn(validator,'validate').andCallThrough();
+
+            var Model = Ext.define(null,{
+                extend : 'Ext.data.Model',
+                fields : ['test'],
+                validators : {
+                    test : validator
+                }
+            }),
+            record = new Model({
+                test : 'Foo'
+            });
+            
+            record.isValid();
+
+            expect(validator.validate).toHaveBeenCalled();
+            expect(validator.validate).toHaveBeenCalledWith('Foo', record);
+        });
+    });
 });

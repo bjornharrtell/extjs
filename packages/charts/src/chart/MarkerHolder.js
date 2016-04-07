@@ -59,17 +59,54 @@ Ext.define('Ext.chart.MarkerHolder', {
             markers = me.boundMarkers;
 
         if (marker && marker.isMarkers) {
+            //<debug>
+            if (markers[name] && markers[name] === marker) {
+                Ext.log.warn(me.getId(), " (MarkerHolder): the Markers instance '", marker.getId(), "' is already bound under the name '", name, "'.");
+            }
+            //</debug>
+            me.releaseMarker(name);
             markers[name] = marker;
+            marker.on('destroy', me.onMarkerDestroy, me);
         }
     },
 
+    onMarkerDestroy: function (marker) {
+        this.releaseMarker(marker);
+    },
+
     /**
-     * Returns the marker bound to the given name. See {@link #bindMarker}.
+     * Unregisters the given marker or a marker with the given name.
+     * Providing a name of the marker is more efficient as it avoids lookup.
+     * @param marker {String/Ext.chart.Markers}
+     * @return {Ext.chart.Markers} Released marker or null.
+     */
+    releaseMarker: function (marker) {
+        var markers = this.boundMarkers,
+            name;
+
+        if (marker && marker.isMarkers) {
+            for (name in markers) {
+                if (markers[name] === marker) {
+                    delete markers[name];
+                    break;
+                }
+            }
+        } else {
+            name = marker;
+            marker = markers[name];
+            delete markers[name];
+        }
+
+        return marker || null;
+    },
+
+    /**
+     * Returns the marker bound to the given name (or null). See {@link #bindMarker}.
      * @param {String} name The name of the marker (e.g., "items", "labels", etc.).
      * @return {Ext.chart.Markers}
      */
     getMarker: function (name) {
-        return this.boundMarkers[name];
+        return this.boundMarkers[name] || null;
     },
 
     preRender: function () {

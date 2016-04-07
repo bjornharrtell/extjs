@@ -83,22 +83,23 @@ Ext.define('Ext.util.Geolocation', {
         frequency: 10000,
 
         /**
+         * @cfg {Number} latitude
          * Read-only property representing the last retrieved
          * geographical coordinate specified in degrees.
-         * @type Number
          * @readonly
          */
         latitude: null,
 
         /**
+         * @cfg {Number} longitude
          * Read-only property representing the last retrieved
          * geographical coordinate specified in degrees.
-         * @type Number
          * @readonly
          */
         longitude: null,
 
         /**
+         * @cfg {Number} accuracy
          * Read-only property representing the last retrieved
          * accuracy level of the latitude and longitude coordinates,
          * specified in meters.
@@ -106,21 +107,21 @@ Ext.define('Ext.util.Geolocation', {
          * This will always be a non-negative number.
          *
          * This corresponds to a 95% confidence level.
-         * @type Number
          * @readonly
          */
         accuracy: null,
 
         /**
+         * @cfg {Number} altitude
          * Read-only property representing the last retrieved
          * height of the position, specified in meters above the ellipsoid
          * [WGS84](http://dev.w3.org/geo/api/spec-source.html#ref-wgs).
-         * @type Number
          * @readonly
          */
         altitude: null,
 
         /**
+         * @cfg {Number} altitudeAccuracy
          * Read-only property representing the last retrieved
          * accuracy level of the altitude coordinate, specified in meters.
          *
@@ -128,24 +129,24 @@ Ext.define('Ext.util.Geolocation', {
          * Otherwise this returns `null`.
          *
          * This corresponds to a 95% confidence level.
-         * @type Number
          * @readonly
          */
         altitudeAccuracy: null,
 
         /**
+         * @cfg {Number} heading
          * Read-only property representing the last retrieved
          * direction of travel of the hosting device,
          * specified in non-negative degrees between 0 and 359,
          * counting clockwise relative to the true north.
          *
          * If speed is 0 (device is stationary), then this returns `NaN`.
-         * @type Number
          * @readonly
          */
         heading: null,
 
         /**
+         * @cfg {Number} speed
          * Read-only property representing the last retrieved
          * current ground speed of the device, specified in meters per second.
          *
@@ -153,15 +154,14 @@ Ext.define('Ext.util.Geolocation', {
          *
          * If the device is stationary, this returns 0,
          * otherwise it returns a non-negative number.
-         * @type Number
          * @readonly
          */
         speed: null,
 
         /**
+         * @cfg {Date} timestamp
          * Read-only property representing when the last retrieved
          * positioning information was acquired by the device.
-         * @type Date
          * @readonly
          */
         timestamp: null,
@@ -193,7 +193,6 @@ Ext.define('Ext.util.Geolocation', {
          * (or this {@link Ext.util.Geolocation} was initialized with the {@link #autoUpdate} config option set to `true`).
          * Subsequent timeouts are relative to the moment when the device determines that it's position has changed.
          */
-
         timeout: Infinity,
 
         /**

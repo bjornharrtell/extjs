@@ -1,5 +1,5 @@
 /**
- * Base class for all Ext.direct events. An event is
+ * Base class for all Ext Direct events. An event is
  * created after some kind of interaction with the server.
  * The event class is essentially just a data structure
  * to hold a Direct response.

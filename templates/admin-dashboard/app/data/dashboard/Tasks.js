@@ -1,7 +1,7 @@
 Ext.define('Admin.data.dashboard.Tasks', {
     extend: 'Admin.data.Simulated',
 
-	data: [
+    data: [
         {
             "id": 1,
             "task": "Upgrade to SSD harddisks",
@@ -25,11 +25,6 @@ Ext.define('Admin.data.dashboard.Tasks', {
         {
             "id": 5,
             "task": "Upgrade to SSD harddisks",
-            "done": false
-        },
-        {
-            "id": 6,
-            "task": "Pay server invoice",
             "done": false
         }
     ]

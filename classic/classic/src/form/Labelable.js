@@ -74,7 +74,7 @@ Ext.define("Ext.form.Labelable", {
     labelableRenderTpl: [
         '{beforeLabelTpl}',
         '<label id="{id}-labelEl" data-ref="labelEl" class="{labelCls} {labelCls}-{ui} {labelClsExtra} ',
-                '{unselectableCls}" style="{labelStyle}"<tpl if="inputId">',
+                '{childElCls} {unselectableCls}" style="{labelStyle}"<tpl if="inputId">',
                 ' for="{inputId}"</tpl> {labelAttrTpl}>',
             '<span class="{labelInnerCls} {labelInnerCls}-{ui}" style="{labelInnerStyle}">',
             '{beforeLabelTextTpl}',

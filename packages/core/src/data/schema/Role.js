@@ -105,6 +105,8 @@ Ext.define('Ext.data.schema.Role', {
     },
 
     /**
+     * @method
+     *
      * Check whether a record belongs to any stores when it is added to the session.
      * 
      * @param {Ext.data.Session} session The session
@@ -135,6 +137,8 @@ Ext.define('Ext.data.schema.Role', {
             storeConfig = me.storeConfig,
             id = from.getId(),
             config = {
+                // Always want immediate load
+                asynchronousLoad: false,
                 model: me.cls,
                 role: me,
                 session: session,
@@ -188,7 +192,7 @@ Ext.define('Ext.data.schema.Role', {
 
     onStoreCreate: Ext.emptyFn,
 
-    getAssociatedStore: function (inverseRecord, options, scope, records, isComplete) {
+    getAssociatedStore: function (inverseRecord, options, scope, records, allowInfer) {
         // Consider the Comment entity with a ticketId to a Ticket entity. The Comment
         // is on the left (the FK holder's side) so we are implementing the guts of
         // the comments() method to load the Store of Comment entities. This trek
@@ -197,28 +201,43 @@ Ext.define('Ext.data.schema.Role', {
         var me = this,
             storeName = me.getStoreName(),
             store = inverseRecord[storeName],
+            session = inverseRecord.session,
             load = options && options.reload,
             source = inverseRecord.$source,
-            session = inverseRecord.session,
-            args, i, len, raw, rec, sourceStore;
+            isComplete = false,
+            hadSource, args, i, len, raw, rec, sourceStore, hadRecords;
 
         if (!store) {
-            // We want to check whether we can automatically get the store contents from the parent session.
-            // For this to occur, we need to have a parent in the session, and the store needs to be created
-            // and loaded with the initial dataset.
-            if (!records && source) {
-                source = source[storeName];
-                if (source && !source.isLoading()) {
-                    sourceStore = source;
-                    records = [];
-                    raw = source.getData().items;
+            if (session) {
+                // We want to check whether we can automatically get the store contents from the parent session.
+                // For this to occur, we need to have a parent in the session, and the store needs to be created
+                // and loaded with the initial dataset.
+                if (!records && source) {
+                    source = source[storeName];
+                    if (source && !source.isLoading()) {
+                        sourceStore = source;
+                        records = [];
+                        raw = source.getData().items;
 
-                    for (i = 0, len = raw.length; i < len; ++i) {
-                        rec = raw[i];
-                        records.push(session.getRecord(rec.self, rec.id));
+                        for (i = 0, len = raw.length; i < len; ++i) {
+                            rec = raw[i];
+                            records.push(session.getRecord(rec.self, rec.id));
+                        }
+                        isComplete = !!source.complete;
+                        hadSource = true;
                     }
-                    isComplete = true;
                 }
+                if (!hadSource) {
+                    // We'll only hit here if we didn't have a usable source
+                    hadRecords = !!records;
+                    records = me.findRecords(session, inverseRecord, records, allowInfer);
+                    if (!hadRecords && (!records || !records.length)) {
+                        records = null;
+                    }
+                    isComplete = hadRecords;
+                }
+            } else {
+                isComplete = !!(records && records.length > 0);
             }
             store = me.createAssociationStore(session, inverseRecord, records, isComplete);
             store.$source = sourceStore;

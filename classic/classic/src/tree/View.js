@@ -56,25 +56,6 @@ Ext.define('Ext.tree.View', {
 
     stripeRows: false,
 
-    // fields that will trigger a change in the ui that aren't likely to be bound to a column
-    uiFields: {
-        checked: 1,
-        icon: 1,
-        iconCls: 1
-    },
-
-    // fields that requires a full row render
-    rowFields: {
-        expanded: 1,
-        loaded: 1,
-        expandable: 1,
-        leaf: 1,
-        loading: 1,
-        qtip: 1,
-        qtitle: 1,
-        cls: 1
-    },
-
     // treeRowTpl which is inserted into the rowTpl chain before the base rowTpl. Sets tree-specific classes and attributes
     treeRowTpl: [
         '{%',
@@ -178,24 +159,6 @@ Ext.define('Ext.tree.View', {
         }
     },
 
-    afterRender: function() {
-        var me = this;
-
-        me.callParent();
-
-        me.el.on({
-            scope: me,
-            delegate: me.expanderSelector,
-            mouseover: me.onExpanderMouseOver,
-            mouseout: me.onExpanderMouseOut,
-            click: {
-                delegate: me.checkboxSelector,
-                fn: me.onCheckboxChange,
-                scope: me
-            }
-        });
-    },
-
     afterComponentLayout: function(width, height, prevWidth, prevHeight) {
         var scroller = this.getScrollable();
 
@@ -218,24 +181,6 @@ Ext.define('Ext.tree.View', {
 
     setRootNode: function(node) {
         this.node = node;
-    },
-
-    onCheckboxChange: function(e, t) {
-        var me = this,
-            item = e.getTarget(me.getItemSelector(), me.getTargetEl());
-
-        if (item) {
-            me.onCheckChange(me.getRecord(item));
-        }
-    },
-
-    onCheckChange: function(record) {
-        var checked = record.get('checked');
-        if (Ext.isBoolean(checked)) {
-            checked = !checked;
-            record.set('checked', checked);
-            this.fireEvent('checkchange', record, checked);
-        }
     },
 
     getChecked: function() {
@@ -501,11 +446,14 @@ Ext.define('Ext.tree.View', {
                         if (!targetEl.contains(activeEl)) {
                             activeEl = null;
                         }
+                        
                         animWrap.el.insertSibling(items, 'before', true);
+                        
                         if (activeEl) {
-                            activeEl.focus();
+                            Ext.fly(activeEl).focus();
                         }
                     }
+                    
                     animWrap.el.destroy();
                     me.animWraps[animWrap.record.internalId] = queue[id] = null;
                 }
@@ -699,28 +647,62 @@ Ext.define('Ext.tree.View', {
             me.toggle(record);
         }
     },
+    
+    onCellClick: function(cell, cellIndex, record, row, rowIndex, e) {
+        var me = this,
+            column = e.position.column,
+            checkedState;
 
-    onBeforeItemMouseDown: function(record, item, index, e) {
+        // We're only interested in clicks in the tree column
+        if (column.isTreeColumn) {
+            
+            // Click in the checkbox.
+            // Allow beforecheckchange event to veto a change of checkbox state
+            if (e.getTarget(me.checkboxSelector, cell) && Ext.isBoolean(checkedState = record.get('checked')) && me.fireEvent('beforecheckchange', record, checkedState, e) !== false) {
+                me.onCheckChange(e);
+
+                // Allow the stopSelection config on checkable tree columns to prevent selection
+                if (column.stopSelection) {
+                    e.stopSelection = true;
+                }
+            }
+            
+            // Click on the expander
+            else if (e.getTarget(me.expanderSelector, cell) && record.isExpandable()) {
+                // Ensure focus is on the clicked cell so that if this causes a refresh,
+                // focus restoration does not scroll back to the previouslty focused position.
+                // onCellClick is called *befor* cellclick is fired which is what changes focus position.
+                // TODO: connect directly from View's event processing to NavigationModel without relying on events.
+                me.getNavigationModel().setPosition(e.position);
+                me.toggle(record, e.ctrlKey);
+
+                // So that we know later to stop event propagation by returning false from the NavigationModel
+                // TODO: when NavigationModel is directly hooked up to be called *before* the event sequence
+                // This flag will not be necessary.
+                e.nodeToggled = true;
+            }
+            return me.callParent([cell, cellIndex, record, row, rowIndex, e]);
+        }
+    },
+    
+    onCheckChange: function(e) {
+        var record = e.record,
+            checked = !record.get('checked');
+
+        record.set('checked', checked);
+        this.fireEvent('checkchange', record, checked, e);
+    },
+
+    onItemMouseOver: function(record, item, index, e) {
         if (e.getTarget(this.expanderSelector, item)) {
-            return false;
+            e.getTarget(this.cellSelector, null, true).addCls(this.expanderIconOverCls);
         }
-        return this.callParent([record, item, index, e]);
     },
 
-    onItemClick: function(record, item, index, e) {
-        if (e.getTarget(this.expanderSelector, item) && record.isExpandable()) {
-            this.toggle(record, e.ctrlKey);
-            return false;
+    onItemMouseOut: function(record, item, index, e) {
+        if (e.getTarget(this.expanderSelector, item)) {
+            e.getTarget(this.cellSelector, null, true).removeCls(this.expanderIconOverCls);
         }
-        return this.callParent([record, item, index, e]);
-    },
-
-    onExpanderMouseOver: function(e, t) {
-        e.getTarget(this.cellSelector, 10, true).addCls(this.expanderIconOverCls);
-    },
-
-    onExpanderMouseOut: function(e, t) {
-        e.getTarget(this.cellSelector, 10, true).removeCls(this.expanderIconOverCls);
     },
 
     getStoreListeners: function() {
@@ -745,7 +727,8 @@ Ext.define('Ext.tree.View', {
     },
 
     onRootChange: function(newRoot, oldRoot) {
-        var me = this;
+        var me = this,
+            grid = me.grid;
 
         if (oldRoot) {
             me.rootListeners.destroy();
@@ -761,6 +744,8 @@ Ext.define('Ext.tree.View', {
                 destroyable: true,
                 scope: me
             });
+
+            grid.addRelayers(newRoot);
         }
     },
 
@@ -773,27 +758,5 @@ Ext.define('Ext.tree.View', {
                 }
             });
         }
-    },
-
-    shouldUpdateCell: function(record, column, changedFieldNames) {
-        // For the TreeColumn, if any of the known tree column UI affecting fields are updated
-        // the cell should be updated in whatever way. 1 if a custom renderer (not our default tree cell renderer), else 2.
-        if (column.isTreeColumn && changedFieldNames) {
-            var i = 0,
-                len = changedFieldNames.length;
-
-            for (; i < len; ++i) {
-                // Check for fields which always require a full row update.
-                if (this.rowFields[changedFieldNames[i]]) {
-                    return 1;
-                }
-                // Check for fields which require this column to be updated.
-                // The TreeColumn's treeRenderer is not a custom renderer.
-                if (this.uiFields[changedFieldNames[i]]) {
-                    return 2;
-                }
-            }
-        }
-        return this.callParent([record, column, changedFieldNames]);
     }
 });

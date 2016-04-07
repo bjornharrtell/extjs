@@ -65,20 +65,6 @@ Ext.define('Ext.view.NavigationModel', {
         this.mixins.storeholder.bindStore.apply(this, [store]);
     },
 
-    getStoreListeners: function() {
-        var me = this;
-
-        return {
-            // We must process removes before the view has been updated so we can
-            // check if we contain focus, and arrange for refocus in either Navigable or Actionable mode.
-            remove: {
-                fn: me.onStoreRemove,
-                priority: 1000
-            },
-            scope: me
-        };
-    },
-
     getViewListeners: function() {
         var me = this;
 
@@ -144,17 +130,23 @@ Ext.define('Ext.view.NavigationModel', {
     },
 
     onContainerMouseDown: function(view, mousedownEvent) {
-        // If already focused, do not disturb the focus.
-        if (this.view.containsFocus) {
-            mousedownEvent.preventDefault();
+        // If the mousedown in the view element is NOT inside the client region,
+        // that is, it was on a scrollbar, then prevent default.
+        //
+        // Mousedowning on a scrollbar will focus the View.
+        // If they have scrolled to the bottom, then onFocusEnter will
+        // try to focus the lastFocused or first item. This is undesirable.
+        // So on mousedown outside of view client area, prevent the default focus behaviour.
+        if (mousedownEvent.pointerType === 'mouse' && Ext.getScrollbarSize().width) {
+            if (!view.el.getClientRegion().contains(mousedownEvent.getPoint())) {
+                mousedownEvent.preventDefault();
+            }
         }
     },
 
     onItemMouseDown: function(view, record, item, index, mousedownEvent) {
-        var parentEvent = mousedownEvent.parentEvent;
-
-        // If the ExtJS mousedown event is a translated touchstart, leave it until the click to focus
-        if (!parentEvent || parentEvent.type !== 'touchstart') {
+        // If the event is a touchstart, leave it until the click to focus.
+        if (mousedownEvent.pointerType !== 'touch') {
             this.setPosition(index);
         }
     },
@@ -166,67 +158,6 @@ Ext.define('Ext.view.NavigationModel', {
         } else {
             this.setPosition(index, clickEvent);
         }
-    },
-
-    /**
-     * @template
-     * @protected
-     * Called by {@link Ext.view.AbstractView#method-refresh} before refresh to allow
-     * the current focus position to be cached.
-     * @return {undefined}
-     */
-    beforeViewRefresh: function() {
-        this.focusRestorePosition = this.view.dataSource.isBufferedStore ? this.recordIndex : this.record;
-    },
-
-    /**
-     * @template
-     * @protected
-     * Called by {@link Ext.view.AbstractView#method-refresh} after refresh to allow
-     * cached focus position to be restored.
-     * @return {undefined}
-     */
-    onViewRefresh: function() {
-        if (this.focusRestorePosition != null) {
-            this.setPosition(this.focusRestorePosition);
-            this.focusRestorePosition = null;
-        }
-    },
-
-    onStoreRemove: function(store) {
-        // On record remove, if we contain focus, then arrange to re-establish focus after the remove.
-        var me = this;
-
-        if (me.record && me.view.el.contains(Ext.Element.getActiveElement())) {
-
-            // focusExit is ignored during refresh
-            me.view.refreshing = true;
-
-            Ext.on({
-                idle: me.afterStoreRemove,
-                scope: me,
-                single: true,
-                args: [me.record, me.recordIndex, store]
-            });
-        }
-    },
-    
-    afterStoreRemove: function(lastFocusedRec, lastFocusedIndex, store) {
-        var me = this,
-            view = me.view;
-
-        view.refreshing = false;
-
-        // Store is empty - try to go back to what was focused before our View was focused
-        if (!store.getCount()) {
-            me.setPosition();
-            view.revertFocus();
-        }
-
-        // If we lost focus during the delete, re-establish it
-        if (!view.el.contains(Ext.Element.getActiveElement())) {
-            me.setPosition(store.contains(lastFocusedRec) ? lastFocusedRec : lastFocusedIndex, null, null, true);
-        } 
     },
 
     setPosition: function(recordIndex, keyEvent, suppressEvent, preventNavigation) {

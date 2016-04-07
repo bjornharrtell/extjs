@@ -46,7 +46,7 @@ Ext.define('Ext.dataview.element.List', {
             cls: cls,
             children: [{
                 cls: me.labelClsShortCache,
-                html: dataview.getItemTpl().apply(data)
+                html: me.renderItemTpl(index, data)
             }]
         };
 
@@ -71,13 +71,15 @@ Ext.define('Ext.dataview.element.List', {
             dataview = me.dataview,
             extItem = Ext.fly(item),
             innerItem = extItem.down(me.labelClsCache, true),
-            data = dataview.prepareData(record.getData(true), dataview.getStore().indexOf(record), record),
+            store = databiew.getStore(),
+            index = store.indexOf(record),
+            data = dataview.prepareData(record.getData(true), index, record),
             disclosureProperty = dataview.getDisclosureProperty(),
             hasDisclosureProperty = data && data.hasOwnProperty(disclosureProperty),
             iconSrc = data && data.hasOwnProperty('iconSrc'),
             disclosureEl, iconEl;
 
-        innerItem.innerHTML = dataview.getItemTpl().apply(data);
+        innerItem.innerHTML = me.renderItemTpl(index, data, store);
 
         if (hasDisclosureProperty) {
             disclosureEl = extItem.down(me.disclosureClsCache);

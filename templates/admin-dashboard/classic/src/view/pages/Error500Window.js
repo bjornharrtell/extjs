@@ -1,26 +1,14 @@
 Ext.define('Admin.view.pages.Error500Window', {
-    extend: 'Ext.window.Window',
-    xtype: 'pageserror500window',
+    extend: 'Admin.view.pages.ErrorBase',
+    xtype: 'page500',
 
     requires: [
         'Ext.container.Container',
-        'Ext.toolbar.Spacer',
-        'Ext.form.Label'
+        'Ext.form.Label',
+        'Ext.layout.container.VBox',
+        'Ext.toolbar.Spacer'
     ],
 
-    autoShow: true,
-    cls: 'error-page-container',
-    closable: false,
-    title: 'Sencha',
-    titleAlign: 'center',
-    maximized: true,
-    modal: true,
-
-    layout: {
-        type: 'vbox',
-        align: 'center',
-        pack: 'center'
-    },
     items: [
         {
             xtype: 'container',
@@ -40,7 +28,8 @@ Ext.define('Admin.view.pages.Error500Window', {
                 {
                     xtype: 'label',
                     cls: 'error-page-desc',
-                    html: '<div>Something went wrong and server could not process your request.</div><div>Try going back to our <a href="#dashboard"> Home page </a></div>'
+                    html: '<div>Something went wrong and server could not process your request.</div>' +
+                          '<div>Try going back to our <a href="#dashboard"> Home page </a></div>'
                 },
                 {
                     xtype: 'tbspacer',

@@ -7,13 +7,15 @@
     border: 0; // disables the focus border in old IE
     position: absolute;
     cursor: pointer;
-    // some browsers (I'm looking at you Firefox) add extra space around the file button
-    // that can't be removed using CSS. Others (webkit) add default margin.  Rather than
-    // try to handle each browser's unique case, we just negatively position the input to
-    // ensure that there is no extra space between it and the Button's edge
-    top: -2px;
-    right: -2px;
+    
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    
     @include opacity(0);
+    
      /* Yes, there's actually a good reason for this...
       * If the configured buttonText is set to something longer than the default,
       * then it will quickly exceed the width of the hidden file input's "Browse..."
@@ -29,6 +31,6 @@
 @if $include-rtl {
     .#{$prefix}rtl.#{$prefix}form-file-input {
         right: auto;
-        left: -2px;
+        left: 0;
     }
 }

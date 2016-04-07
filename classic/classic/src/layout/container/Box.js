@@ -415,17 +415,22 @@ Ext.define('Ext.layout.container.Box', {
         ownerContext.innerCtContext = ownerContext.getEl('innerCt', me);
         ownerContext.targetElContext = ownerContext.getEl('targetEl', me);
 
-        ownerContext.ownerScrollable = scrollable = owner.getScrollable();
         if (scrollable) {
+            ownerContext.ownerScrollable = scrollable;
+
             // If we have a scrollable, save the positions regardless of whether we can scroll in that direction
             // since the scrollable may be configured with x: false, y: false, which means it can only be
             // controlled programmatically
-            ownerContext.scrollRestore = scrollable.getPosition();
+            scrollPos = scrollable.getPosition();
+
+            // Only restore if the component was actually scrolled in the first place
+            if (scrollPos.x || scrollPos.y) {
+                ownerContext.scrollRestore = scrollPos;
+            }
         }
 
         // Don't allow sizes burned on to the innerCt to influence measurements.
-        style.width = '';
-        style.height = '';
+        style.width = style.height = '';
     },
 
     beginLayoutCycle: function (ownerContext, firstCycle) {
@@ -1133,12 +1138,11 @@ Ext.define('Ext.layout.container.Box', {
 
     completeLayout: function(ownerContext) {
         var me = this,
-            names = ownerContext.boxNames,
             invalidateScrollX = ownerContext.invalidateScrollX,
             invalidateScrollY = ownerContext.invalidateScrollY,
             overflowHandler = me.overflowHandler,
             scrollRestore = ownerContext.scrollRestore,
-            dom, el, overflowX, overflowY, styles, scroll, scrollable;
+            dom, el, overflowX, overflowY, styles;
 
         if (overflowHandler) {
             overflowHandler.completeLayout(ownerContext);

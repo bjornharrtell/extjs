@@ -343,9 +343,12 @@ Ext.Configurator.prototype = {
             remaining = 0,
             firstInstance = !initList,
             cachedInitList, cfg, getter, needsInit, i, internalName,
-            ln, names, name, value, isCached, valuesKey;
+            ln, names, name, value, isCached, valuesKey, field;
 
         values = me.needsFork ? ExtObject.fork(values) : ExtObject.chain(values);
+
+        // Let apply/update methods know that the initConfig is currently running.
+        instance.isConfiguring = true;
 
         if (firstInstance) {
             // When called to configure the first instance of the class to which we are
@@ -393,6 +396,10 @@ Ext.Configurator.prototype = {
                 }
             }
         }
+
+        // TODO - we need to combine the cached loop with the instanceConfig loop to
+        // avoid duplication of init getter setups (for correctness if a cached cfg
+        // calls on a non-cached cfg)
 
         ln = cachedInitList && cachedInitList.length;
         if (ln) {
@@ -443,9 +450,6 @@ Ext.Configurator.prototype = {
                 instance.afterCachedConfig(instanceConfig);
             }
         }
-
-        // Let apply/update methods know that the initConfig is currently running.
-        instance.isConfiguring = true;
 
         // Now that the cachedConfigs have been processed we can apply the instanceConfig
         // and hide the "configs" on the prototype. This will serve as the source for any
@@ -510,9 +514,10 @@ Ext.Configurator.prototype = {
 
                 if (!cfg) {
                     //<debug>
-                    if (instance.$configStrict && typeof instance.self.prototype[name] === 'function') {
+                    field = instance.self.prototype[name];
+                    if (instance.$configStrict && (typeof field === 'function') && !field.$nullFn) {
                         // In strict mode you cannot override functions
-                        Ext.raise("Cannot override method " + name + " on " + instance.$className + " instance.");
+                        Ext.raise('Cannot override method ' + name + ' on ' + instance.$className + ' instance.');
                     }
                     //</debug>
 
@@ -523,7 +528,7 @@ Ext.Configurator.prototype = {
                     // However we still need to create the initial value that needs
                     // to be used. We also need to spin up the initGetter.
                     if (!cfg.lazy) {
-                        ++remaining;    
+                        ++remaining;
                     }
                     if (!initListMap[name]) {
                         instance[cfg.names.get] = cfg.initGetter || cfg.getInitGetter();
@@ -660,11 +665,10 @@ Ext.Configurator.prototype = {
     reconfigure: function (instance, instanceConfig, options) {
         var currentConfig = instance.config,
             configList = [],
-            strict = instance.$configStrict,
+            strict = instance.$configStrict && !(options && options.strict === false),
             configs = this.configs,
             defaults = options && options.defaults,
-            applyProps = options && options.strict === false,
-            cfg, getter, i, len, name, names, setter;
+            cfg, getter, i, len, name, names, prop;
 
         for (name in instanceConfig) {
             if (defaults && instance.hasOwnProperty(name)) {
@@ -688,14 +692,30 @@ Ext.Configurator.prototype = {
                 // To ensure that configs being set here get processed in the proper order
                 // we must give them init getters just in case they depend upon each other
                 instance[cfg.names.get] = cfg.initGetter || cfg.getInitGetter();
-            } else if (strict) {
-                //<debug>
-                if (name !== 'type') {
-                    Ext.log.error('No such config "' + name + '" for class ' +
-                                  instance.$className);
+            } else {
+                // Check for existence of the property on the prototype before proceeding.
+                // If present on the prototype, and if the property is a function we
+                // do not allow it to be overridden by a property in the config object
+                // in strict mode (unless the function on the prototype is a emptyFn or
+                // identityFn).  Note that we always check the prototype, not the instance
+                // because calling setConfig a second time should have the same results -
+                // the first call may have set a function on the instance.
+                prop = instance.self.prototype[name];
+                if (strict) {
+                    if ((typeof prop === 'function') && !prop.$nullFn) {
+                        //<debug>
+                        Ext.Error.raise("Cannot override method " + name + " on " + instance.$className + " instance.");
+                        //</debug>
+                        continue;
+                        //<debug>
+                    } else {
+                        if (name !== 'type') {
+                            Ext.log.warn('No such config "' + name + '" for class ' +
+                                instance.$className);
+                        }
+                        //</debug>
+                    }
                 }
-                //</debug>
-                continue;
             }
 
             configList.push(name);
@@ -723,22 +743,10 @@ Ext.Configurator.prototype = {
 
                 if (instance[names.set]) {
                     instance[names.set](instanceConfig[name]);
-                } else if (applyProps) {
-                    //<debug>
-                    if (instance.$configStrict && typeof instance.self.prototype[name] === 'function') {
-                        // In strict mode you cannot override functions
-                        Ext.raise("Cannot override method " + name + " on " + instance.$className + " instance.");
-                    }
-                    //</debug>
-                    // apply non-config props directly to the instance if specified in options
+                } else {
+                    // apply non-config props directly to the instance
                     instance[name] = instanceConfig[name];
                 }
-                //<debug>
-                else if (name !== 'type') {
-                    Ext.raise('Config "' + name + '" has no setter on class ' +
-                        instance.$className);
-                }
-                //</debug>
             }
         }
     },

@@ -1,5 +1,5 @@
 /**
- * This class is used to send requests to the server using {@link Ext.direct.Manager Ext.Direct}. When a
+ * This class is used to send requests to the server using Ext Direct. When a
  * request is made, the transport mechanism is handed off to the appropriate
  * {@link Ext.direct.RemotingProvider Provider} to complete the call.
  *
@@ -91,7 +91,7 @@ Ext.define('Ext.data.proxy.Direct', {
          * {@link #extraParams} but available with all CRUD requests. Also unlike
          * {@link #extraParams}, metadata is not mixed with the ordinary data but sent
          * separately in the data packet.
-         * You may need to update your server side Ext.Direct stack to use this feature.
+         * You may need to update your server side Ext Direct stack to use this feature.
          */
         metadata: undefined
     },
@@ -167,7 +167,7 @@ Ext.define('Ext.data.proxy.Direct', {
         
         //<debug>
         if (!fn) {
-            Ext.raise('No Ext.Direct function specified for this proxy');
+            Ext.raise('No Ext Direct function specified for this proxy');
         }
         //</debug>
         

@@ -1,0 +1,69 @@
+<!DOCTYPE HTML>
+<html manifest="" lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Blackberry 10.3</title>
+
+    <style type="text/css">
+        html, body {
+            height: 100%;
+            background-color: #fff
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @-webkit-keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        #SpinnerContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            display: -webkit-box;
+            -webkit-box-align: center;
+            -webkit-box-pack: center;
+        }
+
+        #SpinnerContainer .Spinner {
+            width: 64px;
+            height: 64px;
+            /* base64 image blob */
+            background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxOC4xLjEsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiDQoJIHZpZXdCb3g9IjAgMCAxNTUgMTU1IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAxNTUgMTU1IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnIGlkPSJMYXllcl8xIj4NCgk8Y2lyY2xlIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk2OTY5NiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIGN4PSI3Ny41IiBjeT0iNzcuNSIgcj0iNzQuNSIvPg0KPC9nPg0KPGcgaWQ9IkxheWVyXzIiPg0KCTxsaW5lYXJHcmFkaWVudCBpZD0iU1ZHSURfMV8iIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iMCIgeTE9IjQwLjI1IiB4Mj0iODAuNSIgeTI9IjQwLjI1Ij4NCgkJPHN0b3AgIG9mZnNldD0iNC4wMDAwMDBlLTAyIiBzdHlsZT0ic3RvcC1jb2xvcjojOTY5Njk2Ii8+DQoJCTxzdG9wICBvZmZzZXQ9IjUuNzQwMzc3ZS0wMiIgc3R5bGU9InN0b3AtY29sb3I6IzhFOEU4RSIvPg0KCQk8c3RvcCAgb2Zmc2V0PSIwLjE0NjUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2ODY4NjgiLz4NCgkJPHN0b3AgIG9mZnNldD0iMC4yNDI4IiBzdHlsZT0ic3RvcC1jb2xvcjojNDg0ODQ4Ii8+DQoJCTxzdG9wICBvZmZzZXQ9IjAuMzQ2MSIgc3R5bGU9InN0b3AtY29sb3I6IzJFMkUyRSIvPg0KCQk8c3RvcCAgb2Zmc2V0PSIwLjQ1OTIiIHN0eWxlPSJzdG9wLWNvbG9yOiMxOTE5MTkiLz4NCgkJPHN0b3AgIG9mZnNldD0iMC41ODcxIiBzdHlsZT0ic3RvcC1jb2xvcjojMEIwQjBCIi8+DQoJCTxzdG9wICBvZmZzZXQ9IjAuNzQyMiIgc3R5bGU9InN0b3AtY29sb3I6IzAzMDMwMyIvPg0KCQk8c3RvcCAgb2Zmc2V0PSIxIiBzdHlsZT0ic3RvcC1jb2xvcjojMDAwMDAwIi8+DQoJPC9saW5lYXJHcmFkaWVudD4NCgkNCgkJPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI1NWR0lEXzFfKSIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgZD0iDQoJCU0zLDc3LjVDMywzNi40LDM2LjQsMyw3Ny41LDMiLz4NCjwvZz4NCjwvc3ZnPg==');
+            background-repeat: no-repeat;
+            background-position: top left;
+
+            -webkit-animation: spinner 1s infinite linear;
+            animation: spin 1s infinite linear;
+        }
+    </style>
+
+    <script id="microloader" type="text/javascript" src="bootstrap.js"></script>
+</head>
+<body>
+<div id="SpinnerContainer">
+    <div class="Spinner"></div>
+</div>
+</body>
+</html>

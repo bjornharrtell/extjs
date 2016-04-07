@@ -85,7 +85,7 @@ Ext.define('Ext.fx.Animator', {
      */
     delay: 0,
 
-    /* private used to track a delayed starting time */
+    //  private used to track a delayed starting time
     delayStart: 0,
 
     /**
@@ -284,9 +284,8 @@ keyframes : {
 
     /**
      * Applies animation to the Ext.fx.target
+     * @param {String/Object} target
      * @private
-     * @param target
-     * @type String/Object
      */
     applyAnimator: function(target) {
         var me = this,

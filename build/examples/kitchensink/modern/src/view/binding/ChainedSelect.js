@@ -17,7 +17,6 @@ Ext.define('KitchenSink.view.binding.ChainedSelect', {
     referenceHolder: true,
 
     viewModel: 'binding-chainedselect',
-    scrollable: false,
 
     items: {
         xtype: 'fieldset',

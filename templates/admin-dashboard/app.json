@@ -119,6 +119,7 @@
         "var": [
             "sass/var/all.scss",
             "sass/var",
+            "${toolkit.name}/sass/var/all.scss",
             "${toolkit.name}/sass/var"
         ],
 
@@ -194,20 +195,24 @@
      * Settings specific to classic toolkit builds.
      */
     "classic": {
-//        "js": [{
+        "js": [
 //            // Remove this entry to individually load sources from the framework.
-//            "path": "${framework.dir}/build/ext-all-rtl-debug.js"
-//        }]
+//            {
+//                "path": "${framework.dir}/build/ext-all-rtl-debug.js"
+//            }
+        ]
     },
 
     /**
      * Settings specific to modern toolkit builds.
      */
     "modern": {
-//        "js": [{
+        "js": [
 //            // Remove this entry to individually load sources from the framework.
-//            "path": "${framework.dir}/build/ext-modern-all-debug.js"
-//        }]
+//            {
+//                "path": "${framework.dir}/build/ext-modern-all-debug.js"
+//            }
+        ]
     },
 
     /**
@@ -440,12 +445,14 @@
      * Extra resources to be copied into the resource folder as specified in the "resources"
      * property of the "output" object. Folders specified in this list will be deeply copied.
      */
-    "resource": {
-        "paths": [
-            "resources",
-            "${toolkit.name}/resources"
-        ]
-    },
+    "resources": [
+        {
+            "path": "resources"
+        },
+        {
+            "path": "${toolkit.name}/resources"
+        }
+    ],
 
     /**
      * File / directory name patttern to ignore when copying to the builds. Must be a
@@ -528,12 +535,12 @@
         "classic": {
             "toolkit": "classic",
             "theme": "theme-triton"
-        }
-        /*,
+        },
+
         "modern": {
             "toolkit": "modern",
             "theme": "theme-triton"
-        }*/
+        }
     },
 
     /**

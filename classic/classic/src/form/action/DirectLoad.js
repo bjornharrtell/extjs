@@ -1,8 +1,7 @@
 /**
- * @class Ext.form.action.DirectLoad
- * Provides {@link Ext.direct.Manager} support for loading form data.
+ * Provides Ext Direct support for loading form data.
  *
- * This example illustrates usage of Ext.direct.Direct to **load** a form through Ext.Direct.
+ * This example illustrates usage of Ext Direct to load a form.
  *
  *     var myFormPanel = new Ext.form.Panel({
  *         // configs for FormPanel
@@ -28,9 +27,9 @@
  *         // configs for BasicForm
  *         api: {
  *             // The server-side method to call for load() requests
- *             load: Profile.getBasicInfo,
+ *             load: 'Profile.getBasicInfo',
  *             // The server-side must mark the submit handler as a 'formHandler'
- *             submit: Profile.updateBasicInfo
+ *             submit: 'Profile.updateBasicInfo'
  *         },
  *         // specify the order for the passed params
  *         paramOrder: ['uid', 'foo']
@@ -45,30 +44,10 @@
  *         }
  *     });
  *
- * The data packet sent to the server will resemble something like:
+ * Before using DirectLoad action, make sure you set up Ext Direct remoting provider.
+ * See {@link Ext.direct.Manager} for more information.
  *
- *     [
- *         {
- *             "action":"Profile","method":"getBasicInfo","type":"rpc","tid":2,
- *             "data":[34,"bar"] // note the order of the params
- *         }
- *     ]
- *
- * The form will process a data packet returned by the server that is similar to the following format:
- *
- *     [
- *         {
- *             "action":"Profile","method":"getBasicInfo","type":"rpc","tid":2,
- *             "result":{
- *                 "success":true,
- *                 "data":{
- *                     "name":"Fred Flintstone",
- *                     "company":"Slate Rock and Gravel",
- *                     "email":"fred.flintstone@slaterg.com"
- *                 }
- *             }
- *         }
- *     ]
+ * For corresponding submit action, see {@link Ext.form.action.DirectSubmit}.
  */
 Ext.define('Ext.form.action.DirectLoad', {
     extend:'Ext.form.action.Load',
@@ -122,5 +101,3 @@ Ext.define('Ext.form.action.DirectLoad', {
         }
     }
 });
-
-

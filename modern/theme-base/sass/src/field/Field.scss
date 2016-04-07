@@ -1,0 +1,113 @@
+// Label
+.#{$prefix}form-label {
+    display: none;
+
+    .#{$prefix}form-label-nowrap & {
+        @include ellipsis();
+    }
+}
+
+//  Ext.field.Field
+.#{$prefix}field {
+    @include st-box();
+
+    .#{$prefix}field-input {
+        position: relative;
+        min-width: 3.7em;
+    }
+
+    .#{$prefix}field-input,
+    .#{$prefix}input-el {
+        width: 100%;
+    }
+
+    &.#{$prefix}field-labeled {
+        .#{$prefix}form-label {
+            display: block;
+        }
+    }
+
+    .#{$prefix}component-outer {
+        position: relative;
+    }
+}
+
+.#{$prefix}label-align-left,
+.#{$prefix}label-align-right {
+    @include st-box-orient(horizontal, important);
+
+    .#{$prefix}component-outer {
+        @include st-box-flex(1, 0px);
+    }
+}
+
+.#{$prefix}label-align-right {
+    @include st-box-direction(reverse, row);
+}
+
+.#{$prefix}label-align-top,
+.#{$prefix}label-align-bottom {
+    @include st-box-orient(vertical);
+}
+
+.#{$prefix}label-align-bottom {
+    @include st-box-direction(reverse, column);
+}
+
+.#{$prefix}input-el {
+    display: block;
+}
+
+.#{$prefix}field-mask {
+    @include absolute-fit();
+}
+
+.#{$prefix}ie .#{$prefix}field {
+    &.#{$prefix}field-text,
+    &.#{$prefix}field-textarea,
+    &.#{$prefix}field-search {
+        .#{$prefix}field-mask {
+            z-index: -1;
+        }
+    }
+}
+
+// Required fields
+.#{$prefix}field-required .#{$prefix}form-label:after {
+    content: "*";
+    display: inline;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+}
+
+.#{$prefix}field-input .#{$prefix}clear-icon, .#{$prefix}field-input .#{$prefix}reveal-icon {
+    display: none;
+    position: absolute;
+    top: 50%;
+}
+
+.#{$prefix}field-clearable {
+    .#{$prefix}clear-icon {
+        display: block;
+    }
+}
+
+.#{$prefix}field-revealable {
+    .#{$prefix}reveal-icon {
+        display: block;
+    }
+}
+
+.#{$prefix}android .#{$prefix}input-el {
+  -webkit-text-fill-color: #000;
+}
+
+.#{$prefix}android .#{$prefix}empty .#{$prefix}input-el {
+  -webkit-text-fill-color: #A9A9A9;
+}
+
+.#{$prefix}android .#{$prefix}item-disabled .#{$prefix}input-el {
+  -webkit-text-fill-color: #b3b3b3;
+}

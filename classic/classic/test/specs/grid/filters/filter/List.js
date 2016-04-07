@@ -3,28 +3,17 @@ describe('Ext.grid.filters.filter.List', function () {
             extend: 'Ext.data.Model',
             fields: ['id', 'text']
         }),
-        grid, store, filterCol, filterItem, listFilter;
+        grid, store, filterCol, filterItem, listFilter,
+        synchronousLoad = true,
+        storeLoad = Ext.data.Store.prototype.load,
+        loadStore;
 
     function createGrid(listCfg, storeCfg, gridCfg) {
+        synchronousLoad = false;
         store = new Ext.data.Store(Ext.apply({
             model: Model,
             remoteFilter: false,
-            data: (function () {
-                var data = [],
-                    i = 0,
-                    ii;
-
-                for (i = 0; i < 12; ++i) {
-                    ii = i + 1;
-
-                    data.push({
-                        id: 't' + ii,
-                        text: 'Item ' + ii
-                    });
-                }
-
-                return data;
-            }())
+            data: getData()
         }, storeCfg));
 
         grid = new Ext.grid.Panel(Ext.apply({
@@ -46,27 +35,13 @@ describe('Ext.grid.filters.filter.List', function () {
             width: 400,
             renderTo: Ext.getBody()
         }, gridCfg));
+        synchronousLoad = true;
+        if (store.hasPendingLoad()) {
+            store.flushLoad();
+        }
 
         filterCol = grid.down('#filterCol');
         listFilter = filterCol.filter;
-    }
-
-    function completeRequest(data) {
-        Ext.Ajax.mockComplete({
-            status: 200,
-            responseText: Ext.encode(data)
-        });
-    }
-
-    function showMenu() {
-        grid.headerCt.showMenuBy(null, filterCol.triggerEl, filterCol);
-        filterItem = grid.headerCt.getMenu().down('#filters');
-        filterItem.activated = true;
-        filterItem.expandMenu(null, 0);
-    }
-
-    function getMenu() {
-        return grid.headerCt.getMenu().down('#filters').menu;
     }
 
     function clickItem(index) {
@@ -77,11 +52,58 @@ describe('Ext.grid.filters.filter.List', function () {
         jasmine.fireMouseEvent(item.el, 'click');
     }
 
+    function completeRequest(data) {
+        Ext.Ajax.mockComplete({
+            status: 200,
+            responseText: Ext.encode(data)
+        });
+    }
+
+    function getData() {
+        var data = [],
+            i = 0,
+            ii;
+
+        for (i = 0; i < 12; ++i) {
+            ii = i + 1;
+
+            data.push({
+                id: 't' + ii,
+                text: 'Item ' + ii
+            });
+        }
+
+        return data;
+    }
+
+    function getMenu() {
+        return grid.headerCt.getMenu().down('#filters').menu;
+    }
+
+    function showMenu() {
+        grid.headerCt.showMenuBy(null, filterCol.triggerEl, filterCol);
+        filterItem = grid.headerCt.getMenu().down('#filters');
+        filterItem.activated = true;
+        filterItem.expandMenu(null, 0);
+    }
+
     function setup() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.Store.prototype.load = function() {
+            storeLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+
         MockAjaxManager.addMethods();
     }
 
     function tearDown() {
+        // Undo the overrides.
+        Ext.data.Store.prototype.load = storeLoad;
+
         filterCol = filterItem = listFilter = grid = store = Ext.destroy(store, grid);
         MockAjaxManager.removeMethods();
     }
@@ -106,11 +128,179 @@ describe('Ext.grid.filters.filter.List', function () {
 
             expect(listFilter.filter.getValue()).toEqual(value);
         });
+    });
 
-        it('should not bind listeners to the grid store on construction (if inferring its list items from the grid store)', function () {
-            createGrid();
+    describe('binding the grid store listeners', function () {
+        Ext.grid.filters.filter.List.prototype.getGridStoreListeners =  function () {
+            var me = this;
 
-            expect(listFilter.gridStoreListeners).toBeUndefined();
+            return me.gridStoreListeners = {
+                scope: me,
+                add: me.onDataChanged,
+                refresh: me.onDataChanged,
+                remove: me.onDataChanged,
+                update: me.onDataChanged,
+                'extjs-18225': Ext.emptyFn
+            };
+        };
+
+        function getGridCfg(cfg) {
+            var gridCfg = {
+                store: null,
+                viewModel: {
+                    stores: {
+                        quux: {
+                            fields: ['id', 'text'],
+                            data: getData()
+                        }
+                    }
+                },
+                bind: {
+                    store: '{quux}'
+                }
+            };
+
+            return Ext.apply(gridCfg, cfg);
+        }
+
+        describe('when inferring its list options from the grid store', function () {
+            describe('on construction', function () {
+                describe('should not bind', function () {
+                    it('should not bind when not configured with a value', function () {
+                        createGrid();
+
+                        expect(listFilter.gridStoreListeners).toBeUndefined();
+                    });
+
+                    it('should not bind when not configured with a value even when explicitly configured as active', function () {
+                        createGrid({
+                            active: true
+                        });
+
+                        expect(listFilter.gridStoreListeners).toBeUndefined();
+                    });
+
+                    it('should not bind when configured as inactive (no value)', function () {
+                        createGrid({
+                            active: false
+                        });
+
+                        expect(listFilter.gridStoreListeners).toBeUndefined();
+                    });
+
+                    it('should not bind when configured as inactive (with a value)', function () {
+                        createGrid({
+                            active: false,
+                            value: 'foo'
+                        });
+
+                        expect(listFilter.gridStoreListeners).toBeUndefined();
+                    });
+
+                    describe('late binding', function () {
+                        var reconfigured;
+
+                        beforeEach(function () {
+                            reconfigured = false;
+                        });
+
+                        afterEach(function () {
+                            reconfigured = false;
+                        });
+
+                        function lateBinding(active, value) {
+                            it('should not bind when late-binding when active = ' + active + ' and value = ' + value, function () {
+                                createGrid({
+                                    active: active,
+                                    value: value
+                                }, null, getGridCfg({
+                                    listeners: {
+                                        reconfigure: function () {
+                                            reconfigured = true;
+                                        }
+                                    }
+                                }));
+
+                                waitsFor(function () {
+                                    return reconfigured;
+                                });
+
+                                runs(function () {
+                                    expect(listFilter.gridStoreListeners).toBeUndefined();
+                                });
+                            });
+                        }
+
+                        lateBinding(false, 'Pete');
+                        lateBinding(true, null);
+                    });
+                });
+
+                describe('should bind', function () {
+                    it('should bind when configured with a value', function () {
+                        createGrid({
+                            value: 'quux'
+                        });
+
+                        expect(listFilter.gridStoreListeners).toBeDefined();
+                    });
+
+                    it('should bind when late-binding the grid store', function () {
+                        var reconfigured = false;
+
+                        createGrid({
+                            value: 'baz'
+                        }, null, getGridCfg({
+                            listeners: {
+                                reconfigure: function () {
+                                    reconfigured = true;
+                                }
+                            }
+                        }));
+
+                        waitsFor(function () {
+                            return reconfigured;
+                        });
+
+                        runs(function () {
+                            expect(listFilter.gridStoreListeners).toBeDefined();
+                        });
+                    });
+                });
+            });
+
+            describe('on menu show', function () {
+                function onMenuShow(useVM) {
+                    describe(!useVM ? 'configured store' : 'late binding', function () {
+                        beforeEach(function () {
+                            createGrid(null, null, useVM ? getGridCfg() : null);
+
+                            // Not the worst thing, but the late-binding is async so we must pause for
+                            // all tests.
+                            waits(1);
+
+                            runs(function () {
+                                clickItem(1);
+                            });
+                        });
+
+                        it('should bind the listeners on menu show when not configured with a value', function () {
+                            expect(listFilter.gridStoreListeners).toBeDefined();
+                        });
+
+                        it('should not have bound the listeners to the empty store', function () {
+                            expect(Ext.StoreMgr.get('ext-empty-store').events['extjs-18225']).toBeUndefined();
+                        });
+
+                        it('should have bound the listeners to the correct store', function () {
+                            expect(grid.store.events['extjs-18225']).toBeDefined();
+                        });
+                    });
+                }
+
+                onMenuShow(false);
+                onMenuShow(true);
+            });
         });
     });
 
@@ -1088,9 +1278,11 @@ describe('Ext.grid.filters.filter.List', function () {
                             expect(listFilter.store).not.toBe(store);
                         });
 
+                        /*
                         it('should not create a list store before list is initially shown', function () {
                             expect(listFilter.store).toBe(undefined);
                         });
+                        */
                     });
 
                     describe('with an empty value', function () {
@@ -1137,9 +1329,11 @@ describe('Ext.grid.filters.filter.List', function () {
                             expect(listFilter.store).not.toBe(store);
                         });
 
+                        /*
                         it('should not create a list store', function () {
                             expect(listFilter.store).toBe(undefined);
                         });
+                        */
                     });
 
                     describe('without a value', function () {
@@ -1724,6 +1918,34 @@ describe('Ext.grid.filters.filter.List', function () {
     });
 
     describe('showing the menu', function () {
+        describe('should work', function () {
+            describe('remoteFilter', function () {
+                function doTest(remoteFilter, value) {
+                    it('should show regardless of `remoteFilter` value (remoteFilter = ' + remoteFilter + ')', function () {
+                        createGrid({
+                            value: value
+                        }, {
+                            remoteFilter: remoteFilter
+                        });
+
+                        expect(function () {
+                            showMenu();
+                        }).not.toThrow();
+                    });
+                }
+
+                describe('when store is not filtered', function () {
+                    doTest(false, null);
+                    doTest(true, null);
+                });
+
+                describe('when store is filtered', function () {
+                    doTest(false, 'Item 5');
+                    doTest(true, 'Item 5');
+                });
+            });
+        });
+
         describe('the active state', function () {
             var len;
 
@@ -1766,69 +1988,6 @@ describe('Ext.grid.filters.filter.List', function () {
                 expect(listFilter.store.data.length).toEqual(store.collect('text', true, true).length);
             });
         });
-    });
-
-    describe('the grid store listeners (when inferring list items from the grid store)', function () {
-        var gridCfg = {
-            viewModel: {
-                stores: {
-                    quux: {
-                        fields: ['id'],
-                        data: []
-                    }
-                }
-            },
-            bind: {
-                store: '{quux}'
-            }
-        };
-
-        Ext.grid.filters.filter.List.prototype.getGridStoreListeners =  function () {
-            var me = this;
-
-            return me.gridStoreListeners = {
-                scope: me,
-                add: me.onDataChanged,
-                refresh: me.onDataChanged,
-                remove: me.onDataChanged,
-                update: me.onDataChanged,
-                'extjs-18225': Ext.emptyFn,
-            };
-        };
-
-        function doTest(str, useVM) {
-            describe('when the grid store is ' + str, function () {
-                it('should not bind listeners to the grid store on construction', function () {
-                    createGrid(null, null, useVM ? gridCfg : null);
-
-                    expect(listFilter.gridStoreListeners).toBeUndefined();
-                });
-
-                it('should only bind the listeners on menu show', function () {
-                    createGrid();
-                    clickItem(1);
-
-                    expect(listFilter.gridStoreListeners).toBeDefined();
-                });
-
-                it('should not have bound the listeners to the empty store', function () {
-                    createGrid();
-                    clickItem(1);
-
-                    expect(Ext.StoreMgr.get('ext-empty-store').events['extjs-18225']).toBeUndefined();
-                });
-
-                it('should have bound the listeners to the correct store', function () {
-                    createGrid();
-                    clickItem(1);
-
-                    expect(grid.store.events['extjs-18225']).toBeDefined();
-                });
-            });
-        }
-
-        doTest('configured', false);
-        doTest('bound', true);
     });
 
     describe('statefulness', function () {
@@ -1874,4 +2033,21 @@ describe('Ext.grid.filters.filter.List', function () {
             expect(menu.items.getAt(3).checked).toBe(true);
         });
     });
+
+    describe('reconfiguring', function () {
+        it('should not try to bind a null value', function () {
+            createGrid();
+
+            expect(function () {
+                grid.reconfigure(null, [{
+                    dataIndex: 'text',
+                    filter: {
+                        type: 'list',
+                        value: 'foo'
+                    }
+                }]);
+            }).not.toThrow();
+        });
+    });
 });
+

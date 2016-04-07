@@ -2868,18 +2868,26 @@ describe("Ext.layout.container.HBox", function(){
                     scrollable: true,
                     items: [{
                         width: 300,
-                        height: 300
+                        height: 500
                     }, {
                         width: 300,
-                        height: 300
+                        height: 500
                     }]
                 });
+                
                 var scrollable = ct.getScrollable();
-                scrollable.setX(50);
-                scrollable.setY(30);
+                scrollable.scrollTo(50, 30);
+                
+                // Make sure that we're where we want to be
+                var position = scrollable.getPosition();
+                expect(position).toEqual({ x: 50, y: 30 });
+                
                 ct.setSize(401, 401);
-                expect(scrollable.getX()).toBe(50);
-                expect(scrollable.getY()).toBe(30);
+                
+                var position = scrollable.getPosition();
+
+                // There IS no y overflow, so the y scroll request cannot have had any effect
+                expect(position).toEqual({ x: 50, y: 0 });
             });
 
             it("should restore the horizontal/vertical scroll position with programmatic scrolling", function() {
@@ -2893,18 +2901,26 @@ describe("Ext.layout.container.HBox", function(){
                     },
                     items: [{
                         width: 300,
-                        height: 300
+                        height: 500
                     }, {
                         width: 300,
-                        height: 300
+                        height: 500
                     }]
                 });
+                
                 var scrollable = ct.getScrollable();
-                scrollable.setX(50);
-                scrollable.setY(30);
+                scrollable.scrollTo(50, 30);
+                
+                // Make sure that we're where we want to be
+                var position = scrollable.getPosition();
+                expect(position).toEqual({ x: 50, y: 30 });
+                
                 ct.setSize(401, 401);
-                expect(scrollable.getX()).toBe(50);
-                expect(scrollable.getY()).toBe(30);
+                
+                var position = scrollable.getPosition();
+
+                // There IS no y overflow, so the y scroll request cannot have had any effect
+                expect(position).toEqual({ x: 50, y: 0 });
             });
         });
     });

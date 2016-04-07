@@ -21,17 +21,21 @@ Ext.Microloader = Ext.Microloader || (function () {
         _warn = function (message) {
             console.log("[WARN] " + message);
         },
-        _privatePrefix = '_sencha',
-        _location = window.document.location,
-        _documentUri = _location.protocol + '//' + _location.hostname + _location.pathname + _location.search,
-        postProcessor;
+        _privatePrefix = '_ext:' + location.pathname,
 
-    // Returns a unique key to a manifest file
-    function getManifestStorageKey (url) {
-        return  _privatePrefix + '-' + _documentUri + url;
-    }
+        /**
+         * The Following combination is used to create isolated local storage keys
+         * '_ext' is used to scope all the local storage keys that we internally by Ext
+         * 'location.pathname' is used to force each assets to cache by an absolute URL (/build/MyApp) (dev vs prod)
+         * 'url' is used to force each asset to cache relative to the page (app.json vs resources/app.css)
+         * 'profileId' is used to differentiate the builds of an application (neptune vs crisp)
+         * 'Microloader.appId' is unique to the application and will differentiate apps on the same host (dev mode running app watch against multiple apps)
+         */
+        getStorageKey = function(url, profileId) {
+            return  _privatePrefix + url + '-' + (profileId ? profileId + '-' : '') + Microloader.appId;
+        },
+        postProcessor, _storage;
 
-    var _storage;
     try {
         _storage = window['localStorage'];
     } catch(ex) {
@@ -41,14 +45,20 @@ Ext.Microloader = Ext.Microloader || (function () {
     var _cache = window['applicationCache'],
         // Local Storage Controller
         LocalStorage = {
-            clearAllPrivate: function() {
+            clearAllPrivate: function(manifest) {
                 if(_storage) {
+
+                    //Remove the entry for the manifest first
+                    _storage.removeItem(manifest.key);
+
                     var i, key,
                         removeKeys = [],
+                        suffix = manifest.profile + '-' + Microloader.appId,
                         ln = _storage.length;
                     for (i = 0; i < ln; i++) {
                         key = _storage.key(i);
-                        if (key.indexOf(_privatePrefix) === 0) {
+                        // If key starts with the private key and the suffix is present we can clear this entry
+                        if (key.indexOf(_privatePrefix) === 0 && key.indexOf(suffix) !== -1) {
                             removeKeys.push(key);
                         }
                     }
@@ -102,7 +112,7 @@ Ext.Microloader = Ext.Microloader || (function () {
             }
 
             this.type = cfg.type;
-            this.key = cfg.manifestKey + '-' + this.assetConfig.path;
+            this.key = getStorageKey(this.assetConfig.path, cfg.manifest.profile);
 
             if (cfg.loadFromCache) {
                 this.loadFromCache();
@@ -113,7 +123,7 @@ Ext.Microloader = Ext.Microloader || (function () {
             shouldCache: function() {
                 return _storage && this.assetConfig.update && this.assetConfig.hash && !this.assetConfig.remote;
             },
-            
+
             is: function (asset) {
                 return (!!asset && this.assetConfig && asset.assetConfig && (this.assetConfig.hash === asset.assetConfig.hash))
             },
@@ -150,20 +160,38 @@ Ext.Microloader = Ext.Microloader || (function () {
                 this.content = cfg.content;
             }
             this.assetMap = {};
-            
+
             this.url = cfg.url;
             this.fromCache = !!cfg.cached;
             this.assetCache = !(cfg.assetCache === false);
-            this.key = getManifestStorageKey(this.url);
+            this.key = getStorageKey(this.url);
 
             // Pull out select properties for repetitive use
+            this.profile = this.content.profile;
             this.hash = this.content.hash;
             this.loadOrder = this.content.loadOrder;
             this.deltas = this.content.cache ? this.content.cache.deltas : null;
             this.cacheEnabled = this.content.cache ? this.content.cache.enable : false;
-            
+
             this.loadOrderMap = (this.loadOrder) ? Boot.createLoadOrderMap(this.loadOrder) : null;
-            
+
+            var tags = this.content.tags,
+                platformTags = Ext.platformTags;
+
+            if (tags) {
+                if (tags instanceof Array) {
+                    for (var i = 0; i < tags.length; i++) {
+                        platformTags[tags[i]] = true;
+                    }
+                } else {
+                    Boot.apply(platformTags, tags);
+                }
+
+                // re-apply the query parameters, so that the params as specified
+                // in the url always has highest priority
+                Boot.apply(platformTags, Boot.loadPlatformsParam());
+            }
+
             // Convert all assets into Assets
             this.js = this.processAssets(this.content.js, 'js');
             this.css = this.processAssets(this.content.css, 'css');
@@ -172,7 +200,7 @@ Ext.Microloader = Ext.Microloader || (function () {
         Manifest.prototype = {
             processAsset:  function(assetConfig, type) {
                 var processedAsset = new Asset({
-                    manifestKey: this.key,
+                    manifest: this,
                     assetConfig: assetConfig,
                     type: type,
                     loadFromCache: this.assetCache
@@ -233,7 +261,7 @@ Ext.Microloader = Ext.Microloader || (function () {
             uncache: function() {
                 LocalStorage.setAsset(this.key, null);
             },
-            
+
             exportContent: function() {
                 return Boot.apply({
                     loadOrderMap: this.loadOrderMap
@@ -251,6 +279,13 @@ Ext.Microloader = Ext.Microloader || (function () {
         Microloader = {
             init: function () {
                 Ext.microloaded = true;
+
+                // data-app is in the dev template for an application and is also
+                // injected into the app my CMD for production
+                // We use this to prefix localStorage cache to prevent collisions
+                var microloaderElement = document.getElementById('microloader');
+                Microloader.appId = microloaderElement ? microloaderElement.getAttribute('data-app') : '';
+
                 if (Ext.beforeLoad) {
                     postProcessor = Ext.beforeLoad(Ext.platformTags);
                 }
@@ -268,6 +303,13 @@ Ext.Microloader = Ext.Microloader || (function () {
                 };
             },
 
+            applyCacheBuster: function(url) {
+                var tstamp = new Date().getTime(),
+                    sep = url.indexOf('?') === -1 ? '?' : '&';
+                url = url + sep + "_dc=" + tstamp;
+                return url;
+            },
+
             run: function() {
                 Microloader.init();
                 var manifest = Ext.manifest;
@@ -277,7 +319,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                         url = manifest.indexOf(extension) === manifest.length - extension.length
                             ? manifest
                             : manifest + ".json",
-                        key = getManifestStorageKey(url),
+                        key = getStorageKey(url),
                         content = LocalStorage.retrieveAsset(key);
 
                     // Manifest found in local storage, use this for immediate boot except in PhantomJS environments for building.
@@ -298,7 +340,7 @@ Ext.Microloader = Ext.Microloader || (function () {
 
                     // Manifest is not in local storage. Fetch it from the server
                     } else {
-                        Boot.fetch(url, function (result) {
+                        Boot.fetch(Microloader.applyCacheBuster(url), function (result) {
                             //<debug>
                                 _debug("Manifest file was not found in Local Storage, loading: " + url);
                             //</debug>
@@ -321,8 +363,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                         _debug("Manifest was embedded into application javascript file");
                     //</debug>
                     manifest = new Manifest({
-                        content: manifest,
-                        url: 'embedded'
+                        content: manifest
                     });
                     Microloader.load(manifest);
                 }
@@ -343,10 +384,7 @@ Ext.Microloader = Ext.Microloader || (function () {
 
                 for (len = assets.length, i = 0; i < len; i++) {
                     asset = assets[i];
-                    include = true;
-                    if (asset.assetConfig.platform && !Boot.filterPlatform(asset.assetConfig.platform)) {
-                        include = false;
-                    }
+                    include = Microloader.filterAsset(asset);
                     if (include) {
                         // Asset is using the localStorage caching system
                         if (manifest.shouldCache() && asset.shouldCache()) {
@@ -368,6 +406,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                             }
                         }
                         Microloader.urls.push(asset.assetConfig.path);
+                        Boot.assetConfig[asset.assetConfig.path] = Boot.apply({type: asset.type}, asset.assetConfig);
                     }
                 }
 
@@ -397,7 +436,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                 Microloader.remainingCachedAssets--;
 
                 if (!result.error) {
-                    checksum = Microloader.checksum(asset.assetConfig.hash, result.content);
+                    checksum = Microloader.checksum(result.content, asset.assetConfig.hash);
                     if (!checksum) {
                         _warn("Cached Asset '" + asset.assetConfig.path + "' has failed checksum. This asset will be uncached for future loading");
 
@@ -413,11 +452,11 @@ Ext.Microloader = Ext.Microloader || (function () {
                     asset.cache();
                 } else {
                     _warn("There was an error pre-loading the asset '" + asset.assetConfig.path + "'. This asset will be uncached for future loading");
-                    
+
                     // Un cache this asset so it is loaded next time
                     asset.uncache();
-                } 
-                
+                }
+
                 if (Microloader.remainingCachedAssets === 0) {
                     Microloader.onCachedAssetsReady();
                 }
@@ -497,7 +536,7 @@ Ext.Microloader = Ext.Microloader || (function () {
 
                 return output.join('');
             },
-            
+
             checkAllUpdates: function() {
                 //<debug>
                     _debug("Checking for All Updates");
@@ -548,7 +587,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                 //<debug>
                     _debug("Checking for updates at: " + Microloader.manifest.url);
                 //</debug>
-                Boot.fetch(Microloader.manifest.url, Microloader.onUpdatedManifestLoaded);
+                Boot.fetch(Microloader.applyCacheBuster(Microloader.manifest.url), Microloader.onUpdatedManifestLoaded);
             },
 
             onAppCacheError: function(e) {
@@ -583,9 +622,18 @@ Ext.Microloader = Ext.Microloader || (function () {
                 Microloader.notifyUpdateReady();
             },
 
+
+            filterAsset: function(asset) {
+                var cfg = (asset && asset.assetConfig) || {};
+                if(cfg.platform || cfg.exclude) {
+                    return Boot.filterPlatform(cfg.platform, cfg.exclude);
+                }
+                return true;
+            },
+
             onUpdatedManifestLoaded: function (result) {
                 result = Microloader.parseResult(result);
-                
+
                 if (!result.error) {
                     var currentAssets, newAssets, currentAsset, newAsset, prop,
                         assets, deltas, deltaPath, include,
@@ -610,7 +658,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                         //</debug>
 
                         Microloader.updatedManifest = manifest;
-                        LocalStorage.clearAllPrivate();
+                        LocalStorage.clearAllPrivate(manifest);
                         Microloader.onAllUpdatedAssetsReady();
                         return;
                     }
@@ -626,7 +674,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                         for (prop in newAssets) {
                             newAsset = newAssets[prop];
                             currentAsset = Microloader.manifest.getAsset(newAsset.assetConfig.path);
-                            include = !(newAsset.assetConfig.platform && !Boot.filterPlatform(newAsset.assetConfig.platform));
+                            include = Microloader.filterAsset(newAsset);
 
                             if (include && (!currentAsset || (newAsset.shouldCache() && (!currentAsset.is(newAsset))))) {
                                 //<debug>
@@ -642,7 +690,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                             newAsset = manifest.getAsset(currentAsset.assetConfig.path);
 
                             //New version of this asset has been filtered out
-                            include = !(newAsset.assetConfig.platform && !Boot.filterPlatform(newAsset.assetConfig.platform));
+                            include = !Microloader.filterAsset(newAsset);
 
                             if (!include || !newAsset || (currentAsset.shouldCache() && !newAsset.shouldCache())) {
                                 //<debug>
@@ -718,10 +766,9 @@ Ext.Microloader = Ext.Microloader || (function () {
                 var checksum;
                 result = Microloader.parseResult(result);
                 Microloader.remainingUpdatingAssets--;
-                
+
                 if (!result.error) {
-                    
-                    checksum = Microloader.checksum(asset.assetConfig.hash, result.content);
+                    checksum = Microloader.checksum(result.content, asset.assetConfig.hash);
                     //<debug>
                         _debug("Checksum for Full asset: " + asset.assetConfig.path + " is " + checksum);
                     //</debug>
@@ -740,7 +787,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                     //<debug>
                         _debug("Error loading file at" + asset.assetConfig.path + ". This asset will be uncached for future loading");
                     //</debug>
-                    
+
                     // uncache this asset as there is a new version somewhere that has not been loaded.
                     asset.uncache();
                 }
@@ -849,7 +896,7 @@ Ext.Microloader = Ext.Microloader || (function () {
                     //</debug>
                 }
             },
-            
+
             fireAppUpdate: function() {
                 if (Ext.GlobalEvents) {
                     // We defer dispatching this event slightly in order to let the application finish loading
@@ -859,12 +906,16 @@ Ext.Microloader = Ext.Microloader || (function () {
                     }, 100);
                 }
             },
-            
+
             checksum: function(content, hash) {
+                if(!content || !hash) {
+                    return false;
+                }
+
                 var passed = true,
                     hashLn = hash.length,
                     checksumType = content.substring(0, 1);
-                
+
                 if (checksumType == '/') {
                     if (content.substring(2, hashLn + 2) !== hash) {
                         passed = false;
@@ -899,92 +950,7 @@ Ext.Microloader = Ext.Microloader || (function () {
     return Microloader;
 }());
 
-//</editor-fold>
-
 /**
- * the current application manifest
- *
- *
- * {
- *  name: 'name',
- *  version: <checksum>,
- *  debug: {
- *      hooks: {
- *          "*": true
- *      }
- *  },
- *  localStorage: false,
- *  mode: production,
- *  js: [
- *      ...
- *      {
- *          path: '../boo/baz.js',
- *          version: <checksum>,
- *          update: full | delta | <falsy>,
- *          platform: ['phone', 'ios', 'android']
- *      },
- *      {
- *          path: 'http://some.domain.com/api.js',
- *          remote: true
- *      },
- *      ...
- *  ],
- *  css: [
- *      ...
- *      {
- *          path: '../boo/baz.css',
- *          version: <checksum>,
- *          update: full | delta | <falsy>,
- *          platform: ['phone', 'ios', 'android']
- *      },
- *      ...
- *  ],
- *  localStorage: false,
- *  paths: {...},
- *  loadOrder: [
- *      ...
- *      {
- *          path: '../foo/bar.js",
- *          idx: 158,
- *          requires; [1,2,3,...,145,157],
- *          uses: [182, 193]
- *      },
- *      ...
- *  ],
- *  classes: {
- *      ...
- *      'Ext.panel.Panel': {
- *          requires: [...],
- *          uses: [...],
- *          aliases: [...],
- *          alternates: [...],
- *          mixins: [...]
- *      },
- *      'Ext.rtl.util.Renderable': {
- *          requires: [...],
- *          uses: [...],
- *          aliases: [...],
- *          alternates: [...],
- *          mixins: [...]
- *          override: 'Ext.util.Renderable'
- *      },
- *      ...
- *  },
- *  packages: {
- *      ...
- *      "sencha-core": {
- *          version: '1.2.3.4',
- *          requires: []
- *      },
- *      "ext": {
- *          version: '5.0.0.0',
- *          requires: ["sencha-core"]
- *      }.
- *      ...
- *  }
- * }
- *
- *
  * @type {String/Object}
  */
 Ext.manifest = Ext.manifest || "bootstrap";

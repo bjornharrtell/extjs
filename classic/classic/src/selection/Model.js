@@ -155,16 +155,6 @@ Ext.define('Ext.selection.Model', {
         return selected;
     },
 
-    // On bind of a new store, we need to refresh against what is in the new store.
-    onBindStore: function(store, initial) {
-        var me = this;
-
-        me.mixins.storeholder.onBindStore.call(me, [store, initial]);
-        if (store && !me.preventRefresh) {
-            me.refresh();
-        }
-    },
-
     getStoreListeners: function() {
         var me = this;
         return {
@@ -181,11 +171,11 @@ Ext.define('Ext.selection.Model', {
             pageremove: me.onPageRemove
         };
     },
-    
+
     suspendChanges: function(){
         ++this.suspendChange;
     },
-    
+
     resumeChanges: function(){
         if (this.suspendChange) {
             --this.suspendChange;
@@ -341,7 +331,7 @@ Ext.define('Ext.selection.Model', {
             fromIdx = e.previousRecordIndex,
             key = keyEvent.getCharCode(),
             isSpace = key === keyEvent.SPACE,
-            direction = key === keyEvent.UP || key === keyEvent.PAGE_UP ? 'up' : (key === keyEvent.DOWN || key === keyEvent.DOWN ? 'down' : null);
+            direction = key === keyEvent.UP || key === keyEvent.PAGE_UP || key === keyEvent.HOME ? 'up' : (key === keyEvent.DOWN || key === keyEvent.PAGE_DOWN || key === keyEvent.END ? 'down' : null);
 
         switch (me.selectionMode) {
             case 'MULTI':
@@ -411,23 +401,15 @@ Ext.define('Ext.selection.Model', {
                 }
                 break;
             case 'SINGLE':
-                // Arrow movement
-                if (direction) {
-                    // CTRL-navigation does not select
-                    if (!ctrlKey) {
+                // CTRL-navigation does not select
+                if (!ctrlKey) {
+                    // Arrow movement
+                    if (direction) {
                         me.doSelect(record, false);
                     }
-                }
-                // Space or click
-                else {
-                    if (isSelected) {
-                        // Deselect if we're allowed
-                        if (me.allowDeselect) {
-                            me.doDeselect(record);
-                        }
-                    } else {
-                        // select the record and do NOT maintain existing selections
-                        me.doSelect(record);
+                    // Space or click
+                    else if (isSpace || !key) {
+                        me.selectWithEvent(record, keyEvent);
                     }
                 }
         }
@@ -1170,6 +1152,7 @@ Ext.define('Ext.selection.Model', {
     },
 
     /**
+     * @method
      * @abstract
      * @private
      */
@@ -1192,6 +1175,7 @@ Ext.define('Ext.selection.Model', {
     },
 
     /**
+     * @method
      * @abstract
      */
     onEditorKey: Ext.emptyFn,
@@ -1208,6 +1192,7 @@ Ext.define('Ext.selection.Model', {
     },
     
     /**
+     * @method
      * @protected
      * @template
      * Called by the owning grid's {@link Ext.grid.header.Container header container}
@@ -1226,6 +1211,7 @@ Ext.define('Ext.selection.Model', {
     },
 
     /**
+     * @method
      * @abstract
      */
     bindComponent: Ext.emptyFn,

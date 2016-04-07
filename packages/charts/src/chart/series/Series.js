@@ -287,6 +287,7 @@ Ext.define('Ext.chart.series.Series', {
          * strokes. Set it to false if you want to use the same color as the fill color.
          * Alternatively, you can set it to a number between 0 and 1 to control how much darker
          * the strokes should be.
+         * Note: this should be initial config and cannot be changed later on.
          */
         useDarkerStrokeColor: true,
 
@@ -432,7 +433,7 @@ Ext.define('Ext.chart.series.Series', {
 
         /**
          * @protected
-         * @cfg {Object} overlaySurface The surface that series markers are attached.
+         * @cfg {Object} overlaySurface The surface used to render series labels.
          */
         overlaySurface: null,
 
@@ -475,20 +476,43 @@ Ext.define('Ext.chart.series.Series', {
 
         /**
          * @cfg {Object} tooltip
-         * Add tooltips to the visualization's markers. The options for the tooltip are the
-         * same configuration used with {@link Ext.tip.ToolTip}. For example:
+         * Add tooltips to the visualization's markers. The config options for the 
+         * tooltip are the same configuration used with {@link Ext.tip.ToolTip} plus a 
+         * `renderer` config option and a `scope` for the renderer. For example:
          *
          *     tooltip: {
          *       trackMouse: true,
          *       width: 140,
          *       height: 28,
-         *       renderer: function (storeItem, item) {
-         *           this.setHtml(storeItem.get('name') + ': ' + storeItem.get('data1') + ' views');
+         *       renderer: function (toolTip, record, ctx) {
+         *           toolTip.setHtml(record.get('name') + ': ' + record.get('data1') + ' views');
          *       }
          *     }
          *
          * Note that tooltips are shown for series markers and won't work
          * if the {@link #marker} is not configured.
+         * @cfg {Object} tooltip.scope The scope to use when the renderer function is 
+         * called.  Defaults to the Series instance.
+         * @cfg {Function} tooltip.renderer An 'interceptor' method which can be used to 
+         * modify the tooltip attributes before it is shown.  The renderer function is 
+         * passed the following params:
+         * @cfg {Ext.tip.ToolTip} tooltip.renderer.toolTip The tooltip instance
+         * @cfg {Ext.data.Model} tooltip.renderer.record The record instance for the 
+         * chart item (sprite) currently targeted by the tooltip.
+         * @cfg {Object} tooltip.renderer.ctx A data object with values relating to the 
+         * currently targeted chart sprite
+         * @cfg {String} tooltip.renderer.ctx.category The type of sprite passed to the 
+         * renderer function (will be "items", "markers", or "labels" depending on the 
+         * target sprite of the tooltip)
+         * @cfg {String} tooltip.renderer.ctx.field The {@link #yField} for the series
+         * @cfg {Number} tooltip.renderer.ctx.index The target sprite's index within the 
+         * series' items
+         * @cfg {Ext.data.Model} tooltip.renderer.ctx.record The record instance for the 
+         * chart item (sprite) currently targeted by the tooltip.
+         * @cfg {Ext.chart.series.Series} tooltip.renderer.ctx.series The series instance 
+         * containing the tooltip's target sprite
+         * @cfg {Ext.draw.sprite.Sprite} tooltip.renderer.ctx.sprite The sprite (item) 
+         * target of the tooltip
          */
         tooltip: null
     },
@@ -506,6 +530,14 @@ Ext.define('Ext.chart.series.Series', {
     themeColorCount: function() {
         return 1;
     },
+
+    /**
+     * @private
+     * @property
+     * Series, where the number of sprites (an so unique colors they require)
+     * depends on the number of records in the store should set this to 'true'.
+     */
+    isStoreDependantColorCount: false,
 
     /**
      * @private
@@ -703,6 +735,8 @@ Ext.define('Ext.chart.series.Series', {
     },
 
     lookupViewModel: function (skipThis) {
+        // Override the Bindable's method to redirect view model
+        // lookup to the chart.
         var chart = this.getChart();
         return chart ? chart.lookupViewModel(skipThis) : null;
     },
@@ -1181,12 +1215,25 @@ Ext.define('Ext.chart.series.Series', {
         }
     },
 
+    updateShowMarkers: function (showMarkers) {
+        var sprites = this.getSprites(),
+            sprite = sprites && sprites[0],
+            markers = sprite && sprite.getMarker('markers');
+
+        if (markers) {
+            markers.getTemplate().setAttributes({
+                hidden: !showMarkers
+            });
+        }
+    },
+
     createSprite: function () {
         var me = this,
             surface = me.getSurface(),
             itemInstancing = me.getItemInstancing(),
             sprite = surface.add(me.getDefaultSpriteConfig()),
-            marker, config;
+            marker = me.getMarker(),
+            markers, markersTpl;
 
         sprite.setAttributes(me.getStyle());
         sprite.setSeries(me);
@@ -1196,21 +1243,21 @@ Ext.define('Ext.chart.series.Series', {
         }
 
         if (sprite.bindMarker) {
-            if (me.getShowMarkers() && me.getMarker()) {
-                marker = new Ext.chart.Markers();
-                config = Ext.Object.chain(me.getMarker());
+            if (marker) {
+                markers = new Ext.chart.Markers();
+                markersTpl = Ext.Object.merge({}, marker);
                 if (me.getHighlight()) {
-                    config.highlight = me.getHighlight();
-                    config.modifiers = ['highlight'];
+                    markersTpl.highlight = me.getHighlight();
+                    markersTpl.modifiers = ['highlight'];
                 }
-                marker.setTemplate(config);
-                marker.getTemplate().fx.setCustomDurations({
+                markers.setTemplate(markersTpl);
+                markers.getTemplate().fx.setCustomDurations({
                     translationX: 0,
                     translationY: 0
                 });
-                sprite.dataMarker = marker;
-                sprite.bindMarker('markers', marker);
-                me.getOverlaySurface().add(marker);
+                sprite.dataMarker = markers;
+                sprite.bindMarker('markers', markers);
+                me.getOverlaySurface().add(markers);
             }
             if (me.getLabel().getTemplate().getField()) {
                 sprite.bindMarker('labels', me.getLabel());
@@ -1363,6 +1410,7 @@ Ext.define('Ext.chart.series.Series', {
         var me = this;
 
         if (Ext.isArray(me.getHidden())) {
+            // Multi-sprite series like Pie and StackedCartesian.
             me.getHidden()[index] = value;
             me.updateHidden(me.getHidden());
             me.updateLegendStore(value, index);
@@ -1376,6 +1424,7 @@ Ext.define('Ext.chart.series.Series', {
             darker = me.getUseDarkerStrokeColor(),
             darkerRatio = (Ext.isNumber(darker) ? darker : me.darkerStrokeRatio),
             strokeColors;
+
         if (darker) {
             strokeColors = Ext.Array.map(colors, function (color) {
                 color = Ext.isString(color) ? color : color.stops[0].color;
@@ -1472,6 +1521,9 @@ Ext.define('Ext.chart.series.Series', {
             sprites = me.sprites,
             itemInstancing = me.getItemInstancing(),
             i = 0, ln = sprites && sprites.length,
+            // 'showMarkers' updater calls 'series.getSprites()',
+            // which we don't want to call here.
+            showMarkers = me.getConfig('showMarkers', true),
             markerCfg = me.getMarker(),
             style;
 
@@ -1552,7 +1604,14 @@ Ext.define('Ext.chart.series.Series', {
         style = me.getStyle();
         themeStyle = (theme && theme.style) || {};
 
+        // 'series.updateHidden()' will update 'series.subStyle.hidden' config
+        // with the value of the 'series.hidden' config.
+        // But we also need to account for 'series.showMarkers' config
+        // to determine whether the markers should be hidden or not.
         subStyle = me.styleDataForIndex(me.getSubStyle(), i);
+        if (subStyle.hasOwnProperty('hidden')) {
+            subStyle.hidden = subStyle.hidden || !this.getConfig('showMarkers', true);
+        }
         themeSubStyle = me.styleDataForIndex((theme && theme.subStyle), i);
 
         markerStyle = me.getMarker();
@@ -1591,6 +1650,7 @@ Ext.define('Ext.chart.series.Series', {
     },
 
     /**
+     * @method
      * For a given x/y point relative to the main rect, find a corresponding item from this
      * series, if any.
      * @param {Number} x
@@ -1651,9 +1711,9 @@ Ext.define('Ext.chart.series.Series', {
         this.fireEvent('animationend', this, sprite);
     },
 
-    // Override the Observable's method to redirect listener scope
-    // resolution to the chart.
     resolveListenerScope: function (defaultScope) {
+        // Override the Observable's method to redirect listener scope
+        // resolution to the chart.
         var me = this,
             namedScope = Ext._namedScopes[defaultScope],
             chart = me.getChart(),

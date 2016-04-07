@@ -152,7 +152,14 @@ Ext.define('Admin.data.search.Results', {
         "content": "Est laboris amet sit consectetur dolore. Aliquip eiusmod sunt et consectetur proident pariatur deserunt labore. Cupidatat cupidatat consectetur ut consectetur reprehenderit laboris aliqua minim non mollit. Eu qui tempor labore cupidatat nulla sunt et adipisicing culpa enim irure irure. Dolore magna deserunt fugiat eu magna proident ipsum minim eu. Voluptate voluptate labore irure velit.\r\n",
         "title": "Consectetur sunt consectetur aute nostrud non occaecat laboris est fugiat ad aute nulla.",
         "thumbnail": "resources/images/sample.jpg",
-        "url": "www.ea.com"
+        "url": "www.ea.com",
+        "attachments": [{
+            "url": "resources/images/img1.jpg",
+            "title": "Dandelion"
+        }, {
+            "url": "resources/images/img2.jpg",
+            "title": "Landscape"
+        }]
     },
     {
         "id": 22,

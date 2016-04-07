@@ -501,7 +501,10 @@ Ext.define('Ext.ComponentQuery', {
             for (; i < length; i++) {
                 candidate = items[i];
 
-                config = candidate.self.$config.configs[property];
+                // If the candidate is a product of the Ext class system, then
+                // use the configurator to call getters to access the property.
+                // CQ can be used to filter raw Objects.
+                config = candidate.getConfigurator && candidate.self.$config.configs[property];
                 if (config) {
                     propValue = candidate[config.names.get]();
                 } else if (mustBeOwnProperty && !candidate.hasOwnProperty(property)) {
@@ -1250,7 +1253,7 @@ Ext.define('Ext.ComponentQuery', {
      * If omitted, all Components within the document are included in the search.
      *
      * This parameter may also be an array of Components to filter according to the selector.
-     * @return {Ext.Component The first matched Component or `null`.
+     * @return {Ext.Component} The first matched Component or `null`.
      * @method first
      * @member Ext
      */

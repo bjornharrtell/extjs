@@ -73,6 +73,18 @@ Ext.define('KitchenSink.controller.Main', {
         this.hideSheets();
     },
 
+    isProfile: function(item) {
+        var profileName = item.get('profileName'),
+            ret = false;
+
+        if (profileName !== undefined) {
+            window.location = profileName ? (location.pathname + '?profile=' + profileName) : '';
+            ret = true;
+        }
+
+        return ret;
+    },
+
     /**
      * Shows the source code for the {@link #currentDemo} in an overlay
      */

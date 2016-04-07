@@ -31,6 +31,7 @@ Ext.define('Ext.draw.Container', {
     alternateClassName: 'Ext.draw.Component',
     xtype: 'draw',
     defaultType: 'surface',
+    isDrawContainer: true,
 
     requires: [
         'Ext.draw.Surface',
@@ -355,10 +356,10 @@ Ext.define('Ext.draw.Container', {
     },
 
     /**
-     * Produces an image of the chart.
-     * @param {String} [format] Possible options are 'image' (the method will return an Image object)
-     *                          and 'stream' (the method will return the image as a byte stream).
-     *                          If missing, the DataURL of the chart's image will be returned.
+     * Produces an image of the chart / drawing.
+     * @param {String} [format] Possible options are 'image' (the method will return an 
+     * Image object) and 'stream' (the method will return the image as a byte stream).  
+     * If missing, the DataURL of the drawing's (or chart's) image will be returned.
      * @return {Object}
      * @return {String} return.data Image element, byte stream or DataURL.
      * @return {String} return.type The type of the data (e.g. 'png' or 'svg').
@@ -398,10 +399,10 @@ Ext.define('Ext.draw.Container', {
     },
 
     /**
-     * Downloads an image or PDF of the chart or opens it in a separate browser tab/window
-     * if the download can't be triggered. The exact behavior is platform and browser
-     * specific. For more consistent results on mobile devices use the {@link #preview}
-     * method instead.
+     * Downloads an image or PDF of the chart / drawing or opens it in a separate 
+     * browser tab/window if the download can't be triggered. The exact behavior is 
+     * platform and browser specific. For more consistent results on mobile devices use 
+     * the {@link #preview} method instead.
      *
      * @param {Object} [config] The following config options are supported:
      *

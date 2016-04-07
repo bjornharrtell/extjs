@@ -67,7 +67,7 @@ $tool-close-glyph: dynamic($fa-var-close $tool-glyph-font-size $font-icon-font-f
  * @var {string/list}
  * Glyph for the "minimize" tool icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$tool-minimize-glyph: dynamic($fa-var-minus $tool-glyph-font-size $font-icon-font-family);
+$tool-minimize-glyph: dynamic($ext-var-minimize $tool-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
@@ -121,7 +121,7 @@ $tool-pin-glyph: dynamic($fa-var-thumb-tack $tool-glyph-font-size $font-icon-fon
  * @var {string/list}
  * Glyph for the "unpin" tool icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$tool-unpin-glyph: dynamic($ext-icon-unpin $tool-glyph-font-size ExtJS);
+$tool-unpin-glyph: dynamic($ext-var-unpin $tool-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
@@ -193,13 +193,13 @@ $tool-print-glyph: dynamic($fa-var-print $tool-glyph-font-size $font-icon-font-f
  * @var {string/list}
  * Glyph for the "expand" tool icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$tool-expand-glyph: dynamic($ext-icon-expand $tool-glyph-font-size ExtJS);
+$tool-expand-glyph: dynamic($ext-var-expand $tool-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph for the "collapse" tool icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$tool-collapse-glyph: dynamic($ext-icon-collapse $tool-glyph-font-size ExtJS);
+$tool-collapse-glyph: dynamic($ext-var-collapse $tool-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}

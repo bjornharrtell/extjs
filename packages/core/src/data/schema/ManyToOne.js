@@ -160,7 +160,8 @@ Ext.define('Ext.data.schema.ManyToOne', {
             var ret = leftRecords;
 
             if (session) {
-                ret = this.findRecords(session, rightRecord, leftRecords);
+                // Allow infer here, we only get called when loading an associated store
+                ret = this.findRecords(session, rightRecord, leftRecords, true);
             }
             this.onLoadMany(rightRecord, ret, session);
             return ret;
@@ -182,18 +183,7 @@ Ext.define('Ext.data.schema.ManyToOne', {
             var me = this;
             return function (options, scope, leftRecords) {
                 // 'this' refers to the Model instance inside this function
-                var session = this.session,
-                    hadRecords = !!leftRecords;
-
-                if (session) {
-                    // allowInfer is true here because the only time we get records passed
-                    // here is via nested loading
-                    leftRecords = me.findRecords(session, this, leftRecords, true);
-                    if (!hadRecords && (!leftRecords || !leftRecords.length)) {
-                        leftRecords = null;
-                    }
-                }
-                return me.getAssociatedStore(this, options, scope, leftRecords, hadRecords);
+                return me.getAssociatedStore(this, options, scope, leftRecords, me, true);
             };
         },
 

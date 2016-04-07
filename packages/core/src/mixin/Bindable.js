@@ -71,6 +71,14 @@ Ext.define('Ext.mixin.Bindable', {
          *
          */
         controller: null,
+        
+        /**
+         * @method getController
+         * Returns the {@link Ext.app.ViewController} instance associated with this 
+         * component via the {@link #controller} config or {@link #setController} method.
+         * @return {Ext.app.ViewController} Returns this component's ViewController or 
+         * null if one was not configured
+         */
 
         /**
          * @cfg {Boolean} defaultListenerScope

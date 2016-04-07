@@ -319,7 +319,7 @@ Ext.define('Ext.selection.CheckboxModel', {
         }
 
         // Do not select if checkOnly, and the requested position is not the check column
-        if (!this.checkOnly || position.column !== this.column) {
+        if (!this.checkOnly || position.column === this.column) {
             this.callParent([position, keepExisting]);
         }
     },

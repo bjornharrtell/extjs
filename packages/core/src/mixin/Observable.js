@@ -45,10 +45,7 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
         arrayProto = Array.prototype,
         arraySlice = arrayProto.slice,
 
-        /**
-         * @private
-         * Destroyable class which removes listeners
-         */
+        // Destroyable class which removes listeners
         ListenerRemover = function(observable) {
 
             // Passed a ListenerRemover: return it
@@ -142,7 +139,8 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
             *     });
             *
             * @param {Function} c The class constructor to make observable.
-            * @param {Object} listeners An object containing a series of listeners to add. See {@link #addListener}.
+            * @param {Object} listeners An object containing a series of listeners to 
+            * add. See {@link Ext.util.Observable#addListener addListener}.
             * @static
             */
             observe: function(cls, listeners) {
@@ -245,8 +243,9 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
         * @cfg {Object} listeners
         *
         * A config object containing one or more event handlers to be added to this object during initialization. This
-        * should be a valid listeners config object as specified in the {@link #addListener} example for attaching multiple
-        * handlers at once.
+        * should be a valid listeners config object as specified in the 
+        * {@link Ext.util.Observable#addListener addListener} example for attaching 
+        * multiple handlers at once.
         *
         * **DOM events from Ext JS {@link Ext.Component Components}**
         *
@@ -448,10 +447,11 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
         * listener on the menu (`MyApp.SomeGlobalSharedMenu`) is also removed.
         *
         * As of version 5.1 it is no longer necessary to use this method in most cases because
-        * listeners are automatically managed if the scope object provided to {@link #addListener}
-        * is an Observable instance. However, if the observable instance and scope are not the
-        * same object you still need to use `mon` or `addManagedListener` if you want the listener
-        * to be managed.
+        * listeners are automatically managed if the scope object provided to 
+        * {@link Ext.util.Observable#addListener addListener} is an Observable instance. 
+        * However, if the observable instance and scope are not the same object you 
+        * still need to use `mon` or `addManagedListener` if you want the listener to be 
+        * managed.
         *
         * @param {Ext.util.Observable/Ext.dom.Element} item The item to which to add a listener/listeners.
         * @param {Object/String} ename The event name, or an object containing event name properties.
@@ -560,7 +560,7 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
 
         /**
         * Fires the specified event with the passed parameters (minus the event name, plus the `options` object passed
-        * to {@link #addListener}).
+        * to {@link Ext.util.Observable#addListener addListener}).
         *
         * An event may be set to bubble up an Observable parent hierarchy (See {@link Ext.Component#getBubbleTarget}) by
         * calling {@link #enableBubble}.
@@ -625,10 +625,11 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
         /**
          * Fires the specified event with the passed parameters and executes a function (action).
          * By default, the action function will be executed after any "before" event handlers
-         * (as specified using the `order` option of `{@link #addListener}`), but before any
-         * other handlers are fired.  This gives the "before" handlers an opportunity to
-         * cancel the event by returning `false`, and prevent the action function from being
-         * called.
+         * (as specified using the `order` option of 
+         * `{@link Ext.util.Observable#addListener addListener}`), but before any other 
+         * handlers are fired.  This gives the "before" handlers an opportunity to 
+         * cancel the event by returning `false`, and prevent the action function from 
+         * being called.
          *
          * The action can also be configured to run after normal handlers, but before any "after"
          * handlers (as specified using the `order` event option) by passing `'after'`
@@ -642,13 +643,13 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
          * @param {Object} [scope] The scope (`this` reference) in which the handler function is
          * executed. **If omitted, defaults to the object which fired the event.**
          * @param {Object} [options] Event options for the action function.  Accepts any
-         * of the options of `{@link #addListener}`
+         * of the options of `{@link Ext.util.Observable#addListener addListener}`
          * @param {String} [order='before'] The order to call the action function relative
          * too the event handlers (`'before'` or `'after'`).  Note that this option is
          * simply used to sort the action function relative to the event handlers by "priority".
          * An order of `'before'` is equivalent to a priority of `99.5`, while an order of
          * `'after'` is equivalent to a priority of `-99.5`.  See the `priority` option
-         * of `{@link #addListener}` for more details.
+         * of `{@link Ext.util.Observable#addListener addListener}` for more details.
          * @deprecated 5.5 Use {@link #fireEventAction} instead.
          */
         fireAction: function(eventName, args, fn, scope, options, order) {
@@ -800,7 +801,8 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
         },
 
         /**
-         * The {@link #on} method is shorthand for {@link #addListener}.
+         * The {@link #on} method is shorthand for 
+         * {@link Ext.util.Observable#addListener addListener}.
          *
          * Appends an event handler to this object.  For example:
          *
@@ -926,7 +928,8 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
          *
          * @param {Array} [options.args]
          *   Optional arguments to pass to the handler function. Any additional arguments
-         *   passed to {@link #fireEvent} will be appended to these arguments.
+         *   passed to {@link Ext.util.Observable#fireEvent fireEvent} will be appended 
+         *   to these arguments.
          *
          * @param {Boolean} [options.destroyable=false]
          *   When specified as `true`, the function returns a `destroyable` object. An object 
@@ -1099,15 +1102,15 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
          * @param {String} eventName The type of event the handler was associated with.
          * @param {Function} fn The handler to remove. **This must be a reference to the function 
          * passed into the
-         * {@link #addListener} call.**
+         * {@link Ext.util.Observable#addListener addListener} call.**
          * @param {Object} scope (optional) The scope originally specified for the handler. It 
          * must be the same as the scope argument specified in the original call to 
          * {@link Ext.util.Observable#addListener} or the listener will not be removed.
          * 
          * **Convenience Syntax**
          *
-         * You can use the {@link #addListener addListener destroyable: true} config option in
-         * place of calling un().  For example:
+         * You can use the {@link Ext.util.Observable#addListener addListener} 
+         * `destroyable: true` config option in place of calling un().  For example:
          *
          *     var listeners = cmp.on({
          *         scope: cmp,
@@ -1128,7 +1131,7 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
          * **Exception - DOM event handlers using the element config option**
          *
          * You must go directly through the element to detach an event handler attached using
-         * the {@link #addListener} _element_ option.
+         * the {@link Ext.util.Observable#addListener addListener} _element_ option.
          *
          *     panel.on({
          *         element: 'body',
@@ -1166,7 +1169,8 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
         /**
          * Appends a before-event handler.  Returning `false` from the handler will stop the event.
          *
-         * Same as {@link #addListener} with `order` set to `'before'`.
+         * Same as {@link Ext.util.Observable#addListener addListener} with `order` set 
+         * to `'before'`.
          *
          * @param {String/String[]/Object} eventName The name of the event to listen for.
          * @param {Function/String} fn The method the event invokes.
@@ -1180,7 +1184,8 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
         /**
          * Appends an after-event handler.
          *
-         * Same as {@link #addListener} with `order` set to `'after'`.
+         * Same as {@link Ext.util.Observable#addListener addListener} with `order` set 
+         * to `'after'`.
          *
          * @param {String/String[]/Object} eventName The name of the event to listen for.
          * @param {Function/String} fn The method the event invokes.
@@ -1789,11 +1794,12 @@ Ext.define('Ext.mixin.Observable', function(Observable) {
         mun: 'removeManagedListener',
         /**
          * @method
-         * An alias for {@link #addListener}.  In versions prior to 5.1, {@link #listeners}
-         * had a generated setter which could be called to add listeners.  In 5.1 the listeners
-         * config is not processed using the config system and has no generated setter, so
-         * this method is provided for backward compatibility.  The preferred way of
-         * adding listeners is to use the {@link #on} method.
+         * An alias for {@link Ext.util.Observable#addListener addListener}.  In 
+         * versions prior to 5.1, {@link #listeners} had a generated setter which could 
+         * be called to add listeners.  In 5.1 the listeners config is not processed 
+         * using the config system and has no generated setter, so this method is 
+         * provided for backward compatibility.  The preferred way of adding listeners 
+         * is to use the {@link #on} method.
          * @param {Object} listeners The listeners
          */
         setListeners: 'addListener'

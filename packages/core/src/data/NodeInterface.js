@@ -150,20 +150,13 @@ Ext.define('Ext.data.NodeInterface', {
 
     /**
      * @cfg {String} iconCls
-     * CSS class to apply for this node's icon.
-     *
-     * There are no default icon classes that come with Ext JS.
-     *
-     * Use {@link #icon} to set the icon directly.
+     * @inheritdoc Ext.panel.Header#iconCls
+     * @localdoc Use {@link #icon} to set the icon src path directly.
      */
 
     /**
      * @cfg {String} icon
-     * URL for this node's icon.
-     *
-     * There are no default icons that come with Ext JS.
-     *
-     * * Use {@link #iconCls} to set the icon via CSS.
+     * @inheritdoc Ext.panel.Header#icon
      */
 
     /**
@@ -1785,8 +1778,8 @@ Ext.define('Ext.data.NodeInterface', {
                  * Returns true if this node is a branch node, and the entire branch is fully loaded.
                  *
                  * Using this method, it is possible to ascertain whether an
-                 * {@link #expandAll} call will have access to all
-                 * descendant nodes without incurring a store load.
+                 * `expandAll()` call (_classic toolkit TreePanel method_) will have 
+                 * access to all descendant nodes without incurring a store load.
                  * @return {Boolean}
                  */
                 isBranchLoaded: function() {
@@ -2119,8 +2112,10 @@ Ext.define('Ext.data.NodeInterface', {
                 },
 
                 /**
-                 * @private Sets the node into the collapsed state without affecting the UI.
-                 * 
+                 * @private
+                 *
+                 * Sets the node into the collapsed state without affecting the UI.
+                 *
                  * This is called when a node is collapsed with the recursive flag. All the descendant
                  * nodes will have been removed from the store, but descendant non-leaf nodes still
                  * need to be set to the collapsed state without affecting the UI.

@@ -9,7 +9,7 @@
         @include st-box-orient(horizontal, important);
 
         > .x-layout-box-item.x-flexed {
-            min-width: 0 !important;
+            min-width: 0;
         }
     }
 
@@ -17,7 +17,7 @@
         @include st-box-orient(vertical, important);
 
         > .x-layout-box-item.x-flexed {
-            min-height: 0 !important;
+            min-height: 0;
         }
     }
 

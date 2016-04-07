@@ -35,9 +35,6 @@ Ext.define('Ext.data.ChainedStore', {
         this.getData().addObserver(this);
     },
 
-    blockLoad: Ext.emptyFn,
-    unblockLoad: Ext.emptyFn,
-
     //<debug>
     updateRemoteFilter: function(remoteFilter, oldRemoteFilter) {
         if (remoteFilter) {

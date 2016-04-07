@@ -8,7 +8,7 @@ Ext.define('Ext.util.Positionable', {
 
     _positionTopLeft: ['position', 'top', 'left'],
 
-    _alignRe: /^([a-z]+)-([a-z]+)(\?)?$/,
+    _alignRe: /^([a-z]+)-([a-z]+)([?!])?$/,
 
     // Stub implementation called after positioning.
     // May be implemented in subclasses. Component has an implementation.
@@ -136,7 +136,7 @@ Ext.define('Ext.util.Positionable', {
 
     /**
      * Sets the X position of the DOM element based on page coordinates.
-     * @param {Number} The X position
+     * @param {Number} x The X position
      * @return {Ext.util.Positionable} this
      */
     setX: function() {
@@ -155,7 +155,7 @@ Ext.define('Ext.util.Positionable', {
 
     /**
      * Sets the Y position of the DOM element based on page coordinates.
-     * @param {Number} The Y position
+     * @param {Number} y The Y position
      * @return {Ext.util.Positionable} this
      */
     setY: function() {
@@ -375,13 +375,20 @@ Ext.define('Ext.util.Positionable', {
         x = alignToElPosition[0] - myPosition[0] + offset[0];
         y = alignToElPosition[1] - myPosition[1] + offset[1];
 
-        // If position spec ended with a "?", then constraining is necessary
+        // If position spec ended with a "?" or "!", then constraining is necessary
         if (constrain) {
             // Constrain to the correct enclosing object:
-            // Attempt to use the constrainTo property.
-            // Otherwise, if we are a Component, there will be a container property.
-            // Otherwise, use this Positionable's element's parent node.
-            constrainToEl = me.constrainTo || me.container || me.el.parent();
+            // If the assertive form was used (like "tl-bl!"), constrain to the alignToEl.
+            if (alignMatch[3] === '!') {
+                constrainToEl = alignToEl;
+            }
+            else {
+                // Otherwise, attempt to use the constrainTo property.
+                // Otherwise, if we are a Component, there will be a container property.
+                // Otherwise, use this Positionable's element's parent node.
+                constrainToEl = me.constrainTo || me.container || me.el.parent();
+            }
+            
             constrainToEl = Ext.get(constrainToEl.el || constrainToEl);
             constrainTo = constrainToEl.getConstrainRegion();
             constrainTo.right = constrainTo.left + constrainToEl.el.dom.clientWidth;
@@ -659,7 +666,7 @@ Ext.define('Ext.util.Positionable', {
         // Apply constraintInsets
         if (constraintInsets) {
             constraintInsets = Ext.isObject(constraintInsets) ? constraintInsets : Ext.Element.parseBox(constraintInsets);
-            constrainTo.adjust(constraintInsets.top, constraintInsets.right, constraintInsets.bottom, constraintInsets.length);
+            constrainTo.adjust(constraintInsets.top, constraintInsets.right, constraintInsets.bottom, constraintInsets.left);
         }
 
         // Shift this region to occupy the proposed position
@@ -719,6 +726,40 @@ Ext.define('Ext.util.Positionable', {
     getRegion: function() {
         var box = this.getBox();
         return new Ext.util.Region(box.top, box.right, box.bottom, box.left);
+    },
+
+    /**
+     * Returns a region object that defines the client area of this element.
+     *
+     * That is, the area *within* any scrollbars.
+     * @return {Ext.util.Region} A Region containing "top, left, bottom, right" properties.
+     */
+    getClientRegion: function() {
+        var me = this,
+            scrollbarSize,
+            viewContentBox = me.getBox(),
+            myDom = me.dom;
+
+        // Capture width taken by any vertical scrollbar.
+        // If there is a vertical scrollbar, shrink the box.
+        scrollbarSize = myDom.offsetWidth - myDom.clientWidth;
+        if (scrollbarSize) {
+            if (me.getStyle('direction') === 'rtl') {
+                viewContentBox.left += scrollbarSize;
+            } else {
+                viewContentBox.right -= scrollbarSize;
+            }
+        }
+
+        // Capture width taken by any horizontal scrollbar.
+        // If there is a vertical scrollbar, shrink the box.
+        scrollbarSize = myDom.offsetHeight - myDom.clientHeight;
+        if (scrollbarSize) {
+            viewContentBox.bottom -= scrollbarSize;
+        }
+
+        // The client region excluding any scrollbars.
+        return new Ext.util.Region(viewContentBox.top, viewContentBox.right, viewContentBox.bottom, viewContentBox.left);
     },
 
     /**

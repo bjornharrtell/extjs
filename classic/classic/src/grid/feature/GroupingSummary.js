@@ -91,8 +91,8 @@ Ext.define('Ext.grid.feature.GroupingSummary', {
     alias: 'feature.groupingsummary',
 
     showSummaryRow: true,
-    
-    vetoEvent: function(record, row, rowIndex, e){
+
+    vetoEvent: function (record, row, rowIndex, e){
         var result = this.callParent(arguments);
         if (result !== false && e.getTarget(this.summaryRowSelector)) {
             result = false;
@@ -100,3 +100,4 @@ Ext.define('Ext.grid.feature.GroupingSummary', {
         return result;
     }
 });
+

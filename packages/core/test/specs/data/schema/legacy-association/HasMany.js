@@ -196,7 +196,7 @@ describe("Ext.data.association.HasMany_legacy", function() {
         describe("autoLoad", function() {
             it("should not load the store by default", function() {
                 makeRec();
-                var spy = spyOn(Ext.data.Store.prototype, 'load').andReturn();
+                var spy = spyOn(Ext.data.ProxyStore.prototype, 'load').andReturn();
                 getStore();
                 expect(spy.callCount).toBe(0);    
             });  
@@ -207,7 +207,7 @@ describe("Ext.data.association.HasMany_legacy", function() {
                 }); 
                 
                 makeThread(3);
-                var spy = spyOn(Ext.data.Store.prototype, 'load').andReturn();
+                var spy = spyOn(Ext.data.ProxyStore.prototype, 'load').andReturn();
                 getStore();
                 expect(spy.callCount).toBe(1);          
             });

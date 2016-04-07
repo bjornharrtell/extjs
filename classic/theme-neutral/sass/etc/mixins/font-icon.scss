@@ -84,7 +84,8 @@ require('font-icon');
  * is necessary in cases where the icon-containing element is not exclusively dedicated
  * to containing the icon and may contain other text as well, for example, grid headers
  * and grid grouping headers.
- *
+ * 
+ * @member Global_CSS
  * @private
  */
 @mixin font-icon($glyph, $pseudo: true, $line-height: 1, $color: null, $style-pseudo: false) {

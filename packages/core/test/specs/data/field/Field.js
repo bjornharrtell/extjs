@@ -168,6 +168,66 @@ describe("Ext.data.field.Field", function() {
                 });    
                 expect(field.getDepends()).toEqual(['foo', 'bar', 'baz']);
             });    
+
+            describe("auto detection", function() {
+                it("should detect dot property names", function() {
+                    make({
+                        calculate: function(data) {
+                            return data.foo + data.bar;
+                        }
+                    });
+                    expect(field.getDepends()).toEqual(['foo', 'bar']);
+                });
+
+                it("should not repeat", function() {
+                    make({
+                        calculate: function(data) {
+                            return data.foo + data.foo + data.foo;
+                        }
+                    });
+                    expect(field.getDepends()).toEqual(['foo']);
+                });
+
+                it("should match any argument name", function() {
+                    make({
+                        calculate: function(asdf) {
+                            return asdf.foo + asdf.bar;
+                        }
+                    });
+                    expect(field.getDepends()).toEqual(['foo', 'bar']);
+                });
+
+                it("should ignore properties that are from other objects", function() {
+                    var o = {
+                        foo2: 1
+                    };
+                    make({
+                        calculate: function(data) {
+                            return data.foo1 + o.foo2 + data.foo3;
+                        }
+                    });
+                    expect(field.getDepends()).toEqual(['foo1', 'foo3']);
+                });
+
+                it("should match fields with numbers", function() {
+                    make({
+                        calculate: function(data) {
+                            return data.foo1 + data.foo2;
+                        }
+                    });
+                    expect(field.getDepends()).toEqual(['foo1', 'foo2']);
+                });
+
+                it("should not auto detect when explicitly specified", function() {
+                    make({
+                        depends: 'foo3',
+                        calculate: function(data) {
+                            return data.foo1 + data.foo2;
+                        }
+                    });
+                    expect(field.getDepends()).toEqual(['foo3']);
+                });
+            });
         });
         
         it("should configure the mapping", function() {

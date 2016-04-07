@@ -141,7 +141,7 @@ Ext.define('Ext.overrides.util.Positionable', {
     /**
      * @method setX
      * Sets the X position of the DOM element based on page coordinates.
-     * @param {Number} The X position
+     * @param {Number} x The X position
      * @param {Boolean/Object} [animate] True for the default animation, or a standard
      * Element animation config object
      * @return {Ext.util.Positionable} this
@@ -160,7 +160,7 @@ Ext.define('Ext.overrides.util.Positionable', {
     /**
      * @method setY
      * Sets the Y position of the DOM element based on page coordinates.
-     * @param {Number} The Y position
+     * @param {Number} y The Y position
      * @param {Boolean/Object} [animate] True for the default animation, or a standard
      * Element animation config object
      * @return {Ext.util.Positionable} this

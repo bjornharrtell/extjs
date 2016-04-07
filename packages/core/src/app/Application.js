@@ -88,7 +88,7 @@
 Ext.define('Ext.app.Application', {
     extend: 'Ext.app.Controller',
 
-    requires : [
+    requires: [
         'Ext.util.History',
         'Ext.util.MixedCollection'
     ],
@@ -99,21 +99,38 @@ Ext.define('Ext.app.Application', {
      * @cfg {String} extend A class name to use with the `Ext.application` call. The class must also extend {@link Ext.app.Application}.
      *
      *     Ext.define('MyApp.Application', {
-     *         extend : 'Ext.app.Application',
+     *         extend: 'Ext.app.Application',
      *
-     *         launch : function() {
-     *             Ext.direct.Manager.addProvider(Ext.app.REMOTING_API);
+     *         launch: function() {
+     *             Ext.direct.Manager.addProvider(Ext.REMOTING_API);
      *         }
      *     });
      *
      *     Ext.application({
-     *         extend : 'MyApp.Application'
+     *         extend: 'MyApp.Application'
      *     });
      */
 
     /**
      * @cfg {String/String[]} controllers
-     * Names of controllers that the app uses.
+     * Names of {@link Ext.app.Controller controllers} that the app uses.  By default, 
+     * the framework will look for the controllers in the "controller" folder within the 
+     * {@link #appFolder}.  Controller classes should be named using the syntax of
+     * "{appName}.controller.{ClassName}" with additional sub-folders under the 
+     * "controller" folder specified within the class name following "controller.".
+     * 
+     *     // by default, the following controller class would be located at:
+     *     // app/controller/Main.js
+     *     controllers: '.Main' // or 'MyApp.controller.Main'
+     * 
+     *     // while the following would be located at:
+     *     // app/controller/customer/Main.js
+     *     controllers: 'customer.Main' // or 'MyApp.controller.customer.Main'
+     * 
+     * **Note:** If the controller has a different namespace than that of the 
+     * application you will need to specify the full class name as well as define a path 
+     * in the {@link Ext.Loader#cfg-paths Loader's paths} config or 
+     * {@link Ext.Loader#method-setPath setPath} method.
      */
 
     /**
@@ -204,6 +221,9 @@ Ext.define('Ext.app.Application', {
          */
         profiles: [],
 
+        /**
+        * @cfg {Ext.app.Profile}
+        */
         currentProfile: null,
 
         // @cmd-auto-dependency {aliasPrefix: "view.", mvc: true, blame: "all"}
@@ -259,6 +279,8 @@ Ext.define('Ext.app.Application', {
         // Require all profiles
         Controller.processDependencies(proto, requires, namespace, 'profile', data.profiles);
 
+        // This hook is used in the classic toolkit to process other configs that need to
+        // require classes (like tooltips and viewport plugin).
         proto.getDependencies(cls, data, requires);
 
         // Any "requires" also have to be processed before we fire up the App instance.
@@ -304,12 +326,7 @@ Ext.define('Ext.app.Application', {
         Ext.Loader.setConfig({ enabled: true });
         //</debug>
 
-        var profiles = this.getProfiles();
-        if (profiles && profiles.length) {
-            Ext.require(profiles, this.onProfilesLoaded, this);
-        } else {
-            this.onProfilesReady();
-        }
+        this.onProfilesReady();
     },
 
     /**
@@ -322,7 +339,26 @@ Ext.define('Ext.app.Application', {
     onAppUpdate: Ext.emptyFn,
 
     onProfilesReady: function() {
-        var me = this;
+        var me = this,
+            profiles = me.getProfiles(),
+            length = profiles.length,
+            current, i, instance;
+
+        for (i = 0; i < length; i++) {
+            instance = Ext.create(profiles[i], {
+                application: me
+            });
+
+            if (instance.isActive() && !current) {
+                current = instance;
+                me.setCurrentProfile(current);
+            }
+        }
+
+        if (current) {
+            current.init();
+        }
+
         me.initControllers();
         me.onBeforeLaunch();
         me.finishInitControllers();
@@ -357,12 +393,24 @@ Ext.define('Ext.app.Application', {
 
     initControllers: function() {
         var me = this,
-            controllers = Ext.Array.from(me.controllers);
+            controllers = Ext.Array.from(me.controllers),
+            profile = me.getCurrentProfile(),
+            i, ln;
 
         me.controllers = new Ext.util.MixedCollection();
 
-        for (var i = 0, ln = controllers.length; i < ln; i++) {
+        for (i = 0, ln = controllers.length; i < ln; i++) {
             me.getController(controllers[i]);
+        }
+
+        // Also launch controllers for the active profile (if we have one)
+        //
+        if (profile) {
+            controllers = profile.getControllers();
+
+            for (i = 0, ln = controllers.length; i < ln; i++) {
+                me.getController(controllers[i]);
+            }
         }
     },
     
@@ -458,8 +506,8 @@ Ext.define('Ext.app.Application', {
     },
 
     applyMainView: function(value) {
-        var view;
-        view = this.getView(value);
+        var view = this.getView(value);
+
         return view.create();
     },
 
@@ -536,12 +584,10 @@ Ext.define('Ext.app.Application', {
         this.controllers.remove(controller);    
     },
 
-    // Inherit docs
     getApplication: function() {
         return this;
     },
     
-    // Inherit docs
     destroy: function(destroyRefs){
         var me = this,
             controllers = me.controllers,
@@ -569,75 +615,15 @@ Ext.define('Ext.app.Application', {
     },
 
     /**
-     * @private
      * As a convenience developers can locally qualify profile names (e.g. 'MyProfile' vs
-     * 'MyApp.profile.MyProfile'). This just makes sure everything ends up fully qualified
+     * 'MyApp.profile.MyProfile'). This just makes sure everything ends up fully qualified.
+     * @private
      */
     applyProfiles: function(profiles) {
         var me = this;
+
         return Ext.Array.map(profiles, function(profile) {
             return me.getModuleClassName(profile, "profile");
         });
-    },
-
-    /**
-     * @private
-     * Callback that is invoked when all of the configured Profiles have been loaded. Detects the current profile and
-     * gathers any additional dependencies from that profile, then loads all of those dependencies.
-     */
-    onProfilesLoaded: function() {
-        var me = this,
-            profiles = me.getProfiles(),
-            length = profiles.length,
-            instances = [],
-            current, i, profileDeps, requires, controllers, profileControllers,
-            views, profileViews, stores, profileStores, models, profileModels;
-
-        for (i = 0; i < length; i++) {
-            instances[i] = Ext.create(profiles[i], {
-                application: me
-            });
-
-            if (instances[i].isActive() && !current) {
-                current = instances[i];
-                profileDeps = current.getDependencies();
-                requires = profileDeps.all;
-
-                me.setCurrentProfile(current);
-                profileControllers = profileDeps.controller;
-
-                if (profileControllers.length) {
-                    controllers = me.controllers = (me.controllers || []);
-                    controllers.push.apply(controllers, profileControllers);
-                }
-
-                profileViews = profileDeps.view;
-
-                if (profileViews.length) {
-                    views = me.views = (me.views || []);
-                    views.push.apply(views, profileViews);
-                }
-
-                profileStores = profileDeps.store;
-
-                if (profileStores.length) {
-                    stores = me.stores = (me.stores || []);
-                    stores.push.apply(stores, profileStores);
-                }
-
-                profileModels = profileDeps.model;
-
-                if (profileModels.length) {
-                    models = me.models = (me.models || []);
-                    models.push.apply(models, profileModels);
-                }
-            }
-        }
-
-        if (requires) {
-            Ext.require(requires, me.onProfilesReady, me);
-        } else {
-            me.onProfilesReady();
-        }
     }
 });

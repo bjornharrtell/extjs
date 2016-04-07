@@ -1,6 +1,6 @@
 Ext.define('Admin.view.dashboard.Earnings', {
     extend: 'Ext.Panel',
-    xtype: 'dashboardearningspanel',
+    xtype: 'earnings',
 
     requires: [
         'Ext.chart.CartesianChart',
@@ -10,13 +10,15 @@ Ext.define('Admin.view.dashboard.Earnings', {
         'Ext.chart.interactions.PanZoom'
     ],
 
-    cls: 'quick-graph-panel shadow-panel',
+    title: 'Earnings',
+    ui: 'light',
+    iconCls: 'x-fa fa-dollar',
+    headerPosition: 'bottom',
+
+    cls: 'quick-graph-panel shadow',
     height: 130,
     layout: 'fit',
-    headerPosition: 'bottom',
-    iconCls: 'x-fa fa-dollar',
 
-    title: 'Earnings',
     items: [
         {
             xtype: 'cartesian',
@@ -34,7 +36,7 @@ Ext.define('Admin.view.dashboard.Earnings', {
                 '#a66111'
             ],
             bind: {
-                store: '{dashboard.QGLineStore}'
+                store: '{earnings}'
             },
             axes: [
                 {

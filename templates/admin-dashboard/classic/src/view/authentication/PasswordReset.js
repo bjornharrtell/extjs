@@ -4,7 +4,6 @@ Ext.define('Admin.view.authentication.PasswordReset', {
 
     requires: [
         'Admin.view.authentication.Dialog',
-        'Ext.container.Container',
         'Ext.form.Label',
         'Ext.form.field.Text',
         'Ext.button.Button'
@@ -68,7 +67,7 @@ Ext.define('Admin.view.authentication.PasswordReset', {
                 {
                     xtype: 'component',
                     html: '<div style="text-align:right">' +
-                        '<a href="#authentication.login" class="link-forgot-password">'+
+                        '<a href="#login" class="link-forgot-password">'+
                             'Back to Log In</a>' +
                         '</div>'
                 }

@@ -5,7 +5,7 @@ header('Content-Type: text/javascript');
 
 $API = get_extdirect_api('api');
 
-# convert API config to Ext.Direct spec
+# convert API config to Ext Direct spec
 $actions = array();
 foreach($API as $aname=>&$a){
 	$methods = array();
@@ -39,7 +39,7 @@ $cfg = array(
 	'actions'=>$actions
 );
 
-echo 'Ext.ns("Ext.app"); Ext.app.REMOTING_API = ';
+echo 'var Ext = Ext || {}; Ext.REMOTING_API = ';
 
 echo json_encode($cfg);
 echo ';';

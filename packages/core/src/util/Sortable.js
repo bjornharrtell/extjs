@@ -77,7 +77,7 @@ Ext.define("Ext.util.Sortable", {
                 // While we have not established a comparison value,
                 // loop through subsequent sorters asking for a comparison value
                 for (; !result && i < length; i++) {
-                    result = sorters[i].sort.call(this, r1, r2);
+                    result = sorters[i].sort.call(sorters[i], r1, r2);
                 }
                 return result;
             }: function() {

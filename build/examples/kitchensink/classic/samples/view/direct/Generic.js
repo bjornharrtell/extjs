@@ -1,5 +1,5 @@
 /*
- * This example shows generic Ext.Direct remoting and polling.
+ * This example shows generic Ext Direct remoting and polling.
  */
 Ext.define('KitchenSink.view.direct.Generic', {
     extend: 'Ext.panel.Panel',
@@ -13,9 +13,9 @@ Ext.define('KitchenSink.view.direct.Generic', {
     ],
     
     //<example>
-    exampleTitle: 'Generic Ext.Direct remoting and polling',
+    exampleTitle: 'Generic Ext Direct remoting and polling',
     exampleDescription: [
-        '<p>This example demonstrates generic Ext.Direct remoting and polling.</p>',
+        '<p>This example demonstrates generic Ext Direct remoting and polling.</p>',
         '<p>To make the multiply request show a failure, enter a non-numeric value',
         ' into the field.</p>'
     ].join(''),

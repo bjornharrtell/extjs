@@ -47,6 +47,7 @@ Ext.define('Ext.chart.series.StackedCartesian', {
     themeColorCount: function() {
         var me = this,
             yField = me.getYField();
+
         return Ext.isArray(yField) ? yField.length : 1;
     },
 
@@ -235,9 +236,9 @@ Ext.define('Ext.chart.series.StackedCartesian', {
             }
             if (animation) {
                 if (itemInstancing) {
-                    sprite.itemsMarker.getTemplate().fx.setConfig(animation);
+                    sprite.itemsMarker.getTemplate().setAnimation(animation);
                 }
-                sprite.fx.setConfig(animation);
+                sprite.setAnimation(animation);
             }
         }
 

@@ -22,5 +22,10 @@ Ext.define('Admin.model.search.Result', {
             type: 'string',
             name: 'content'
         }
-    ]
+    ],
+
+    hasMany: {
+        name: 'attachments',
+        model: 'search.Attachment'
+    }
 });

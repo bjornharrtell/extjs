@@ -191,24 +191,73 @@ Ext.define('Ext.data.reader.Reader', {
         successProperty: 'success',
        
         /**
-         * @cfg {String} [rootProperty]
+         * @cfg {String/Function} rootProperty
          * The property that contains data items corresponding to the 
-         * Model(s) of the configured Reader. rootProperty varies by Reader type.
+         * Model(s) of the configured Reader. `rootProperty` varies by Reader type.
          * 
          * ##JSON Reader 
-         * rootProperty is a property name. It may also be a dot-separated 
-         * list of property names if the root is nested. The root JSON array will be used
-         * by default.
+         * `rootProperty` is a property name. It may also be a dot-separated 
+         * list of property names if the root is nested. The root JSON array will be 
+         * used by default.
+         * 
+         *     // rootPropety config
+         *     rootProperty: 'embedded.myresults'
+         *     
+         *     // server response
+         *     {
+         *         embedded: {
+         *             myresults: [{
+         *                 name: 'Scott',
+         *                 age: 22
+         *             }, {
+         *                 name: 'Ramona',
+         *                 age: 24
+         *             }]
+         *         },
+         *         success: true
+         *     }
          * 
          * ##XML Reader 
-         * rootProperty is a CSS selector. The root XML element will be used
+         * `rootProperty` is a CSS selector. The root XML element will be used
          * by default.
          * 
-         * ##Array Reader 
-         * rootProperty is not applicable since the data is assumed to be a
-         * single-level array of arrays.
+         *     // rootProperty config (plus record config)
+         *     rootProperty: 'myresults',
+         *     record: 'user'
+         *     
+         *     // server response
+         *     <?xml version="1.0" encoding="UTF-8"?>
+         *     <embedded>
+         *         <myresults>
+         *             <user>
+         *                 <name>Scott</name>
+         *                 <age>22</age>
+         *             </user>
+         *             <user>
+         *                 <name>Ramona</name>
+         *                 <age>24</age>
+         *             </user>
+         *         </myresults>
+         *     </embedded>
          * 
-         * **Note:** The rootProperty may also be a function that returns the root node from 
+         * ##Array Reader 
+         * `rootProperty` is not typically applicable since the data is assumed to be a
+         * single-level array of arrays.  However, if the array of records is returned 
+         * within a JSON response a `rootProperty` config may be used:
+         * 
+         *     // rootProperty config
+         *     rootProperty: 'embedded.myresults'
+         *     
+         *     // server response
+         *     {
+         *         embedded: {
+         *             myresults: [['Scott', 22], ['Ramona', 24]]
+         *         },
+         *         success: true
+         *     }
+         * 
+         * ##rootProperty as a function
+         * The `rootProperty` may also be a function that returns the root node from 
          * the dataset. For example:
          *
          *     var store = Ext.create('Ext.data.TreeStore', {
@@ -340,11 +389,14 @@ Ext.define('Ext.data.reader.Reader', {
         proxy: null,
         
         /**
-         * @cfg {Function|Object} [transform]
+         * @cfg {Function|String|Object} [transform]
          * If a transform function is set, it will be invoked just before {@link #readRecords} executes.
          * It is passed the raw (deserialized) data object. The transform function returns a data object, which can be
          * a modified version of the original data object, or a completely new data object. The transform can
-         * be a function, or an object with a 'fn' key and an optional 'scope' key. Example usage:
+         * be a function, or a method name on the Reader instance, or an object with a 'fn' key
+         * and an optional 'scope' key.
+         *
+         * Example usage:
          *
          *     Ext.create('Ext.data.Store', {
          *         model: 'User',
@@ -462,8 +514,13 @@ Ext.define('Ext.data.reader.Reader', {
             if (Ext.isFunction(transform)) {
                 transform = {fn:transform};
             }
+            else if (transform.charAt) { // faster than Ext.isString()
+                transform = { fn: this[transform] };
+            }
+            
             return transform.fn.bind(transform.scope || this);
         }
+        
         return transform;
     },
     
@@ -839,8 +896,7 @@ Ext.define('Ext.data.reader.Reader', {
     },
 
     /**
-     * @protected
-     * @template
+     * @method
      * This method provides a hook to do any data transformation before the reading process
      * begins. By default this function just returns what is passed to it. It can be
      * overridden in a subclass to return something else.
@@ -848,16 +904,20 @@ Ext.define('Ext.data.reader.Reader', {
      * 
      * @param {Object} data The data object
      * @return {Object} The normalized data object
+     * @protected
+     * @template
      */
     getData: Ext.identityFn,
 
     /**
-     * @private
+     * @method
      * This will usually need to be implemented in a subclass. Given a generic data object (the type depends on the type
      * of data we are reading), this function should return the object as configured by the Reader's 'root' meta data config.
      * See XmlReader's getRoot implementation for an example. By default the same data object will simply be returned.
+     *
      * @param {Object} data The data object
      * @return {Object} The same data object
+     * @private
      */
     getRoot: Ext.identityFn,
 

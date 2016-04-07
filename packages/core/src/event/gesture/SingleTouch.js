@@ -8,8 +8,23 @@ Ext.define('Ext.event.gesture.SingleTouch', {
     extend: 'Ext.event.gesture.Recognizer',
 
     inheritableStatics: {
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         NOT_SINGLE_TOUCH: "Not Single Touch",
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         TOUCH_MOVED: "Touch Moved",
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         EVENT_CANCELED: "Event Canceled"
     },
 

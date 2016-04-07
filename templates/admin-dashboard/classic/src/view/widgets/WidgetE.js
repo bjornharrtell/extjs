@@ -2,7 +2,7 @@ Ext.define('Admin.view.widgets.WidgetE', {
     extend: 'Ext.panel.Panel',
     xtype: 'widget-e',
 
-    cls: 'admin-widget-small sale-panel info-card-item shadow-panel',
+    cls: 'admin-widget-small sale-panel info-card-item shadow',
 
     containerColor: '',
 

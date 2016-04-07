@@ -165,12 +165,14 @@ Ext.define('Ext.chart.series.Line', {
     },
 
     /**
-     * @private Default numeric smoothing value to be used when `{@link #smooth} = true`.
+     * @private
+     * Default numeric smoothing value to be used when `{@link #smooth} = true`.
      */
     defaultSmoothness: 3,
 
     /**
-     * @private Size of the buffer area on either side of the viewport to provide seamless zoom/pan
+     * @private
+     * Size of the buffer area on either side of the viewport to provide seamless zoom/pan
      * transforms. Expressed as a multiple of the viewport length, e.g. 1 will make the buffer on
      * each side equal to the length of the visible axis viewport.
      */
@@ -181,7 +183,8 @@ Ext.define('Ext.chart.series.Line', {
     },
 
     /**
-     * @private Override {@link Ext.chart.series.Series#getDefaultSpriteConfig}
+     * @private
+     * Override {@link Ext.chart.series.Series#getDefaultSpriteConfig}
      */
     getDefaultSpriteConfig: function () {
         var me = this,

@@ -30,7 +30,10 @@
  */
 Ext.define('Ext.ProgressBar', {
     extend: 'Ext.Component',
-    alias: 'widget.progressbar',
+    xtype: 'progressbar',
+    mixins: [
+        'Ext.ProgressBase'
+    ],
 
     requires: [
         'Ext.Template',
@@ -41,37 +44,20 @@ Ext.define('Ext.ProgressBar', {
 
     uses: ['Ext.fx.Anim'],
 
-    config: {
-        /**
-         * @cfg {Number} [value=0]
-         * A floating point value between 0 and 1 (e.g., .5)
-         */
-        value: 0,
+    /**
+     * @cfg {String/HTMLElement/Ext.dom.Element} textEl
+     * The element to render the progress text to (defaults to the progress bar's internal text element)
+     */
 
-        /**
-         * @cfg {String/Ext.XTemplate} [textTpl]
-         * A template used to create this ProgressBar's background text given two values:
-         *
-         *    `value  ' - The raw progress value between 0 and 1
-         *    'percent' - The value as a percentage between 0 and 100
-         */
-        textTpl: null
-    },
+    /**
+     * @cfg {String} id
+     * The progress bar element's id (defaults to an auto-generated id)
+     */
 
-   /**
-    * @cfg {String/HTMLElement/Ext.dom.Element} textEl
-    * The element to render the progress text to (defaults to the progress bar's internal text element)
-    */
-
-   /**
-    * @cfg {String} id
-    * The progress bar element's id (defaults to an auto-generated id)
-    */
-
-   /**
-    * @cfg {String} [baseCls='x-progress']
-    * The base CSS class to apply to the progress bar's wrapper element.
-    */
+    /**
+     * @cfg {String} [baseCls='x-progress']
+     * The base CSS class to apply to the progress bar's wrapper element.
+     */
     baseCls: Ext.baseCSSPrefix + 'progress',
 
     /**
@@ -152,10 +138,6 @@ Ext.define('Ext.ProgressBar', {
         }
     },
 
-    applyValue: function(value) {
-        return value || 0;
-    },
-
     updateValue: function(value) {
         this.updateProgress(value, Math.round(value * 100) + '%');
     },
@@ -229,13 +211,6 @@ Ext.define('Ext.ProgressBar', {
             me.textEl.setHtml(me.text);
         }
         return me;
-    },
-
-    applyTextTpl: function(textTpl) {
-        if (!textTpl.isTemplate) {
-            textTpl = new Ext.XTemplate(textTpl);
-        }
-        return textTpl;
     },
 
     applyText : function(text) {

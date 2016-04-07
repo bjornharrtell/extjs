@@ -293,7 +293,7 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
         var config = Ext.apply({}, component.initialConfig),
             group  = component.toggleGroup;
 
-        Ext.copyTo(config, component, [
+        Ext.copy(config, component, [
             'iconCls', 'icon', 'itemId', 'disabled', 'handler', 'scope', 'menu', 'tabIndex'
         ]);
 

@@ -1,10 +1,11 @@
 Ext.define('Admin.view.profile.ShareUpdate', {
     extend: 'Ext.panel.Panel',
-    xtype: 'profilesharepanel',
+    xtype: 'profileshare',
 
     bodyPadding : 10,
     layout: 'fit',
-    cls:'share-panel shadow-panel',
+
+    cls: 'share-panel',
     
     items: [
         {
@@ -19,20 +20,19 @@ Ext.define('Admin.view.profile.ShareUpdate', {
         },
         items:[
             {
-                xtype: 'button',
+                ui: 'header',
                 iconCls: 'x-fa fa-video-camera'
             },
             {
-                xtype: 'button',
+                ui: 'header',
                 iconCls: 'x-fa fa-camera'
             },
             {
-                xtype: 'button',
+                ui: 'header',
                 iconCls: 'x-fa fa-file'
             },
             '->',
             {
-                xtype: 'button',
                 text: 'Share',
                 ui: 'soft-blue'
             }

@@ -1,7 +1,8 @@
 /**
  * Tab Panels are a great way to allow the user to switch between several pages that are all full screen. Each
  * Component in the Tab Panel gets its own Tab, which shows the Component when tapped on. Tabs can be positioned at
- * the top or the bottom of the Tab Panel, and can optionally accept title and icon configurations.
+ * the top or the bottom of the Tab Panel, and can optionally accept title and icon 
+ * configurations (see {@link Ext.Button#iconCls iconCls} for additional information).
  *
  * Here's how we can set up a simple Tab Panel with tabs at the bottom. Use the controls at the top left of the example
  * to toggle between code mode and live preview mode (you can also edit the code and see your changes in the live
@@ -110,8 +111,7 @@ Ext.define('Ext.tab.Panel', {
         this.callParent();
 
         this.on({
-            order: 'before',
-            activetabchange: 'doTabChange',
+            beforeactivetabchange: 'doTabChange',
             delegate: '> tabbar',
             scope   : this
         });
@@ -185,7 +185,7 @@ Ext.define('Ext.tab.Panel', {
      * @param {Object} newTab
      * @return {Boolean}
      */
-    doTabChange: function(tabBar, newTab) {
+    doTabChange: function (tabBar, newTab) {
         var oldActiveItem = this.getActiveItem(),
             newActiveItem;
 
@@ -257,6 +257,7 @@ Ext.define('Ext.tab.Panel', {
             tabs = tabBar.getItems(),
             activeTab = tabBar.getActiveTab(),
             currentTabInstance = (tabs.length >= innerItems.length) && tabs.getAt(index),
+            header = card.isPanel && card.getHeader(),
             tabInstance;
 
         if (tabTitle && !tabConfig.title) {
@@ -294,6 +295,9 @@ Ext.define('Ext.tab.Panel', {
         }
 
         card.tab = tabInstance;
+        if (header) {
+            header.setHidden(true);
+        }
 
         me.callParent(arguments);
 

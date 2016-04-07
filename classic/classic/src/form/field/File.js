@@ -57,6 +57,13 @@ Ext.define('Ext.form.field.File', {
         'Ext.form.field.FileButton',
         'Ext.form.trigger.Component'
     ],
+
+    /**
+     * @cfg {String} emptyText
+     * Overridden to undefined as {@link #emptyText} is not supported with {@link #inputType inputType}:'file' and should be avoided.
+     * The default text to place into an empty field.
+     */     
+    emptyText: undefined,
     
     needArrowKeys: false,
 
@@ -221,11 +228,13 @@ Ext.define('Ext.form.field.File', {
         inputEl = me.inputEl;
         //name goes on the fileInput, not the text input
         inputEl.dom.name = ''; 
+        
         // Some browsers will show a blinking cursor in the field, even if it's readonly. If we do happen
         // to receive focus, forward it on to our focusEl. Also note that in IE, the file input is treated as
         // 2 elements for tabbing purposes (the text, then the button). So as you tab through, it will take 2
         // tabs to get to the next field. As far as I know there's no way around this in any kind of reasonable way.
-        inputEl.on('focus', me.focus, me);
+        inputEl.on('focus', me.onInputFocus, me);
+        inputEl.on('mousedown', me.onInputMouseDown, me);
 
         trigger = me.getTrigger('filebutton');
         button = me.button = trigger.component;
@@ -252,7 +261,8 @@ Ext.define('Ext.form.field.File', {
     },
 
     /**
-     * @private Event handler fired when the user selects a file.
+     * @private
+     * Event handler fired when the user selects a file.
      */
     onFileChange: function(button, e, value) {
         this.duringFileSelect = true;
@@ -269,8 +279,14 @@ Ext.define('Ext.form.field.File', {
     },
 
     /**
-     * Overridden to do nothing
-     * @method
+     * @method setEmptyText
+     * @hide
+     */
+    setEmptyText: Ext.emptyFn,
+
+    /**
+     * @method setValue
+     * @hide
      */
     setValue: Ext.emptyFn,
 
@@ -347,6 +363,29 @@ Ext.define('Ext.form.field.File', {
 
     getButtonMarginProp: function() {
         return 'margin-left:';
+    },
+    
+    onInputFocus: function(e) {
+        this.focus();
+        
+        // Switching focus from read only input element to file input
+        // results in incorrect positioning of the file input.
+        // Adding and removing position: relative helps to fix that.
+        // See https://sencha.jira.com/browse/EXTJS-18933
+        if (Ext.isIE9m) {
+            this.fileInputEl.addCls(Ext.baseCSSPrefix + 'position-relative');
+            this.fileInputEl.removeCls(Ext.baseCSSPrefix + 'position-relative');
+        }
+    },
+    
+    onInputMouseDown: function(e) {
+        // Some browsers will show the cursor even if the input is read only,
+        // which will be visible in the short instant between inputEl focusing
+        // and subsequent focus jump to the FileButton. Preventing inputEl from
+        // focusing eliminates that flicker.
+        e.preventDefault();
+        
+        this.focus();
     },
     
     privates: {

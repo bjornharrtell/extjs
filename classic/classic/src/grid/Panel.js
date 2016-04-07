@@ -176,7 +176,7 @@
  * encapsulated within the default Panel state of changed width and height and
  * collapsed/expanded state.
  *
- * On a `stateful` grid, not only should the Grid have a {@link stateId}, each 
+ * On a `stateful` grid, not only should the Grid have a {@link #stateId}, each 
  * {@link #columns column} of the grid should also be configured with a
  * {@link Ext.grid.column.Column#stateId stateId} which identifies that column locally
  * within the grid.

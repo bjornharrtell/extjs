@@ -192,10 +192,10 @@ $slider-thumb-glyph-font-size: dynamic(12px);
  * @var {string/list}
  * Glyph to display inside of the slider thumb when {@link Global_CSS#$enable-font-icons} is `true`
  */
-$horizontal-slider-thumb-glyph: dynamic($ext-icon-equals-vertical $slider-thumb-glyph-font-size ExtJS);
+$horizontal-slider-thumb-glyph: dynamic($ext-var-equals-vertical $slider-thumb-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph to display inside of the slider thumb when {@link Global_CSS#$enable-font-icons} is `true`
  */
-$vertical-slider-thumb-glyph: dynamic($ext-icon-equals $slider-thumb-glyph-font-size ExtJS);
+$vertical-slider-thumb-glyph: dynamic($ext-var-equals $slider-thumb-glyph-font-size ExtJS);

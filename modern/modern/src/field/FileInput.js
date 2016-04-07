@@ -141,9 +141,8 @@ Ext.define('Ext.field.FileInput', {
         }
     },
 
-    /*
+    /**
      * Updates the accept attribute with the {@link #accept} configuration.
-     * 
      */
     applyAccept: function(value) {
         switch (value) {

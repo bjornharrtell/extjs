@@ -91,6 +91,7 @@ Ext.define('Ext.grid.plugin.PagingToolbar', {
                 add: 'onTotalCountChange',
                 remove: 'onTotalCountChange',
                 refresh: 'onTotalCountChange',
+                clear: 'onTotalCountChange',
                 scope: me
             });
 

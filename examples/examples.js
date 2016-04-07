@@ -235,6 +235,12 @@ Ext.samples = {
                     "url": "modern/addressbook/index.html",
                     "icon": "address-book",
                     "desc": "A sample application using navigationview"
+                },
+                {
+                    "text": "Blackberry",
+                    "url": "modern/blackberry/index.html",
+                    "icon": "data-view",
+                    "desc": "A demo of blackberry components and theme."
                 }
             ]
         },

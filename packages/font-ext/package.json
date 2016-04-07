@@ -1,166 +1,49 @@
 {
     /**
-     * The name of the package.
+     * The namespace of this package.
+     *
+     * As a general rule, all classes that belong to this package should be under this namespace
+     * if multiple namespaces are part of this package, set this to "".
      */
+    "namespace": "Ext",
+
     "name": "font-ext",
-
-    /**
-     * Alternate names for this package.
-     *
-     *    "alternateName": [],
-     */
-
-    /**
-     * The package type.
-     *
-     * Sencha Cmd understands the following types of packages:
-     *  - code : An arbitrary package of code for use by applications or other packages.
-     *  - theme : A package to be used as an application’s theme.
-     *  - locale : A package containing localization strings or locale-specific code.
-     *  - template : A package containing one or more templates.
-     */
     "type": "code",
 
-    /**
-      * The author of the package.
-      *
-      * Required only if you are distributing this package through a Sencha Cmd repository,
-      * in which case it should match the name you assign to your local package repository.
-      */
-    "creator": "anonymous",
+    "framework": "ext",
+    "toolkit": "classic",
+    "theme": "theme-neptune",
+    //"requires": [
+    //    ...
+    //],
 
-    /**
-     * A summarized description of this package.
-     */
-    "summary": "Short summary",
+    "creator": "Sencha",
+    "summary": "Extra font icons",
+    "detailedDescription": "Simple web font with additional icons in the Font Awesome style",
 
-    /**
-     * A detailed description of this package.
-     */
-    "detailedDescription": "Long description of package",
-
-    /**
-     * The package version.
-     *
-     * Typically, changes to the package should come along with changes to the version.
-     * This number should be in this format: d+(.d+)*
-     */
-    "version": "6.0.0.640",
-
-    /**
-     * The version that users can transparently update from without requiring code changes.
-     *
-     * In addition the version property, packages can also indicate the degree to which
-     * they are backward compatible using the compatVersion property.
-     */
-    "compatVersion": "1.0.0",
-
-    /**
-     * Spec. version of this package.json file.
-     * This is set automatically by Sencha Cmd when first generating this file
-     */
+    "version": "6.0.1.250",
+    "compatVersion": "6.0.0",
     "format": "1",
 
-    /**
-     * Additional resources used during theme slicing operations
-     */
-    "slicer": {
-        "js": [
-            {
-                "path": "${package.dir}/sass/example/custom.js",
-                "isWidgetManifest": true
-            }
+    "output": "${framework.dir}/build/packages/${package.name}",
+    "local": true,
+
+    "sass": {
+        "namespace": "Ext",
+
+        "etc": "${package.dir}/sass/etc/all.scss",
+
+        "var": "${package.dir}/sass/var",
+
+        "src": [
+            "${package.dir}/sass/src",
+            "${package.dir}/sass/src/all.scss"
         ]
     },
 
-    /**
-     * Controls the output directory.
-     */
-    "output": "${package.dir}/build",
-
-    /**
-     * Indicates whether this is a locally developed package or downloaded form a repository.
-     * Defaults to true on newly generated packages, should not be changed.
-     */
-    "local": true,
-
-    /**
-     * The theme (package) this package will use (e.g., "ext-theme-neptune", etc.).
-     * This is only needed if the built package will be used by a non-Cmd application.
-     *
-     *     "theme": "ext-theme-classic",
-     */
-
-    /**
-     * The framework this package will use (i.e., "ext" or "touch").
-     * This is only needed if the built package will be used by a non-Cmd application.
-     *
-     *     "framework": "ext",
-     */
-
-    /**
-     * Packages can require other packages in the same way that applications can require
-     * packages.
-     *
-     * Can be specified as an array of package names or configuration objects.
-     *
-     *      "requires": [
-     *          "foo",
-     *          "bar@1.1-2.0",
-     *          {
-     *              "name": "baz"
-     *              "version": "1.5"
-     *          }
-     *      ]
-     *
-     * Can also be specified as an object:
-     *
-     *      "requires": {
-     *          "foo": "2.2",
-     *          "bar": {
-     *              "minVersion": "1.1",
-     *              "version": "2.0"
-     *          }
-     *      }
-     */
-    "requires": [],
-
-    "sass": {
-        /**
-         * The root namespace to use when mapping *.scss files to classes in the
-         * sass/src and sass/var directories. For example, "Ext.view.View" would
-         * map to "sass/src/view/View.scss". If we changed this to "Ext.view" then
-         * it would map to "sass/src/View.scss".
-         */
-        "namespace": "Ext",
-
-        /**
-         * This file is automatically imported into the SASS build before "vars".
-         */
-        "etc": "${package.dir}/sass/etc/all.scss",
-
-        /**
-         * This is the folder where SASS "vars" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
-        "var": "${package.dir}/sass/var",
-
-        /**
-         * This is the folder where SASS "src" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
-        "src": "${package.dir}/sass/src"
-    },
-
-    /**
-     * This is the comma-separated list of folders where classes reside. These classes
-     * must be explicitly required to be included in the build.
-     */
     "classpath": "${package.dir}/src",
 
-    /**
-     * This is the comma-separated list of folders where overrides reside. These files
-     * are automatically required in the build when the package is required.
-     */
-    "overrides": "${package.dir}/overrides"
+    "overrides": "${package.dir}/overrides",
+
+    "slicer": null
 }

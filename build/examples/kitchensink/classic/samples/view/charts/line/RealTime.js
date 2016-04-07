@@ -88,6 +88,7 @@ Ext.define('KitchenSink.view.charts.line.RealTime', {
         }
     }, {
         title: 'Numeric Axis',
+        itemId: 'numeric',
         layout: 'fit',
         items: {
             xtype: 'cartesian',
@@ -111,6 +112,9 @@ Ext.define('KitchenSink.view.charts.line.RealTime', {
                 position: 'bottom',
                 title: 'Seconds',
                 fields: ['xValue'],
+                style: {
+                    textPadding: 0
+                },
                 renderer: 'onAxisLabelRender'
             }],
             series: [{
@@ -135,6 +139,10 @@ Ext.define('KitchenSink.view.charts.line.RealTime', {
                 destroy: 'onNumberChartDestroy'
             }
         }
-    }]
+    }],
+
+    listeners: {
+        tabchange: 'onTabChange'
+    }
 
 });

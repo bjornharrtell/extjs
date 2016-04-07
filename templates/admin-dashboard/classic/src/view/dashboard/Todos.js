@@ -1,6 +1,6 @@
 Ext.define('Admin.view.dashboard.Todos', {
     extend: 'Ext.panel.Panel',
-    xtype: 'dashboardtodospanel',
+    xtype: 'todo',
 
     requires: [
         'Ext.grid.Panel',
@@ -14,7 +14,8 @@ Ext.define('Admin.view.dashboard.Todos', {
 
     title: 'TODO List',
     height: 320,
-    bodyPadding:15,
+    bodyPadding: 15,
+    layout: 'fit',
     items: [
         {
             xtype: 'gridpanel',
@@ -24,7 +25,7 @@ Ext.define('Admin.view.dashboard.Todos', {
             hideHeaders: true,
             scroll: 'none',
             bind: {
-                store: '{dashboardtaskstore}'
+                store: '{todos}'
             },
             columns: [
                 {

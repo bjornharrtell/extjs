@@ -15,6 +15,17 @@ describe('Ext.draw.Surface', function () {
             expect(surface.getItems().length).toEqual(1);
             surface.destroy();
         });
+
+        it("should set the sprite's 'parent' and 'surface' configs to itself", function () {
+            var sprite = new Ext.draw.sprite.Rect(),
+                surface = new Ext.draw.Surface();
+
+            surface.add(sprite);
+            expect(sprite.getParent()).toBe(surface);
+            expect(sprite.getSurface()).toBe(surface);
+
+            surface.destroy();
+        });
     });
 
     describe('get', function () {
@@ -37,7 +48,7 @@ describe('Ext.draw.Surface', function () {
 
         afterEach(function () {
             surface.destroy();
-        })
+        });
 
         it("should be able to get a sprite by id", function () {
             result = surface.get('sprite1');
@@ -190,6 +201,130 @@ describe('Ext.draw.Surface', function () {
             surface.destroy();
 
             expect(isFired).toBe(true);
+        });
+    });
+
+    describe('waitFor', function () {
+        var s1, s2, s3, s4;
+
+        beforeEach(function () {
+            s1 = new Ext.draw.Surface();
+            s2 = new Ext.draw.Surface();
+            s3 = new Ext.draw.Surface();
+            s4 = new Ext.draw.Surface();
+        });
+
+        afterEach(function () {
+            Ext.destroy(s1, s2, s3, s4);
+        });
+
+        it("should add the given surface to a list of current surface predecessors only once", function () {
+            s1.waitFor(s2);
+            expect(s1.predecessors.length).toBe(1);
+            expect(s1.predecessors[0]).toEqual(s2);
+        });
+
+        it("should only increase own dirty predecessor counter if the given surface is dirty", function () {
+            s1.waitFor(s2);
+            expect(s1.dirtyPredecessorCount).toBe(0);
+            s3.setDirty(true);
+            s2.waitFor(s3);
+            expect(s2.dirtyPredecessorCount).toBe(1);
+        });
+
+        it("should be able to wait for multiple surfaces", function () {
+            s1.waitFor(s2);
+            s1.waitFor(s3);
+            s1.waitFor(s4);
+            expect(s1.predecessors.length).toBe(3);
+        });
+    });
+
+    describe("'dirty' config", function () {
+        var s1, s2, s3, s4, s5;
+
+        beforeEach(function () {
+            s1 = new Ext.draw.Surface();
+            s2 = new Ext.draw.Surface();
+            s3 = new Ext.draw.Surface();
+            s4 = new Ext.draw.Surface();
+            s5 = new Ext.draw.Surface();
+        });
+
+        afterEach(function () {
+            Ext.destroy(s1, s2, s3, s4, s5);
+        });
+
+        it("should not be dirty upon construction", function () {
+            expect(s1.getDirty()).toBe(false);
+        });
+
+        it("should increment dirtyPredecessorCount of all successors (not just immediate) when set to true", function () {
+            s3.waitFor(s2);
+            s5.waitFor(s4);
+            s2.waitFor(s1);
+            s4.waitFor(s1);
+            // Order of rendering: s1 --> s2 --> s3
+            //                        |
+            //                        --> s4 --> s5
+            s1.setDirty(true);
+            expect(s2.dirtyPredecessorCount).toBe(1);
+            expect(s3.dirtyPredecessorCount).toBe(1);
+            expect(s4.dirtyPredecessorCount).toBe(1);
+            expect(s5.dirtyPredecessorCount).toBe(1);
+        });
+
+        it("should decrement dirtyPredecessorCount of all immediate successors when set to false", function () {
+            s3.waitFor(s2);
+            s5.waitFor(s4);
+            s2.waitFor(s1);
+            s4.waitFor(s1);
+            // Order of rendering: s1 --> s2 --> s3
+            //                        |
+            //                        --> s4 --> s5
+            s1.setDirty(true);
+            s1.setDirty(false);
+            expect(s2.dirtyPredecessorCount).toBe(0);
+            expect(s4.dirtyPredecessorCount).toBe(0);
+            expect(s3.dirtyPredecessorCount).toBe(1);
+            expect(s5.dirtyPredecessorCount).toBe(1);
+        });
+
+        it("should not affect dirtyPredecessorCount of successors if value hasn't changed", function () {
+            s3.waitFor(s2);
+            s5.waitFor(s4);
+            s2.waitFor(s1);
+            s4.waitFor(s1);
+            // Order of rendering: s1 --> s2 --> s3
+            //                        |
+            //                        --> s4 --> s5
+            s1.setDirty(false); // noop
+            expect(s2.dirtyPredecessorCount).toBe(0);
+            expect(s3.dirtyPredecessorCount).toBe(0);
+            expect(s4.dirtyPredecessorCount).toBe(0);
+            expect(s5.dirtyPredecessorCount).toBe(0);
+            s1.setDirty(true); // increments dirtyPredecessorCount of all successors
+            s1.setDirty(true); // noop
+            expect(s2.dirtyPredecessorCount).toBe(1);
+            expect(s3.dirtyPredecessorCount).toBe(1);
+            expect(s4.dirtyPredecessorCount).toBe(1);
+            expect(s5.dirtyPredecessorCount).toBe(1);
+        });
+
+        it("should make dirtyPredecessorCount reflect the actual number of immediate dirty predecessors", function () {
+            s1.waitFor(s2);
+            s1.waitFor(s3);
+            s1.waitFor(s4);
+
+            s2.setDirty(true);
+            s3.setDirty(true);
+            s4.setDirty(true);
+
+            expect(s1.dirtyPredecessorCount).toBe(3);
+
+            s3.setDirty(false);
+
+            expect(s1.dirtyPredecessorCount).toBe(2);
         });
     });
 

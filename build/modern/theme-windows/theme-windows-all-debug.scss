@@ -1,4 +1,4 @@
-$image-search-path: 'C:/BuildAgent/work/d77fd6bbe169b220/staging/build/modern/theme-windows/resources' !default;
+$image-search-path: 'C:/BuildAgent/work/b3173c323478ec0c/staging/build/modern/theme-windows/resources' !default;
 $theme-name:  '${theme.name}' !default;
 $include-ext-abstractcomponent: dynamic(true);;
 $include-ext-abstractmanager: dynamic(true);;
@@ -23,7 +23,6 @@ $include-ext-dataview: dynamic(true);;
 $include-ext-datepicker: dynamic(true);;
 $include-ext-decorator: dynamic(true);;
 $include-ext-deferred: dynamic(true);;
-$include-ext-direct-transaction: dynamic(true);;
 $include-ext-domhelper: dynamic(true);;
 $include-ext-domquery: dynamic(true);;
 $include-ext-element: dynamic(true);;
@@ -32,6 +31,7 @@ $include-ext-evented: dynamic(true);;
 $include-ext-eventedbase: dynamic(true);;
 $include-ext-globalevents: dynamic(true);;
 $include-ext-history: dynamic(true);;
+$include-ext-image: dynamic(true);;
 $include-ext-img: dynamic(true);;
 $include-ext-indexbar: dynamic(true);;
 $include-ext-itemcollection: dynamic(true);;
@@ -50,6 +50,9 @@ $include-ext-nestedlist: dynamic(true);;
 $include-ext-panel: dynamic(true);;
 $include-ext-perf: dynamic(true);;
 $include-ext-picker: dynamic(true);;
+$include-ext-progress: dynamic(true);;
+$include-ext-progressbarwidget: dynamic(true);;
+$include-ext-progressbase: dynamic(true);;
 $include-ext-progressindicator: dynamic(true);;
 $include-ext-promise: dynamic(true);;
 $include-ext-segmentedbutton: dynamic(true);;
@@ -103,6 +106,7 @@ $include-ext-app-route-router: dynamic(true);;
 $include-ext-behavior-behavior: dynamic(true);;
 $include-ext-behavior-draggable: dynamic(true);;
 $include-ext-behavior-translatable: dynamic(true);;
+$include-ext-button-segmented: dynamic(true);;
 $include-ext-carousel-carousel: dynamic(true);;
 $include-ext-carousel-indicator: dynamic(true);;
 $include-ext-carousel-infinite: dynamic(true);;
@@ -402,7 +406,6 @@ $include-ext-layout-wrapper-dock: dynamic(true);;
 $include-ext-layout-wrapper-inner: dynamic(true);;
 $include-ext-lib-component: dynamic(true);;
 $include-ext-lib-container: dynamic(true);;
-$include-ext-lib-panel: dynamic(true);;
 $include-ext-list-abstracttreeitem: dynamic(true);;
 $include-ext-list-roottreeitem: dynamic(true);;
 $include-ext-list-tree: dynamic(true);;
@@ -429,6 +432,11 @@ $include-ext-overrides-widget: dynamic(true);;
 $include-ext-overrides-app-application: dynamic(true);;
 $include-ext-overrides-list-tree: dynamic(true);;
 $include-ext-overrides-list-treeitem: dynamic(true);;
+$include-ext-overrides-scroll-domscroller: dynamic(true);;
+$include-ext-panel-header: dynamic(true);;
+$include-ext-panel-panel: dynamic(true);;
+$include-ext-panel-title: dynamic(true);;
+$include-ext-panel-tool: dynamic(true);;
 $include-ext-perf-accumulator: dynamic(true);;
 $include-ext-perf-monitor: dynamic(true);;
 $include-ext-picker-date: dynamic(true);;
@@ -438,6 +446,7 @@ $include-ext-plugin-abstract: dynamic(true);;
 $include-ext-plugin-lazyitems: dynamic(true);;
 $include-ext-plugin-listpaging: dynamic(true);;
 $include-ext-plugin-pullrefresh: dynamic(true);;
+$include-ext-plugin-responsive: dynamic(true);;
 $include-ext-plugin-sortablelist: dynamic(true);;
 $include-ext-plugin-field-placeholderlabel: dynamic(true);;
 $include-ext-promise-consequence: dynamic(true);;
@@ -535,7 +544,6 @@ $include-ext-util-paintmonitor-abstract: dynamic(true);;
 $include-ext-util-paintmonitor-cssanimation: dynamic(true);;
 $include-ext-util-paintmonitor-overflowchange: dynamic(true);;
 $include-ext-util-sizemonitor-abstract: dynamic(true);;
-$include-ext-util-sizemonitor-default: dynamic(true);;
 $include-ext-util-sizemonitor-overflowchange: dynamic(true);;
 $include-ext-util-sizemonitor-scroll: dynamic(true);;
 $include-ext-util-translatable-abstract: dynamic(true);;
@@ -562,6 +570,14 @@ $current-resource-root: $ext-resource-root;
 $relative-image-path-for-uis: $ext-resource-path;
 @import '../../../sass/etc/all';
 
+/* including package core */
+$core-resource-root: '' !default;
+$core-resource-path: 'images' !default;
+$current-package: 'core';
+$current-resource-root: $core-resource-root;
+$relative-image-path-for-uis: $core-resource-path;
+@import '../../../packages/core/sass/etc/all';
+
 /* including package theme-base */
 $theme-base-resource-root: '' !default;
 $theme-base-resource-path: 'images' !default;
@@ -570,14 +586,6 @@ $current-resource-root: $theme-base-resource-root;
 $relative-image-path-for-uis: $theme-base-resource-path;
 @import '../../../modern/theme-base/sass/etc/all';
 
-/* including package font-pictos */
-$font-pictos-resource-root: 'font-pictos' !default;
-$font-pictos-resource-path: 'font-pictos/images' !default;
-$current-package: 'font-pictos';
-$current-resource-root: $font-pictos-resource-root;
-$relative-image-path-for-uis: $font-pictos-resource-path;
-@import '../../../packages/font-pictos/sass/etc/all';
-
 /* including package theme-device-base */
 $theme-device-base-resource-root: '' !default;
 $theme-device-base-resource-path: 'images' !default;
@@ -585,14 +593,6 @@ $current-package: 'theme-device-base';
 $current-resource-root: $theme-device-base-resource-root;
 $relative-image-path-for-uis: $theme-device-base-resource-path;
 @import '../../../modern/theme-device-base/sass/etc/all';
-
-/* including package core */
-$core-resource-root: '' !default;
-$core-resource-path: 'images' !default;
-$current-package: 'core';
-$current-resource-root: $core-resource-root;
-$relative-image-path-for-uis: $core-resource-path;
-@import '../../../packages/core/sass/etc/all';
 
 /* including package theme-windows */
 $theme-windows-resource-root: '' !default;
@@ -605,6 +605,15 @@ $relative-image-path-for-uis: $theme-windows-resource-path;
 
 /* ======================== VAR ======================== */
 
+/* including package core */
+$core-resource-root: '' !default;
+$core-resource-path: 'images' !default;
+$current-package: 'core';
+$current-resource-root: $core-resource-root;
+$relative-image-path-for-uis: $core-resource-path;
+@import '../../../packages/core/sass/var/Component';
+@import '../../../packages/core/sass/var/list/TreeItem';
+
 /* including package theme-base */
 $theme-base-resource-root: '' !default;
 $theme-base-resource-path: 'images' !default;
@@ -615,14 +624,13 @@ $relative-image-path-for-uis: $theme-base-resource-path;
 @import '../../../modern/theme-base/sass/var/Component';
 @import '../../../modern/theme-base/sass/var/plugin/field/PlaceHolderLabel';
 
-/* including package core */
-$core-resource-root: '' !default;
-$core-resource-path: 'images' !default;
-$current-package: 'core';
-$current-resource-root: $core-resource-root;
-$relative-image-path-for-uis: $core-resource-path;
-@import '../../../packages/core/sass/var/Component';
-@import '../../../packages/core/sass/var/list/TreeItem';
+/* including package theme-device-base */
+$theme-device-base-resource-root: '' !default;
+$theme-device-base-resource-path: 'images' !default;
+$current-package: 'theme-device-base';
+$current-resource-root: $theme-device-base-resource-root;
+$relative-image-path-for-uis: $theme-device-base-resource-path;
+@import '../../../modern/theme-device-base/sass/var/Button';
 
 /* including package theme-windows */
 $theme-windows-resource-root: '' !default;
@@ -641,6 +649,20 @@ $relative-image-path-for-uis: $theme-windows-resource-path;
 
 /* ======================== RULE ======================== */
 
+/* including package core */
+$core-resource-root: '' !default;
+$core-resource-path: 'images' !default;
+$current-package: 'core';
+$current-resource-root: $core-resource-root;
+$relative-image-path-for-uis: $core-resource-path;
+@import '../../../packages/core/sass/src/util/SizeMonitor';
+@import '../../../packages/core/sass/src/util/PaintMonitor';
+@import '../../../packages/core/sass/src/ProgressBase';
+@import '../../../packages/core/sass/src/util/Translatable';
+@import '../../../packages/core/sass/src/scroll/TouchScroller';
+@import '../../../packages/core/sass/src/scroll/DomScroller';
+@import '../../../packages/core/sass/src/list/TreeItem';
+
 /* including package theme-base */
 $theme-base-resource-root: '' !default;
 $theme-base-resource-path: 'images' !default;
@@ -649,6 +671,7 @@ $current-resource-root: $theme-base-resource-root;
 $relative-image-path-for-uis: $theme-base-resource-path;
 @import '../../../modern/theme-base/sass/src/scroll/Indicator';
 @import '../../../modern/theme-base/sass/src/scroll/TouchScroller';
+@import '../../../modern/theme-base/sass/src/scroll/DomScroller';
 @import '../../../modern/theme-base/sass/src/Component';
 @import '../../../modern/theme-base/sass/src/layout/Abstract';
 @import '../../../modern/theme-base/sass/src/layout/Box';
@@ -666,6 +689,9 @@ $relative-image-path-for-uis: $theme-base-resource-path;
 @import '../../../modern/theme-base/sass/src/Img';
 @import '../../../modern/theme-base/sass/src/Menu';
 @import '../../../modern/theme-base/sass/src/Toolbar';
+@import '../../../modern/theme-base/sass/src/field/Field';
+@import '../../../modern/theme-base/sass/src/field/Text';
+@import '../../../modern/theme-base/sass/src/field/TextArea';
 @import '../../../modern/theme-base/sass/src/MessageBox';
 @import '../../../modern/theme-base/sass/src/ProgressIndicator';
 @import '../../../modern/theme-base/sass/src/Toast';
@@ -674,9 +700,16 @@ $relative-image-path-for-uis: $theme-base-resource-path;
 @import '../../../modern/theme-base/sass/src/dataview/IndexBar';
 @import '../../../modern/theme-base/sass/src/dataview/List';
 @import '../../../modern/theme-base/sass/src/picker/Picker';
+@import '../../../modern/theme-base/sass/src/field/Hidden';
+@import '../../../modern/theme-base/sass/src/field/Number';
+@import '../../../modern/theme-base/sass/src/field/Search';
+@import '../../../modern/theme-base/sass/src/field/Select';
 @import '../../../modern/theme-base/sass/src/slider/Slider';
-@import '../../../modern/theme-base/sass/src/form/Panel';
+@import '../../../modern/theme-base/sass/src/field/Spinner';
+@import '../../../modern/theme-base/sass/src/form/FieldSet';
+@import '../../../modern/theme-base/sass/src/grid/HeaderContainer';
 @import '../../../modern/theme-base/sass/src/grid/Grid';
+@import '../../../modern/theme-base/sass/src/panel/Title';
 @import '../../../modern/theme-base/sass/src/plugin/ListPaging';
 @import '../../../modern/theme-base/sass/src/plugin/PullRefresh';
 @import '../../../modern/theme-base/sass/src/plugin/field/PlaceHolderLabel';
@@ -707,18 +740,6 @@ $relative-image-path-for-uis: $theme-device-base-resource-path;
 @import '../../../modern/theme-device-base/sass/src/form/Panel';
 @import '../../../modern/theme-device-base/sass/src/grid/Grid';
 @import '../../../modern/theme-device-base/sass/src/tab/Panel';
-
-/* including package core */
-$core-resource-root: '' !default;
-$core-resource-path: 'images' !default;
-$current-package: 'core';
-$current-resource-root: $core-resource-root;
-$relative-image-path-for-uis: $core-resource-path;
-@import '../../../packages/core/sass/src/util/SizeMonitor';
-@import '../../../packages/core/sass/src/util/PaintMonitor';
-@import '../../../packages/core/sass/src/util/Translatable';
-@import '../../../packages/core/sass/src/scroll/DomScroller';
-@import '../../../packages/core/sass/src/list/TreeItem';
 
 /* including package theme-windows */
 $theme-windows-resource-root: '' !default;

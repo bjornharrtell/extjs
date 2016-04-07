@@ -1,6 +1,6 @@
 Ext.define('Admin.view.dashboard.Services', {
     extend: 'Ext.Panel',
-    xtype: 'dashboardservicespanel',
+    xtype: 'services',
 
     requires: [
         'Ext.chart.series.Pie',
@@ -8,7 +8,7 @@ Ext.define('Admin.view.dashboard.Services', {
         'Ext.chart.interactions.Rotate'
     ],
 
-    cls: 'service-type shadow-panel',
+    cls: 'service-type shadow',
     height: 320,
     bodyPadding: 15,
     title: 'Services',
@@ -30,9 +30,7 @@ Ext.define('Admin.view.dashboard.Services', {
                     '#fdbf00',
                     '#ee929d'
                 ],
-                bind: {
-                    store: '{dashboard.QGPieStore}'
-                },
+                bind: '{servicePerformance}',
                 series: [
                     {
                         type: 'pie',

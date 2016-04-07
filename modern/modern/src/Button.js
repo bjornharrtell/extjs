@@ -190,7 +190,7 @@ Ext.define('Ext.Button', {
 
     /**
      * @event tap
-     * @preventable doTap
+     * @preventable
      * Fires whenever a button is tapped.
      * @param {Ext.Button} this The item added to the Container.
      * @param {Ext.EventObject} e The event object.
@@ -198,7 +198,7 @@ Ext.define('Ext.Button', {
 
     /**
      * @event release
-     * @preventable doRelease
+     * @preventable
      * Fires whenever the button is released.
      * @param {Ext.Button} this The item added to the Container.
      * @param {Ext.EventObject} e The event object.
@@ -237,11 +237,45 @@ Ext.define('Ext.Button', {
 
         /**
          * @cfg {String} iconCls
-         * Optional CSS class to add to the icon element. This is useful if you want to use a CSS
-         * background image to create your Button icon.
+         * One or more space separated CSS classes to be applied to the icon element.  
+         * The CSS rule(s) applied should specify a background image to be used as the 
+         * icon.
+         *
+         * An example of specifying a custom icon class would be something like:
+         *
+         *     // specify the property in the config for the class:
+         *     iconCls: 'my-home-icon'
+         *
+         *     // css rule specifying the background image to be used as the icon image:
+         *     .my-home-icon {
+         *         background-image: url(../images/my-home-icon.gif) !important;
+         *     }
+         * 
+         * In addition to specifying your own classes, you can use the font icons 
+         * provided in the SDK using the following syntax:
+         * 
+         *     // using Font Awesome
+         *     iconCls: 'x-fa fa-home'
+         * 
+         *     // using Pictos
+         *     iconCls: 'pictos pictos-home'
+         * 
+         * Depending on the theme you're using, you may need include the font icon 
+         * packages in your application in order to use the icons included in the 
+         * SDK.  For more information see:
+         * 
+         *  - [Font Awesome icons](http://fortawesome.github.io/Font-Awesome/cheatsheet/)
+         *  - [Pictos icons](http://docs.sencha.com/extjs/6.0/core_concepts/font_ext.html)
+         *  - [Theming Guide](http://docs.sencha.com/extjs/6.0/core_concepts/theming.html)
          * @accessor
          */
-        iconCls: null
+        iconCls: null,
+
+        /**
+         * @cfg {"left"/"right"/"center"} [textAlign="center"]
+         * @since 6.0.1
+         */
+        textAlign: null
     },
 
     config: {
@@ -487,7 +521,7 @@ Ext.define('Ext.Button', {
             element.replaceCls(oldIconCls, iconCls);
             me.refreshIconAlign();
         } else {
-			element.removeCls(oldIconCls);
+            element.removeCls(oldIconCls);
             if (!me.getIcon()) {
                 me.hideIconElement();
             }
@@ -502,14 +536,28 @@ Ext.define('Ext.Button', {
             baseCls = Ext.baseCSSPrefix + 'iconalign-';
 
         if (!this.getText()) {
-            alignment = "center";
+            alignment = 'center';
         }
 
-        element.removeCls(baseCls + "center");
+        element.removeCls(baseCls + 'center');
         element.removeCls(baseCls + oldAlignment);
         if (this.getIcon() || this.getIconCls()) {
             element.addCls(baseCls + alignment);
         }
+    },
+
+    _textAlignCls: {
+        left: Ext.baseCSSPrefix + 'text-align-left',
+        right: Ext.baseCSSPrefix + 'text-align-right',
+        center: ''
+    },
+
+    updateTextAlign: function (textAlign, oldValue) {
+        var textAlignClasses = this._textAlignCls,
+            add = textAlignClasses[textAlign || 'center'],
+            remove = textAlignClasses[oldValue || 'center'];
+
+        this.replaceCls(remove, add);
     },
 
     refreshIconAlign: function() {
@@ -548,8 +596,10 @@ Ext.define('Ext.Button', {
      * @private
      */
     hideIconElement: function() {
-        this.iconElement.removeCls(Ext.baseCSSPrefix + 'shown');
-        this.iconElement.addCls(Ext.baseCSSPrefix + 'hidden');
+        var el = this.iconElement;
+        el.removeCls(Ext.baseCSSPrefix + 'shown');
+        el.addCls(Ext.baseCSSPrefix + 'hidden');
+        this.element.addCls(Ext.baseCSSPrefix + 'button-no-icon');
     },
 
     /**
@@ -557,8 +607,10 @@ Ext.define('Ext.Button', {
      * @private
      */
     showIconElement: function() {
-        this.iconElement.removeCls(Ext.baseCSSPrefix + 'hidden');
-        this.iconElement.addCls(Ext.baseCSSPrefix + 'shown');
+        var el = this.iconElement;
+        el.addCls(Ext.baseCSSPrefix + 'shown');
+        el.removeCls(Ext.baseCSSPrefix + 'hidden');
+        this.element.removeCls(Ext.baseCSSPrefix + 'button-no-icon');
     },
 
     /**

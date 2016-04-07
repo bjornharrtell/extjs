@@ -18,14 +18,6 @@ Ext.define('Ext.rtl.scroll.DomScroller', {
 
         getElementScroll: function(element) {
             return this.getRtl() ? element.rtlGetScroll() : element.getScroll();
-        },
-
-        setSpacerXY: function(spacer, x, y) {
-            if (this.getRtl()) {
-                spacer.rtlSetLocalXY(x, y);
-            } else {
-                spacer.setLocalXY(x, y);
-            }
         }
     }
 });

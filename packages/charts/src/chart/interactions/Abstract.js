@@ -103,7 +103,8 @@ Ext.define('Ext.chart.interactions.Abstract', {
     onGesture: Ext.emptyFn,
 
     /**
-     * @protected Find and return a single series item corresponding to the given event,
+     * @protected
+     * Find and return a single series item corresponding to the given event,
      * or null if no matching item is found.
      * @param {Event} e
      * @return {Object} the item object or null if none found.
@@ -117,7 +118,8 @@ Ext.define('Ext.chart.interactions.Abstract', {
     },
 
     /**
-     * @protected Find and return all series items corresponding to the given event.
+     * @protected
+     * Find and return all series items corresponding to the given event.
      * @param {Event} e
      * @return {Array} array of matching item objects
      */

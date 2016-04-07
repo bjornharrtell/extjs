@@ -154,10 +154,6 @@ Ext.define('Ext.grid.column.Widget', {
         defaultWidgetUI: {}
     },
 
-    /**
-     * @cfg {Boolean} ignoreExport
-     * @inheritdoc
-     */
     ignoreExport: true,
 
     /**
@@ -194,20 +190,61 @@ Ext.define('Ext.grid.column.Widget', {
      * @cfg {Function/String} onWidgetAttach
      * A function that will be called when a widget is attached to a record. This may be useful for
      * doing any post-processing.
+     * 
+     *     Ext.create({
+     *         xtype: 'grid',
+     *         title: 'Student progress report',
+     *         width: 250,
+     *         renderTo: Ext.getBody(),
+     *         disableSelection: true,
+     *         store: {
+     *             fields: ['name', 'isHonorStudent'],
+     *             data: [{
+     *                 name: 'Finn',
+     *                 isHonorStudent: true
+     *             }, {
+     *                 name: 'Jake',
+     *                 isHonorStudent: false
+     *             }]
+     *         },
+     *         columns: [{
+     *             text: 'Name',
+     *             dataIndex: 'name',
+     *             flex: 1
+     *         }, {
+     *             xtype: 'widgetcolumn',
+     *             text: 'Honor Roll',
+     *             dataIndex: 'isHonorStudent',
+     *             width: 150,
+     *             widget: {
+     *                 xtype: 'button',
+     *                 handler: function() {
+     *                     // print certificate handler
+     *                 }
+     *             },
+     *             // called when the widget is initially instantiated
+     *             // on the widget column
+     *             onWidgetAttach: function(col, widget, rec) {
+     *                 widget.setText('Print Certificate');
+     *                 widget.setDisabled(!rec.get('isHonorStudent'));
+     *             }
+     *         }]
+     *     });
+     * 
      * @param {Ext.grid.column.Column} column The column.
      * @param {Ext.Component/Ext.Widget} widget The {@link #widget} rendered to each cell.
      * @param {Ext.data.Model} record The record used with the current widget (cell).
      * @declarativeHandler
      */
     onWidgetAttach: null,
-    
+
+    preventUpdate: true,
+
     /**
      * @cfg {Boolean} [stopSelection=true]
      * Prevent grid selection upon click on the widget.
      */
     stopSelection: true,
-     
-    preventUpdate: true,
 
     initComponent: function() {
         var me = this,
@@ -528,8 +565,17 @@ Ext.define('Ext.grid.column.Widget', {
                         // Focusables in a grid must not be tabbable by default when they get put back in.
                         focusEl = widget.getFocusEl();
                         if (focusEl) {
-                            if (focusEl.isTabbable()) {
-                                focusEl.saveTabbableState();
+                            // Widgets are reused so we must reset their tabbable state
+                            // regardless of their visibility.
+                            // For example, when removing rows in IE8 we're attaching
+                            // the nodes to a document-fragment which itself is invisible,
+                            // so isTabbable() returns false. Next time when we're reusing
+                            // this widget it will be attached to the document with its
+                            // tabbable state unreset, which might lead to undesired results.
+                            if (focusEl.isTabbable(true)) {
+                                focusEl.saveTabbableState({
+                                    includeHidden: true
+                                });
                             }
 
                             // Some browsers do not deliver a focus change upon DOM removal.

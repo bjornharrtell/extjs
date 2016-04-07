@@ -1,5 +1,8 @@
 describe("Ext.grid.column.Action", function(){
-    var store, grid, view;
+    var store, grid, view, actionColumn,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
     
     function getCell(rowIdx, colIdx) {
         return grid.getView().getCellInclusive({
@@ -33,19 +36,35 @@ describe("Ext.grid.column.Action", function(){
                 xtype: 'actioncolumn',
                 dataIndex: 'actionCls',
                 header: 'Action',
+                renderer: Ext.emptyFn,
                 items: [{
-                    handler: Ext.emptyFn
+                    handler: Ext.emptyFn,
+                    isDisabled: Ext.emptyFn
                 }]
             }],
             renderTo: Ext.getBody()
         }, gridCfg || {}));
 
         view = grid.view;
+        actionColumn = grid.columnManager.getHeaderByDataIndex('actionCls');
     }
 
-    afterEach(function(){
-        Ext.destroy(grid);
-        store = grid = view = null;
+    beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+    });
+
+    afterEach(function() {
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+
+        store = grid = view = actionColumn = Ext.destroy(grid);
     });
 
     describe('events', function () {
@@ -538,6 +557,38 @@ describe("Ext.grid.column.Action", function(){
                 expect(function() {
                     grid.destroy();
                 }).not.toThrow();
+            });
+        });
+    });
+
+    describe('callbacks', function () {
+        describe('when the model is updated', function () {
+            describe('renderers', function () {
+                function runTest(method) {
+                    it('should call ' + method, function () {
+                        makeGrid();
+                        spyOn(actionColumn, method).andCallThrough();
+                        store.getAt(0).set('text', 'Kilgore Trout');
+
+                        expect(actionColumn[method].callCount).toBe(1);
+                    });
+                }
+
+                runTest('origRenderer'); // the defined column.renderer
+                runTest('defaultRenderer');
+            });
+
+            describe('isDisabled on items', function () {
+                it('should call isDisabled', function () {
+                    var item;
+
+                    makeGrid();
+                    item = actionColumn.items[0];
+                    spyOn(item, 'isDisabled').andCallThrough();
+                    store.getAt(0).set('text', 'Kilgore Trout');
+
+                    expect(item.isDisabled.callCount).toBe(1);
+                });
             });
         });
     });

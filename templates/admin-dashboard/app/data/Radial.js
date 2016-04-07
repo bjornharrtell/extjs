@@ -1,7 +1,7 @@
 Ext.define('Admin.data.Radial', {
     extend: 'Admin.data.Simulated',
 
-	data: [
+    data: [
         {
             "xvalue": "A",
             "yvalue": 417
@@ -42,5 +42,5 @@ Ext.define('Admin.data.Radial', {
             "xvalue": "J",
             "yvalue": 603
         }
-    ]	
+    ]
 });

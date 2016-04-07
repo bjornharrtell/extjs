@@ -1,16 +1,11 @@
 Ext.define('Admin.view.email.Inbox', {
     extend: 'Ext.grid.Panel',
+    xtype: 'inbox',
 
-    alias: 'widget.emailinbox',
-
-    cls: 'email-inbox-panel shadow-panel',
-
-    viewModel: {
-        type: 'emailinbox'
-    },
+    cls: 'email-inbox-panel shadow',
 
     bind: {
-        store: '{EmailInbox}'
+        store: '{inbox}'
     },
 
     viewConfig: {

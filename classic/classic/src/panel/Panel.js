@@ -97,8 +97,8 @@
  * horizontally to full width. Child items may either be configured with a numeric height, or with a `flex` value to
  * distribute available space proportionately.
  *
- * This Panel itself may be a child item of, for exaple, a {@link Ext.tab.Panel} which will size its child items to fit
- * within its content area.
+ * This Panel itself may be a child item of, for example, a {@link Ext.tab.Panel} which 
+ * will size its child items to fit within its content area.
  *
  * Using these techniques, as long as the **layout** is chosen and configured correctly, an application may have any
  * level of nested containment, all dynamically sized according to configuration, the user's preference and available
@@ -169,65 +169,61 @@ Ext.define('Ext.panel.Panel', {
 
     beforeRenderConfig: {
         /**
-         * @cfg {Number/String} glyph
-         * @inheritdoc Ext.panel.Header#glyph
+         * @cfg glyph
+         * @inheritdoc Ext.panel.Header#cfg-glyph
+         * @accessor
          */
         glyph: null,
 
         /**
-         * @cfg {String} [headerPosition='top']
+         * @cfg {'top'/'bottom'/'left'/'right'} [headerPosition='top']
          * Specify as `'top'`, `'bottom'`, `'left'` or `'right'`.
+         * @accessor
          */
         headerPosition: null,
 
         /**
-         * @cfg {String} icon
-         * @inheritdoc Ext.panel.Header#icon
+         * @cfg icon
+         * @inheritdoc Ext.panel.Header#cfg-icon
+         * @accessor
          */
         icon: null,
 
         /**
-         * @cfg {'top'/'right'/'bottom'/'left'} [iconAlign='left']
-         * The side of the title to render the icon.
+         * @cfg iconAlign
+         * @inheritdoc Ext.panel.Header#cfg-iconAlign
+         * @accessor
          */
         iconAlign: null,
 
         /**
-         * @cfg {String} iconCls
-         * @inheritdoc Ext.panel.Header#iconCls
+         * @cfg iconCls
+         * @inheritdoc Ext.panel.Header#cfg-iconCls
+         * @accessor
          */
         iconCls: null,
 
         /**
          * @cfg {String}
-         * The title text to be used to display in the {@link Ext.panel.Header Panel Header}.
-         * Or a config object for a {@link Ext.panel.Title Panel Title}. When a `title` is
-         * specified the {@link Ext.panel.Header} will automatically be created and
-         * displayed unless {@link #header} is set to `false`.
+         * @inheritdoc Ext.panel.Header#title
+         * @localdoc When a `title` is specified, the {@link Ext.panel.Header} will 
+         * automatically be created and displayed unless {@link #header} is set to 
+         * `false`.
+         * @accessor
          */
         title: null,
 
         /**
-         * @cfg {String} [titleAlign='left']
-         * The alignment of the title text within the available space between the
-         * icon and the tools.
+         * @cfg titleAlign
+         * @inheritdoc Ext.panel.Header#cfg-titleAlign
+         * @accessor
          */
         titleAlign: null,
 
         /**
-         * @cfg {'default'/0/1/2} [titleRotation='default']
-         * The rotation of the header's title text.  Can be one of the following values:
-         *
-         * - `'default'` - use the default rotation, depending on the dock position of the header
-         * - `0` - no rotation
-         * - `1` - rotate 90deg clockwise
-         * - `2` - rotate 90deg counter-clockwise
-         *
-         * The default behavior of this config depends on the dock position of the header:
-         *
-         * - `'top'` or `'bottom'` - `0`
-         * - `'right'` - `1`
-         * - `'left'` - `1`
+         * @cfg titleRotation
+         * @inheritdoc Ext.panel.Header#cfg-titleRotation
+         * @accessor
          */
         titleRotation: null
     },
@@ -286,6 +282,8 @@ Ext.define('Ext.panel.Panel', {
      * Leaving the value as `true` uses the selected theme's {@link Ext.panel.Panel#$panel-border-width}
      *
      * Defaults to `false` when using or extending Neptune.
+     * 
+     * **Note:** is ignored when {@link #frame} is set to **true**.
      */
     border: true,
 
@@ -323,8 +321,11 @@ Ext.define('Ext.panel.Panel', {
     
     //<locale>
     /**
-     * @cfg {String} closeToolText Text to be announced by screen readers when Close tool
-     * is focused.
+     * @cfg {String} closeToolText Text to be announced by screen readers when the 
+     * **close** {@link Ext.panel.Tool tool} is focused.  Will also be set as the close 
+     * tool's {@link Ext.panel.Tool#cfg-tooltip tooltip} text.
+     * 
+     * **Note:** Applicable when the panel is {@link #closable}: true
      */
     closeToolText: 'Close panel',
     //</locale>
@@ -393,14 +394,20 @@ Ext.define('Ext.panel.Panel', {
     
     //<locale>
     /**
-     * @cfg {String} collapseToolText Text to be announced by screen readers when Collapse tool
-     * is focused.
+     * @cfg {String} collapseToolText Text to be announced by screen readers when 
+     * **collapse** {@link Ext.panel.Tool tool} is focused.  Will also be set as the 
+     * collapse tool's {@link Ext.panel.Tool#cfg-tooltip tooltip} text.
+     * 
+     * **Note:** Applicable when the panel is {@link #collapsible}: true
      */
     collapseToolText: 'Collapse panel',
     
     /**
-     * @cfg {String} expandToolText Text to be announced by screen readers when Expand tool
-     * is focused.
+     * @cfg {String} expandToolText Text to be announced by screen readers when 
+     * **expand** {@link Ext.panel.Tool tool} is focused.  Will also be set as the 
+     * expand tool's {@link Ext.panel.Tool#cfg-tooltip tooltip} text.
+     * 
+     * **Note:** Applicable when the panel is {@link #collapsible}: true
      */
     expandToolText: 'Expand panel',
     //</locale>
@@ -610,6 +617,8 @@ Ext.define('Ext.panel.Panel', {
     /**
      * @cfg {Boolean} frame
      * True to apply a frame to the panel.
+     * 
+     * **Note:** `frame: true` overrides {@link #border border:false}
      */
     frame: false,
 
@@ -772,6 +781,16 @@ Ext.define('Ext.panel.Panel', {
      *     // Floating components begin life hidden
      *     win.child('[title=Floating Panel]').show();
      *
+     */
+
+    /**
+     * @cfg stateEvents
+     * @inheritdoc Ext.state.Stateful#cfg-stateEvents
+     * @localdoc By default the following stateEvents are added:
+     * 
+     *  - {@link #event-resize} - _(added by Ext.Component)_
+     *  - {@link #event-collapse}
+     *  - {@link #event-expand}
      */
 
     /**
@@ -1223,12 +1242,17 @@ Ext.define('Ext.panel.Panel', {
     
     destroy: function() {
         this.callParent();
-        this.dockedItems = null;
+        this.dockedItems = this.bodyContainer = null;
     },
 
     beforeRender: function() {
         var me = this,
             wasCollapsed;
+
+        // Ensure the protoBody exists so that initOverflow gets right answer from getOverflowEl.
+        // If this Panel was applied to an existing element (such as being used as a Viewport)
+        // then it will not have been created.
+        me.getProtoBody();
 
         me.callParent();
 
@@ -3024,10 +3048,8 @@ Ext.define('Ext.panel.Panel', {
     },
 
     restoreHiddenDocked: function(){
-        var toShow = this.hiddenOnCollapse;
         // Re-show Panel content which was hidden after collapse.
-        toShow.setStyle('visibility', '');
-        toShow.clear();
+        this.setDockedItemsVisibility(this.hiddenOnCollapse, true);
     },
 
     /**
@@ -3096,6 +3118,35 @@ Ext.define('Ext.panel.Panel', {
      */
     setCollapsed: function(collapsed) {
         this[collapsed ? 'collapse' : 'expand']();
+    },
+
+    /**
+     * Set visibility of docked items after the panel is collapsed or expanded
+     *
+     * @param {Ext.dom.CompositeElement} els
+     * @param {Boolean} show
+     *
+     * @private
+     */
+    setDockedItemsVisibility: function(els, show){
+        var me = this,
+            items = me.getDockedItems(),
+            len = items.length,
+            i = 0,
+            item, reExpander;
+
+        if (me.header !== false) {
+            reExpander = me.getReExpander();
+        }
+
+        for (; i < len; i++) {
+            item = items[i];
+            if (item && item !== reExpander && item.el) {
+                els.add(item.el);
+            }
+        }
+        els.setStyle('visibility', show ? '' : 'hidden');
+        els.clear();
     },
 
     setGlyph: function(glyph) {
@@ -3219,26 +3270,14 @@ Ext.define('Ext.panel.Panel', {
 
     setHiddenDocked: function(){
         // Hide Panel content except reExpander using visibility to prevent focusing of contained elements.
-        // Track what we hide to re-show on expand
+        // Track what we hide to re-show on expand except for docked items
+        // Until the panel is expanded the docked items might have been removed
         var me = this,
-            toHide = me.hiddenOnCollapse,
-            items = me.getDockedItems(),
-            len = items.length,
-            i = 0,
-            item, reExpander;
+            toHide = new Ext.dom.CompositeElement();
 
-        if (me.header !== false) {
-            reExpander = me.getReExpander();
-        }
-
+        me.hiddenOnCollapse.add(me.body);
         toHide.add(me.body);
-        for (; i < len; i++) {
-            item = items[i];
-            if (item && item !== reExpander && item.el) {
-                toHide.add(item.el);
-            }
-        }
-        toHide.setStyle('visibility', 'hidden');
+        me.setDockedItemsVisibility(toHide, false);
     },
 
     /**
@@ -3366,7 +3405,7 @@ Ext.define('Ext.panel.Panel', {
         var me = this,
             refHolder, btn;
         
-        refHolder = me.lookupReferenceHolder() || me;
+        refHolder = me.lookupReferenceHolder(/* skipThis = */ false) || me;
         btn = refHolder.lookupReference(me.defaultButton);
         
         // We call it defaultButton but it can really be any object
@@ -3590,10 +3629,8 @@ Ext.define('Ext.panel.Panel', {
                     }
                 }
                 
-                // If there is no title, just make sure no aria-label
-                // or aria-labelledby attributes were added 
+                // If there is no title, just make sure no aria-label attribute was added
                 else if (me.ariaRenderAttributes) {
-                    delete me.ariaRenderAttributes['aria-labelledby'];
                     delete me.ariaRenderAttributes['aria-label'];
                 }
             }
@@ -3603,25 +3640,30 @@ Ext.define('Ext.panel.Panel', {
                 header.hide();
             }
             
-            if (ariaDom) {
-                ariaDom.removeAttribute('aria-labelledby');
+            // Title may contain HTML markup
+            title = Ext.util.Format.stripTags(title);
             
-                if (title) {
-                    ariaDom.setAttribute('aria-label', title);
-                }
-                else {
-                    ariaDom.removeAttribute('aria-label');
+            // aria-labelledby could have been set by the TabPanel.onAdd()
+            if (ariaDom) {
+                if (!ariaDom.hasAttribute('aria-labelledby')) {
+                    if (title) {
+                        ariaDom.setAttribute('aria-label', title);
+                    }
+                    else {
+                        ariaDom.removeAttribute('aria-label');
+                    }
                 }
             }
             else {
                 ariaAttr = me.ariaRenderAttributes || (me.ariaRenderAttributes = {});
-                delete ariaAttr['aria-labelledby'];
-            
-                if (title) {
-                    ariaAttr['aria-label'] = title;
-                }
-                else {
-                    delete ariaAttr['aria-label'];
+                
+                if (!ariaAttr['aria-labelledby']) {
+                    if (title) {
+                        ariaAttr['aria-label'] = title;
+                    }
+                    else {
+                        delete ariaAttr['aria-label'];
+                    }
                 }
             }
         }

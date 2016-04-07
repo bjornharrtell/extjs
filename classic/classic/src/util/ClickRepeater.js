@@ -163,7 +163,7 @@ Ext.define('Ext.util.ClickRepeater', {
     /**
      * @private
      */
-    handleMouseDown: function (e) {
+    handleMouseDown: function(e) {
         clearTimeout(this.timer);
         if(this.pressedCls){
             this.el.addCls(this.pressedCls);
@@ -182,6 +182,14 @@ Ext.define('Ext.util.ClickRepeater', {
         }
 
         this.timer =  Ext.defer(this.click, this.delay || this.interval, this, [e]);
+        
+        if (this.mousedownPreventDefault) {
+            e.preventDefault();
+        }
+        
+        if (this.mousedownStopEvent) {
+            e.stopEvent();
+        }
     },
 
     /**

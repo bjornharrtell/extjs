@@ -196,8 +196,18 @@ Ext.define('Ext.sparkline.Base', {
     redrawQueue: {},
 
     inheritableStatics: {
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         sparkLineTipClass: Ext.baseCSSPrefix + 'sparkline-tip-target',
 
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         onClassCreated: function(cls) {
             var proto = cls.prototype,
                 configs = cls.getConfigurator().configs,
@@ -378,8 +388,10 @@ Ext.define('Ext.sparkline.Base', {
             offset = me.canvas.el.getXY();
             region = me.getRegion(me.currentPageXY[0] - offset[0], me.currentPageXY[1] - offset[1]);
 
-            if (region != null && !me.disableHighlight) {
-                me.renderHighlight(region);
+            if (region != null && region < values.length) {
+                if (!me.disableHighlight) {
+                    me.renderHighlight(region);
+                }
                 tooltipHTML = me.getRegionTooltip(region);
             }
             me.fireEvent('sparklineregionchange', me);

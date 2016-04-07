@@ -347,32 +347,38 @@ Ext.define('Ext.plugin.AbstractClipboard', {
          */
         getHiddenTextArea: function () {
             var shared = this.shared,
-                ret = shared.textArea;
-
-            if (!ret) {
-                shared.textArea = ret = Ext.getBody().createChild({
+                el;
+            
+            el = shared.textArea;
+            
+            if (!el) {
+                el = shared.textArea = Ext.getBody().createChild({
                     tag: 'textarea',
                     tabIndex: -1, // don't tab through this fellow
                     style: {
                         position: 'absolute',
                         top: '-1000px',
-                        width: '1px'
+                        width: '1px',
+                        height: '1px'
                     }
                 });
+                
+                // We don't want this element to fire focus events ever
+                el.suspendFocusEvents();
             }
-
-            return ret;
+            
+            return el;
         },
 
-        onCopy: function (event) {
+        onCopy: function (keyCode, event) {
             this.doCutCopy(event, false);
         },
 
-        onCut: function (event) {
+        onCut: function (keyCode, event) {
             this.doCutCopy(event, true);
         },
 
-        onPaste: function () {
+        onPaste: function (keyCode, event) {
             var me = this,
                 sharedData = me.shared.data,
                 source = me.getSource(),
@@ -395,56 +401,76 @@ Ext.define('Ext.plugin.AbstractClipboard', {
             }
         },
 
-        pasteClipboardData: function (format) {
+        pasteClipboardData: function(format) {
             var me = this,
                 clippy = window.clipboardData,
                 area, focusEl;
 
             if (clippy && clippy.getData) {
                  me.doPaste(format, clippy.getData("text"));
-            } else {
-                focusEl = Ext.Element.getActiveElement();
+            }
+            else {
+                focusEl = Ext.Element.getActiveElement(true);
                 area = me.getHiddenTextArea().dom;
                 area.value = '';
+
+                // We must not disturb application state by doing this focus
+                if (focusEl) {
+                    focusEl.suspendFocusEvents();
+                }
+                
                 area.focus();
 
                 // Between now and the deferred function, the CTRL+V hotkey will have
                 // its default action processed which will paste the clipboard content
                 // into the textarea.
-
-                Ext.defer(function () {
+                Ext.defer(function() {
                     // Focus back to the real destination
                     if (focusEl) {
                         focusEl.focus();
+                        
+                        // Restore framework focus handling
+                        focusEl.resumeFocusEvents();
                     }
+                    
                     me.doPaste(format, area.value);
                     area.value = '';
                 }, 100, me);
             }
         },
 
-        setClipboardData: function (data) {
+        setClipboardData: function(data) {
             var clippy = window.clipboardData;
 
             if (clippy && clippy.setData) {
                 clippy.setData("text", data);
-            } else {
+            }
+            else {
                 var me = this,
                     area = me.getHiddenTextArea().dom,
-                    focusEl = Ext.Element.getActiveElement();
+                    focusEl = Ext.Element.getActiveElement(true);
 
                 area.value = data;
+
+                // We must not disturb application state by doing this focus
+                if (focusEl) {
+                    focusEl.suspendFocusEvents();
+                }
+                
                 area.focus();
                 area.select();
 
                 // Between now and the deferred function, the CTRL+C/X hotkey will have
                 // its default action processed which will update the clipboard from the
                 // textarea.
-
-                Ext.defer(function () {
+                Ext.defer(function() {
                     area.value = '';
+                    
                     if (focusEl) {
                         focusEl.focus();
+                        
+                        // Restore framework focus handling
+                        focusEl.resumeFocusEvents();
                     }
                 }, 50);
             }

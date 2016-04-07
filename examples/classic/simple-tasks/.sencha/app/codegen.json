@@ -13,7 +13,7 @@
       "cbdf9712e9b5d37cecb4d0530ba1fccd0ed004a3": "eJytkUEOwjAMBO+8YkXv/QF/4MAHAnGpRbArxy3i97gFQbk3t6ycmbXS4LDl2TU49VzRcSEMphNnqkgCncgsLhiUxdGpIVOXxuKYknE6l5iLhIUyWBCgeJ7Hi7NK+xmtbWQDmTPVNkRUF8knQTKCSnmC74OaB+jRk+A8csks10DOWu8J+x97D5KJTeVO4u2uianjD7lq5N+9PN1mL6uxP5fN3o5Vuwh87hO0pVHRlAMz+//cy7sa2o2/4QV6LJW9"
     },
     "sencha.cfg.tpl.merge": {
-      "25537de4dceb37505fd4c3dc911cb211baa46a4b": "eJytkDFuwzAMRXed4gPu2jRbpyztBXKALopMxwRkUSDpGA7Qu1dK0J6gXDi8/z/4OcBnNlSVSuo7rFLiickQkWRZIoxq1Og0IrM5ZEKNPlujxSMXLtcwQMlk1dRsLo3UvW+fCZeV84iRlZKL7iHWevgVHx5Bp5ev9Xh8/+ik6b7f/rJCGE7/Ou3Qz9VcFpyffXvPV5xzTIT0IHyPzlIMF8qyPZ+TuVDvE2/CIxbSK7Wk1n/KnNywsc8otJHiRmrdHn4AfIZyzQ\u003d\u003d"
+      "37e77998d0cc69cbe4c0c2d4481f2e6c43b55a8f": "eJytkMENwkAMBP9XxUp5Qwe8aIAWzMUhli7nk+0Qheq5gOgAf/xY72rHA2IWRzNtbLHDG2eZhB2ErMtCcG5kFDyiiAd0QqOYvas1SKrURxpg7Lpa7rbQrrT92DEz7quUEaMY51DbE7V2/h2fP0GXlIbLX6f3ua4euuD2xTpwTrgVyoz8UeRFIVoddy66fX9QpPJRm54qIxa2B/ekjjkVyeHYJGZU3tjwZPPDnt66VmnK"
     },
     "testing.properties.merge": {
       "360e715956c81757e53736789fe20be045acb544": "eJytkMENwjAMRe+d4oveuwE7cGCBoLjUItiVY4q6PW6pKAM0t1g/732nxfnI07S4DlzRcyGMphNnqkgCncgsLhiVxdGrIVOfXsUxJeN0K5GLCQtlsCBATtVZ7t2Wq13wRjJnql1YqK6GbYJkBJUyg5+jmgflPZDg9uKSgxK8xekD4bSBTyCZ2FSeJN41bUQuO++vi/828vRYpKzGPq87fQV/1WLgS5mgrXWKphyYRb6L10c1nAf//gdqIpHi"
@@ -59,7 +59,7 @@
         "modelNamespace": "SimpleTasks.model",
         "modern": false,
         "name": "SimpleTasks",
-        "packagesRelPath": "../../../packages/,C:/dev/sencha5/ext/classic",
+        "packagesRelPath": "../../../packages/,/SDKs/sencha-dev/ext/ext/classic",
         "senchadir": ".sencha",
         "themeName": "default",
         "toolkit": "",
@@ -88,7 +88,7 @@
         "modelNamespace": "SimpleTasks.model",
         "modern": false,
         "name": "SimpleTasks",
-        "packagesRelPath": "../../../packages/,C:/dev/sencha5/ext/classic",
+        "packagesRelPath": "../../../packages/,/SDKs/sencha-dev/ext/ext/classic",
         "senchadir": ".sencha",
         "themeName": "default",
         "toolkit": "",
@@ -117,7 +117,7 @@
         "modelNamespace": "SimpleTasks.model",
         "modern": false,
         "name": "SimpleTasks",
-        "packagesRelPath": "../../../packages/,C:/dev/sencha5/ext/classic",
+        "packagesRelPath": "../../../packages/,/SDKs/sencha-dev/ext/ext/classic",
         "senchadir": ".sencha",
         "themeName": "default",
         "toolkit": "",
@@ -146,7 +146,7 @@
         "modelNamespace": "SimpleTasks.model",
         "modern": false,
         "name": "SimpleTasks",
-        "packagesRelPath": "../../../packages/,C:/dev/sencha5/ext/classic",
+        "packagesRelPath": "../../../packages/,/SDKs/sencha-dev/ext/ext/classic",
         "senchadir": ".sencha",
         "themeName": "default",
         "toolkit": "",
@@ -159,7 +159,7 @@
     },
     ".sencha/app/sencha.cfg": {
       "source": "sencha.cfg.tpl.merge",
-      "version": "25537de4dceb37505fd4c3dc911cb211baa46a4b",
+      "version": "37e77998d0cc69cbe4c0c2d4481f2e6c43b55a8f",
       "parameters": {
         "appControllers": "",
         "appModels": "",
@@ -175,7 +175,7 @@
         "modelNamespace": "SimpleTasks.model",
         "modern": false,
         "name": "SimpleTasks",
-        "packagesRelPath": "../../../packages/,C:/dev/sencha5/ext/classic",
+        "packagesRelPath": "../../../packages/,/SDKs/sencha-dev/ext/ext/classic",
         "senchadir": ".sencha",
         "themeName": "default",
         "toolkit": "",
@@ -204,7 +204,7 @@
         "modelNamespace": "SimpleTasks.model",
         "modern": false,
         "name": "SimpleTasks",
-        "packagesRelPath": "../../../packages/,C:/dev/sencha5/ext/classic",
+        "packagesRelPath": "../../../packages/,/SDKs/sencha-dev/ext/ext/classic",
         "senchadir": ".sencha",
         "themeName": "default",
         "toolkit": "",
@@ -310,7 +310,7 @@
         "modelNamespace": "SimpleTasks.model",
         "modern": false,
         "name": "SimpleTasks",
-        "packagesRelPath": "../../../packages/,C:/dev/sencha5/ext/classic",
+        "packagesRelPath": "../../../packages/,/SDKs/sencha-dev/ext/ext/classic",
         "senchadir": ".sencha",
         "themeName": "default",
         "toolkit": "",
@@ -377,7 +377,7 @@
         "modelNamespace": "SimpleTasks.model",
         "modern": false,
         "name": "SimpleTasks",
-        "packagesRelPath": "../../../packages/,C:/dev/sencha5/ext/classic",
+        "packagesRelPath": "../../../packages/,/SDKs/sencha-dev/ext/ext/classic",
         "senchadir": ".sencha",
         "themeName": "default",
         "toolkit": "",

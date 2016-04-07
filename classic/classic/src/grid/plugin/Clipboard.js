@@ -137,6 +137,14 @@ Ext.define('Ext.grid.plugin.Clipboard', {
             dataIndex, destinationStartColumn,
             dataObject = {};
 
+        // If the view is not focused, use the first cell of the selection as the destination.
+        if (!destination) {
+            view.getSelectionModel().getSelected().eachCell(function(c){
+                destination = c;
+                return false;
+            });
+        }
+
         if (destination) {
             // Create a new Context based upon the outermost View.
             // NavigationModel works on local views. TODO: remove this step when NavModel is fixed to use outermost view in locked grid.

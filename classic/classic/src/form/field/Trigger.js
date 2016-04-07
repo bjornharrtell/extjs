@@ -22,6 +22,11 @@ Ext.define('Ext.form.field.Trigger', {
     triggerCls: Ext.baseCSSPrefix + 'form-arrow-trigger',
 
     inheritableStatics: {
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         warnDeprecated: function() {
             //<debug>
             // TODO: can we make this warning depend on compat level?

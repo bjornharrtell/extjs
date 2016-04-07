@@ -150,7 +150,15 @@ Ext.define('Ext.viewport.Default', {
     constructor: function(config) {
         var me = this,
             bind = Ext.Function.bind,
-            Component = Ext.Component;
+            Component = Ext.Component,
+            DomScroller = Ext.scroll.DomScroller;
+
+        // By default document.body is monitored by a special DomScroller singleton so that
+        // the global scroll event fires when the document scrolls.
+        // A Viewport's Scroller will take over from this one.
+        if (DomScroller.document) {
+            DomScroller.document = DomScroller.document.destroy();
+        }
 
         me.doPreventPanning = bind(me.doPreventPanning, me);
         me.doPreventZooming = bind(me.doPreventZooming, me);

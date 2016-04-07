@@ -9,7 +9,7 @@ describe('Ext.Component', function() {
         if (component) {
             var compCls = component.getCls() || [];
 
-            return compCls.indexOf(cls) != -1;
+            return compCls.indexOf(cls) !== -1;
         }
 
         return false;
@@ -1081,6 +1081,522 @@ describe('Ext.Component', function() {
                     component.toggleCls('one');
 
                     expect(hasCls('one')).toBe(false);
+                });
+            });
+        });
+    });
+
+    describe("visibility", function() {
+        describe("isHidden", function() {
+            describe("deep=undefined", function() {
+                describe("as a root", function() {
+                    it("should return true if the component is hidden", function() {
+                        makeComponent({
+                            hidden: true
+                        });
+                        expect(component.isHidden()).toBe(true);
+                    });
+
+                    it("should return false if the component is not hidden", function() {
+                        makeComponent();
+                        expect(component.isHidden()).toBe(false);
+                    });
+                });
+
+                describe("in a container", function() {
+                    it("should return true if the component is hidden but the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden()).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden()).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is not hidden and the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden()).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is not hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden()).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is not hidden and a high level container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'container',
+                                items: {
+                                    xtype: 'container',
+                                    items: {
+                                        xtype: 'component',
+                                        itemId: 'c'
+                                    }
+                                }
+                            }
+                        });
+                        component = ct.down('#c');
+                        expect(component.isHidden()).toBe(false);
+                        ct.destroy();
+                    });
+                });
+            });
+
+            describe("deep=false", function() {
+                describe("as a root", function() {
+                    it("should return true if the component is hidden", function() {
+                        makeComponent({
+                            hidden: true
+                        });
+                        expect(component.isHidden(false)).toBe(true);
+                    });
+
+                    it("should return false if the component is not hidden", function() {
+                        makeComponent();
+                        expect(component.isHidden(false)).toBe(false);
+                    });
+                });
+
+                describe("in a container", function() {
+                    it("should return true if the component is hidden but the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden(false)).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden(false)).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is not hidden and the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden(false)).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is not hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden(false)).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is not hidden and a high level container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'container',
+                                items: {
+                                    xtype: 'container',
+                                    items: {
+                                        xtype: 'component',
+                                        itemId: 'c'
+                                    }
+                                }
+                            }
+                        });
+                        component = ct.down('#c');
+                        expect(component.isHidden(false)).toBe(false);
+                        ct.destroy();
+                    });
+                });
+            });
+
+            describe("deep=true", function() {
+                describe("as a root", function() {
+                    it("should return true if the component is hidden", function() {
+                        makeComponent({
+                            hidden: true
+                        });
+                        expect(component.isHidden(true)).toBe(true);
+                    });
+
+                    it("should return false if the component is not hidden", function() {
+                        makeComponent();
+                        expect(component.isHidden(true)).toBe(false);
+                    });
+                });
+
+                describe("in a container", function() {
+                    it("should return true if the component is hidden but the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden(true)).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden(true)).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is not hidden and the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden(true)).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is not hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isHidden(true)).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is not hidden and a high level container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'container',
+                                items: {
+                                    xtype: 'container',
+                                    items: {
+                                        xtype: 'component',
+                                        itemId: 'c'
+                                    }
+                                }
+                            }
+                        });
+                        component = ct.down('#c');
+                        expect(component.isHidden(true)).toBe(true);
+                        ct.destroy();
+                    });
+                });
+            });
+        });
+
+        describe("isVisible", function() {
+            describe("deep=undefined", function() {
+                describe("as a root", function() {
+                    it("should return false if the component is hidden", function() {
+                        makeComponent({
+                            hidden: true
+                        });
+                        expect(component.isVisible()).toBe(false);
+                    });
+
+                    it("should return true if the component is not hidden", function() {
+                        makeComponent();
+                        expect(component.isVisible()).toBe(true);
+                    });
+                });
+
+                describe("in a container", function() {
+                    it("should return false if the component is hidden but the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible()).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible()).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is not hidden and the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible()).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is not hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible()).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is not hidden and a high level container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'container',
+                                items: {
+                                    xtype: 'container',
+                                    items: {
+                                        xtype: 'component',
+                                        itemId: 'c'
+                                    }
+                                }
+                            }
+                        });
+                        component = ct.down('#c');
+                        expect(component.isVisible()).toBe(true);
+                        ct.destroy();
+                    });
+                });
+            });
+
+            describe("deep=false", function() {
+                describe("as a root", function() {
+                    it("should return false if the component is hidden", function() {
+                        makeComponent({
+                            hidden: true
+                        });
+                        expect(component.isVisible(false)).toBe(false);
+                    });
+
+                    it("should return true if the component is not hidden", function() {
+                        makeComponent();
+                        expect(component.isVisible(false)).toBe(true);
+                    });
+                });
+
+                describe("in a container", function() {
+                    it("should return false if the component is hidden but the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible(false)).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible(false)).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is not hidden and the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible(false)).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is not hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible(false)).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is not hidden and a high level container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'container',
+                                items: {
+                                    xtype: 'container',
+                                    items: {
+                                        xtype: 'component',
+                                        itemId: 'c'
+                                    }
+                                }
+                            }
+                        });
+                        component = ct.down('#c');
+                        expect(component.isVisible(false)).toBe(true);
+                        ct.destroy();
+                    });
+                });
+            });
+
+            describe("deep=true", function() {
+                describe("as a root", function() {
+                    it("should return false if the component is hidden", function() {
+                        makeComponent({
+                            hidden: true
+                        });
+                        expect(component.isVisible(true)).toBe(false);
+                    });
+
+                    it("should return true if the component is not hidden", function() {
+                        makeComponent();
+                        expect(component.isVisible(true)).toBe(true);
+                    });
+                });
+
+                describe("in a container", function() {
+                    it("should return false if the component is hidden but the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible(true)).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component',
+                                hidden: true
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible(true)).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return true if the component is not hidden and the container is not", function() {
+                        var ct = new Ext.Container({
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible(true)).toBe(true);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is not hidden and the container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'component'
+                            }
+                        });
+                        component = ct.getItems().first();
+                        expect(component.isVisible(true)).toBe(false);
+                        ct.destroy();
+                    });
+
+                    it("should return false if the component is not hidden and a high level container is hidden", function() {
+                        var ct = new Ext.Container({
+                            hidden: true,
+                            items: {
+                                xtype: 'container',
+                                items: {
+                                    xtype: 'container',
+                                    items: {
+                                        xtype: 'component',
+                                        itemId: 'c'
+                                    }
+                                }
+                            }
+                        });
+                        component = ct.down('#c');
+                        expect(component.isVisible(true)).toBe(false);
+                        ct.destroy();
+                    });
                 });
             });
         });

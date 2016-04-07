@@ -12,6 +12,8 @@ Ext.define('Ext.viewport.Android', {
     },
 
     constructor: function() {
+        this.callParent(arguments);
+
         this.on({
             orientationchange: 'hideKeyboardIfNeeded',
             scope: this,
@@ -19,7 +21,6 @@ Ext.define('Ext.viewport.Android', {
             priority: 1001
         });
 
-        this.callParent(arguments);
 
         // Viewport is initialized before event system, we need to wait until the application is ready before
         // we add the resize listener. Otherwise it will only fire if another resize listener is added later.

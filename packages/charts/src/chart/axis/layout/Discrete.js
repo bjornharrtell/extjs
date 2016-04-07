@@ -37,10 +37,10 @@ Ext.define('Ext.chart.axis.layout.Discrete', {
         // which provides a getLabel() function that returns the label from the axis.layoutContext.data array.
         // So now the question is: how are the labels transferred from the axis.layout to the axis.layoutContext?
         // The easy response is: it's in calculateLayout() below. The issue is to call calculateLayout() because
-        // it takes in an axis.layoutContext that can only be created in axis.sprite.Axis.doLayout(), which is 
+        // it takes in an axis.layoutContext that can only be created in axis.sprite.Axis.layoutUpdater(), which is
         // a private "updater" function that is called by all the sprite's "triggers". Of course, we don't
-        // want to call doLayout() directly from here, so instead we update the sprite's data attribute, which 
-        // sets the trigger which calls doLayout() which calls calculateLayout() etc...
+        // want to call layoutUpdater() directly from here, so instead we update the sprite's data attribute, which
+        // sets the trigger which calls layoutUpdater() which calls calculateLayout() etc...
         // Note that the sprite's data attribute could be set to any value and it would still result in the  
         // trigger we need. For consistency, however, it is set to the labels.
 

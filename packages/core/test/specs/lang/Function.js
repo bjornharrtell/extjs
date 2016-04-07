@@ -570,4 +570,37 @@ describe("Ext.Function", function() {
             expect(transcriptPhrase).toHaveBeenCalledWith('I love you');
         });
     });
+    
+    describe('asap', function() {
+        it('should call the passed function', function() {
+            var called = false;
+
+            Ext.asap(function(){
+                called = true;
+            });
+
+            // Wait for it to have called the function; it's supposed to be called immediately upon exit from the
+            // calling event handler.
+            waitsFor(function() {
+                return called;
+            }, 'the asap function to call the passed function');
+        });
+        it('should not call the passed function if asapCancel called', function() {
+            var called = false,
+                timer;
+
+            timer = Ext.asap(function(){
+                called = true;
+            });
+            Ext.asapCancel(timer);
+
+            // We expect nothing to happen, so there's nothing to wait for.
+            // Wait for the most pessmistic time to allow aany erroneous call to occur.
+            waits(150);
+
+            runs(function() {
+                expect(called).toBe(false);
+            });
+        });
+    });
 });

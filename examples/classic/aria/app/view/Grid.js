@@ -10,7 +10,11 @@ Ext.define('Aria.view.Grid', {
         'Ext.form.field.ComboBox',
         'Ext.data.ArrayStore',
         'Ext.grid.plugin.RowEditing',
-        'Ext.grid.plugin.CellEditing'
+        'Ext.grid.plugin.CellEditing',
+        'Ext.selection.CellModel',
+        'Ext.selection.RowModel',
+        'Ext.selection.CheckboxModel',
+        'Ext.grid.selection.SpreadsheetModel'
     ],
     
     title: 'Grid',

@@ -25,7 +25,10 @@ describe("grid-aria", function() {
             dataIndex: 'field5',
             text: 'field 5'
         }],
-        grid;
+        grid,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
     
     function makeGrid(cfg) {
         cfg = Ext.apply({
@@ -39,8 +42,22 @@ describe("grid-aria", function() {
         
         grid = new Ext.grid.Panel(cfg);
     }
-    
+
+    beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+    });
+
     afterEach(function() {
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+
         if (grid) {
             grid.destroy();
             grid = null;

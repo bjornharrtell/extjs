@@ -8,6 +8,7 @@ $button-padding: dynamic(.54em .6em);
 $button-line-height-big: dynamic(1.375em);
 $button-padding-big: dynamic(.625em .6em);
 $button-badge-border-radius: dynamic(0);
+$button-icon-color: dynamic($neutral-dark-color);
 
 @mixin button-action-ui {
     @include button-ui(

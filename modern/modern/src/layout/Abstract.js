@@ -10,6 +10,27 @@ Ext.define('Ext.layout.Abstract', {
         this.initialConfig = config;
     },
 
+    //<debug>
+    isCompatible: function (layout) {
+        if (!layout) {
+            return true;
+        }
+
+        if (layout.isInstance) {
+            return false;
+        }
+
+        var type = Ext.isString(layout) ? layout : layout.type,
+            alias = this.alias;
+
+        if (!alias || !type) {
+            return false;
+        }
+
+        return alias.indexOf('layout.' + type) > -1;
+    },
+    //</debug>
+
     setContainer: function(container) {
         var me = this;
 
@@ -20,17 +41,17 @@ Ext.define('Ext.layout.Abstract', {
         return me;
     },
 
-    onItemAdd: function() {},
+    onItemAdd: Ext.emptyFn,
 
-    onItemRemove: function() {},
+    onItemRemove: Ext.emptyFn,
 
-    onItemMove: function() {},
+    onItemMove: Ext.emptyFn,
 
-    onItemCenteredChange: function() {},
+    onItemCenteredChange: Ext.emptyFn,
 
-    onItemFloatingChange: function() {},
+    onItemFloatingChange: Ext.emptyFn,
 
-    onItemDockedChange: function() {},
+    onItemDockedChange: Ext.emptyFn,
 
-    onItemInnerStateChange: function() {}
+    onItemInnerStateChange: Ext.emptyFn
 });

@@ -1,4 +1,7 @@
 /**
+ * Base class for all series sprites.
+ * Defines attributes common to all series sprites, like data in x/y directions and its min/max values,
+ * and configs, like the {@link Ext.chart.series.Series} instance that manages the sprite.
  *
  */
 Ext.define('Ext.chart.series.sprite.Series', {

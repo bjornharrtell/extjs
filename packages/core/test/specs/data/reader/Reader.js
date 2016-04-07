@@ -162,6 +162,28 @@ describe("Ext.data.reader.Reader", function() {
             expect(rec.id).not.toEqual(o.id);
             expect(rec.id).toEqual(2);
         });
+        
+        it("should accept method name instead of function", function() {
+            var o = {
+                id: 1
+            };
+            
+            var transformFn = function(data) {
+                data[0] = {id: 2};
+                return data;
+            };
+            
+            makeReader({
+                fooFn: transformFn,
+                transform: 'fooFn'
+            });
+            
+            reader.extractData = function(root, readOptions) {return root;};
+            var rec = reader.readRecords([o]).getRecords()[0];
+            
+            expect(rec.id).not.toEqual(o.id);
+            expect(rec.id).toEqual(2);
+        });
     });
         
     describe("raw data", function() {

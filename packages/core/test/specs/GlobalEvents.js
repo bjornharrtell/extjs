@@ -126,4 +126,66 @@ describe("Ext.GlobalEvents", function() {
             });
         });
     });
+    
+    describe('scroll event', function() {
+        var stretcher,
+            scrollingPanel,
+            scrolledElements = [],
+            runIt = Ext.supports.touchScroll ? xit : it;
+
+        afterEach(function() {
+            stretcher.destroy();
+            scrollingPanel.destroy();
+        });
+
+        function onGlobalScroll(scroller) {
+            scrolledElements.push(scroller.getElement());
+        }
+
+        runIt('should fire the global scroll event whenever anything scrolls', function() {
+            stretcher = Ext.getBody().createChild({
+                style: 'height:10000px'
+            });
+            
+            // Use Ext.Panel class - it will work in Classic and Modern
+            scrollingPanel = new Ext.Panel({
+                renderTo: document.body,
+                floating: true,
+                x: 0,
+                y: 0,
+                width: 300,
+                height: 300,
+                
+                // Modern defaults to 'card', so explicitly use 'auto'
+                layout: 'auto',
+                scrollable: true,
+                items: {
+                    xtype: 'component',
+                    style: 'height:1000px'
+                }
+            });
+
+            // Record all scroll events
+            Ext.on({
+                scroll: onGlobalScroll
+            });
+            Ext.scroll.DomScroller.document.scrollBy(null, 100);
+
+            // Wait for scroll events to fire (may be async)
+            waitsFor(function() {
+                return scrolledElements.length === 1 &&
+                       scrolledElements[0] === Ext.scroll.DomScroller.document.getElement();
+            });
+            
+            runs(function() {
+                scrollingPanel.getScrollable().scrollBy(null, 100);
+            });
+            
+            // Wait for scroll events to fire (may be async)
+            waitsFor(function() {
+                return scrolledElements.length === 2 &&
+                       scrolledElements[1] === scrollingPanel.getScrollable().getElement();
+            });
+        });
+    });
 });

@@ -46,7 +46,7 @@ Ext.define('Ext.layout.Card', {
 
     /**
      * @event activeitemchange
-     * @preventable doActiveItemChange
+     * @preventable
      * Fires when an card is made active
      * @param {Ext.layout.Card} this The layout instance
      * @param {Mixed} newActiveItem The new active item
@@ -89,18 +89,22 @@ Ext.define('Ext.layout.Card', {
     },
 
     onContainerInitialized: function() {
-        var container = this.container,
+        var me = this,
+            container = me.container,
             firstItem = container.getInnerAt(0),
             activeItem = container.getActiveItem();
 
+        me.callParent();
+
         if (activeItem) {
             activeItem.show();
-            if(firstItem && firstItem !== activeItem) {
+
+            if (firstItem && firstItem !== activeItem) {
                 firstItem.hide();
             }
         }
 
-        container.on('activeitemchange', 'onContainerActiveItemChange', this);
+        container.on('activeitemchange', 'onContainerActiveItemChange', me);
     },
 
     /**

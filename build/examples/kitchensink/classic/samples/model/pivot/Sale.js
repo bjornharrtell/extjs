@@ -16,7 +16,7 @@ Ext.define('KitchenSink.model.pivot.Sale', function() {
             {name: 'company',   type: 'string'},
             {name: 'country',   type: 'string'},
             {name: 'person',    type: 'string'},
-            {name: 'date',      type: 'date'},
+            {name: 'date',      type: 'date', dateFormat: 'c'},
             {name: 'value',     type: 'float'},
             {name: 'quantity',  type: 'float'},
             {

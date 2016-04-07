@@ -1,7 +1,7 @@
 Ext.define('Admin.store.email.Inbox', {
     extend: 'Ext.data.Store',
 
-    alias: 'store.emailinbox',
+    alias: 'store.inbox',
 
     model: 'Admin.model.email.Email',
 
@@ -10,11 +10,7 @@ Ext.define('Admin.store.email.Inbox', {
     autoLoad: true,
 
     proxy: {
-        type: 'ajax',
-        url: '~api/email/inbox',
-        reader: {
-            type: 'json',
-            rootProperty: 'data'
-        }
+        type: 'api',
+        url: '~api/email/inbox'
     }
 });

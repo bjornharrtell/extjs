@@ -273,10 +273,6 @@ Ext.define('Ext.menu.Menu', {
      */
     initFloatConstrain: Ext.emptyFn,
 
-    /**
-     * @protected
-     * @return {Object}
-     */
     getInherited: function() {
         // As menus are never contained, a Menu's visibility only ever depends upon its own hidden state.
         // Ignore hiddenness from the ancestor hierarchy, override it with local hidden state.
@@ -304,32 +300,48 @@ Ext.define('Ext.menu.Menu', {
 
     onBoxReady: function() {
         var me = this,
-            iconSeparatorCls = me._iconSeparatorCls;
-
-        me.focusableKeyNav.map.processEvent = function(e) {
-            // ESC may be from input fields, and FocusableContainers ignore keys from 
-            // input fields. We do not want to ignore ESC. ESC hide menus.
-            if (e.keyCode === e.ESC) {
-                e.target = me.el.dom;
-            }
-            return e;
-        };
-
-       // Handle ESC key
-        me.focusableKeyNav.map.addBinding([{
-            key: 27,
-            handler: me.onEscapeKey,
-            scope: me
-        }, 
-         // Handle character shotrcuts
-        {
-            key: /[\w]/,
-            handler: me.onShortcutKey,
-            scope: me,
-            shift: false,
-            ctrl: false,
-            alt: false
-        }]);
+            iconSeparatorCls = me._iconSeparatorCls,
+            keyNav = me.focusableKeyNav;
+        
+        // Keyboard handling can be disabled, e.g. by the DatePicker menu
+        // or the Date filter menu constructed by the Grid
+        if (keyNav) {
+            keyNav.map.processEventScope = me;
+            keyNav.map.processEvent = function(e) {
+                // ESC may be from input fields, and FocusableContainers ignore keys from 
+                // input fields. We do not want to ignore ESC. ESC hide menus.
+                if (e.keyCode === e.ESC) {
+                    e.target = this.el.dom;
+                }
+                
+                return e;
+            };
+            
+           // Handle ESC key
+            keyNav.map.addBinding([{
+                key: Ext.event.Event.ESC,
+                handler: me.onEscapeKey,
+                scope: me
+            }, 
+             // Handle character shortcuts
+            {
+                key: /[\w]/,
+                handler: me.onShortcutKey,
+                scope: me,
+                shift: false,
+                ctrl: false,
+                alt: false
+            }]);
+        }
+        else {
+            // Even when FocusableContainer key event processing is disabled,
+            // we still need to handle the Escape key!
+            me.escapeKeyNav = new Ext.util.KeyNav(me.el, {
+                eventName: 'keydown',
+                scope: me,
+                esc: me.onEscapeKey
+            });
+        }
 
         me.callParent(arguments);
 
@@ -536,8 +548,12 @@ Ext.define('Ext.menu.Menu', {
 
     onDestroy: function() {
         var me = this;
+        
+        if (me.escapeKeyNav) {
+            me.escapeKeyNav.destroy();
+        }
 
-        me.parentMenu = me.ownerCmp = null;
+        me.parentMenu = me.ownerCmp = me.escapeKeyNav = null;
         
         if (me.rendered) {
             me.el.un(me.mouseMonitor);
@@ -651,6 +667,9 @@ Ext.define('Ext.menu.Menu', {
     },
 
     onFocusableContainerLeftKey: function(e) {
+        // The default action is to scroll the nearest horizontally scrollable container
+        e.preventDefault();
+        
         // If we are a submenu, then left arrow focuses the owning MenuItem
         if (this.parentMenu) {
             this.ownerCmp.focus();
@@ -661,6 +680,9 @@ Ext.define('Ext.menu.Menu', {
     onFocusableContainerRightKey: function(e) {
         var me = this,
             focusItem = me.lastFocusedChild;
+        
+        // See above
+        e.preventDefault();
 
         if (focusItem && focusItem.expandMenu) {
             focusItem.expandMenu(e, 0);
@@ -676,19 +698,33 @@ Ext.define('Ext.menu.Menu', {
 
     beforeShow: function() {
         var me = this,
-            activeEl,
-            viewHeight;
+            parent, activeEl, viewHeight;
 
         // Constrain the height to the containing element's viewable area
         if (me.floating) {
-
-            if (!me.hasFloatMenuParent() && !me.allowOtherMenus) {
+            parent = me.hasFloatMenuParent();
+            
+            if (!parent && !me.allowOtherMenus) {
                 Ext.menu.Manager.hideAll();
             }
-            // Only register a focusAnchor to return to on hide if the active element is not the document
+            
+            // Only register a focusAnchor to return to on hide if the active element
+            // is not the document; if we have a floating parent menu, use its focusAnchor.
             // If there's no focusAnchor, we return to the ownerCmp, or first focusable ancestor.
-            activeEl = Ext.Element.getActiveElement();
-            me.focusAnchor = activeEl === document.body ? null : activeEl;
+            if (parent) {
+                me.focusAnchor = parent.focusAnchor;
+            }
+            else {
+                activeEl = Ext.Element.getActiveElement();
+                
+                // IE8 sometimes allow <html> node to focus
+                if (activeEl === document.body || activeEl === document.documentElement) {
+                    me.focusAnchor = null;
+                }
+                else {
+                    me.focusAnchor = activeEl;
+                }
+            }
 
             me.savedMaxHeight = me.maxHeight;
             viewHeight = me.container.getViewSize().height;
@@ -731,6 +767,7 @@ Ext.define('Ext.menu.Menu', {
                 me.previousFocus = focusTarget;
             }
         }
+        
         me.callParent([animateTarget, cb, scope]);
         me.lastHide = Ext.Date.now();
         Ext.menu.Manager.onHide(me);

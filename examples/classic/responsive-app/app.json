@@ -173,6 +173,9 @@
      * Extra resources to be copied along when build
      */
     "resources": [
+        {
+            "path": "resources"
+        }
     ],
 
     /**

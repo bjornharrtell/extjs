@@ -321,7 +321,7 @@ Ext.define('Ext.layout.container.Fit', {
             itemContext.setProp('x', margins.left);
         }
 
-        if (margins.width) {
+        if (margins.width && info.ownerContext.widthModel.shrinkWrap) {
             // Need the margins for shrink-wrapping but old IE sometimes collapses the left margin into the padding
             itemContext.setProp('margin-right', margins.width);
         }
@@ -334,7 +334,7 @@ Ext.define('Ext.layout.container.Fit', {
             itemContext.setProp('y', margins.top);
         }
 
-        if (margins.height) {
+        if (margins.height && info.ownerContext.heightModel.shrinkWrap) {
             // Need the margins for shrink-wrapping but old IE sometimes collapses the top margin into the padding
             itemContext.setProp('margin-bottom', margins.height);
         }

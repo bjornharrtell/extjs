@@ -74,6 +74,7 @@ Ext.define('Ext.draw.Matrix', {
         },
 
         /**
+         * @method
          * @static
          * Create a flyweight to wrap the given array.
          * The flyweight will directly refer the object and the elements can be changed by other methods.
@@ -238,6 +239,7 @@ Ext.define('Ext.draw.Matrix', {
         elements[3] = yy;
         elements[4] = dx;
         elements[5] = dy;
+
         return this;
     },
 
@@ -402,7 +404,7 @@ Ext.define('Ext.draw.Matrix', {
      * @return {Ext.draw.Matrix} this
      */
     skewX: function (angle) {
-        return this.append(1, Math.tan(angle), 0, -1, 0, 0);
+        return this.append(1, 0, Math.tan(angle), 1, 0, 0);
     },
 
     /**
@@ -411,7 +413,25 @@ Ext.define('Ext.draw.Matrix', {
      * @return {Ext.draw.Matrix} this
      */
     skewY: function (angle) {
-        return this.append(1, 0, Math.tan(angle), -1, 0, 0);
+        return this.append(1, Math.tan(angle), 0, 1, 0, 0);
+    },
+
+    /**
+     * Shear the matrix along the x-axis.
+     * @param factor The horizontal shear factor.
+     * @return {Ext.draw.Matrix} this
+     */
+    shearX: function (factor) {
+        return this.append(1, 0, factor, 1, 0, 0);
+    },
+
+    /**
+     * Shear the matrix along the y-axis.
+     * @param factor The vertical shear factor.
+     * @return {Ext.draw.Matrix} this
+     */
+    shearY: function (factor) {
+        return this.append(1, factor, 0, 1, 0, 0);
     },
 
     /**
@@ -605,28 +625,39 @@ Ext.define('Ext.draw.Matrix', {
         var elements = this.elements;
 
         return elements[0] === 1 &&
-            elements[1] === 0 &&
-            elements[2] === 0 &&
-            elements[3] === 1 &&
-            elements[4] === 0 &&
-            elements[5] === 0;
+               elements[1] === 0 &&
+               elements[2] === 0 &&
+               elements[3] === 1 &&
+               elements[4] === 0 &&
+               elements[5] === 0;
     },
 
     /**
+     * Determines if this matrix has the same values as another matrix.
+     * @param {Ext.draw.Matrix} matrix A maxtrix or array of its elements.
+     * @return {Boolean}
+     */
+    isEqual: function (matrix) {
+        var elements = matrix && matrix.isMatrix ? matrix.elements : matrix,
+            myElements = this.elements;
+
+        return myElements[0] === elements[0] &&
+               myElements[1] === elements[1] &&
+               myElements[2] === elements[2] &&
+               myElements[3] === elements[3] &&
+               myElements[4] === elements[4] &&
+               myElements[5] === elements[5];
+    },
+
+    /**
+     * @deprecated
+     * @since 6.0.1
      * Determines if this matrix has the same values as another matrix.
      * @param {Ext.draw.Matrix} matrix
      * @return {Boolean}
      */
     equals: function (matrix) {
-        var elements = this.elements,
-            elements2 = matrix.elements;
-
-        return elements[0] === elements2[0] &&
-            elements[1] === elements2[1] &&
-            elements[2] === elements2[2] &&
-            elements[3] === elements2[3] &&
-            elements[4] === elements2[4] &&
-            elements[5] === elements2[5];
+        return this.isEqual(matrix);
     },
 
     /**
@@ -750,22 +781,22 @@ Ext.define('Ext.draw.Matrix', {
     },
 
     /**
-     * Split a transformation matrix into Scale, Rotate, Translate components.
+     * Splits this transformation matrix into Scale, Rotate, Translate components,
+     * assuming it was produced by applying transformations in that order.
      * @return {Object}
      */
     split: function () {
         var el = this.elements,
             xx = el[0],
             xy = el[1],
-            yx = el[2],
             yy = el[3],
             out = {
                 translateX: el[4],
                 translateY: el[5]
             };
-        out.scaleX = Ext.Number.sign(xx) * Math.sqrt(xx * xx + yx * yx);
-        out.scaleY = Ext.Number.sign(yy) * Math.sqrt(xy * xy + yy * yy);
-        out.rotation = Math.atan2(xy, yy);
+        out.rotate = out.rotation = Math.atan2(xy, xx);
+        out.scaleX = xx / Math.cos(out.rotate);
+        out.scaleY = yy / xx * out.scaleX;
 
         return out;
     }

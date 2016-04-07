@@ -373,7 +373,7 @@ Ext.define('Ext.dataview.NestedList', {
 
     /**
      * @event back
-     * @preventable doBack
+     * @preventable
      * Fires when the user taps Back.
      * @param {Ext.dataview.NestedList} this
      * @param {HTMLElement} node The node to be selected.

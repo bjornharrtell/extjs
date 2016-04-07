@@ -12,7 +12,7 @@ Ext.define('Ext.grid.CellEditor', {
      */
     isCellEditor: true,
     
-    alignment: 'l-l?',
+    alignment: 'l-l!',
 
     hideEl : false,
 
@@ -35,8 +35,6 @@ Ext.define('Ext.grid.CellEditor', {
 
         if (grid !== oldGrid) {
             viewListeners = {
-                beforerefresh: me.beforeViewRefresh,
-                refresh: me.onViewRefresh,
                 beforeitemupdate: me.beforeItemUpdate,
                 itemupdate: me.onItemUpdate,
                 scope: me
@@ -59,11 +57,11 @@ Ext.define('Ext.grid.CellEditor', {
 
         if (dom) {
             me.wasAllowBlur = me.allowBlur;
-            if (me.editing && !(me.field.column && me.field.column.sorting)) {
+            if (me.editing) {
 
                 // Clear the Panel's cellFocused flag prior to removing it from the DOM
                 // This will prevent the Panels onFocusLeave from processing the resulting blurring.
-                me.grid.view.cellFocused = false;
+                view.cellFocused = false;
 
                 // Set the Editor.allowBlur setting so that it does not process the upcoming field blur event and terminate the edit
                 me.allowBlur = false;
@@ -82,14 +80,10 @@ Ext.define('Ext.grid.CellEditor', {
     onViewRefresh: function(view) {
         var me = this,
             dom = me.el && me.el.dom,
-            sorting,
             cell,
             context = me.context;
 
         if (dom) {
-            me.allowBlur = me.wasAllowBlur;
-            sorting = me.field.column && me.field.column.sorting;
-
             // Update the context with the possibly new contextual data
             // (refresh might have been caused by a sort or column move etc)
             cell = view.getCellByPosition(context, true);
@@ -97,6 +91,7 @@ Ext.define('Ext.grid.CellEditor', {
             // If the refresh was caused by eg column removal, the cell will not exist.
             // In this case, terminate the edit.
             if (!cell) {
+                me.allowBlur = me.wasAllowBlur;
                 me.completeEdit();
                 Ext.getDetachedBody().dom.appendChild(dom);
                 return;
@@ -104,20 +99,29 @@ Ext.define('Ext.grid.CellEditor', {
 
             context.node = view.getNode(context.record);
             context.row = view.getRow(context.record);
+            context.cell = cell;
             context.rowIdx = view.indexOf(context.row);
             cell.insertBefore(dom, cell.firstChild);
             me.boundEl = me.container = Ext.get(cell);
             me.realign(true);
 
             // If the view was refreshed while we were editing, replace it.
-            if (me.editing && !sorting) {
-                me.field.focus();
-            }
-
-            // If the column was sorted while editing, we must detect that and complete the edit
-            // because the view will be refreshed and the editor will be removed from the dom.
-            if (me.editing && sorting) {
-                me.completeEdit();
+            // On IE, the blur event will fire asynchronously, so we must leave
+            // allowBlur as false for a very short while longer.
+            // After which we reset it, and refocus the field.
+            if (me.editing) {
+                if (Ext.isIE) {
+                    Ext.defer(function() {
+                        // May have been destroyed immediately after refreshing!?
+                        if (!me.destroyed) {
+                            me.allowBlur = me.wasAllowBlur;
+                            me.field.focus();
+                        }
+                    }, 10);
+                } else {
+                    me.allowBlur = me.wasAllowBlur;
+                    me.field.focus();
+                }
             }
         }
     },
@@ -136,7 +140,7 @@ Ext.define('Ext.grid.CellEditor', {
                 // If the cell is scheduled for update, we definitely will need restoration.
                 if (columnsToUpdate[i] === context.column) {
                     me.needsFixOnItemUpdate = true;
-                    me.beforeViewRefresh(me.editingPlugin.view);
+                    me.beforeViewRefresh(context.view);
                     return;
                 }
             }
@@ -144,7 +148,7 @@ Ext.define('Ext.grid.CellEditor', {
     },
 
     onItemUpdate: function(record, recordIndex, oldItemDom) {
-        var view = this.editingPlugin.view;
+        var view = this.context.view;
 
         if (this.needsFixOnItemUpdate) {
 
@@ -180,6 +184,18 @@ Ext.define('Ext.grid.CellEditor', {
     },
 
     onFocusEnter: function() {
+        var context = this.context,
+            view = context.view;
+        
+        // Focus restoration after a refresh may require realignment and correction
+        // of the context because it could have been due to a or filter operation and
+        // the context may have changed position.
+        context.node = view.getNode(context.record);
+        context.row = view.getRow(context.record);
+        context.cell = context.getCell(true);
+        context.rowIdx = view.indexOf(context.row);
+        this.realign(true);
+
         this.callParent(arguments);
 
         // Ensure that hide processing does not throw focus back to the previously focused element.
@@ -323,7 +339,7 @@ Ext.define('Ext.grid.CellEditor', {
             innerCell.dom.innerHTML = 'X';
         }
 
-        me.alignTo(innerCell, me.alignment, offsets);
+        me.alignTo(boundEl, me.alignment, offsets);
 
         if (isEmpty) {
             innerCell.dom.firstChild.data = v;

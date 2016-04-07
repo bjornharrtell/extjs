@@ -73,6 +73,12 @@ Ext.define('Ext.ux.ajax.Simlet', function() {
         doRedirect: function(ctx) {
             return false;
         },
+        doDelete: function(ctx) {
+            var me = this,
+                xhr = ctx.xhr,
+                records = xhr.options.records;
+            me.removeFromData(ctx, records);
+        },
         /**
          * Performs the action requested by the given XHR and returns an object to be applied
          * on to the XHR (containing `status`, `responseText`, etc.). For the most part,
@@ -109,6 +115,9 @@ Ext.define('Ext.ux.ajax.Simlet', function() {
             var ctx = this.getCtx(method, url),
                 redirect = this.doRedirect(ctx),
                 xhr;
+            if (options.action === 'destroy') {
+                method = 'delete';
+            }
             if (redirect) {
                 xhr = redirect;
             } else {
@@ -164,6 +173,21 @@ Ext.define('Ext.ux.ajax.Simlet', function() {
                 url = Ext.urlAppend(url, Ext.Object.toQueryString(params));
             }
             return this.manager.openRequest(method, url);
+        },
+        removeFromData: function(ctx, records) {
+            var me = this,
+                data = me.getData(ctx),
+                model = (ctx.xhr.options.proxy && ctx.xhr.options.proxy.getModel()) || {},
+                idProperty = model.idProperty || 'id';
+            Ext.each(records, function(record) {
+                var id = record.get(idProperty);
+                for (var i = data.length; i-- > 0; ) {
+                    if (data[i][idProperty] === id) {
+                        me.deleteRecord(i);
+                        break;
+                    }
+                }
+            });
         }
     };
 }());
@@ -212,6 +236,11 @@ Ext.define('Ext.ux.ajax.DataSimlet', function() {
                     delete child.children;
                     me.buildNodes(children, child.id);
                 }
+            }
+        },
+        deleteRecord: function(pos) {
+            if (this.data && typeof this.data !== 'function') {
+                Ext.Array.removeAt(this.data, pos);
             }
         },
         fixTree: function(ctx, tree) {
@@ -377,6 +406,9 @@ Ext.define('Ext.ux.ajax.JsonSimlet', {
         }
         ret.responseText = Ext.encode(response);
         return ret;
+    },
+    doPost: function(ctx) {
+        return this.doGet(ctx);
     }
 });
 
@@ -1578,7 +1610,7 @@ Ext.define('Ext.ux.event.Player', function(Player) {
                 1: 4,
                 2: 2
             },
-            /*
+            /**
          * Injects a key event using the given event information to populate the event
          * object.
          * 
@@ -1602,9 +1634,9 @@ Ext.define('Ext.ux.event.Player', function(Player) {
          * pressed while the event is firing.
          * @param {Boolean} [options.metaKey=false] `true` if one of the META keys is
          * pressed while the event is firing.
-         * @param {int} [options.keyCode=0] The code for the key that is in use.
-         * @param {int} [options.charCode=0] The Unicode code for the character associated
-         * with the key being used.
+         * @param {Number} [options.keyCode=0] The code for the key that is in use.
+         * @param {Number} [options.charCode=0] The Unicode code for the character 
+         * associated with the key being used.
          * @param {Window} [view=window] The view containing the target. This is typically
          * the window object.
          * @private
@@ -1674,7 +1706,7 @@ Ext.define('Ext.ux.event.Player', function(Player) {
                 }
                 return true;
             },
-            /*
+            /**
          * Injects a mouse event using the given event information to populate the event
          * object.
          *
@@ -1697,17 +1729,17 @@ Ext.define('Ext.ux.event.Player', function(Player) {
          * pressed while the event is firing.
          * @param {Boolean} [options.metaKey=false] `true` if one of the META keys is
          * pressed while the event is firing.
-         * @param {int} [options.detail=1] The number of times the mouse button has been
-         * used.
-         * @param {int} [options.screenX=0] The x-coordinate on the screen at which point
+         * @param {Number} [options.detail=1] The number of times the mouse button has 
+         * been used.
+         * @param {Number} [options.screenX=0] The x-coordinate on the screen at which point
          * the event occurred.
-         * @param {int} [options.screenY=0] The y-coordinate on the screen at which point
+         * @param {Number} [options.screenY=0] The y-coordinate on the screen at which point
          * the event occurred.
-         * @param {int} [options.clientX=0] The x-coordinate on the client at which point
+         * @param {Number} [options.clientX=0] The x-coordinate on the client at which point
          * the event occurred.
-         * @param {int} [options.clientY=0] The y-coordinate on the client at which point
+         * @param {Number} [options.clientY=0] The y-coordinate on the client at which point
          * the event occurred.
-         * @param {int} [options.button=0] The button being pressed while the event is
+         * @param {Number} [options.button=0] The button being pressed while the event is
          * executing. The value should be 0 for the primary mouse button (typically the
          * left button), 1 for the tertiary mouse button (typically the middle button),
          * and 2 for the secondary mouse button (typically the right button).
@@ -1792,11 +1824,12 @@ Ext.define('Ext.ux.event.Player', function(Player) {
                 }
                 return true;
             },
-            /*
+            /**
          * Injects a UI event using the given event information to populate the event
          * object.
          * 
          * @param {HTMLElement} target The target of the given event.
+         * @param {Object} options
          * @param {String} options.type The type of event to fire. This can be any one of
          * the following: `click`, `dblclick`, `mousedown`, `mouseup`, `mouseout`,
          * `mouseover` and `mousemove`.
@@ -1805,7 +1838,7 @@ Ext.define('Ext.ux.event.Player', function(Player) {
          * @param {Boolean} [options.cancelable=true] `true` if the event can be canceled
          * using `preventDefault`. DOM Level 2 specifies that all mouse events except
          * `mousemove` can be canceled. This defaults to `false` for `mousemove`.
-         * @param {int} [options.detail=1] The number of times the mouse button has been
+         * @param {Number} [options.detail=1] The number of times the mouse button has been
          * used.
          * @param {Window} [view=window] The view containing the target. This is typically
          * the window object.

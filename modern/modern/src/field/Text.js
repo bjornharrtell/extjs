@@ -97,7 +97,7 @@ Ext.define('Ext.field.Text', {
 
     /**
      * @event keyup
-     * @preventable doKeyUp
+     * @preventable
      * Fires when a key is released on the input element
      * @param {Ext.field.Text} this This field
      * @param {Ext.event.Event} e
@@ -105,7 +105,7 @@ Ext.define('Ext.field.Text', {
 
     /**
      * @event clearicontap
-     * @preventable doClearIconTap
+     * @preventable
      * Fires when the clear icon is tapped
      * @param {Ext.field.Text} this This field
      * @param {Ext.field.Input} input The field's input component.
@@ -122,7 +122,7 @@ Ext.define('Ext.field.Text', {
 
     /**
      * @event action
-     * @preventable doAction
+     * @preventable
      * Fires whenever the return key or go is pressed. FormPanel listeners
      * for this event, and submits itself whenever it fires. Also note
      * that this event bubbles up to parent containers.
@@ -240,7 +240,7 @@ Ext.define('Ext.field.Text', {
         var val = this._value,
             empty = val ? val.length : false;
 
-        this.toggleCls(this.emptyCls, empty);
+        this.toggleCls(this.emptyCls, !empty);
     },
 
     applyValue: function(value) {

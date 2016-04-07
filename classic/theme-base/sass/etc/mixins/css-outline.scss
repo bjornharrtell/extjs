@@ -23,7 +23,8 @@
  * `true to always use a pseudo element to render the outline.
  * by default this behavior is limited to IE8 only, but can be enabled in all browser
  * when required
- *
+ * 
+ * @member Global_CSS
  * @private
  */
 @mixin css-outline(

@@ -5,11 +5,21 @@
 
     @if $include-ext-form-field-display {
         .#{$prefix}form-display-field {
-            padding: 
-                top($grid-row-editor-field-padding) + $form-field-border-width
-                right($grid-row-editor-field-padding) + $form-field-border-width
-                bottom($grid-row-editor-field-padding) + $form-field-border-width
-                left($grid-row-editor-field-padding) + $form-field-border-width;
+            $grid-cell-display-field-padding:
+                top($grid-cell-inner-padding)
+                right($grid-cell-inner-padding) - floor($grid-row-editor-field-spacing / 2)
+                bottom($grid-cell-inner-padding)
+                left($grid-cell-inner-padding) - floor($grid-row-editor-field-spacing / 2);
+
+            padding: $grid-cell-display-field-padding;
+            line-height: $grid-row-cell-line-height;
+
+            @if $include-ie {
+                .#{$prefix}ie9m & {
+                    // IE8 and 9 always use content-box sizing on elements that have a min-height
+                    min-height: $grid-row-height - vertical($grid-cell-display-field-padding);
+                }
+            }
         }
 
         @if $include-ext-grid-column-action {

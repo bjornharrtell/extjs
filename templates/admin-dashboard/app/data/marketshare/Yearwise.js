@@ -30,5 +30,5 @@ Ext.define('Admin.data.marketshare.Yearwise', {
             "y3value": 570.43,
             "y4value": 583.67
         }
-    ]	
+    ]
 });

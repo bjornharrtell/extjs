@@ -56,6 +56,12 @@ Ext.define('Ext.ux.ajax.DataSimlet', function () {
             }
         },
 
+        deleteRecord : function(pos) {
+            if(this.data && typeof this.data !== 'function') {
+                Ext.Array.removeAt(this.data,pos); 
+            }
+        },
+
         fixTree: function (ctx, tree) {
             var me = this,
                 node = ctx.params.node,

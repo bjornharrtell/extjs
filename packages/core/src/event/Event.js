@@ -531,10 +531,12 @@ Ext.define('Ext.event.Event', {
      */
     isNavKeyPress: function(scrollableOnly) {
         var me = this,
-            k = me.keyCode;
+            k = me.keyCode,
+            isKeyPress = me.type === 'keypress';
 
-       return (me.type !== 'keypress' && k >= 33 && k <= 40) ||  // Page Up/Down, End, Home, Left, Up, Right, Down ("!#%^" if a keypress)
-              (!scrollableOnly &&
+        // See specs for description of behaviour
+        return ((!isKeyPress || Ext.isGecko) && k >= 33 && k <= 40) ||  // Page Up/Down, End, Home, Left, Up, Right, Down
+               (!scrollableOnly &&
                (k === me.RETURN ||
                 k === me.TAB ||
                 k === me.ESC));
@@ -570,13 +572,16 @@ Ext.define('Ext.event.Event', {
     isSpecialKey: function() {
         var me = this,
             k = me.keyCode,
+            isGecko = Ext.isGecko,
             isKeyPress = me.type === 'keypress';
         
-        return (isKeyPress && me.ctrlKey) ||
-               me.isNavKeyPress() ||
-               (k === me.BACKSPACE) || // Backspace
-               (k >= 16 && k <= 20) ||   // Shift, Ctrl, Alt, Pause, Caps Lock
-               (!isKeyPress && k >= 44 && k <= 46);     // Print Screen, Insert, Delete (",-." if a keypress)
+        // See specs for description of behaviour
+        return (isGecko && isKeyPress && me.charCode === 0) ||
+               (this.isNavKeyPress()) ||
+               (k === me.BACKSPACE) ||
+               (k === me.ENTER) ||
+               (k >= 16 && k <= 20) ||              // Shift, Ctrl, Alt, Pause, Caps Lock
+               ((!isKeyPress || isGecko) && k >= 44 && k <= 46); // Print Screen, Insert, Delete
     },
 
     makeUnpreventable: function() {

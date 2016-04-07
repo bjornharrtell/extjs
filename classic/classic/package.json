@@ -1,58 +1,45 @@
 {
+    /**
+     * The namespace of this package.
+     *
+     * As a general rule, all classes that belong to this package should be under this namespace
+     * if multiple namespaces are part of this package, set this to "".
+     */
+    "namespace": "Ext",
+
     "name": "classic",
     "type": "toolkit",
+
+    "framework": "ext",
+    "requires": [
+        "core"
+    ],
+
     "creator": "Sencha",
     "summary": "The Classic UI Toolkit",
-    "detailedDescription": "UI Components for Legacy Browsers",
-    "version": "6.0.0.640",
+    "detailedDescription": "UI components for desktops and legacy browsers",
+
+    "version": "6.0.1.250",
     "compatVersion": "6.0.0",
     "format": "1",
+
     "output": "${framework.dir}/build",
+    "local": true,
     "build":{
-      "dir": "${package.output}"
+        "dir": "${package.output}"
     },
 
     "sass": {
-        /**
-         * The root namespace to use when mapping *.scss files to classes in the
-         * sass/src and sass/var directories. For example, "Ext.view.View" would
-         * map to "sass/src/view/View.scss". If we changed this to "Ext.view" then
-         * it would map to "sass/src/View.scss".
-         */
         "namespace": "Ext",
 
-        /**
-         * This file is automatically imported into the SASS build before "vars".
-         */
         "etc": "${package.dir}/sass/etc/all.scss",
 
-        /**
-         * This is the folder where SASS "vars" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
         "var": "${package.dir}/sass/var",
 
-        /**
-         * This is the folder where SASS "src" resides. This is searched for SCSS files
-         * that match the JavaScript classes used.
-         */
         "src": "${package.dir}/sass/src"
     },
 
-    /**
-     * This is the comma-separated list of folders where classes reside. These classes
-     * must be explicitly required to be included in the build.
-     */
     "classpath": "${package.dir}/src",
 
-    /**
-     * This is the comma-separated list of folders where overrides reside. These files
-     * are automatically required in the build when the package is required.
-     */
-    "overrides": "${package.dir}/overrides",
-
-    "requires": ["core"],
-
-    "framework": "ext",
-    "local": true
+    "overrides": "${package.dir}/overrides"
 }

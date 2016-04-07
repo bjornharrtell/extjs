@@ -72,7 +72,7 @@ $tab-border-radius: dynamic(.25em);
 
 /**
  * @var {number}
- * Tab border-radius in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Tab border-radius in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $tab-border-radius-big: dynamic(.2em);
 
@@ -90,7 +90,7 @@ $tab-font-size: dynamic(1rem);
 
 /**
  * @var {number}
- * Tab font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Tab font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $tab-font-size-big: dynamic($tab-font-size);
 
@@ -102,7 +102,7 @@ $tab-line-height: dynamic(1.23em);
 
 /**
  * @var {number}
- * Tab line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Tab line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $tab-line-height-big: dynamic(1.6em);
 
@@ -120,7 +120,7 @@ $tab-padding: dynamic(.23em .6em);
 
 /**
  * @var {number/list}
- * Tab padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Tab padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $tab-padding-big: dynamic(.2em .6em);
 
@@ -133,7 +133,7 @@ $tab-icon-size: dynamic(1em);
 
 /**
  * @var {number}
- * Tab icon size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Tab icon size in the {@link Global_CSS#$enable-big big} sizing scheme
  * If specified in terms of `em` units, the icon will be sized
  * relative to {@link #$tab-icon-font-size-big}.
  */
@@ -147,7 +147,7 @@ $tab-icon-font-size: dynamic($tab-line-height);
 
 /**
  * @var {number}
- * Tab icon font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Tab icon font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $tab-icon-font-size-big: dynamic($tab-line-height-big);
 
@@ -160,7 +160,7 @@ $tab-icon-horizontal-spacing: dynamic(.6em);
 /**
  * @var {number}
  * The space between the tab icon and text when the icon is horizontally aligned
- * in the {@link Ext.Component#$enable-big big} sizing scheme
+ * in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $tab-icon-horizontal-spacing-big: dynamic($tab-icon-horizontal-spacing);
 
@@ -173,7 +173,7 @@ $tab-icon-vertical-spacing: dynamic(.2em);
 /**
  * @var {number}
  * The space between the tab icon and text when the icon is vertically aligned
- * in the {@link Ext.Component#$enable-big big} sizing scheme
+ * in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $tab-icon-vertical-spacing-big: dynamic($tab-icon-vertical-spacing);
 

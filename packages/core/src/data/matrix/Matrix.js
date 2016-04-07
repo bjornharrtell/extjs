@@ -78,8 +78,33 @@ Ext.define('Ext.data.matrix.Matrix', {
         right.inverse = left;
     },
 
+    commit: function() {
+        this.left.commit();
+        this.right.commit();
+    },
+
     update: function (id1, id2, state) {
         return this.left.update(id1, id2, state);
+    },
+
+    updateId: function(record, oldId, newId) {
+        var Type = record.self,
+            left = this.left,
+            right = this.right,
+            matchSide;
+
+        // Are we interested in this record? Check types
+        if (Type === left.role.cls) {
+            matchSide = left;
+        }
+
+        if (Type === right.role.cls) {
+            matchSide = right;
+        }
+
+        if (matchSide) {
+            matchSide.updateId(oldId, newId);
+        }
     },
 
     destroy: function() {

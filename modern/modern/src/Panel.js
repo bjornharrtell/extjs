@@ -35,17 +35,25 @@
  */
 Ext.define('Ext.Panel', {
     extend: 'Ext.Container',
-    requires: ['Ext.util.LineSegment'],
-
-    alternateClassName: 'Ext.lib.Panel',
-
     xtype: 'panel',
+
+    requires: [
+        'Ext.util.LineSegment'
+    ],
+
+    alternateClassName: 'Ext.panel.Panel',
+
+    defaultBindProperty: 'title',
 
     isPanel: true,
 
     config: {
         baseCls: Ext.baseCSSPrefix + 'panel',
 
+        /**
+         * @cfg border
+         * @inheritdoc
+         */
         border: false,
 
         /**
@@ -66,7 +74,17 @@ Ext.define('Ext.Panel', {
          *
          * - `null` - use the value of {@link #border} as the value for bodyBorder
          */
-        bodyBorder: null
+        bodyBorder: null,
+
+        header: null,
+
+        icon: null,
+
+        iconCls: null,
+
+        title: null,
+
+        tools: null
     },
 
     manageBorders: true,
@@ -122,8 +140,111 @@ Ext.define('Ext.Panel', {
         return bodyPadding;
     },
 
+    addTool: function (tool) {
+        var header = this.ensureHeader(),  // creates if header !== false
+            items;
+
+        if (header) {
+            items = header.createTools(Ext.Array.from(tool), this);
+
+            if (items && items.length) {
+                items = header.add(items);
+            }
+        }
+
+        return items;
+    },
+
+    applyHeader: function (newHeader, oldHeader) {
+        var me = this,
+            header = oldHeader;
+
+        if (newHeader === false) {
+            if (header) {
+                me.remove(header);
+                header = null;
+            }
+        } else if (newHeader) {
+            if (header) {
+                if (newHeader !== true) {
+                    header.setConfig(newHeader);
+                }
+            } else {
+                // add() will ensure we sort the header to the front by its "weight"
+
+                header = me.add(me.createHeader(newHeader));
+            }
+        }
+
+        return header || null;
+    },
+
+    applyTools: function (tools) {
+        var header = this.ensureHeader(),  // creates if header !== false
+            items;
+
+        if (header) {
+            // Remove all tools (since we are the impl of a setTools([...]) call)
+            header.clearTools();
+
+            items = header.createTools(tools, this);
+
+            if (items && items.length) {
+                header.add(items);
+            }
+        }
+
+        // we don't return anything since the tools are "stored" on the Header
+    },
+
+    createHeader: function (config) {
+        var me = this,
+            ret = {
+                xtype: 'panelheader',
+                docked: 'top',
+                ui: me.getUi()
+            },
+            icon, title;
+
+        if (config && config !== true) {
+            Ext.merge(ret, config);
+        }
+
+        if (me.initialized) {
+            // Only attempt to configure title if we are not currently initializing.
+            // During initialization the updater for title will run if present and apply
+            // it to the header so there is no work to be done here.
+            title = me.getTitle();
+
+            if (title != null) {
+                if (typeof title === 'string') {
+                    title = {
+                        text: title
+                    };
+                }
+
+                Ext.merge(ret, {
+                    title: title
+                });
+            }
+
+            icon = me.getIconCls();
+            if (icon != null) {
+                ret.iconCls = icon;
+            } else {
+                icon = me.getIcon();
+                if (icon != null) {
+                    ret.icon = icon;
+                }
+            }
+        }
+
+        return ret;
+    },
+
     updateBorder: function(border, oldBorder) {
-        this.callParent([border, oldBorder]);
+        this.callParent([ border, oldBorder ]);
+
         if (this.getBodyBorder() === null) {
             this.setBodyBorderEnabled(border !== false);
         }
@@ -139,9 +260,37 @@ Ext.define('Ext.Panel', {
         this.setBodyBorderEnabled(bodyBorder !== false);
     },
 
+    updateIcon: function (icon) {
+        var header = this.ensureHeader();  // creates if header !== false
+
+        if (header) {
+            header.setIcon(icon);
+        }
+    },
+
+    updateIconCls: function (icon) {
+        var header = this.ensureHeader();  // creates if header !== false
+
+        if (header) {
+            header.setIconCls(icon);
+        }
+    },
+
+    updateTitle: function (title) {
+        var header = this.ensureHeader();  // creates if header !== false
+
+        if (header) {
+            header.setTitle(title);
+        }
+    },
+
     updateUi: function(ui, oldUi) {
-        var suffix = 'x-panel-inner-',
-            innerElement = this.innerElement;
+        var me = this,
+            suffix = 'x-panel-inner-',
+            innerElement = me.innerElement,
+            // Let the header initter get the ui since ui is a cached config and
+            // should not pull in non-cached cfgs at this early stage
+            header = !me.isConfiguring && me.ensureHeader();
 
         if (oldUi) {
             innerElement.removeCls(suffix + oldUi);
@@ -151,7 +300,12 @@ Ext.define('Ext.Panel', {
             innerElement.addCls(suffix + ui);
         }
 
-        this.callParent([ui, oldUi]);
+        if (header) {
+            me.getTitle();
+            header.setUi(ui);
+        }
+
+        me.callParent([ui, oldUi]);
     },
 
     alignTo: function(component, alignment) {
@@ -235,6 +389,23 @@ Ext.define('Ext.Panel', {
     },
 
     privates: {
+        ensureHeader: function () {
+            var me = this,
+                header;
+
+            me.getViewModel();
+            me.getItems();
+
+            header = me.getHeader();
+
+            if (!header && header !== false) {
+                me.setHeader(true);
+                header = me.getHeader();
+            }
+
+            return header;
+        },
+
         setBodyBorderEnabled: function(enabled) {
             this.innerElement.setStyle('border-width', enabled ? '' : '0');
         }

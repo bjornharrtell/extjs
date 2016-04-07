@@ -5,13 +5,11 @@ Ext.define('Admin.store.email.Friends', {
 
     model: 'Admin.model.email.Friend',
 
+    autoLoad: true,
+
     proxy: {
-        type: 'ajax',
-        url: '~api/email/friends',
-        reader: {
-            type: 'json',
-            rootProperty: 'data'
-        }
+        type: 'api',
+        url: '~api/email/friends'
     },
 
     sorters: {

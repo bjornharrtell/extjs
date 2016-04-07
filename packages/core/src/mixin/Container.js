@@ -9,7 +9,7 @@ Ext.define('Ext.mixin.Container', {
         id: 'container'
     },
 
-    /*
+    /**
      * @property {Boolean} isContainer
      * `true` in this class to identify an object as an instantiated Container, or subclass thereof.
      */
@@ -60,15 +60,30 @@ Ext.define('Ext.mixin.Container', {
     },
 
     /**
-     * Gets a reference to a child specified using the {@link #reference} configuration.
+     * Gets a reference to the component with the specified {@link #reference} value.
      *
-     * @param {String} key The name of the reference.
+     * The method is a short-hand for the {@link #lookupReference} method.
+     *
+     * @param {String} key The name of the reference to lookup.
      * @return {Ext.Component} The referenced component or `null` if it is not found.
+     * @since 6.0.1
+     */
+    lookup: function (key) {
+        var refs = this.getReferences();
+        return (refs && refs[key]) || null;
+    },
+
+    /**
+     * Gets a reference to the component with the specified {@link #reference} value.
+     *
+     * The {@link #lookup} method is a short-hand version of this method.
+     *
+     * @param {String} key The name of the reference to lookup.
+     * @return {Ext.Component} The referenced component or `null` if it is not found.
+     * @since 5.0
      */
     lookupReference: function (key) {
-        var refs = this.getReferences();
-
-        return (refs && refs[key]) || null;
+        return this.lookup(key);
     },
 
     privates: {

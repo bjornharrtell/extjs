@@ -9,7 +9,7 @@ Ext.define('Ext.app.Util', {
             Ext: {}
         },
 
-        /**
+       /**
         * Adds namespace(s) to known list.
         * @private
         *
@@ -28,14 +28,15 @@ Ext.define('Ext.app.Util', {
             }
         },
 
-        /**
-        * @private Clear all namespaces from known list.
+       /**
+        * Clear all namespaces from known list.
+        * @private
         */
         clearNamespaces: function() {
             Ext.app.namespaces = {};
         },
 
-        /**
+       /**
         * Get namespace prefix for a class name.
         * @private
         * @param {String} className

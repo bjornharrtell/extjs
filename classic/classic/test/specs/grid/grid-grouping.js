@@ -51,7 +51,22 @@ describe("grid-grouping", function() {
             function getRec(index) {
                 return store.getAt(index);
             }
-            
+
+            function manyGroups() {
+                var data = [],
+                    i, n;
+
+                for (i = 0; i < 300; ++i) {
+                    n = i + 1; 
+                    data.push({
+                        id: n,
+                        name: 'Item' + n,
+                        type: 'group' + Ext.String.leftPad(Math.ceil(n / 3), 3, '0')
+                    });
+                }
+                return data;
+            }
+
             function makeGrid(noGroup, gridCfg, numRows, withSummary, groupCfg) {
                 var i = 0,
                     data = [],
@@ -104,7 +119,7 @@ describe("grid-grouping", function() {
                 dataSource = view.dataSource;
             }
 
-            function makeBufferedStoreGrid(noGroup, gridCfg, numRows) {
+            function makeBufferedStoreGrid(storeCfg, gridCfg, numRows) {
                 var i = 0,
                     data = [],
                     storeConfig;
@@ -121,17 +136,15 @@ describe("grid-grouping", function() {
                     });
                 }
 
-                storeConfig = {
+                storeConfig = Ext.apply({
                     model: GridGroupModel,
+                    groupField: 'type',
                     proxy: {
                         type: 'memory',
                         data: data
                     },
                     autoLoad: true
-                };
-                if (!noGroup) {
-                    storeConfig.groupField = 'type';
-                }
+                }, storeCfg);
                 store = new Ext.data.BufferedStore(storeConfig);
 
                 grouping = new Ext.grid.feature.Grouping();
@@ -154,8 +167,7 @@ describe("grid-grouping", function() {
             }
             
             afterEach(function() {
-                Ext.destroy(grid, store);
-                grouping = grid = store = view = null;
+                grouping = grid = store = view = Ext.destroy(grid, store);
             });
 
             describe("basic functionality", function() {
@@ -291,21 +303,6 @@ describe("grid-grouping", function() {
             });
 
             describe("expand/collapse", function() {
-                function manyGroups() {
-                    var data = [],
-                        i, n;
-
-                    for (i = 0; i < 300; ++i) {
-                        n = i + 1; 
-                        data.push({
-                            id: n,
-                            name: 'Item' + n,
-                            type: 'group' + Ext.String.leftPad(Math.ceil(n / 3), 3, '0')
-                        });
-                    }
-                    return data;
-                }
-
                 describe("expand", function() {
                     describe("with focus: true", function() {
                         describe("with the group in view", function() {
@@ -429,6 +426,36 @@ describe("grid-grouping", function() {
                     // Drop to left of centre of target element
                     jasmine.fireMouseEvent(to.el.dom, 'mouseup', moveOffset, toMy);
                 }
+
+                // https://sencha.jira.com/browse/EXTJS-18781
+                // Cells with preventUpdate caused an error.
+                describe('with collapsed group', function() {
+                    it('should move columns with a collapsed group without throwing an error', function() {
+                        makeGrid(null, {
+                            columns: [{
+                                text: 'A',
+                                dataIndex: 'name',
+                                preventUpdate: true
+                            }, {
+                                text: 'B',
+                                dataIndex: 'name'
+                            }, {
+                                text: 'C',
+                                dataIndex: 'name'
+                            }],
+                            height: 400,
+                            trailingBufferZone: 20,
+                            leadingBufferZone: 20
+                        }, manyGroups(), true);
+                        var columns = grid.getColumnManager().getColumns();
+
+                        grouping.collapse('group001', true);
+
+                        // This should just run with no errors.
+                        dragColumn(columns[0], columns[2], true);
+                        dragColumn(columns[1], columns[0]);
+                    });
+                });
 
                 it("should not fire an update event on the store", function() {
                     makeGrid(false, {
@@ -608,17 +635,27 @@ describe("grid-grouping", function() {
 
             if (buffered) {
                 describe("basic functionality with buffered renderer", function() {
-                    beforeEach(function () {
-                        this.addMatchers({
-                            toBeWithin: function(deviation, value) {
-                                var actual = this.actual;
+                    describe('collapseAll with locked columns', function() {
+                        beforeEach(function(){
+                            makeGrid(null, {
+                                columns: [{
+                                    dataIndex: 'type',
+                                    width: 100,
+                                    locked: true
+                                }, {
+                                    dataIndex: 'name',
+                                    flex: 1
+                                }]
+                            });
+                        });
+                        it('should collapseAll with no errors', function() {
 
-                                if (deviation > 0) {
-                                    return actual >= (value - deviation) && actual <= (value + deviation);
-                                } else {
-                                    return actual >= (value + deviation) && actual <= (value - deviation);
-                                }
-                            }
+                            // Every record should be prepresented in the GroupStore
+                            expect(dataSource.getCount()).toBe(store.getCount());
+                            grouping.collapseAll();
+
+                            // After collapse, just four group placeholder records in te GroupStore
+                            expect(dataSource.getCount()).toBe(4);
                         });
                     });
 
@@ -1152,16 +1189,17 @@ describe("grid-grouping", function() {
                     it('should work', function() {
                         var isLoaded;
 
-                        makeBufferedStoreGrid();
-                        store.on({
-                            load: function() {
-                                isLoaded = true;
+                        makeBufferedStoreGrid({
+                            listeners: {
+                                load: function() {
+                                    isLoaded = true;
+                                }
                             }
                         });
 
                         waitsFor(function() {
                             return isLoaded;
-                        });
+                        }, 'for initial load');
                         runs(function() {
                             view.bufferedRenderer.scrollTo(25);
 
@@ -1174,9 +1212,9 @@ describe("grid-grouping", function() {
                             view.bufferedRenderer.scrollTo(100);
 
                             // We should scroll with no error, and the following should run with no error.
-                            // *item* 75 should be a wrapping row. The first of group "t4". It should contain *row* 75 but deeply wrapped, not as the first child of the tbody
+                            // *item* 75 should be a wrapping row. The first of group "t4". It should contain *row* 75 but deeply wrapped, not as the first <tr> of the tbody
                             expect(view.all.item(75).contains(view.getRow(75))).toBe(true);
-                            expect(view.all.item(75, true).firstChild.firstChild === view.getRow(75)).not.toBe(true);
+                            expect(view.all.item(75).down('tbody', true).firstChild === view.getRow(75)).not.toBe(true);
 
                             // BufferedStore should reload upon group clear
                             isLoaded = false;
@@ -1184,7 +1222,7 @@ describe("grid-grouping", function() {
                         });
                         waitsFor(function() {
                             return isLoaded;
-                        });
+                        }, 'second load after group clear');
                         runs(function() {
                             // No opening group header. First item is the first row., NOT a wrapper.
                             expect(view.all.item(0, true).firstChild.firstChild === view.getRow(0)).toBe(true);

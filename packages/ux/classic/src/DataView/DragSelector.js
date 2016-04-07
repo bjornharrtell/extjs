@@ -143,6 +143,7 @@ Ext.define('Ext.ux.DataView.DragSelector', {
     },
 
     /**
+     * @method
      * @private
      * Listener attached to the DragTracker's onEnd event. This is a delayed function which executes 1
      * millisecond after it has been called. This is because the dragging flag must remain active to cancel

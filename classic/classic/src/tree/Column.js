@@ -44,6 +44,25 @@ Ext.define('Ext.tree.Column', {
         '</tpl>'
     ],
 
+    // fields that will trigger a change in the ui that aren't likely to be bound to a column
+    uiFields: {
+        checked: 1,
+        icon: 1,
+        iconCls: 1
+    },
+
+    // fields that requires a full row render
+    rowFields: {
+        expanded: 1,
+        loaded: 1,
+        expandable: 1,
+        leaf: 1,
+        loading: 1,
+        qtip: 1,
+        qtitle: 1,
+        cls: 1
+    },
+
     initComponent: function() {
         var me = this;
 
@@ -122,5 +141,34 @@ Ext.define('Ext.tree.Column', {
             childCls: me.getChildCls ? me.getChildCls() + ' ' : '',
             value: innerRenderer ? innerRenderer.apply(me.rendererScope, arguments) : value
         };
+    },
+
+    shouldUpdateCell: function(record, changedFieldNames) {
+        // For the TreeColumn, if any of the known tree column UI affecting fields are updated
+        // the cell should be updated in whatever way.
+        // 1 if a custom renderer (not our default tree cell renderer), else 2.
+        var me = this,
+            i = 0,
+            len, field;
+
+        if (changedFieldNames) {
+            len = changedFieldNames.length;
+
+            for (; i < len; ++i) {
+                field = changedFieldNames[i];
+                // Check for fields which always require a full row update.
+                if (me.rowFields[field]) {
+                    return 1;
+                }
+
+                // Check for fields which require this column to be updated.
+                // The TreeColumn's treeRenderer is not a custom renderer.
+                if (me.uiFields[field]) {
+                    return 2;
+                }
+            }
+        }
+
+        return me.callParent([record, changedFieldNames]);
     }
 });

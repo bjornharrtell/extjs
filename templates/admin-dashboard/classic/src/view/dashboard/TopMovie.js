@@ -1,6 +1,6 @@
 Ext.define('Admin.view.dashboard.TopMovie', {
     extend: 'Ext.panel.Panel',
-    xtype: 'dashboardtopmoviepanel',
+    xtype: 'topmovies',
 
     requires: [
         'Ext.chart.series.Pie',
@@ -8,19 +8,14 @@ Ext.define('Admin.view.dashboard.TopMovie', {
         'Ext.chart.interactions.Rotate'
     ],
 
-    cls: 'quick-graph-panel shadow-panel',
+    title: 'Top Movie',
+    ui: 'light',
+    iconCls: 'x-fa fa-video-camera',
+    headerPosition: 'bottom',
+
+    cls: 'quick-graph-panel shadow',
     height: 130,
     layout: 'fit',
-    headerPosition: 'bottom',
-    iconCls: 'x-fa fa-video-camera',
-
-    title: 'Top Movie',
-    tools: [
-        {
-            xtype: 'tool',
-            cls: 'quick-graph-panel-tool x-fa fa-ellipsis-v'
-        }
-    ],
 
     items: [
         {
@@ -40,9 +35,7 @@ Ext.define('Admin.view.dashboard.TopMovie', {
                 '#a66111'
             ],
             radius: 100,
-            bind: {
-                store: '{dashboard.QGPieStore}'
-            },
+            bind: '{topMovies}',
             series: [
                 {
                     type: 'pie',

@@ -1,0 +1,307 @@
+
+@include button-ui(
+    $ui: 'bright-blue',
+    $color: #fff,
+    $icon-color: #fff,
+    $background-color: #03a9f5,
+    $border-width: 0
+);
+
+@include button-ui(
+    $ui: 'round',
+    $border-radius: 50%,
+    $border-radius-big: 50%
+);
+
+@include button-ui(
+    $ui: 'header',
+    $color: #999,
+    $icon-color: #999,
+    $background-color: transparent,
+    $border-width: 0
+);
+
+@include button-ui(
+    $ui: 'blue',
+    $color: #fff,
+    $icon-color: #fff,
+    $background-color: #167abc,
+    $border-width: 0
+);
+
+@include button-ui(
+    $ui: 'facebook',
+    $color: #fff,
+    $icon-color: #fff,
+    $background-color: $social-facebook-btn-background,
+    $border-color: darken($social-facebook-btn-background, 5%)
+);
+
+@include button-ui(
+    $ui: 'gray-button',
+    $color: #fff,
+    $icon-color: #fff,
+    $background-color: #a7a7a7,
+    $border-width: 0
+);
+
+@include button-ui(
+    $ui: 'soft-blue',
+    $color: #fff,
+    $icon-color: #fff,
+    $background-color: $color-soft-blue,
+    $border-color: darken($color-soft-blue, 5%)
+);
+
+@include button-ui(
+    $ui: 'soft-cyan',
+    $color: #fff,
+    $icon-color: #fff,
+    $background-color: $color-soft-cyan,
+    $border-color: darken($color-soft-cyan, 5%)
+);
+
+@include button-ui(
+    $ui: 'soft-green',
+    $color: #fff,
+    $icon-color: #fff,
+    $pressed-color: #fff,
+    $background-color: $color-soft-green,
+    $border-color: darken($color-soft-green, 5%)
+);
+
+@include button-ui(
+    $ui: 'soft-purple',
+    $color: #fff,
+    $icon-color: #fff,
+    $background-color: $color-soft-purple,
+    $border-color: darken($color-soft-purple, 5%)
+);
+
+@include button-ui(
+    $ui: 'soft-red',
+    $color: #fff,
+    $icon-color: #fff,
+    $background-color: $color-soft-red,
+    $border-color: darken($color-soft-red, 5%)
+);
+
+.x-big .x-button-header .x-button-icon {
+    font-size: 18px;
+    font-weight: normal;
+}
+
+.x-input-el {
+    border: 1px solid $field-border-color;
+}
+
+//---------------------------------------------------------------------------
+
+@include treelist-ui(
+    $ui: 'navigation',
+    $padding: 0 10px,
+
+    // Black-ish background color
+    $background-color: $panel-navigation-background-color,
+    $toolstrip-background-color: #32404e,
+
+    $tool-float-indicator-color: $base-color,
+    $tool-float-indicator-width: 5px,
+
+    $tool-indicator-selected-color: $base-color,
+    $tool-indicator-selected-width: 5px,
+    $tool-selected-background-color: mix(white, $panel-navigation-background-color, 10%),
+    //$tool-selected-color: #fff,
+    //$tool-selected-background-color: $base-color,
+
+    // Darker background for expanded subtrees
+    $item-expanded-background-color: #2c3845,
+
+    // Taller line height
+    $item-line-height : $panel-navigation-item-line-height,
+
+    $row-over-background-color: mix(white, $panel-navigation-background-color, 5%),
+    $row-selected-background-color: mix(white, $panel-navigation-background-color, 10%),
+
+    // Off-white text
+    $item-icon-color: $panel-navigation-item-text-color,
+    $item-expander-color: #fff,
+    $item-text-color: #ADB3B8,
+
+    // Brighter when hovered
+    $item-icon-over-color: #fff,
+    $item-expander-over-color: #fff,
+    $item-text-over-color: mix(white, $panel-navigation-item-text-color, 50%),
+    $item-text-font-size: 14px,
+
+    // Various sizes for the pieces:
+    $item-icon-font-size: 18px,
+    $item-icon-width: 44px,
+    $item-expander-font-size: 16px,
+    $item-expander-width: 24px,
+
+    // Style the "row indicator" (the vertical stripe on the left edge):
+    $row-indicator-width: 5px,
+    $row-indicator-selected-color: $base-color,
+    $row-indicator-selected-over-color: lighten($base-color, 7%),
+    $row-indicator-over-color: transparent
+);
+
+a {
+    color: #35baf6;
+    text-decoration: none;
+}
+
+.main-container {
+    background-color: #f6f6f6;
+}
+
+.main-nav-container,
+.main-container {
+    height: calc(100vh - #{$main-toolbar-height});
+}
+
+.phone .main-container {
+    height: calc(100vh - #{$main-phone-toolbar-height});
+}
+
+.phone .main-nav-container {
+    height: 100vh;
+}
+
+// ios has a bug where vh units are not interpreted correctly resulting
+// in additional height.  Fortunately height 100% works to make the nav/content area
+// fill its container in ios.
+.x-ios .main-container,
+.x-ios .main-nav-container {
+    height: 100%;
+}
+
+.x-treelist-navigation:not(.x-treelist-floater) {
+    min-height: calc(100vh - #{$main-toolbar-height});
+
+    .phone & {
+        min-height: calc(100vh - #{$main-phone-toolbar-height});
+    }
+}
+
+.x-treelist-navigation {
+    transition: width 0.3s;
+}
+
+.main-nav-container, .main-logo {
+    position: relative;
+    transition: width 0.3s;
+    width: $main-nav-width;
+}
+
+.main-nav-collapsed {
+    width: $main-nav-collapsed-width;
+}
+
+.main-toolbar {
+    z-index: 1;
+}
+
+.main-logo, .main-toolbar {
+    height: $main-toolbar-height;
+
+    .phone & {
+        height: $main-phone-toolbar-height;
+    }
+}
+
+.x-big .main-toolbar, .main-toolbar {
+    border: none;
+    padding: 0 38px 0 0;
+}
+
+.main-nav-floated {
+    background-color: $panel-navigation-background-color;
+    transition: left 0.3s;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 10;
+}
+
+.main-nav-slid-out {
+    left: -$main-nav-width;
+}
+
+$small-image-size: 35px;
+$logo-image-width: 17px;
+$logo-image-height: 26px;
+
+.small-image {
+    width: $small-image-size;
+    height: $small-image-size;
+}
+
+.phone {
+    .main-toolbar {
+        padding-right: 16px;
+    }
+
+    .main-user-name {
+        display: none;
+    }
+
+    .main-logo {
+        line-height: $main-phone-toolbar-height;
+
+        &:before {
+            top: ($main-phone-toolbar-height - $logo-image-height) / 2;
+            background-size: 85%;
+        }
+    }
+}
+
+// hide the mask message
+.main-nav-mask > .x-mask-inner {
+    display: none;
+}
+
+.main-logo {
+    background-color: $base-color;
+    height: $main-toolbar-height;
+    line-height: $main-toolbar-height;
+
+    font-size: 16px;
+    color: #fff;
+    padding-left: $main-nav-collapsed-width; // for symmetry
+    position: relative;
+
+    &:before {
+        content: " ";
+        position: absolute;
+        background-size: cover;
+        top: ($main-toolbar-height - $logo-image-height) / 2;
+        left: 22px;
+        width: $logo-image-width;
+        height: $logo-image-height;
+        background: transparent url(images/company-logo.png) no-repeat center center;
+    }
+}
+
+
+
+/*
+.x-tabbar .x-tab {
+    .x-button-icon {
+        text-align: center;
+        &:before {
+            font-family: FontAwesome;
+            font-size: 1.2em;
+            line-height: 1.2em;
+            vertical-align: middle;
+        }
+    }
+
+    &.x-tab-icon .x-button-label {
+        padding: 0;
+        top: 0;
+        vertical-align: middle;
+    }
+}
+*/

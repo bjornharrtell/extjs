@@ -43,11 +43,14 @@ Ext.define('Ext.Img', {
 
     baseCls: Ext.baseCSSPrefix + 'img',
 
-    /**
-     * @cfg {String} src
-     * The image src.
-     */
-    src: '',
+    config: {
+        /**
+         * @cfg {String} src The source of this image. See {@link Ext#resolveResource} for
+         * details on locating application resources.
+         * @accessor
+         */
+        src: null
+    },
 
     /**
      * @cfg {String} alt
@@ -83,7 +86,12 @@ Ext.define('Ext.Img', {
         if (this.glyph) {
             this.autoEl = 'div';
         }
+
         this.callParent();
+    },
+
+    applySrc: function (src) {
+        return src && Ext.resolveResource(src);
     },
 
     getElConfig: function() {
@@ -184,15 +192,46 @@ Ext.define('Ext.Img', {
         this.callParent();
     },
 
+    getTitle: function () {
+        return this.title;
+    },
+
     /**
-     * Updates the {@link #src} of the image.
-     * @param {String} src
+     * Updates the {@link #title} of the image.
+     * @param {String} title
      */
-    setSrc: function(src) {
+    setTitle: function (title) {
         var me = this,
             imgEl = me.imgEl;
 
-        me.src = src;
+        me.title = title || '';
+
+        if (imgEl) {
+            imgEl.dom.title = title || '';
+        }
+    },
+
+    getAlt: function () {
+        return this.alt;
+    },
+
+    /**
+     * Updates the {@link #alt} of the image.
+     * @param {String} alt
+     */
+    setAlt: function (alt) {
+        var me = this,
+            imgEl = me.imgEl;
+
+        me.alt = alt || '';
+
+        if (imgEl) {
+            imgEl.dom.alt = alt || '';
+        }
+    },
+
+    updateSrc: function (src) {
+        var imgEl = this.imgEl;
 
         if (imgEl) {
             imgEl.dom.src = src || Ext.BLANK_IMAGE_URL;
@@ -203,7 +242,7 @@ Ext.define('Ext.Img', {
      * Updates the {@link #glyph} of the image.
      * @param {Number/String} glyph
      */
-    setGlyph: function(glyph) {
+    setGlyph: function (glyph) {
         var me = this,
             glyphFontFamily = Ext._glyphFontFamily,
             old = me.glyph,

@@ -21,52 +21,51 @@ Ext.define('Ext.panel.Title', {
 
     beforeRenderConfig: {
         /**
-         * @cfg {'left'/'center'/'right'} [textAlign='left']
-         * text alignment of the title
+         * @cfg [textAlign='left']
+         * @inheritdoc Ext.panel.Header#cfg-titleAlign
+         * @accessor
          */
         textAlign: null,
 
         /**
          * @cfg {String}
          * The title's text (can contain html tags/entities)
+         * @accessor
          */
         text: null,
 
         /**
-         * @cfg {Number/String} glyph
-         * A numeric unicode character code to use as the icon. The
-         * default font-family for glyphs can be set globally using
-         * {@link Ext#setGlyphFontFamily Ext.setGlyphFontFamily()}. Alternatively, this
-         * config option accepts a string with the charCode and font-family separated by the
-         * `@` symbol. For example '65@My Font Family'.
+         * @cfg glyph
+         * @inheritdoc Ext.panel.Header#cfg-glyph
+         * @accessor
          */
         glyph: null,
 
         /**
-         * @cfg {String} icon
-         * Path to image for an icon.
+         * @cfg icon
+         * @inheritdoc Ext.panel.Header#cfg-icon
+         * @accessor
          */
         icon: null,
 
         /**
          * @cfg {'top'/'right'/'bottom'/'left'} [iconAlign='left']
          * alignment of the icon
+         * @accessor
          */
         iconAlign: null,
 
         /**
-         * @cfg {String} iconCls
-         * CSS class for an icon.
+         * @cfg iconCls
+         * @inheritdoc Ext.panel.Header#cfg-iconCls
+         * @accessor
          */
         iconCls: null,
         
         /**
-         * @cfg {0/1/2} [rotation=0]
-         * The rotation of the title's text.  Can be one of the following values:
-         *
-         * - `0` - no rotation
-         * - `1` - rotate 90deg clockwise
-         * - `2` - rotate 90deg counter-clockwise
+         * @cfg rotation
+         * @inheritdoc Ext.panel.Header#cfg-titleRotation
+         * @accessor
          */
         rotation: null
     },

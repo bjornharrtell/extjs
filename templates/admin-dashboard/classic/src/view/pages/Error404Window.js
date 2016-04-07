@@ -1,26 +1,14 @@
 Ext.define('Admin.view.pages.Error404Window', {
-    extend: 'Ext.window.Window',
-    alias: 'widget.pageserror404window',
+    extend: 'Admin.view.pages.ErrorBase',
+    xtype: 'page404',
 
     requires: [
+        'Admin.view.authentication.AuthenticationController',
         'Ext.container.Container',
-        'Ext.toolbar.Spacer',
-        'Ext.form.Label'
+        'Ext.form.Label',
+        'Ext.layout.container.VBox',
+        'Ext.toolbar.Spacer'
     ],
-
-    autoShow: true,
-    cls: 'error-page-container',
-    closable: false,
-    title: 'Sencha',
-    titleAlign: 'center',
-    maximized: true,
-    modal: true,
-
-    layout: {
-        type: 'vbox',
-        align: 'center',
-        pack: 'center'
-    },
 
     items: [
         {

@@ -46,13 +46,13 @@ Ext.define('Ext.app.route.Route', {
     url: null,
 
     /**
-     * @cfg {Function} before An optional function to use to intercept the {@link #action}
-     * to do extra means and possibly stop the execution. An example is if the route is
-     * for editing a user and you need to verify the current user has permission you can
+     * @cfg {Function} before An optional function used to intercept {@link #action}
+     * to do perform additional tasks and possibly stop the execution. An example is if the route is
+     * for editing a user and you need to verify the current user has permission. You could
      * send an {@link Ext.Ajax} request to a server or some arbitrary code.
      *
-     * @param {Function} callback A function that MUST be executed passing in a Boolean
-     * value to allow execution of the configured action on this {@link Ext.app.route.Route}.
+     * This function MUST be executed by passing in a Boolean
+     * value to allow execution of the configured action on {@link Ext.app.route.Route}.
      *
      * Defaults to `null`
      */

@@ -73,6 +73,12 @@ Ext.define('Ext.ux.ajax.Simlet', function() {
         doRedirect: function(ctx) {
             return false;
         },
+        doDelete: function(ctx) {
+            var me = this,
+                xhr = ctx.xhr,
+                records = xhr.options.records;
+            me.removeFromData(ctx, records);
+        },
         /**
          * Performs the action requested by the given XHR and returns an object to be applied
          * on to the XHR (containing `status`, `responseText`, etc.). For the most part,
@@ -109,6 +115,9 @@ Ext.define('Ext.ux.ajax.Simlet', function() {
             var ctx = this.getCtx(method, url),
                 redirect = this.doRedirect(ctx),
                 xhr;
+            if (options.action === 'destroy') {
+                method = 'delete';
+            }
             if (redirect) {
                 xhr = redirect;
             } else {
@@ -164,6 +173,21 @@ Ext.define('Ext.ux.ajax.Simlet', function() {
                 url = Ext.urlAppend(url, Ext.Object.toQueryString(params));
             }
             return this.manager.openRequest(method, url);
+        },
+        removeFromData: function(ctx, records) {
+            var me = this,
+                data = me.getData(ctx),
+                model = (ctx.xhr.options.proxy && ctx.xhr.options.proxy.getModel()) || {},
+                idProperty = model.idProperty || 'id';
+            Ext.each(records, function(record) {
+                var id = record.get(idProperty);
+                for (var i = data.length; i-- > 0; ) {
+                    if (data[i][idProperty] === id) {
+                        me.deleteRecord(i);
+                        break;
+                    }
+                }
+            });
         }
     };
 }());
@@ -212,6 +236,11 @@ Ext.define('Ext.ux.ajax.DataSimlet', function() {
                     delete child.children;
                     me.buildNodes(children, child.id);
                 }
+            }
+        },
+        deleteRecord: function(pos) {
+            if (this.data && typeof this.data !== 'function') {
+                Ext.Array.removeAt(this.data, pos);
             }
         },
         fixTree: function(ctx, tree) {
@@ -377,6 +406,9 @@ Ext.define('Ext.ux.ajax.JsonSimlet', {
         }
         ret.responseText = Ext.encode(response);
         return ret;
+    },
+    doPost: function(ctx) {
+        return this.doGet(ctx);
     }
 });
 
@@ -1578,7 +1610,7 @@ Ext.define('Ext.ux.event.Player', function(Player) {
                 1: 4,
                 2: 2
             },
-            /*
+            /**
          * Injects a key event using the given event information to populate the event
          * object.
          * 
@@ -1602,9 +1634,9 @@ Ext.define('Ext.ux.event.Player', function(Player) {
          * pressed while the event is firing.
          * @param {Boolean} [options.metaKey=false] `true` if one of the META keys is
          * pressed while the event is firing.
-         * @param {int} [options.keyCode=0] The code for the key that is in use.
-         * @param {int} [options.charCode=0] The Unicode code for the character associated
-         * with the key being used.
+         * @param {Number} [options.keyCode=0] The code for the key that is in use.
+         * @param {Number} [options.charCode=0] The Unicode code for the character 
+         * associated with the key being used.
          * @param {Window} [view=window] The view containing the target. This is typically
          * the window object.
          * @private
@@ -1674,7 +1706,7 @@ Ext.define('Ext.ux.event.Player', function(Player) {
                 }
                 return true;
             },
-            /*
+            /**
          * Injects a mouse event using the given event information to populate the event
          * object.
          *
@@ -1697,17 +1729,17 @@ Ext.define('Ext.ux.event.Player', function(Player) {
          * pressed while the event is firing.
          * @param {Boolean} [options.metaKey=false] `true` if one of the META keys is
          * pressed while the event is firing.
-         * @param {int} [options.detail=1] The number of times the mouse button has been
-         * used.
-         * @param {int} [options.screenX=0] The x-coordinate on the screen at which point
+         * @param {Number} [options.detail=1] The number of times the mouse button has 
+         * been used.
+         * @param {Number} [options.screenX=0] The x-coordinate on the screen at which point
          * the event occurred.
-         * @param {int} [options.screenY=0] The y-coordinate on the screen at which point
+         * @param {Number} [options.screenY=0] The y-coordinate on the screen at which point
          * the event occurred.
-         * @param {int} [options.clientX=0] The x-coordinate on the client at which point
+         * @param {Number} [options.clientX=0] The x-coordinate on the client at which point
          * the event occurred.
-         * @param {int} [options.clientY=0] The y-coordinate on the client at which point
+         * @param {Number} [options.clientY=0] The y-coordinate on the client at which point
          * the event occurred.
-         * @param {int} [options.button=0] The button being pressed while the event is
+         * @param {Number} [options.button=0] The button being pressed while the event is
          * executing. The value should be 0 for the primary mouse button (typically the
          * left button), 1 for the tertiary mouse button (typically the middle button),
          * and 2 for the secondary mouse button (typically the right button).
@@ -1792,11 +1824,12 @@ Ext.define('Ext.ux.event.Player', function(Player) {
                 }
                 return true;
             },
-            /*
+            /**
          * Injects a UI event using the given event information to populate the event
          * object.
          * 
          * @param {HTMLElement} target The target of the given event.
+         * @param {Object} options
          * @param {String} options.type The type of event to fire. This can be any one of
          * the following: `click`, `dblclick`, `mousedown`, `mouseup`, `mouseout`,
          * `mouseover` and `mousemove`.
@@ -1805,7 +1838,7 @@ Ext.define('Ext.ux.event.Player', function(Player) {
          * @param {Boolean} [options.cancelable=true] `true` if the event can be canceled
          * using `preventDefault`. DOM Level 2 specifies that all mouse events except
          * `mousemove` can be canceled. This defaults to `false` for `mousemove`.
-         * @param {int} [options.detail=1] The number of times the mouse button has been
+         * @param {Number} [options.detail=1] The number of times the mouse button has been
          * used.
          * @param {Window} [view=window] The view containing the target. This is typically
          * the window object.
@@ -2443,7 +2476,8 @@ Ext.define('Ext.ux.BoxReorderer', {
         });
     },
     /**
-     * @private Clear up on Container destroy
+     * @private
+     * Clear up on Container destroy
      */
     onContainerDestroy: function() {
         var dd = this.dd;
@@ -3776,6 +3810,7 @@ Ext.define('Ext.ux.DataView.DragSelector', {
         }
     },
     /**
+     * @method
      * @private
      * Listener attached to the DragTracker's onEnd event. This is a delayed function which executes 1
      * millisecond after it has been called. This is because the dragging flag must remain active to cancel
@@ -4143,6 +4178,7 @@ Ext.define('Ext.ux.Explorer', {
         /**
          * @cfg {Ext.data.TreeModel} selection
          * The selected node
+         * @accessor
          */
         selection: null
     },
@@ -5005,8 +5041,9 @@ Ext.define('Ext.ux.statusbar.StatusBar', {
      */
     /**
      * @cfg {String} [iconCls='']
-     * A CSS class that will be **initially** set as the status bar icon and is
-     * expected to provide a background image.
+     * @inheritdoc Ext.panel.Header#cfg-iconCls
+     * @localdoc **Note:** This CSS class will be **initially** set as the status bar 
+     * icon.  See also {@link #defaultIconCls} and {@link #busyIconCls}.
      *
      * Example usage:
      *
@@ -5067,9 +5104,6 @@ Ext.define('Ext.ux.statusbar.StatusBar', {
      * @private
      */
     activeThreadId: 0,
-    /**
-     * @private
-     */
     initComponent: function() {
         var right = this.statusAlign === 'right';
         this.callParent(arguments);
@@ -6665,6 +6699,7 @@ Ext.define('Ext.ux.TreePicker', {
     createPicker: function() {
         var me = this,
             picker = new Ext.tree.Panel({
+                baseCls: Ext.baseCSSPrefix + 'boundlist',
                 shrinkWrapDock: 2,
                 store: me.store,
                 floating: true,
@@ -6676,13 +6711,8 @@ Ext.define('Ext.ux.TreePicker', {
                 shadow: false,
                 listeners: {
                     scope: me,
-                    itemclick: me.onItemClick
-                },
-                viewConfig: {
-                    listeners: {
-                        scope: me,
-                        render: me.onViewRender
-                    }
+                    itemclick: me.onItemClick,
+                    itemkeydown: me.onPickerKeyDown
                 }
             }),
             view = picker.getView();
@@ -6698,9 +6728,6 @@ Ext.define('Ext.ux.TreePicker', {
             });
         }
         return picker;
-    },
-    onViewRender: function(view) {
-        view.getEl().on('keypress', this.onPickerKeypress, this);
     },
     /**
      * repaints the tree view
@@ -6728,10 +6755,10 @@ Ext.define('Ext.ux.TreePicker', {
      * @param {Ext.event.Event} e
      * @param {HTMLElement} el
      */
-    onPickerKeypress: function(e, el) {
+    onPickerKeyDown: function(treeView, record, item, index, e) {
         var key = e.getKey();
         if (key === e.ENTER || (key === e.TAB && this.selectOnTab)) {
-            this.selectItem(this.picker.getSelectionModel().getSelection()[0]);
+            this.selectItem(record);
         }
     },
     /**
@@ -6751,10 +6778,9 @@ Ext.define('Ext.ux.TreePicker', {
      * @private
      */
     onExpand: function() {
-        var me = this,
-            picker = me.picker,
+        var picker = this.picker,
             store = picker.store,
-            value = me.value,
+            value = this.value,
             node;
         if (value) {
             node = store.getNodeById(value);
@@ -6762,7 +6788,10 @@ Ext.define('Ext.ux.TreePicker', {
         if (!node) {
             node = store.getRoot();
         }
-        picker.selectPath(node.getPath());
+        picker.ensureVisible(node, {
+            select: true,
+            focus: true
+        });
     },
     /**
      * Sets the specified value into the field
@@ -12184,6 +12213,14 @@ Ext.define('Ext.ux.form.ItemSelector', {
         toStore.add(recs);
         fromStore.resumeEvents();
         toStore.resumeEvents();
+        // If the list item was focused when moved (e.g. via double-click)
+        // then removing it will cause the focus to be thrown back to the
+        // document body. Which might disrupt things if ItemSelector is
+        // contained by a floating thingie like a Menu.
+        // Focusing the list itself will prevent that.
+        if (fromField.boundList.containsFocus) {
+            fromField.boundList.focus();
+        }
         fromField.boundList.refresh();
         toField.boundList.refresh();
         me.syncValue();
@@ -12533,14 +12570,14 @@ Ext.define('Ext.ux.grid.TransformGrid', {
  * `float:left` is used to provide the wrapping.
  *
  * To select which of the percentage sizes an item uses, this layout adds a viewport
- * {@link #states size-dependent} class name to the container. The stylesheet must
+ * {@link #states size-dependent} class name to the container. The style sheet must
  * provide the rules to select the desired size using the {@link #responsivecolumn-item}
  * mixin.
  *
  * For example, a panel in a responsive column layout might add the following styles:
  *
  *      .my-panel {
- *          // consume 50% of the avalable space inside the container by default
+ *          // consume 50% of the available space inside the container by default
  *          @include responsivecolumn-item(50%);
  *
  *          .x-responsivecolumn-small & {
@@ -12554,7 +12591,7 @@ Ext.define('Ext.ux.grid.TransformGrid', {
  * classes:
  *
  *      .big-50 {
- *          // consume 50% of the avalable space inside the container by default
+ *          // consume 50% of the available space inside the container by default
  *          @include responsivecolumn-item(50%);
  *      }
  *
@@ -13301,9 +13338,6 @@ Ext.define('Ext.ux.statusbar.ValidationStatus', {
             f.un('validitychange', this.onFieldValidation, this);
         }, this);
     },
-    /**
-     * @private
-     */
     onDestroy: function() {
         this.stopMonitoring();
         this.statusBar.statusEl.un('click', this.onStatusClick, this);

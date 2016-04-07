@@ -14,7 +14,7 @@ Ext.define('Admin.view.email.Details', {
         type: 'emaildetails'
     },
 
-    cls: 'shadow-panel',
+    cls: 'shadow',
 
     bodyPadding: 10,
 

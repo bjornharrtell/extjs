@@ -48,13 +48,16 @@ Ext.define('Ext.data.ProxyStore', {
 
         // @cmd-auto-dependency {aliasPrefix: "data.field."}
         /**
-         * @cfg {Object[]} fields
-         * This may be used in place of specifying a {@link #model} configuration. The fields should be a
-         * set of {@link Ext.data.Field} configuration objects. The store will automatically create a {@link Ext.data.Model}
-         * with these fields. In general this configuration option should only be used for simple stores like
-         * a two-field store of ComboBox. For anything more complicated, such as specifying a particular id property or
-         * associations, a {@link Ext.data.Model} should be defined and specified for the {@link #model}
-         * config.
+         * @cfg {Object[]/String[]} fields
+         * @inheritdoc Ext.data.Model#cfg-fields
+         * 
+         * @localdoc **Note:** In general, this configuration option should only be used 
+         * for simple stores like a two-field store of 
+         * {@link Ext.form.field.ComboBox ComboBox}. For anything more complicated, such 
+         * as specifying a particular id property or associations, a 
+         * {@link Ext.data.Model Model} should be defined and specified for the 
+         * {@link #model} config.
+         * 
          * @since 2.3.0
          */
         fields: null,
@@ -111,10 +114,27 @@ Ext.define('Ext.data.ProxyStore', {
         trackRemoved: true,
 
         /**
-         * @private.
-         * The delay time to kick of the initial autoLoad task
+         * @cfg {Boolean} [asynchronousLoad]
+         * This defaults to `true` when this store's {@link #cfg-proxy} is asynchronous, such as an
+         * {@link Ext.data.proxy.Ajax Ajax proxy}.
+         *
+         * When the proxy is synchronous, such as a {@link Ext.data.proxy.Memory} memory proxy, this
+         * defaults to `false`.
+         *
+         * *NOTE:* This does not cause synchronous Ajax requests if configured `false` when an Ajax proxy
+         * is used. It causes immediate issuing of an Ajax request when {@link #method-load} is called
+         * rather than issuing the request at the end of the current event handler run.
+         *
+         * What this means is that when using an Ajax proxy, calls to 
+         * {@link #method-load} do not fire the request to the remote resource 
+         * immediately, but schedule a request to be made. This is so that multiple 
+         * requests are not fired when mutating a store's remote filters and sorters (as 
+         * happens during state restoration). The request is made only once after all 
+         * relevant store state is fully set.
+         *
+         * @since 6.0.1
          */
-        autoLoadDelay: 1
+        asynchronousLoad: undefined
     },
 
     onClassExtended: function(cls, data, hooks) {
@@ -141,9 +161,6 @@ Ext.define('Ext.data.ProxyStore', {
      * The class name of the model that this store uses if no explicit {@link #model} is given
      */
     implicitModel: 'Ext.data.Model',
-
-    blockLoadCounter: 0,
-    loadsWhileBlocked: 0,
 
     /**
      * @property {Object} lastOptions
@@ -182,6 +199,9 @@ Ext.define('Ext.data.ProxyStore', {
          * @param {Ext.data.Store} this
          * @param {Ext.data.Model[]} records An array of records
          * @param {Boolean} successful True if the operation was successful.
+         * @param {Ext.data.operation.Read} operation The 
+         * {@link Ext.data.operation.Read Operation} object that was used in the data 
+         * load call
          * @since 1.1.0
          */
 
@@ -223,9 +243,11 @@ Ext.define('Ext.data.ProxyStore', {
          */
         me.removed = [];
 
-        me.blockLoad();
         me.callParent(arguments);
-        me.unblockLoad();
+
+        if (me.getAsynchronousLoad() === false) {
+            me.flushLoad();
+        }
 
         // <debug>
         if (!me.getModel() && me.useModelWarning !== false && me.getStoreId() !== 'ext-empty-store') {
@@ -244,17 +266,21 @@ Ext.define('Ext.data.ProxyStore', {
         // </debug>
     },
 
+    applyAsynchronousLoad: function(asynchronousLoad) {
+    // Default in an asynchronousLoad setting.
+    // It defaults to false if the proxy is synchronous, and true if the proxy is asynchronous.
+        if (asynchronousLoad == null) {
+            asynchronousLoad = !this.loadsSynchronously();
+        }
+        return asynchronousLoad;
+    },
+
     updateAutoLoad: function(autoLoad) {
-        var me = this,
-            task;
-
         // Ensure the data collection is set up
-        me.getData();
+        this.getData();
         if (autoLoad) {
-            task = me.loadTask || (me.loadTask = new Ext.util.DelayedTask(null, null, null, null, false));
-
-            // Defer the load until the store (and probably the view) is fully constructed
-            task.delay(me.autoLoadDelay, me.attemptLoad, me, Ext.isObject(autoLoad) ? [autoLoad] : undefined);
+            // Defer the load until idle, when the store (and probably the view) is fully constructed
+            this.load(Ext.isObject(autoLoad) ? autoLoad : undefined);
         }
     },
 
@@ -324,12 +350,17 @@ Ext.define('Ext.data.ProxyStore', {
     },
 
     applyState: function (state) {
-        var me = this,
-            doLoad = me.getAutoLoad() || me.isLoaded();
+        var me = this;
 
-        me.blockLoad();
         me.callParent([state]);
-        me.unblockLoad(doLoad);
+
+        // This is called during construction. Sorters and filters might have changed
+        // which require a reload.
+        // If autoLoad is true, it might have loaded synchronously from a memory proxy, so needs to reload.
+        // If it is already loaded, we definitely need to reload to apply the state.
+        if (me.getAutoLoad() || me.isLoaded()) {
+            me.load();
+        }
     },
 
     updateProxy: function(proxy, oldProxy) {
@@ -504,9 +535,8 @@ Ext.define('Ext.data.ProxyStore', {
     },
 
     /**
-     * Returns all Model instances that are either currently a phantom (e.g. have no id), or have an ID but have not
-     * yet been saved on this Store (this happens when adding a non-phantom record from another Store into this one)
-     * @return {Ext.data.Model[]} The Model instances
+     * Returns all `{@link Ext.data.Model#property-phantom phantom}` records in this store.
+     * @return {Ext.data.Model[]} A possibly empty array of `phantom` records.
      */
     getNewRecords: function() {
         return [];
@@ -541,10 +571,11 @@ Ext.define('Ext.data.ProxyStore', {
 
     /**
      * Returns any records that have been removed from the store but not yet destroyed on the proxy.
-     * @return {Ext.data.Model[]} The removed Model instances
+     * @return {Ext.data.Model[]} The removed Model instances. Note that this is a *copy* of the store's
+     * array, so may be mutated.
      */
     getRemovedRecords: function() {
-        var removed = this.removed;
+        var removed = this.getRawRemovedRecords();
         // If trackRemoved: false, removed will be null
         return removed ? Ext.Array.clone(removed) : removed;
     },
@@ -665,21 +696,85 @@ Ext.define('Ext.data.ProxyStore', {
     },
 
     /**
-     * Loads the Store using its configured {@link #proxy}.
+     * Marks this store as needing a load. When the current executing event handler exits,
+     * this store will send a request to load using its configured {@link #proxy}.
+     *
+     * Upon return of the data from whatever data source the proxy connected to, the retrieved
+     * {@link Ext.data.Model records} will be loaded into this store, and the optional callback will be called.
+     * Example usage:
+     *
+     *     store.load({
+     *         scope: this,
+     *         callback: function(records, operation, success) {
+     *             // the {@link Ext.data.operation.Operation operation} object
+     *             // contains all of the details of the load operation
+     *             console.log(records);
+     *         }
+     *     });
+     *
+     * If the callback scope does not need to be set, a function can simply be passed:
+     *
+     *     store.load(function(records, operation, success) {
+     *         console.log('loaded records');
+     *     });
+     *
      * @param {Object} [options] This is passed into the {@link Ext.data.operation.Operation Operation}
-     * object that is created and then sent to the proxy's {@link Ext.data.proxy.Proxy#read} function
+     * object that is created and then sent to the proxy's {@link Ext.data.proxy.Proxy#read} function.
+     * In addition to the options listed below, this object may contain properties to configure the
+     * {@link Ext.data.operation.Operation Operation}.
+     * @param {Function} [options.callback] A function which is called when the response arrives.
+     * @param {Ext.data.Model[]} options.callback.records Array of records.
+     * @param {Ext.data.operation.Operation} options.callback.operation The Operation itself.
+     * @param {Boolean} options.callback.success `true` when operation completed successfully.
+     * @param {Boolean} [options.addRecords=false] Specify as `true` to *add* the incoming records rather than the
+     * default which is to have the incoming records *replace* the existing stoire contents.
      * 
      * @return {Ext.data.Store} this
      * @since 1.1.0
      */
     load: function(options) {
-        // Prevent loads from being triggered while applying initial configs
-        if (this.isLoadBlocked()) {
+        var me = this;
+
+        // Legacy option. Specifying a function was allowed.
+        if (typeof options === 'function') {
+            options = {
+                callback: options
+            };
+        } else {
+            // We may mutate the options object in setLoadOptions.
+            options = options ? Ext.Object.chain(options) : {};
+        }
+
+        me.pendingLoadOptions = options;
+
+        // If we are configured to load asynchronously (the default for async proxies)
+        // then schedule a flush, unless one is already scheduled.
+        if (me.getAsynchronousLoad()) {
+            if (!me.loadTimer) {
+                me.loadTimer = Ext.asap(me.flushLoad, me);
+            }
+        }
+        // If we are configured to load synchronously (the default for sync proxies)
+        // then flush the load now.
+        else {
+            me.flushLoad();
+        }
+        return me;
+    },
+
+    /**
+     * Called when the event handler which called the {@link #method-load} method exits.
+     */
+    flushLoad: function() {
+        var me = this,
+            options = me.pendingLoadOptions,
+            operation;
+
+        // If it gets called programatically before the timer fired, the listener will need cancelling.
+        me.clearLoadTask();
+        if (!options) {
             return;
         }
-        
-        var me = this,
-            operation;
 
         me.setLoadOptions(options);
 
@@ -700,11 +795,8 @@ Ext.define('Ext.data.ProxyStore', {
         if (me.fireEvent('beforeload', me, operation) !== false) {
             me.onBeforeLoad(operation);
             me.loading = true;
-            me.clearLoadTask();
             operation.execute();
         }
-
-        return me;
     },
 
     /**
@@ -822,8 +914,8 @@ Ext.define('Ext.data.ProxyStore', {
     onDestroy: function() {
         var me = this,
             proxy = me.getProxy();
-        
-        me.blockLoad();
+
+        me.clearLoadTask();
         me.getData().destroy();
         me.data = null;
         me.setProxy(null);
@@ -842,7 +934,7 @@ Ext.define('Ext.data.ProxyStore', {
      * @private
      */
     hasPendingLoad: function() {
-        return !!this.loadTask || this.isLoading();
+        return !!this.pendingLoadOptions || this.isLoading();
     },
 
     /**
@@ -904,32 +996,34 @@ Ext.define('Ext.data.ProxyStore', {
     clearData: Ext.emptyFn,
 
     privates: {
+        /**
+         * @private
+         * Returns the array of records which have been removed since the last time this store was synced.
+         *
+         * This is used internally, when purging removed records after a successful sync.
+         * This is overridden by TreeStore because TreeStore accumulates deleted records on removal
+         * of child nodes from their parent, *not* on removal of records from its collection. The collection
+         * has records added on expand, and removed on collapse.
+         */
+        getRawRemovedRecords: function() {
+            return this.removed;
+        },
+
         onExtraParamsChanged: function() {
             
         },
 
-        attemptLoad: function(options) {
-            if (this.isLoadBlocked()) {
-                ++this.loadsWhileBlocked;
-                return;
-            }
-            this.load(options);
-        },
-
-        blockLoad: function (value) {
-            ++this.blockLoadCounter;
-        },
-
         clearLoadTask: function() {
-            var loadTask = this.loadTask;
-            if (loadTask) {
-                loadTask.cancel();
-                this.loadTask = null;
-            }
+            Ext.asapCancel(this.loadTimer);
+            this.pendingLoadOptions = this.loadTimer = null;
         },
 
         cleanRemoved: function() {
-            var removed = this.removed,
+            // Must use class-specific getRawRemovedRecords.
+            // Regular Stores add to the "removed" property on remove.
+            // TreeStores are having records removed all the time; node collapse removes.
+            // TreeStores add to the "removedNodes" property onNodeRemove
+            var removed = this.getRawRemovedRecords(),
                 len, i;
 
             if (removed) {
@@ -986,10 +1080,6 @@ Ext.define('Ext.data.ProxyStore', {
             }
         },
 
-        isLoadBlocked: function () {
-            return !!this.blockLoadCounter;
-        },
-
         loadsSynchronously: function() {
             return this.getProxy().isSynchronous;
         },
@@ -997,7 +1087,11 @@ Ext.define('Ext.data.ProxyStore', {
         onBeforeLoad: Ext.privateFn,
 
         removeFromRemoved: function(record) {
-            var removed = this.removed;
+            // Must use class-specific getRawRemovedRecords.
+            // Regular Stores add to the "removed" property on remove.
+            // TreeStores are having records removed all the time; node collapse removes.
+            // TreeStores add to the "removedNodes" property onNodeRemove
+            var removed = this.getRawRemovedRecords();
             if (removed) {
                 Ext.Array.remove(removed, record);
                 record.unjoin(this);
@@ -1019,19 +1113,6 @@ Ext.define('Ext.data.ProxyStore', {
                 sorters = me.getSorters(false);
                 if (sorters && sorters.getCount()) {
                     options.sorters = sorters.getRange();
-                }
-            }
-        },
-
-        unblockLoad: function (doLoad) {
-            var me = this,
-                loadsWhileBlocked = me.loadsWhileBlocked;
-
-            --me.blockLoadCounter;
-            if (!me.blockLoadCounter) {
-                me.loadsWhileBlocked = 0;
-                if (doLoad && loadsWhileBlocked) {
-                    me.load();
                 }
             }
         }

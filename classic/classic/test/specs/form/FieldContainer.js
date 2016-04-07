@@ -61,6 +61,19 @@ describe("Ext.form.FieldContainer", function() {
         });
     });
 
+    describe("using box layout", function() {
+        it("should add its layout's targetCls to its containerEl", function() {
+            makeComponent({
+                renderTo: Ext.getBody(),
+                layout: 'hbox',
+                items: [{
+                    xtype: 'textfield',
+                    fieldLabel: 'SomeLabel'
+                }]
+            });
+            expect(component.containerEl.hasCls(component.layout.targetCls)).toBe(true);
+        });
+    });
 
     describe('combineLabels', function() {
         it("should combine the labels of its sub-fields", function() {

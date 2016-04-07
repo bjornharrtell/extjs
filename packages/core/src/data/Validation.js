@@ -103,7 +103,7 @@ Ext.define('Ext.data.Validation', {
                 }
 
                 if (field.validate !== Ext.emptyFn) {
-                    msg = field.validate(val, sep);
+                    msg = field.validate(val, sep, null, record);
                     if (msg !== true) {
                         error = msg || defaultMessage;
                     }

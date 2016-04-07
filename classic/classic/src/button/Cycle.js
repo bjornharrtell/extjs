@@ -159,21 +159,17 @@ Ext.define('Ext.button.Cycle', {
         // so we warn the developer about that.
         // Don't warn if we're under the slicer though.
         if (Ext.enableAriaButtons && !Ext.slicer) {
-            // Hard error if full ARIA compatibility is enabled, otherwise a warning
-            var logFn = Ext.enableAria ? Ext.log.error : Ext.log.warn;
-            
-            logFn(
-                "Using Cycle buttons is not recommended in WAI-ARIA " +
-                "compliant applications, because their behavior conflicts " +
+            Ext.log.warn(
+                "Using Cycle buttons is not recommended in accessible " +
+                "applications, because their behavior conflicts " +
                 "with accessibility best practices. See WAI-ARIA 1.0 " +
                 "Authoring guide: http://www.w3.org/TR/wai-aria-practices/#menubutton"
             );
         }
         //</debug>
-        var me      = this,
+        var me = this,
             checked = 0,
-            items,
-            i, iLen, item;
+            items, i, iLen, item;
 
         // Allow them to specify a menu config which is a standard Button config.
         // Remove direct use of "items" in 5.0.

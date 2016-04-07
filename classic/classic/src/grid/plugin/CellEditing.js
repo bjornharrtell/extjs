@@ -152,6 +152,14 @@ Ext.define('Ext.grid.plugin.CellEditing', {
     init: function(grid) {
         var me = this;
 
+        // Upon deactivation, all editors are hidden.
+        // This will terminate their edit.
+        // But we do not know what further mutation the DOM grid may undergo, so after having
+        // given the focus events to run their course, we cache the editors in the detached body
+        // to prevent them from being garbage collected in case they get tipped out of the DOM
+        // by a view refresh.
+        me.cacheDeactivatedEditors = Ext.Function.createAnimationFrame(me.cacheDeactivatedEditors);
+
         // This plugin has an interest in entering actionable mode.
         // It places the cell editors into the tabbable flow.
         grid.registerActionable(me);
@@ -265,7 +273,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
         editor = me.getEditor(record, column);
 
         if (editor) {
-            cell = context.cell;
+            cell = Ext.get(context.cell);
 
             // Ensure editor is there in the cell, but hidden.
             // It will show if it begins editing.
@@ -276,7 +284,7 @@ Ext.define('Ext.grid.plugin.CellEditing', {
             } else {
                 if (editor.container !== cell) {
                     editor.container = cell;
-                    cell.insertBefore(editor.el.dom, cell.firstChild);
+                    cell.dom.insertBefore(editor.el.dom, cell.dom.firstChild);
                 }
                 editor.hide();
             }
@@ -312,6 +320,32 @@ Ext.define('Ext.grid.plugin.CellEditing', {
 
         for (i = 0; i < len; i++) {
             editors[i].hide();
+        }
+        
+        // This is a delayed method.
+        // Give the chance for the blur event to fire and bubble before
+        // ripping the editor from its place in the DOM and caching it in the
+        // detached body.
+        //
+        // We have to do this after deactivate in addition to hiding because we
+        // cannot tell when the grid's DOM is going to be destroyed and the editor's
+        // element may become "garbage" and be destroyed.
+        me.cacheDeactivatedEditors();
+    },
+
+    cacheDeactivatedEditors: function() {
+        var me = this,
+            editors = me.editors.items,
+            len = editors.length,
+            i, editor,
+            detachedBody = Ext.getDetachedBody();
+
+        for (i = 0; i < len; i++) {
+            editor = editors[i];
+            if (!editor.isVisible()) {
+                detachedBody.dom.appendChild(editor.el.dom);
+                editor.container = detachedBody;
+            }
         }
     },
 
@@ -561,19 +595,22 @@ Ext.define('Ext.grid.plugin.CellEditing', {
             if (activeEditor) {
                 activeEditor.completeEdit();
             }
-            
+        }
+
+        // If we are STILL in actionable mode - synchronous blurring has not tipped us out of actionable mode...
+        if (me.grid.actionableMode) {
             // Get the editor for the position, and if there is one, focus it
             if (me.activateCell(position)) {
                 // Ensure the row is activated.
                 me.activateRow(me.view.all.item(position.rowIdx, true));
 
                 activeEditor = me.getEditor(position.record, position.column);
+                
                 if (activeEditor) {
                     activeEditor.field.focus();
                 }
             }
         }
-        
         else {
             // Enter actionable mode at the requested position
             return me.grid.setActionableMode(true, position);

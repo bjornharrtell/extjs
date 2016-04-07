@@ -736,175 +736,278 @@ describe("Ext.util.Focusable", function() {
         });
     });
 
-    describe('Disabling focused component', function() {
-        it('should move focus to a relation', function() {
-            var p = new Ext.panel.Panel({
+    describe("Focus and state changes", function() {
+        var panel, fieldset, textfield1, textfield2, button1, button2;
+        
+        beforeEach(function() {
+            panel = new Ext.panel.Panel({
                 renderTo: document.body,
+                
                 items: [{
-                    xtype: 'textfield'
-                }],
-                bbar: [{
-                    text: 'Button 1'
-                }, {
-                    text: 'Button 2'
-                }]
-            }),
-            textfield = p.down('textfield'),
-            button1 = p.down('[text=Button 1]'),
-            button2 = p.down('[text=Button 2]'),
-            textFieldFocusSpy = spyOn(textfield, 'focus'),
-            button2FocusSpy = spyOn(button2, 'focus');
-
-            // Fake focusing button 1 just so that it will call focus on button2.
-            // Real focusing will not work in test situation.
-            button1.hasFocus = true;
-            button1.disable();
-            
-            // Disabling b1 should call button2.focus()
-            expect(button2FocusSpy.callCount).toBe(1);
-
-            button2.hasFocus = true;
-            button2.disable();
-
-            // Disabling b2 should call textfield.focus()
-            expect(textFieldFocusSpy.callCount).toBe(1);
-
-            p.destroy();
-        });
-    });
-
-    describe('Focusing disabled component', function() {
-        it('should move focus to a relation', function() {
-            var p = new Ext.panel.Panel({
-                renderTo: document.body,
-                items: [{
-                    xtype: 'textfield'
-                }],
-                bbar: [{
-                    text: 'Button 1',
-                    disabled: true
-                }, {
-                    text: 'Button 2'
-                }]
-            }),
-            textfield = p.down('textfield'),
-            button1 = p.down('[text=Button 1]'),
-            button2 = p.down('[text=Button 2]'),
-            textFieldFocusSpy = spyOn(textfield, 'focus'),
-            button2FocusSpy = spyOn(button2, 'focus');
-
-            // Because it is disabled, focus should move to button 2
-            button1.focus();
-            
-            // Disabling b1 should call button2.focus()
-            expect(button2FocusSpy.callCount).toBe(1);
-
-            button2.hasFocus = true;
-            button2.disable();
-
-            // Disabling b2 should call textfield.focus()
-            expect(textFieldFocusSpy.callCount).toBe(1);
-
-            p.destroy();
-        });
-    });
-
-    describe('Hiding a component which contains focus when previous focus has been disabled', function() {
-        it('should move focus to a relation or the previously focused component', function() {
-            var p = new Ext.panel.Panel({
-                renderTo: document.body,
-                items: [{
-                    xtype: 'textfield'
+                    xtype: 'textfield',
+                    id: 'textfield1',
                 }, {
                     xtype: 'fieldset',
+                    id: 'fieldset',
                     items: [{
-                        xtype: 'textfield'
+                        xtype: 'textfield',
+                        id: 'textfield2'
                     }]
                 }],
-                bbar: [{
-                    text: 'Button 1'
-                }, {
-                    text: 'Button 2'
-                }]
-            }),
-            fieldset = p.down('fieldset'),
-            textfield = fieldset.down('textfield'),
-            button1 = p.down('[text=Button 1]'),
-            button2 = p.down('[text=Button 2]');
+                
+                bbar: {
+                    // NOT toolbar here! Toolbars are FocusableContainers,
+                    // which adds its own share of complexity
+                    xtype: 'container',
+                    
+                    items: [{
+                        xtype: 'button',
+                        id: 'button1',
+                        text: 'Button 1'
+                    }, {
+                        xtype: 'button',
+                        id: 'button2',
+                        text: 'Button 2'
+                    }]
+                }
+            });
             
-            button1.focus();
-            waitsFor(function() {
-                return button1.hasFocus;
+            fieldset = panel.down('#fieldset');
+            textfield1 = panel.down('#textfield1');
+            textfield2 = panel.down('#textfield2');
+            button1 = panel.down('#button1');
+            button2 = panel.down('#button2');
+        });
+        
+        afterEach(function() {
+            panel.destroy();
+            panel = fieldset = textfield1 = textfield2 = button1 = button2 = null;
+        });
+        
+        describe("disabling focused component", function() {
+            it("should move focus to next sibling", function() {
+                focusAndWait(button1);
+                
+                runs(function() {
+                    // Disabling b1 should call button2.focus()
+                    button1.disable();
+                });
+                
+                expectFocused(button2);
             });
-
-            // Focus enters the fieldset, and the previously focused component
-            // (button1) should be cached at that point.
-            runs(function() {
-                textfield.focus();
+            
+            it("should move focus to previous sibling", function() {
+                focusAndWait(button2);
+                
+                runs(function() {
+                    // Disabling b2 should call button1.focus()
+                    button2.disable();
+                });
+                
+                expectFocused(button1);
             });
-
-            waitsFor(function() {
-                return fieldset.containsFocus;
+            
+            it("should move focus to a relation in parent container", function() {
+                focusAndWait(button2);
+                
+                runs(function() {
+                    button1.disable();
+                
+                    // Disabling b2 should call textfield.focus()
+                    button2.disable();
+                });
             });
-
-            // The hide should attempt to revert focus back to button1.
-            // But now that is disabled, it should go to button2
-            runs(function() {
-                button1.disable();
-                fieldset.hide();
+        });
+        
+        describe("focusing disabled component", function() {
+            it("should move focus to next sibling", function() {
+                runs(function() {
+                    button1.disable();
+                });
+                
+                // IEs need a small delay after disabling
+                jasmine.waitAWhile();
+                
+                runs(function() {
+                    button1.focus();
+                });
+                
+                expectFocused(button2);
             });
-
-            waitsFor(function() {
-                return button2.hasFocus;
+            
+            it("should move focus to previous sibling", function() {
+                runs(function() {
+                    button2.disable();
+                });
+                
+                // IEs need a small delay after disabling
+                jasmine.waitAWhile();
+                
+                runs(function() {
+                    button2.focus();
+                });
+                
+                expectFocused(button1);
             });
-
-            runs(function() {
-                p.destroy();
+            
+            it("should move focus to a relation in parent container", function() {
+                runs(function() {
+                    button1.disable();
+                    button2.disable();
+                });
+                
+                // IEs need a small delay after disabling
+                jasmine.waitAWhile();
+                
+                runs(function() {
+                    button1.focus();
+                });
+                
+                expectFocused(textfield1);
+            });
+        });
+        
+        describe("hiding component that contains focus", function() {
+            it("should move focus to a relation or the previously focused component", function() {
+                focusAndWait(button1);
+                
+                // Focus enters the fieldset, and the previously focused component
+                // (button1) should be cached at that point.
+                focusAndWait(textfield2);
+                
+                runs(function() {
+                    button1.disable();
+                });
+                
+                // IEs need a small delay after disabling
+                jasmine.waitAWhile();
+                
+                // The hide should attempt to revert focus back to button1.
+                // But now that is disabled, it should go to button2
+                runs(function() {
+                    fieldset.hide();
+                });
+                
+                expectFocused(button2);
             });
         });
     });
     
-    describe('Wrapping a Component which contains focus', function() {
-        var container,
-            cmp,
-            newEl;
-
-        afterEach(function() {
-            container.destroy();
-            newEl.destroy();
-        });
-        it('should not call onFocusLeave on a Component which is wrapped', function() {
+    describe("Wrapping a Component which contains focus", function() {
+        var waitForFocus = jasmine.waitForFocus,
+            expectFocused = jasmine.expectFocused,
+            container, cmp, newEl;
+        
+        beforeEach(function() {
             container = new Ext.Container({
                 items: {
                     xtype: 'textfield'
                 },
                 renderTo: document.body
-            }),
-            cmp = container.child(),
-            newEl;
+            });
+            
+            cmp = container.child();
 
+            spyOn(container, 'onFocusEnter').andCallThrough();
             spyOn(container, 'onFocusLeave').andCallThrough();
+            spyOn(cmp, 'onFocusEnter').andCallThrough();
+            spyOn(cmp, 'onFocusLeave').andCallThrough();
+            
+            // Nudge input element to be repainted so it could focus
+            if (Ext.isIE8) {
+                +cmp.el.dom.offsetHeight;
+            }
 
             cmp.focus();
-
-            waitsFor(function() {
-                return container.containsFocus;
-            });
-
-            runs(function() {
-                expect(Ext.Element.getActiveElement() === cmp.inputEl.dom).toBe(true);
+            
+            // This will fail the tests if cmp doesn't focus,
+            // so we don't have to expect() it explicitly
+            waitForFocus(cmp);
+        });
+        
+        afterEach(function() {
+            Ext.destroy(container, newEl);
+            
+            container = cmp = newEl = null;
+        });
+        
+        describe("wrapping", function() {
+            beforeEach(function() {
+                // These were tripped by focusing the cmp above
+                container.onFocusEnter.reset();
+                container.onFocusLeave.reset();
+                cmp.onFocusEnter.reset();
+                cmp.onFocusLeave.reset();
+                
                 newEl = container.el.wrap();
+                
+                // Wait for a possible (it would be a bug) focus leave or enter of the component.
+                // We can't wait for something, because we want NOTHING to happen.
+                waits(100);
             });
-
-            // Wait for a possible (it would be a bug) focus leave of the component
-            // we can't wait for anything, because we want NOTHING to happen.
-            waits(10);
-
-            // The Component must have retained focus
-            runs(function() {
-                expect(container.onFocusLeave).not.toHaveBeenCalled();
+            
+            it("should retain focus on the Component", function() {
+                expectFocused(cmp, true);
+            });
+            
+            it("should retain hasFocus flag on the Component", function() {
+                expect(cmp.hasFocus).toBe(true);
+            });
+            
+            it("should retain containsFocus flag on the container", function() {
                 expect(container.containsFocus).toBe(true);
-                expect(Ext.Element.getActiveElement() === cmp.inputEl.dom).toBe(true);
+            });
+            
+            it("should not call onFocusEnter on the container", function() {
+                expect(container.onFocusEnter).not.toHaveBeenCalled();
+            });
+            
+            it("should not call onFocusLeave on the container", function() {
+                expect(container.onFocusLeave).not.toHaveBeenCalled();
+            });
+            
+            it("should not call onFocusEnter on the Component", function() {
+                expect(cmp.onFocusEnter).not.toHaveBeenCalled();
+            });
+            
+            it("should not call onFocusLeave on the Component", function() {
+                expect(cmp.onFocusLeave).not.toHaveBeenCalled();
+            });
+            
+            describe("unwrapping", function() {
+                beforeEach(function() {
+                    container.el.unwrap();
+                    
+                    waits(100);
+                });
+                
+                it("should retain focus on the Component", function() {
+                    expectFocused(cmp, true);
+                });
+                
+                it("should retain hasFocus flag on the Component", function() {
+                    expect(cmp.hasFocus).toBe(true);
+                });
+                
+                it("should retain containsFocus flag on the container", function() {
+                    expect(container.containsFocus).toBe(true);
+                });
+                
+                it("should not call onFocusEnter on the container", function() {
+                    expect(container.onFocusEnter).not.toHaveBeenCalled();
+                });
+                
+                it("should not call onFocusLeave on the container", function() {
+                    expect(container.onFocusLeave).not.toHaveBeenCalled();
+                });
+                
+                it("should not call onFocusEnter on the Component", function() {
+                    expect(cmp.onFocusEnter).not.toHaveBeenCalled();
+                });
+                
+                it("should not call onFocusLeave on the Component", function() {
+                    expect(cmp.onFocusLeave).not.toHaveBeenCalled();
+                });
             });
         });
     });

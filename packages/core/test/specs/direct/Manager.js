@@ -18,7 +18,7 @@ describe("Ext.direct.Manager", function() {
     });
     
     it("should init default varName", function() {
-        expect(Manager.getVarName()).toBe('Ext.app.REMOTING_API');
+        expect(Manager.getVarName()).toBe('Ext.REMOTING_API');
     });
     
     describe("handles Providers:", function() {
@@ -347,7 +347,7 @@ describe("Ext.direct.Manager", function() {
             Manager.providerClasses.test = provider = null;
             test = undefined;
             
-            delete Ext.app.REMOTING_API;
+            delete Ext.REMOTING_API;
         });
         
         describe("passing array", function() {
@@ -611,6 +611,7 @@ describe("Ext.direct.Manager", function() {
                 describe("failure", function() {
                     var error = [
                             'blerg',
+                            Ext.isIE8    ? "TypeError: 'nonexistent' is undefined" :
                             Ext.isIE     ? "ReferenceError: 'nonexistent' is undefined" :
                             Ext.isSafari ? "ReferenceError: Can't find variable: nonexistent" :
                                            "ReferenceError: nonexistent is not defined"

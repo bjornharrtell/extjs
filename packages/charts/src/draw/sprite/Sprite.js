@@ -60,11 +60,27 @@ Ext.define('Ext.draw.sprite.Sprite', {
             fill: true,
             stroke: true
         }
+        //<debug>
+        /**
+         * Debug rendering options:
+         *
+         * debug: {
+         *     bbox: true, // renders the bounding box of the sprite
+         *     xray: true  // renders control points of the path (for Ext.draw.sprite.Path and descendants only)
+         * }
+         *
+         */
+        ,debug: false
+        //</debug>
     },
 
     inheritableStatics: {
         def: {
             processors: {
+                //<debug>
+                debug: 'default',
+                //</debug>
+
                 /**
                  * @cfg {String} [strokeStyle="none"] The color of the stroke (a CSS color value).
                  */
@@ -286,7 +302,6 @@ Ext.define('Ext.draw.sprite.Sprite', {
             },
 
             triggers: {
-                hidden: "canvas",
                 zIndex: "zIndex",
 
                 globalAlpha: "canvas",
@@ -326,38 +341,7 @@ Ext.define('Ext.draw.sprite.Sprite', {
             updaters: {
                 // 'bbox' updater is meant to be called by subclasses when changes
                 // to attributes are expected to result in a change in sprite's dimensions.
-                // 'bbox' is no standard attribute (in the sense that it doesn't have
-                // a processor = not explicitly declared and cannot be set by a user)
-                // and is calculated automatically by the 'getBBox' method.
-                // The 'bbox' attribute is created by the 'prepareAttributes' method
-                // of the Target modifier at construction time.
-                bbox: function (attr) {
-                    var hasRotation = attr.rotationRads !== 0,
-                        hasScaling = attr.scalingX !== 1 || attr.scalingY !== 1,
-                        noRotationCenter = attr.rotationCenterX === null || attr.rotationCenterY === null,
-                        noScalingCenter = attr.scalingCenterX === null || attr.scalingCenterY === null;
-
-                    // Both plain and tranformed bounding boxes need to be updated.
-                    // Mark them as such below.
-                    attr.bbox.plain.dirty = true;      // updated by the 'updatePlainBBox' method
-
-                    // Before transformed bounding box can be updated,
-                    // we must ensure that we have correct forward and inverse
-                    // transformation matrices (which are also created by the Target modifier),
-                    // so that they reflect the current state of the scaling, rotation
-                    // and other transformation attributes.
-                    // The 'applyTransformations' method does just that.
-
-                    // The 'dirtyTransform' flag (another implicit attribute)
-                    // is set to true when any of the transformation attributes change,
-                    // to let us know that transformation matrices need to be updated.
-
-                    attr.bbox.transform.dirty = true;  // updated by the 'updateTransformedBBox' method
-
-                    if (hasRotation && noRotationCenter || hasScaling && noScalingCenter) {
-                        this.scheduleUpdaters(attr, {transform: []});
-                    }
-                },
+                bbox: 'bboxUpdater',
 
                 zIndex: function (attr) {
                     attr.dirtyZIndex = true;
@@ -374,6 +358,11 @@ Ext.define('Ext.draw.sprite.Sprite', {
     /**
      * @property {Object} attr
      * The visual attributes of the sprite, e.g. strokeStyle, fillStyle, lineWidth...
+     */
+
+    /**
+     * @cfg {Ext.draw.modifier.Animation} animation
+     * @accessor
      */
 
     config: {
@@ -393,17 +382,20 @@ Ext.define('Ext.draw.sprite.Sprite', {
         // The `def` here is no longer a config, but an instance
         // of the AttributeDefinition class created with that config,
         // which can now be retrieved from `initialConfig`.
-        var initCfg = subClass.superclass.self.def.initialConfig,
+        var superclassCfg = subClass.superclass.self.def.initialConfig,
+            ownCfg = data.inheritableStatics && data.inheritableStatics.def,
             cfg;
 
         // If sprite defines attributes of its own, merge that with those of its parent.
-        if (data.inheritableStatics && data.inheritableStatics.def) {
-            cfg = Ext.merge({}, initCfg, data.inheritableStatics.def);
-            subClass.def = Ext.create('Ext.draw.sprite.AttributeDefinition', cfg);
+        if (ownCfg) {
+            cfg = Ext.Object.merge({}, superclassCfg, ownCfg);
+            subClass.def = new Ext.draw.sprite.AttributeDefinition(cfg);
             delete data.inheritableStatics.def;
         } else {
-            subClass.def = Ext.create('Ext.draw.sprite.AttributeDefinition', initCfg);
+            subClass.def = new Ext.draw.sprite.AttributeDefinition(superclassCfg);
         }
+
+        subClass.def.spriteClass = subClass;
     },
 
     constructor: function (config) {
@@ -413,6 +405,12 @@ Ext.define('Ext.draw.sprite.Sprite', {
         }
         //</debug>
         var me = this,
+            attributeDefinition = me.self.def,
+            // It is important to get defaults (make sure
+            // 'defaults' config applier of the AttributeDefinition is called,
+            // since it is initialized lazily) before the attributes
+            // are initialized ('initializeAttributes' call).
+            defaults = attributeDefinition.getDefaults(),
             modifiers;
 
         config = Ext.isObject(config) ? config : {};
@@ -424,9 +422,9 @@ Ext.define('Ext.draw.sprite.Sprite', {
         modifiers = Ext.Array.from(config.modifiers, true);
         me.prepareModifiers(modifiers);
         me.initializeAttributes();
-        me.setAttributes(me.self.def.getDefaults(), true);
+        me.setAttributes(defaults, true);
         //<debug>
-        var processors = me.self.def.getProcessors();
+        var processors = attributeDefinition.getProcessors();
         for (var name in config) {
             if (name in processors && me['get' + name.charAt(0).toUpperCase() + name.substr(1)]) {
                 Ext.raise('The ' + me.$className +
@@ -437,14 +435,30 @@ Ext.define('Ext.draw.sprite.Sprite', {
         me.setAttributes(config);
     },
 
+    /**
+     * @private
+     * Current state of the sprite.
+     * Set to `true` if the sprite needs to be repainted.
+     * @cfg {Boolean} dirty
+     * @accessor
+     */
+
     getDirty: function () {
         return this.attr.dirty;
     },
 
     setDirty: function (dirty) {
-        if ((this.attr.dirty = dirty)) {
-            if (this._parent) {
-                this._parent.setDirty(true);
+        // This could have been a regular attribute.
+        // Instead, it's a hidden one, which is initialized inside in the
+        // Target's modifier `prepareAttributes` method and is exposed
+        // as a config. The idea is to skip the modifier chain when
+        // we simply need to change the sprite's state and notify
+        // the sprite's parent.
+        this.attr.dirty = dirty;
+        if (dirty) {
+            var parent = this.getParent();
+            if (parent) {
+                parent.setDirty(true);
             }
         }
     },
@@ -484,6 +498,14 @@ Ext.define('Ext.draw.sprite.Sprite', {
         for (i = 0, ln = additionalModifiers.length; i < ln; i++) {
             me.addModifier(additionalModifiers[i], false);
         }
+    },
+
+    getAnimation: function () {
+        return this.fx;
+    },
+
+    setAnimation: function (config) {
+        this.fx.setConfig(config);
     },
 
     initializeAttributes: function () {
@@ -559,48 +581,78 @@ Ext.define('Ext.draw.sprite.Sprite', {
      * If used, the `updaters` parameter will be treated as an array of updaters to be called.
      */
     scheduleUpdaters: function (attr, updaters, triggers) {
-        var pendingUpdaters = attr.pendingUpdaters,
-            updater;
-
-        function schedule() {
-            if (updater in pendingUpdaters) {
-                if (triggers.length) {
-                    pendingUpdaters[updater] = Ext.Array.merge(pendingUpdaters[updater], triggers);
-                }
-            } else {
-                pendingUpdaters[updater] = triggers;
-            }
-        }
+        var updater;
 
         if (triggers) {
             for (var i = 0, ln = updaters.length; i < ln; i++) {
                 updater = updaters[i];
-                schedule();
+                this.scheduleUpdater(attr, updater, triggers);
             }
         } else {
             for (updater in updaters) {
                 triggers = updaters[updater];
-                schedule();
+                this.scheduleUpdater(attr, updater, triggers);
             }
         }
     },
 
     /**
+     * @private
+     * @param attr {Object} The attributes object (not necesseraly of a sprite, but of its instance).
+     * @param updater {String} Updater to be called.
+     * @param {String[]} [triggers] Attributes that triggered the update.
+     */
+    scheduleUpdater: function (attr, updater, triggers) {
+        triggers = triggers || [];
+
+        var pendingUpdaters = attr.pendingUpdaters;
+
+        if (updater in pendingUpdaters) {
+            if (triggers.length) {
+                pendingUpdaters[updater] = Ext.Array.merge(pendingUpdaters[updater], triggers);
+            }
+        } else {
+            pendingUpdaters[updater] = triggers;
+        }
+    },
+
+    /**
      * Set attributes of the sprite.
+     * By default only the attributes that have processors will be set
+     * and all other attributes will be filtered out as a result of the
+     * normalization process.
+     * The normalization process can be skipped. In that case all the given
+     * attributes will be set unprocessed. This will result in better
+     * performance, but might also pollute the sprite's attributes with
+     * unwanted attributes or attributes with invalid values, if one is not
+     * careful. See also {@link #setAttributesBypassingNormalization}.
+     * If normalization is skipped, one may also chose to avoid copying
+     * the given object. This may result in even better performance, but
+     * only in cases where most of the attributes have values that are
+     * different from the old values, because copying additionally checks
+     * if the value has changed.
      *
      * @param {Object} changes The content of the change.
      * @param {Boolean} [bypassNormalization] `true` to avoid normalization of the given changes.
      * @param {Boolean} [avoidCopy] `true` to avoid copying the `changes` object.
-     * The content of object may be destroyed.
+     * `bypassNormalization` should also be `true`. The content of object may be destroyed.
      */
     setAttributes: function (changes, bypassNormalization, avoidCopy) {
-        var attr = this.attr;
+        var attr = this.attr,
+            name, value, obj;
 
         if (bypassNormalization) {
             if (avoidCopy) {
                 this.topModifier.pushDown(attr, changes);
             } else {
-                this.topModifier.pushDown(attr, Ext.apply({}, changes));
+                obj = {};
+                for (name in changes) {
+                    value = changes[name];
+                    if (value !== attr[name]) {
+                        obj[name] = value;
+                    }
+                }
+                this.topModifier.pushDown(attr, obj);
             }
         } else {
             this.topModifier.pushDown(attr, this.self.def.normalize(changes));
@@ -621,6 +673,43 @@ Ext.define('Ext.draw.sprite.Sprite', {
     },
 
     /**
+     * @private
+     */
+    bboxUpdater: function (attr) {
+        var hasRotation = attr.rotationRads !== 0,
+            hasScaling = attr.scalingX !== 1 || attr.scalingY !== 1,
+            noRotationCenter = attr.rotationCenterX === null || attr.rotationCenterY === null,
+            noScalingCenter = attr.scalingCenterX === null || attr.scalingCenterY === null;
+
+        // 'bbox' is not a standard attribute (in the sense that it doesn't have
+        // a processor = not explicitly declared and cannot be set by a user)
+        // and is calculated automatically by the 'getBBox' method.
+        // The 'bbox' attribute is created by the 'prepareAttributes' method
+        // of the Target modifier at construction time.
+
+        // Both plain and tranformed bounding boxes need to be updated.
+        // Mark them as such below.
+        attr.bbox.plain.dirty = true;      // updated by the 'updatePlainBBox' method
+
+        // Before transformed bounding box can be updated,
+        // we must ensure that we have correct forward and inverse
+        // transformation matrices (which are also created by the Target modifier),
+        // so that they reflect the current state of the scaling, rotation
+        // and other transformation attributes.
+        // The 'applyTransformations' method does just that.
+
+        // The 'dirtyTransform' flag (another implicit attribute)
+        // is set to true when any of the transformation attributes change,
+        // to let us know that transformation matrices need to be updated.
+
+        attr.bbox.transform.dirty = true;  // updated by the 'updateTransformedBBox' method
+
+        if (hasRotation && noRotationCenter || hasScaling && noScalingCenter) {
+            this.scheduleUpdater(attr, 'transform');
+        }
+    },
+
+    /**
      * Returns the bounding box for the given Sprite as calculated with the Canvas engine.
      *
      * @param {Boolean} [isWithoutTransform] Whether to calculate the bounding box with the current transforms or not.
@@ -638,6 +727,9 @@ Ext.define('Ext.draw.sprite.Sprite', {
         }
 
         if (!isWithoutTransform) {
+            // If tranformations are to be applied ('dirtyTransform' is true),
+            // then this will itself call the 'getBBox' method
+            // to get the plain untransformed bbox and calculate its center.
             me.applyTransformations();
             if (transform.dirty) {
                 me.updateTransformedBBox(transform, plain);
@@ -650,6 +742,7 @@ Ext.define('Ext.draw.sprite.Sprite', {
     },
 
     /**
+     * @method
      * @protected
      * Subclass will fill the plain object with `x`, `y`, `width`, `height` information
      * of the plain bounding box of this sprite.
@@ -663,8 +756,8 @@ Ext.define('Ext.draw.sprite.Sprite', {
      * Subclass will fill the plain object with `x`, `y`, `width`, `height` information
      * of the transformed bounding box of this sprite.
      *
-     * @param {Object} transform Target object.
-     * @param {Object} plain Auxiliary object providing information of plain object.
+     * @param {Object} transform Target object (transformed bounding box) to populate.
+     * @param {Object} plain Untransformed bounding box.
      */
     updateTransformedBBox: function (transform, plain) {
         this.attr.matrix.transformBBox(plain, 0, transform);
@@ -772,9 +865,10 @@ Ext.define('Ext.draw.sprite.Sprite', {
     /**
      * @private
      *
-     * Calculates forward and inverse transform matrices from sprite's attributes
-     * for scaling, rotation, etc.
-     * @param {Boolean} [force=false] Forces recalculation of transform matrices even when sprite's transform attributes supposedly haven't changed.
+     * Calculates forward and inverse transform matrices from sprite's attributes.
+     * Transformations are applied in the following order: Scaling, Rotation, Translation.
+     * @param {Boolean} [force=false] Forces recalculation of transform matrices even when
+     * sprite's transform attributes supposedly haven't changed.
      */
     applyTransformations: function (force) {
         if (!force && !this.attr.dirtyTransform) {
@@ -786,8 +880,8 @@ Ext.define('Ext.draw.sprite.Sprite', {
             centerX = center[0],
             centerY = center[1],
 
-            x = attr.translationX,
-            y = attr.translationY,
+            tx = attr.translationX,
+            ty = attr.translationY,
 
             sx = attr.scalingX,
             sy = attr.scalingY === null ? attr.scalingX : attr.scalingY,
@@ -799,7 +893,9 @@ Ext.define('Ext.draw.sprite.Sprite', {
             rcy = attr.rotationCenterY === null ? centerY : attr.rotationCenterY,
 
             cos = Math.cos(rad),
-            sin = Math.sin(rad);
+            sin = Math.sin(rad),
+
+            tx_4, ty_4;
 
         if (sx === 1 && sy === 1) {
             scx = 0;
@@ -811,15 +907,132 @@ Ext.define('Ext.draw.sprite.Sprite', {
             rcy = 0;
         }
 
+        // Translation component after steps 1-4 (see below).
+        // Saving it here to prevent double calculation.
+        tx_4 = scx * (1 - sx) - rcx;
+        ty_4 = scy * (1 - sy) - rcy;
+
+        // The matrix below is a result of:
+        //     (7)          (6)             (5)             (4)           (3)           (2)           (1)
+        // | 1 0 tx |   | 1 0 rcx |   | cos -sin 0 |   | 1 0 -rcx |   | 1 0 scx |   | sx 0 0 |   | 1 0 -scx |
+        // | 0 1 ty | * | 0 1 rcy | * | sin  cos 0 | * | 0 1 -rcy | * | 0 1 scy | * | 0 sy 0 | * | 0 1 -scy |
+        // | 0 0  1 |   | 0 0  1  |   |  0    0  1 |   | 0 0  1   |   | 0 0  1  |   | 0  0 0 |   | 0 0  1   |
         attr.matrix.elements = [
-            cos * sx, sin * sy,
-            -sin * sx, cos * sy,
-            scx + (rcx - cos * rcx - scx + rcy * sin) * sx + x,
-            scy + (rcy - cos * rcy - scy + rcx * -sin) * sy + y
+            cos * sx, sin * sx,
+            -sin * sy, cos * sy,
+            cos * tx_4 - sin * ty_4 + rcx + tx,
+            sin * tx_4 + cos * ty_4 + rcy + ty
         ];
         attr.matrix.inverse(attr.inverseMatrix);
         attr.dirtyTransform = false;
         attr.bbox.transform.dirty = true;
+    },
+
+    /**
+     * Pre-multiplies the current transformation matrix of a sprite with the given matrix.
+     * If `isSplit` parameter is `true`, the resulting matrix is also split into
+     * individual components (scaling, rotation, translation) and corresponding sprite
+     * attributes are updated. The shearing component is not extracted.
+     * Note, that transformation attributes work as if transformations are applied to the
+     * local coordinate system of a sprite, while matrix transformations transform
+     * the global coordinate space or the surface grid.
+     * Since the `transform` method returns the sprite itself, calls to the method
+     * can be chained. And if updating sprite transformation attributes is desired,
+     * it can be achieved by setting the `isSplit` parameter of the last call to `true`.
+     * For example:
+     *
+     *     sprite.transform(matrixA).transform(matrixB).transform(matrixC, true);
+     *
+     * @param {Ext.draw.Matrix/Number[]} matrix A transformation maxtrix or array of its elements.
+     * @param {Boolean} [isSplit=false] If 'true', transformation attributes are updated.
+     * @return {Ext.draw.sprite.Sprite} This sprite.
+     */
+    transform: function (matrix, isSplit) {
+        var attr = this.attr,
+            spriteMatrix = attr.matrix,
+            elements;
+
+        if (matrix && matrix.isMatrix) {
+            elements = matrix.elements;
+        } else {
+            elements = matrix;
+        }
+        //<debug>
+        if (!(Ext.isArray(elements) && elements.length === 6)) {
+            Ext.raise("An instance of Ext.draw.Matrix or an array of 6 numbers is expected.");
+        }
+        //</debug>
+
+        spriteMatrix.prepend.apply(spriteMatrix, elements.slice());
+        spriteMatrix.inverse(attr.inverseMatrix);
+
+        if (isSplit) {
+            this.updateTransformAttributes();
+        }
+
+        attr.dirtyTransform = false;
+        attr.bbox.transform.dirty = true;
+
+        this.setDirty(true);
+
+        return this;
+    },
+
+    /**
+     * @private
+     */
+    updateTransformAttributes: function () {
+        var attr = this.attr,
+            split = attr.matrix.split();
+
+        attr.rotationRads = split.rotate;
+        attr.rotationCenterX = 0;
+        attr.rotationCenterY = 0;
+        attr.scalingX = split.scaleX;
+        attr.scalingY = split.scaleY;
+        attr.scalingCenterX = 0;
+        attr.scalingCenterY = 0;
+        attr.translationX = split.translateX;
+        attr.translationY = split.translateY;
+    },
+
+    /**
+     * Resets current transformation matrix of a sprite to the identify matrix.
+     * @param {Boolean} [isSplit=false] If 'true', transformation attributes are updated.
+     * @return {Ext.draw.sprite.Sprite} This sprite.
+     */
+    resetTransform: function (isSplit) {
+        var attr = this.attr;
+
+        attr.matrix.reset();
+        attr.inverseMatrix.reset();
+
+        if (!isSplit) {
+            this.updateTransformAttributes();
+        }
+
+        attr.dirtyTransform = false;
+        attr.bbox.transform.dirty = true;
+
+        this.setDirty(true);
+
+        return this;
+    },
+
+    /**
+     * Resets current transformation matrix of a sprite to the identify matrix
+     * and pre-multiplies it with the given matrix.
+     * This is effectively the same as calling {@link #resetTransform},
+     * followed by {@link #transform} with the same arguments.
+     * @param {Array} matrix The transformation matrix to apply or its raw elements as an array.
+     * @param {Boolean} [isSplit=false] If `true`, transformation attributes are updated.
+     * @return {Ext.draw.sprite.Sprite} This sprite.
+     */
+    setTransform: function (matrix, isSplit) {
+        this.resetTransform(true);
+        this.transform.call(this, matrix, isSplit);
+
+        return this;
     },
 
     /**
@@ -828,6 +1041,7 @@ Ext.define('Ext.draw.sprite.Sprite', {
     preRender: Ext.emptyFn,
 
     /**
+     * @method
      * Render method.
      * @param {Ext.draw.Surface} surface The surface.
      * @param {Object} ctx A context object compatible with CanvasRenderingContext2D.
@@ -839,6 +1053,29 @@ Ext.define('Ext.draw.sprite.Sprite', {
      */
     render: Ext.emptyFn,
 
+    //<debug>
+    /**
+     * @private
+     * Renders the bounding box of transformed sprite.
+     */
+    renderBBox: function (surface, ctx) {
+        var bbox = this.getBBox();
+
+        ctx.beginPath();
+        ctx.moveTo(bbox.x, bbox.y);
+        ctx.lineTo(bbox.x + bbox.width, bbox.y);
+        ctx.lineTo(bbox.x + bbox.width, bbox.y + bbox.height);
+        ctx.lineTo(bbox.x, bbox.y + bbox.height);
+        ctx.closePath();
+
+        ctx.strokeStyle = 'red';
+        ctx.strokeOpacity = 1;
+        ctx.lineWidth = 0.5;
+
+        ctx.stroke();
+    },
+    //</debug>
+
     /**
      * Performs a hit test on the sprite.
      * @param {Array} point A two-item array containing x and y coordinates of the point.
@@ -849,19 +1086,42 @@ Ext.define('Ext.draw.sprite.Sprite', {
     hitTest: function (point, options) {
         // Meant to be overridden in subclasses for more precise hit testing.
         // This version doesn't take any options and simply hit tests sprite's
-        // bounding box.
-        var x = point[0],
-            y = point[1],
-            bbox = this.getBBox(),
-            isBBoxHit = bbox && x >= bbox.x && x <= (bbox.x + bbox.width) &&
-                                y >= bbox.y && y <= (bbox.y + bbox.height);
-
-        if (isBBoxHit) {
-            return {
-                sprite: this
+        // bounding box, if the sprite is visible.
+        if (this.isVisible()) {
+            var x = point[0],
+                y = point[1],
+                bbox = this.getBBox(),
+                isBBoxHit = bbox && x >= bbox.x && x <= (bbox.x + bbox.width) &&
+                                    y >= bbox.y && y <= (bbox.y + bbox.height);
+            if (isBBoxHit) {
+                return {
+                    sprite: this
+                };
             }
         }
         return null;
+    },
+
+    /**
+     * @private
+     * Checks if the sprite can be seen.
+     * This includes the `hidden` attribute check, alpha/opacity checks,
+     * fill/stroke color checks and surface/parent checks.
+     * The method doesn't check if the sprite is off-screen.
+     * @return {Boolean} Returns `true`, if the sprite can be seen.
+     */
+    isVisible: function () {
+        var attr = this.attr,
+            parent = this.getParent(),
+            hasParent = parent && (parent.isSurface || parent.isVisible()),
+            isSeen = hasParent && !attr.hidden && attr.globalAlpha,
+            none1 = Ext.draw.Color.NONE,
+            none2 = Ext.draw.Color.RGBA_NONE,
+            hasFill = attr.fillOpacity && attr.fillStyle !== none1 && attr.fillStyle !== none2,
+            hasStroke = attr.strokeOpacity && attr.strokeStyle !== none1 && attr.strokeStyle !== none2,
+            result = isSeen && (hasFill || hasStroke);
+
+        return !!result;
     },
 
     repaint: function () {
@@ -874,7 +1134,7 @@ Ext.define('Ext.draw.sprite.Sprite', {
     /**
      * Removes this sprite from its surface.
      * The sprite itself is not destroyed.
-     * @returns {Boolean} Returns the removed sprite or `null` otherwise.
+     * @returns {Ext.draw.sprite.Sprite} Returns the removed sprite or `null` otherwise.
      */
     remove: function () {
         var surface = this.getSurface();
@@ -915,6 +1175,7 @@ Ext.define('Ext.draw.sprite.Sprite', {
     // and replace the `def` config with the instance that was created using that config.
     // Here we only create an AttributeDefinition instance for the base Sprite class,
     // attribute definitions for subclasses are created inside onClassExtended method.
-    this.def = Ext.create('Ext.draw.sprite.AttributeDefinition', this.def);
+    this.def = new Ext.draw.sprite.AttributeDefinition(this.def);
+    this.def.spriteClass = this;
 });
 

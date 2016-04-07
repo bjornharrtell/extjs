@@ -1,0 +1,28 @@
+@include tab-ui(
+    $ui: 'wizard',
+    $background-color: #fff,
+    $active-color: $wizard-primary-background-color,
+    $color: #888
+);
+
+@include tabbar-ui(
+    $ui: 'wizard',
+    $background-color: #fff
+);
+
+.wizard {
+    .x-form-inner {
+        background-color: #fff;
+    }
+}
+
+@media (max-width: 400px) {
+    .wizard {
+        .x-tab-icon {
+            margin: 0;
+        }
+        .x-tab .x-button-label {
+            display: none;
+        }
+    }
+}

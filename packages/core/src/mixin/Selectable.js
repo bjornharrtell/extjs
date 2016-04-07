@@ -17,7 +17,7 @@ Ext.define('Ext.mixin.Selectable', {
      * @event beforeselectionchange
      * Fires before an item is selected.
      * @param {Ext.mixin.Selectable} this
-     * @preventable selectionchange
+     * @preventable
      * @deprecated 2.0.0 Please listen to the {@link #selectionchange} event with an order of `before` instead.
      */
 

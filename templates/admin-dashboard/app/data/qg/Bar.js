@@ -34,5 +34,5 @@ Ext.define('Admin.data.qg.Bar', {
             "xvalue": 70,
             "yvalue": 640
         }
-    ]	
+    ]
 });

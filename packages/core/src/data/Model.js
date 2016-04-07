@@ -652,9 +652,28 @@ Ext.define('Ext.data.Model', {
     // @cmd-auto-dependency {aliasPrefix: "data.field."}
     /**
      * @cfg {Object[]/String[]} fields
-     * The fields for this model. This is an Array of `Ext.data.field.Field` definition
-     * objects or simply the field name. If just a name is given, the field type defaults
-     * to `auto`.
+     * An Array of `Ext.data.field.Field` config objects, simply the field 
+     * {@link Ext.data.field.Field#name name}, or a mix of config objects and strings. 
+     * If just a name is given, the field type defaults to `auto`.
+     * 
+     * In a {@link Ext.data.field.Field Field} config object you may pass the alias of 
+     * the `Ext.data.field.*` type using the `type` config option.
+     * 
+     *     // two fields are set:
+     *     // - an 'auto' field with a name of 'firstName'
+     *     // - and an Ext.data.field.Integer field with a name of 'age'
+     *     fields: ['firstName', {
+     *         type: 'int',
+     *         name: 'age'
+     *     }]
+     * 
+     * Fields will automatically be created at read time for any for any keys in the 
+     * data passed to the Model's {@link #proxy proxy's} 
+     * {@link Ext.data.reader.Reader reader} whose name is not explicitly configured in 
+     * the `fields` config.
+     * 
+     * Extending a Model class will inherit all the `fields` from the superclass / 
+     * ancestor classes.
      */
     /**
      * @property {Ext.data.field.Field[]} fields
@@ -937,10 +956,11 @@ Ext.define('Ext.data.Model', {
 
     /**
      * Sets the model instance's id field to the given id.
-     * @param {Number/String} id The new id
+     * @param {Number/String} id The new id.
+     * @param {Object} [options] See {@link #set}.
      */
-    setId: function (id) {
-        this.set(this.idProperty, id);
+    setId: function (id, options) {
+        this.set(this.idProperty, id, options);
     },
 
     /**
@@ -2195,6 +2215,8 @@ Ext.define('Ext.data.Model', {
          * of a field this may replace a previous field definition.
          *
          * @protected
+         * @static
+         * @inheritable
          * @since 5.0.0
          */
         addFields: function (newFields) {
@@ -2216,6 +2238,8 @@ Ext.define('Ext.data.Model', {
          * array).
          *
          * @protected
+         * @static
+         * @inheritable
          * @since 5.0.0
          */
         replaceFields: function (newFields, removeFields) {
@@ -2289,12 +2313,19 @@ Ext.define('Ext.data.Model', {
          * array).
          *
          * @protected
+         * @static
+         * @inheritable
          * @since 5.0.0
          */
         removeFields: function (removeFields) {
             this.replaceFields(null, removeFields);
         },
 
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         getIdFromData: function(data) {
             var T = this,
                 idField = T.idField,
@@ -2303,6 +2334,11 @@ Ext.define('Ext.data.Model', {
             return id;
         },
 
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         createWithId: function (id, data, session) {
             var d = data,
                 T = this;
@@ -2319,14 +2355,29 @@ Ext.define('Ext.data.Model', {
             return new T(d, session);
         },
         
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         getFields: function() {
             return this.fields;    
         },
 
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         getFieldsMap: function() {
             return this.fieldsMap;
         },
 
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         getField: function (name) {
             return this.fieldsMap[name] || null;
         },
@@ -2719,7 +2770,7 @@ Ext.define('Ext.data.Model', {
             if (field) {
                 f = field.isField ? field : this.fieldsMap[field];
                 if (f) {
-                    return f.compare(lhs, rhs) === 0;
+                    return f.isEqual(lhs, rhs);
                 }
             }
 

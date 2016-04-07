@@ -55,6 +55,7 @@
                         # generate json file
                         microload
                             -operation=manifest
+                            -fashion=${use.fashion}
                             -tpl=${build.microloader.json.tpl.embedded}
                             -out=${build.microloader.path}
                             -resourcePath=${build.out.base.path}
@@ -76,6 +77,7 @@
                         # generate json file
                         microload
                             -operation=manifest
+                            -fashion=${use.fashion}
                             -tpl=${build.microloader.json.tpl.standalone}
                             -out=${build.out.json.path}
                             -resourcePath=${build.out.base.path}
@@ -83,6 +85,7 @@
                         and
                         microload
                             -operation=manifest
+                            -fashion=${use.fashion}
                             -tpl=${build.microloader.json.tpl.external}
                             -out=${build.microloader.path}
                             -resourcePath=${build.out.base.path}
@@ -189,6 +192,7 @@
                     # generate json file
                     microload
                         -operation=manifest
+                        -fashion=${use.fashion}
                         -tpl=${build.microloader.json.tpl.embedded}
                         -out=${build.microloader.path}
                         -resourcePath=${build.out.base.path}

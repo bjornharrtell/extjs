@@ -1,3 +1,8 @@
+/**
+ * @class Global_CSS
+ * Global CSS variables and mixins.
+ */
+
 $touch-theme-base: true;
 
 /**
@@ -7,9 +12,7 @@ $touch-theme-base: true;
  */
 $font-icon-font-family: dynamic(FontAwesome);
 
-/**
-  Required by charts
-*/
+//Required by charts
 $font-size: dynamic(15px);
 $font-weight: dynamic(normal);
 $font-family: dynamic('Helvetica');

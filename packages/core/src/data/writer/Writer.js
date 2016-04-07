@@ -277,6 +277,8 @@ Ext.define('Ext.data.writer.Writer', {
     },
     
     /**
+     * @method
+     *
      * Write the record data to the request in the appropriate format.
      * @protected
      * @param {Ext.data.Request} request The request.

@@ -10,14 +10,16 @@ Ext.define('ExecDashboard.view.profitloss.ProfitLossController', {
                 quarter: {
                     items: [],
                     listeners: {
-                        click: me.onQuarterItemClick,
+                        beforecheckchange: me.validateCheckChange,
+                        checkchange: me.onQuarterItemCheck,
                         scope: me
                     }
                 },
                 region: {
                     items: [],
                     listeners: {
-                        click: me.onRegionItemClick,
+                        beforecheckchange: me.validateCheckChange,
+                        checkchange: me.onRegionItemCheck,
                         scope: me
                     }
                 }
@@ -59,12 +61,29 @@ Ext.define('ExecDashboard.view.profitloss.ProfitLossController', {
         });
     },
 
-    onQuarterItemClick: function (menuItem) {
+    /**
+     * Validate unchecking quarter or region items. We must not be able to hide all.
+     * @param {Ext.menu.CheckItem} item The menu CheckItem.
+     * @param {Boolean} newCheckedState The proposed new state.
+     * @returns {Boolean} `false` to veto the change.
+     */
+    validateCheckChange: function(item, newCheckedState) {
+        if (!newCheckedState) {
+            var checkedItems = item.parentMenu.query('[checked]');
+
+            // Do not allow unchecking of last item
+            if (checkedItems.length === 1 && checkedItems[0] === item) {
+                return false;
+            }
+        }
+    },
+
+    onQuarterItemCheck: function (menuItem) {
         var column = this.getView().getColumnManager().getHeaderByDataIndex(menuItem.value);
         column.setVisible(menuItem.checked);
     },
 
-    onRegionItemClick: function () {
+    onRegionItemCheck: function () {
         var view = this.getView(),
             filter = {
                 // The id ensures that this filter will be replaced by subsequent calls

@@ -32,19 +32,12 @@ Ext.define('Ext.grid.ColumnLayout', {
     beginLayout: function (ownerContext) {
         var me = this,
             owner = me.owner,
-            view = owner.grid ? owner.grid.getView() : null,
             firstCls = me.firstHeaderCls,
             lastCls = me.lastHeaderCls,
             bothCls = [firstCls, lastCls],
             items = me.getVisibleItems(),
             len = items.length,
             i, item;
-
-        if (view && view.scrollFlags.x) {
-            me.viewScrollX = view.getScrollX();
-            owner.suspendEvent('scroll');
-            view.suspendEvent('scroll');
-        }
 
         me.callParent([ ownerContext ]);
 
@@ -239,29 +232,14 @@ Ext.define('Ext.grid.ColumnLayout', {
     },
 
     finishedLayout: function(ownerContext) {
-        var me = this,
-            owner = me.owner,
-            view = owner.grid ? owner.grid.getView() : null,
-            viewScrollX = me.viewScrollX;
-
-        me.callParent([ ownerContext ]);
-
-        // Keep the HeaderContainer's horizontal scroll position synced with where the user
-        // has scrolled the view to (it will reset during a layout) IF this is a top lever
-        // grid HeaderContainer and the view is doing horizontal scrolling and the
-        // HeaderContainer overflows. Only do this after the initial layout where scroll
-        // position will be at default.
-        if (view && view.scrollFlags.x) {
-            if (viewScrollX !== undefined && owner.tooNarrow && owner.componentLayoutCounter) {
-                owner.setScrollX(viewScrollX);
-            }
-            view.resumeEvent('scroll');
-            owner.resumeEvent('scroll');
+        this.callParent([ ownerContext ]);
+        if (this.owner.ariaRole === 'rowgroup') {
+            this.innerCt.dom.setAttribute('role', 'row');
         }
-        
-        if (owner.ariaRole === 'rowgroup') {
-            me.innerCt.dom.setAttribute('role', 'row');
-        }
+
+        // Wipe this array because it holds component references and gets cached on the object
+        // Can cause a circular reference
+        ownerContext.props.columnsChanged = null;
     },
 
     convertWidthsToFlexes: function(ownerContext) {

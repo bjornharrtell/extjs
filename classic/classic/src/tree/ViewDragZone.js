@@ -12,14 +12,16 @@ Ext.define('Ext.tree.ViewDragZone', {
         var records = this.dragData.records,
             count = records.length,
             text = records[0].get(this.displayField),
-            suffix = 's';
-            
-        if (count === 1 && text) {
-            return text;    
+            suffix = 's',
+            formatRe = /\{\d+\}/,
+            dragText = this.dragText;
+
+        if (formatRe.test(dragText) && count === 1 && text) {
+            return text;
         } else if (!text) {
             suffix = '';
         }
-        return Ext.String.format(this.dragText, count, suffix);
+        return Ext.String.format(dragText, count, suffix);
     },
 
     afterRepair: function() {

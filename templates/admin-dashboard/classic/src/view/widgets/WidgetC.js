@@ -2,7 +2,7 @@ Ext.define('Admin.view.widgets.WidgetC', {
     extend: 'Ext.panel.Panel',
     xtype: 'widget-c',
 
-    cls:'admin-widget shadow-panel',
+    cls:'admin-widget shadow',
 
     items: [
         {
@@ -36,7 +36,7 @@ Ext.define('Admin.view.widgets.WidgetC', {
                 },
                 {
                     xtype: 'label',
-                    html: 'Art Designer'
+                    html: 'Software Engineer'
                 },
                 {
                     xtype: 'toolbar',

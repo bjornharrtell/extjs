@@ -27,6 +27,10 @@ Ext.define('KitchenSink.view.charts.line.Marked', {
     tbar: [
         '->',
         {
+            text: 'Toggle markers',
+            handler: 'onToggleMarkers'
+        },
+        {
             text: 'Preview',
             handler: 'onPreview'
         }

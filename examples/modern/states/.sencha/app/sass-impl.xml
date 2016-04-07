@@ -30,6 +30,7 @@
 
         <local name="var.begin"/>
         <local name="var.end"/>
+        <local name="resource.map.base"/>
 
         <condition property="var.begin" value="dynamic(">
             <isset property="framework.isV6"/>
@@ -41,6 +42,23 @@
         <property name="var.begin" value=""/>
         <property name="var.end" value="!default"/>
 
+        <condition property="resource.map.base" value="${css.output.rel.path}">
+            <x-is-true value="${app.sass.dynamic}"/>
+        </condition>
+        <property name="resource.map.base" value=""/>
+
+        <if>
+            <x-is-true value="${app.sass.dynamic}"/>
+            <then>
+                <x-get-relative-path
+                        from="${build.out.css.dir}"
+                        to="${build.out.base.path}"
+                        property="css.output.rel.path"/>
+            </then>
+        </if>
+
+        <property name="css.output.rel.path" value=""/>
+
         <x-compile refid="${compiler.ref.id}">
             <![CDATA[
                 ${sass.name.filter}
@@ -51,6 +69,7 @@
                     -variable=$app-name: ${var.begin} '${app.name}' ${var.end}
                     -variable=$image-search-path:'${image.search.path}'
                     -variable=$theme-name: ${var.begin} '${theme.name}' ${var.end}
+                    -resourceMapBase=${css.output.rel.path}
                     -output=${app.out.scss.tmp}
                     -forward=${app.sass.dynamic}
                 and

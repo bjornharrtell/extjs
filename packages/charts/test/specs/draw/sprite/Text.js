@@ -137,7 +137,10 @@ describe('Ext.draw.sprite.Text', function () {
     describe('fontWeight processor', function () {
         // See: http://www.w3.org/TR/css3-fonts/#propdef-font-weight
 
-        var fontWeight = Ext.draw.sprite.Text.def.getProcessors().fontWeight;
+        var def = Ext.draw.sprite.Text.def,
+            fontWeight = def.getProcessors().fontWeight;
+
+        fontWeight = Ext.Function.bind(fontWeight, def);
 
         it('should return an empty string for unrecognized values', function () {
             var a = fontWeight(Infinity),

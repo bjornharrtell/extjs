@@ -79,10 +79,19 @@ Ext.define('Ext.form.RadioGroup', {
     blankText : 'You must select one item in this group',
     //</locale>
 
-    /**
-     * @private
-     */
     defaultType : 'radiofield',
+
+    /**
+     * @cfg {Boolean} [local=false]
+     * By default, child {@link Ext.form.field.Radio radio} `name`s are scoped to the encapsulating {@link Ext.form.Panel form panel}
+     * if any, of the document.
+     *
+     * If you are using multiple `RadioGroup`s each of which uses the same `name` configuration in child {@link Ext.form.field.Radio radio}s, configure this as `true` to scope
+     * the names to within this `RadioGroup`
+     */
+    local: false,
+
+    defaultBindProperty: 'value',
 
     /**
      * @private
@@ -104,6 +113,18 @@ Ext.define('Ext.form.RadioGroup', {
         }
         
         return data;
+    },
+
+    lookupComponent: function(config) {
+        var result = this.callParent([config]);
+
+        // Local means that the exclusivity of checking by name is scoped to this RadioGroup.
+        // So multiple RadioGroups can be used which use the same Radio names.
+        // This enables their use as a grid widget.
+        if (this.local) {
+            result.formId = this.getId();
+        }
+        return result;
     },
     
     getBoxes: function(query, root) {
@@ -224,7 +245,10 @@ Ext.define('Ext.form.RadioGroup', {
                 item = checked[0];
             }
             else {
-                item = me.findNextFocusableChild(null, true, null, beforeRender);
+                item = me.findNextFocusableChild({
+                    beforeRender: beforeRender,
+                    step: 1
+                });
             }
             
             if (item) {

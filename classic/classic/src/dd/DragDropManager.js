@@ -435,7 +435,7 @@ Ext.define('Ext.dd.DragDropManager', {
      * returns "object", oDD.constructor.toString() always returns
      * "DragDrop" and not the name of the subclass.  So for now it just
      * evaluates a well-known variable in DragDrop.
-     * @param {Object} the object to evaluate
+     * @param {Object} oDD The object to evaluate
      * @return {Boolean} true if typeof oDD = DragDrop
      */
     isTypeOfDD: function (oDD) {
@@ -1019,27 +1019,12 @@ Ext.define('Ext.dd.DragDropManager', {
     /**
      * This checks to make sure an element exists and is in the DOM.  The
      * main purpose is to handle cases where innerHTML is used to remove
-     * drag and drop objects from the DOM.  IE provides an 'unspecified
-     * error' when trying to access the offsetParent of such an element
+     * drag and drop objects from the DOM.
      * @param {HTMLElement} el the element to check
      * @return {Boolean} true if the element looks usable
      */
     verifyEl: function(el) {
-        if (el) {
-            var parent;
-            if(Ext.isIE){
-                try{
-                    parent = el.offsetParent;
-                }catch(e){}
-            }else{
-                parent = el.offsetParent;
-            }
-            if (parent) {
-                return true;
-            }
-        }
-
-        return false;
+        return Ext.getBody().contains(el);
     },
 
     /**

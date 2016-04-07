@@ -1,5 +1,5 @@
 /**
- * This example shows how to use a Grid with a back end Store via Ext.Direct proxy.
+ * This example shows how to use a Grid with a back end Store via Ext Direct proxy.
  *
  * The grid will be populated with the data queried from a virtual "table" hardcoded
  * in the PHP script that handles the requests; sorting is also performed remotely.
@@ -14,7 +14,7 @@ Ext.define('KitchenSink.view.direct.Grid', {
     ],
     
     //<example>
-    exampleTitle: 'Grid with Ext.Direct back end',
+    exampleTitle: 'Grid with Ext Direct back end',
     exampleDescription: [
         '<p>This example shows how to connect a Grid to the remote server via a Direct proxy.</p>',
         '<p>The data is queried from a virtual "table"; there are two datasets hardcoded',

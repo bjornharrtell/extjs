@@ -1,13 +1,13 @@
 Ext.define('Admin.view.authentication.Register', {
     extend: 'Admin.view.authentication.LockingWindow',
-    xtype: 'authregister',
+    xtype: 'register',
 
     requires: [
         'Admin.view.authentication.Dialog',
+        'Ext.button.Button',
         'Ext.form.Label',
-        'Ext.form.field.Text',
         'Ext.form.field.Checkbox',
-        'Ext.button.Button'
+        'Ext.form.field.Text'
     ],
 
     title: 'User Registration',
@@ -137,7 +137,7 @@ Ext.define('Admin.view.authentication.Register', {
                 {
                     xtype: 'button',
                     scale: 'large',
-                    ui: 'soft-blue',
+                    ui: 'facebook',
                     margin: '5 0',
                     iconAlign: 'right',
                     iconCls: 'x-fa fa-facebook',
@@ -149,7 +149,7 @@ Ext.define('Admin.view.authentication.Register', {
                 {
                     xtype: 'component',
                     html: '<div style="text-align:right">' +
-                        '<a href="#authentication.login" class="link-forgot-password">'+
+                        '<a href="#login" class="link-forgot-password">'+
                             'Back to Log In</a>' +
                         '</div>'
                 }

@@ -2,7 +2,7 @@
     if (typeof window.Cmd === 'undefined') {
         return;
     }
-
+    
     if (typeof window.jasmine === 'undefined') {
         throw new Error("Jasmine library does not exist in global namespace!");
     }
@@ -97,6 +97,10 @@
             }
 
             Cmd.status.suiteFinished(suite.description);
+            
+            if (suite.cleanupResults) {
+                suite.cleanupResults();
+            }
         }
 
     };

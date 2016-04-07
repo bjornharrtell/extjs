@@ -251,12 +251,12 @@ Ext.onReady(function() {
         if (data.length < max) {
             setTimeout(makeData, 10);
         } else {
-            Ext.getBody().unmask();
+            grid.el.unmask();
             store.loadData(data);
         }
     }
     
-    Ext.getBody().mask('Generating fake data...');
+    grid.el.mask('Generating fake data...');
         
     // In old IE, the fake data loop can cause a slow script warning,
     // so kick this off in the "background" to load the data in chunks.

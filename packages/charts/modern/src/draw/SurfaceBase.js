@@ -4,4 +4,5 @@ Ext.define('Ext.draw.SurfaceBase', {
     getOwnerBody: function() {
         return this.getRefOwner().bodyElement;
     }
+
 });

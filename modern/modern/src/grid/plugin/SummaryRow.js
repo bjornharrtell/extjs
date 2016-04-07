@@ -42,7 +42,8 @@ Ext.define('Ext.grid.plugin.SummaryRow', {
                 add: 'doUpdateSummary',
                 remove: 'doUpdateSummary',
                 update: 'doUpdateSummary',
-                refresh: 'doUpdateSummary'
+                refresh: 'doUpdateSummary',
+                clear: 'doUpdateSummary'
             });
 
             grid.getHeaderContainer().on({
@@ -136,13 +137,6 @@ Ext.define('Ext.grid.plugin.SummaryRow', {
                     value = type.call(store, store.data.items.slice(), field);
                 } else {
                     switch (type) {
-                        default:
-                            value = Ext.callback(type, null, [
-                                    store.data.items.slice(), field, store
-                                ], 0, me);
-
-                            break;
-
                         case 'sum':
                         case 'average':
                         case 'min':
@@ -153,15 +147,21 @@ Ext.define('Ext.grid.plugin.SummaryRow', {
                         case 'count':
                             value = store.getCount();
                             break;
+                        default:
+                            value = Ext.callback(type, null, [
+                                    store.data.items.slice(), field, store
+                                ], 0, me);
+
+                            break;
                     }
                 }
 
                 if (renderer !== null) {
                     type = typeof renderer;
                     if (type === 'function') {
-                        value = renderer.call(store, value);
+                        value = renderer.call(store, value, store, field, cell);
                     } else if (type === 'string') {
-                        value = Ext.callback(renderer, null, [value, store], 0, me);
+                        value = Ext.callback(renderer, null, [value, store, field, cell], 0, me);
                     }
                 }
 

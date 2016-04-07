@@ -77,7 +77,7 @@ Ext.define('Ext.app.BaseController', {
          * {@link Ext.app.domain.Controller Controller} domain can be used to listen to events 
          * fired by other Controllers, {@link Ext.app.domain.Store Store} domain gives access to 
          * Store events, and {@link Ext.app.domain.Direct Direct} domain can be used with 
-         * Ext.Direct Providers to listen to their events.
+         * Ext Direct Providers to listen to their events.
          *
          * To listen to "bar" events fired by a controller with id="foo":
          *
@@ -453,7 +453,7 @@ Ext.define('Ext.app.BaseController', {
      * {@link Ext.GlobalEvents} Observable instance, {@link Ext.app.domain.Controller Controller}
      * domain can be used to listen to events fired by other Controllers,
      * {@link Ext.app.domain.Store Store} domain gives access to Store events, and
-     * {@link Ext.app.domain.Direct Direct} domain can be used with Ext.Direct Providers
+     * {@link Ext.app.domain.Direct Direct} domain can be used with Ext Direct Providers
      * to listen to their events.
      * 
      * To listen to "bar" events fired by a controller with id="foo":
@@ -611,7 +611,6 @@ Ext.define('Ext.app.BaseController', {
         } else {
             Ext.app.route.Router.onStateChange(token);
         }
-
         Ext.util.History.add(token);
 
         return true;

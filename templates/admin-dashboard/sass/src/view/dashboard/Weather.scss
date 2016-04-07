@@ -1,0 +1,24 @@
+.weather-panel {
+    background: #fff;
+}
+
+.weather-image-container {
+    height: 80px;
+    width: 100px;
+    float: left;
+    background: #82d9EA;
+    text-align: center;
+    padding-top: 20px;
+}
+
+.weather-details-container {
+    color: $progress-bar-background-color;
+    line-height: 20px;
+    float: left;
+    padding: 20px;
+
+    :first-child{
+        margin-bottom: 4px;
+        font-size: 30px;
+    }
+}

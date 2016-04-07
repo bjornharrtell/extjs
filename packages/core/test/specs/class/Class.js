@@ -676,21 +676,6 @@ describe("Ext.Class", function() {
                     expect(o.getBar()).toBe(8);
                 });
                 
-                it("should ignore non-config properties with no setter", function() {
-                    // Silence console error
-                    spyOn(Ext.log, 'error');
-                    
-                    o = new cls();
-
-                    o.setConfig({
-                        foo: 3,
-                        baz: 100
-                    });
-
-                    expect(o.getFoo()).toBe(3);
-                    expect(o.baz).toBeUndefined();
-                });
-
                 it("should call the setter for a non-config property if one exists and $configStrict is false", function() {
                     cls = Ext.define(null, {
                         $configStrict: false,
@@ -945,75 +930,373 @@ describe("Ext.Class", function() {
         });
         
         describe("$configStrict", function() {
-            it("should copy non-configs to the instance when true", function() {
-                cls = Ext.define(null, {
-                    $configStrict: true,
-                    config: {
-                        foo: 'bar'
-                    },
-                    constructor: defaultInitConfig
-                });
-                
-                o = new cls({
-                    baz: 1
-                });
-                expect(o.baz).toBe(1);
-            });
+            describe("initial config", function() {
+                it("should copy non-configs to the instance when true", function() {
+                    cls = Ext.define(null, {
+                        $configStrict: true,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig
+                    });
 
-            it("should not copy non-configs to the instance when true if the class has a method by the same name", function() {
-                Ext.define('spec.MyClass', {
-                    $configStrict: true,
-                    config: {
-                        foo: 'bar'
-                    },
-                    constructor: defaultInitConfig,
-                    baz: Ext.emptyFn
-                });
-
-                expect(function() {
-                    o = new spec.MyClass({
+                    o = new cls({
                         baz: 1
                     });
-                }).toThrow('Cannot override method baz on spec.MyClass instance.');
+                    expect(o.baz).toBe(1);
+                });
 
-                Ext.undefine('spec.MyClass');
+                it("should not copy non-configs to the instance when true if the class has a non-$nullFn method by the same name", function() {
+                    Ext.define('spec.MyClass', {
+                        $configStrict: true,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: function () {}
+                    });
+
+                    expect(function() {
+                        o = new spec.MyClass({
+                            baz: 1
+                        });
+                    }).toThrow('Cannot override method baz on spec.MyClass instance.');
+
+                    Ext.undefine('spec.MyClass');
+                });
+
+                it("should copy non-configs to the instance when false if the class has a non-$nullFn method by the same name", function() {
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: function () {}
+                    });
+
+                    o = new cls({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+                });
+
+                it("should copy non-configs to the instance when false", function() {
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig
+                    });
+
+                    o = new cls({
+                        baz: 1
+                    });
+                    expect(o.baz).toBe(1);
+                });
+
+                it("should not copy if the subclass sets the property to true", function() {
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig
+                    });
+                    sub = Ext.define(null, {
+                        extend: sub,
+                        $configStrict: true
+                    });
+
+                    o = new sub({
+                        baz: 1
+                    });
+                    expect(o.baz).not.toBeDefined();
+                });
+
+                it('should copy non-configs to the instance when true if the class has a emptyFn by the same name', function() {
+                    cls = Ext.define(null, {
+                        $configStrict: true,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: Ext.emptyFn
+                    });
+
+                    o = new cls({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+                });
+
+                it('should copy non-configs to the instance when true if the class has a identityFn by the same name', function() {
+                    cls = Ext.define(null, {
+                        $configStrict: true,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: Ext.identityFn
+                    });
+
+                    o = new cls({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+                });
+
+                it('should copy non-configs to the instance when false if the class has a emptyFn by the same name', function() {
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: Ext.emptyFn
+                    });
+
+                    o = new cls({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+                });
+
+                it('should copy non-configs to the instance when false if the class has a identityFn by the same name', function() {
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: Ext.identityFn
+                    });
+
+                    o = new cls({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+                });
             });
-            
-            it("should copy non-configs to the instance when false", function() {
-                cls = Ext.define(null, {
-                    $configStrict: false,
-                    config: {
-                        foo: 'bar'
-                    },
-                    constructor: defaultInitConfig
+
+            describe("reconfigure", function() {
+                it("should copy non-configs to the instance with warning when true", function() {
+                    spyOn(Ext.log, 'warn');
+
+                    Ext.define('spec.MyClass', {
+                        $configStrict: true,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig
+                    });
+
+                    o = new spec.MyClass();
+
+                    o.setConfig({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+
+                    expect(Ext.log.warn).toHaveBeenCalledWith('No such config "baz" for class spec.MyClass');
+
+                    Ext.undefine('spec.MyClass');
                 });
-                
-                o = new cls({
-                    baz: 1
+
+                it("should copy non-configs to the instance without warning when false", function() {
+                    spyOn(Ext.log, 'warn');
+
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig
+                    });
+
+                    o = new cls();
+
+                    o.setConfig({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+
+                    expect(Ext.log.warn).not.toHaveBeenCalled();
                 });
-                expect(o.baz).toBe(1);
-            }); 
-            
-            it("should not copy if the subclass sets the property to true", function() {
-                cls = Ext.define(null, {
-                    $configStrict: false,
-                    config: {
-                        foo: 'bar'
-                    },
-                    constructor: defaultInitConfig
+
+                it("should not copy non-configs to the instance when true if the class has a non-$nullFn method by the same name", function() {
+                    Ext.define('spec.MyClass', {
+                        $configStrict: true,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: function () {}
+                    });
+
+                    o = new spec.MyClass();
+
+                    expect(function() {
+                        o.setConfig({
+                            baz: 1
+                        });
+                    }).toThrow('Cannot override method baz on spec.MyClass instance.');
+
+                    Ext.undefine('spec.MyClass');
                 });
-                sub = Ext.define(null, {
-                    extend: sub,
-                    $configStrict: true
+
+                it("should copy non-configs to the instance without warning when false if the class has a non-$nullFn method by the same name", function() {
+                    spyOn(Ext.log, 'warn');
+
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: function () {}
+                    });
+
+                    o = new cls();
+
+                    o.setConfig({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+
+                    expect(Ext.log.warn).not.toHaveBeenCalled();
                 });
-                
-                o = new sub({
-                    baz: 1
+
+                it('should copy non-configs to the instance with warning when true if the class has a emptyFn by the same name', function() {
+                    spyOn(Ext.log, 'warn');
+
+                    Ext.define('spec.MyClass', {
+                        $configStrict: true,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: Ext.emptyFn
+                    });
+
+                    o = new spec.MyClass();
+
+                    o.setConfig({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+
+                    expect(Ext.log.warn).toHaveBeenCalledWith('No such config "baz" for class spec.MyClass');
+
+                    Ext.undefine('spec.MyClass');
                 });
-                expect(o.baz).not.toBeDefined();
+
+                it('should copy non-configs to the instance with warning when true if the class has a identityFn by the same name', function() {
+                    spyOn(Ext.log, 'warn');
+
+                    Ext.define('spec.MyClass', {
+                        $configStrict: true,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: Ext.identityFn
+                    });
+
+                    o = new spec.MyClass();
+
+                    o.setConfig({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+
+                    expect(Ext.log.warn).toHaveBeenCalledWith('No such config "baz" for class spec.MyClass');
+
+                    Ext.undefine('spec.MyClass');
+                });
+
+                it('should copy non-configs to the instance without warning when false if the class has a emptyFn by the same name', function() {
+                    spyOn(Ext.log, 'warn');
+
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: Ext.emptyFn
+                    });
+
+                    o = new cls();
+
+                    o.setConfig({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+
+                    expect(Ext.log.warn).not.toHaveBeenCalled();
+                });
+
+                it('should copy non-configs to the instance without warning when false if the class has a identityFn by the same name', function() {
+                    spyOn(Ext.log, 'warn');
+
+                    cls = Ext.define(null, {
+                        $configStrict: false,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: Ext.identityFn
+                    });
+
+                    o = new cls();
+
+                    o.setConfig({
+                        baz: 1
+                    });
+
+                    expect(o.baz).toBe(1);
+
+                    expect(Ext.log.warn).not.toHaveBeenCalled();
+                });
+
+                it('should copy a "type" property without warning when true', function() {
+                    spyOn(Ext.log, 'warn');
+
+                    cls = Ext.define(null, {
+                        $configStrict: true,
+                        config: {
+                            foo: 'bar'
+                        },
+                        constructor: defaultInitConfig,
+                        baz: Ext.emptyFn
+                    });
+
+                    o = new cls();
+
+                    o.setConfig({
+                        type: 1
+                    });
+
+                    expect(o.type).toBe(1);
+
+                    expect(Ext.log.warn).not.toHaveBeenCalled();
+                });
             });
         });
-        
+
         describe("$configPrefixed", function() {
             var defineCls = function(prefix, defaultValue) {
                 cls = Ext.define(null, {

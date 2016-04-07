@@ -1,5 +1,8 @@
 describe("Ext.view.View", function() {
-    var view, store, TestModel, navModel;
+    var view, store, TestModel, navModel,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
     
     TestModel = Ext.define(null, {
         extend : 'Ext.data.Model',
@@ -81,10 +84,22 @@ describe("Ext.view.View", function() {
     }
 
     beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+
         MockAjaxManager.addMethods();
     });
 
     afterEach(function() {
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+
         view = store = Ext.destroy(store, view);
         Ext.data.Model.schema.clear();
         MockAjaxManager.removeMethods();

@@ -135,6 +135,11 @@ Ext.define('Ext.util.ElementContainer', {
          *             }
          *         }
          *     });
+         * 
+         * **Note:** `childEl`s in the {@link Ext.Component#cfg-renderTpl renderTpl} 
+         * must be referenced in a **data-ref** attribute.  Notice in the above example 
+         * that the "title" `childEl` is set in the `renderTpl` using 
+         * **data-ref="title"**.
          *
          * When using `select`, the property will be an instance of {@link Ext.CompositeElement}.
          * In all other cases, the property will be an {@link Ext.dom.Element} or `null`

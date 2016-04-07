@@ -1,11 +1,10 @@
 Ext.define('Admin.view.dashboard.Dashboard', {
     extend: 'Ext.container.Container',
+    xtype: 'admindashboard',
 
     requires: [
         'Ext.ux.layout.ResponsiveColumn'
     ],
-
-    id: 'dashboard',
 
     controller: 'dashboard',
     viewModel: {
@@ -20,39 +19,40 @@ Ext.define('Admin.view.dashboard.Dashboard', {
 
     items: [
         {
-            xtype: 'dashboardnetworkpanel',
+            xtype: 'network',
 
             // 60% width when viewport is big enough,
             // 100% when viewport is small
-            responsiveCls: 'big-60 small-100'
+            userCls: 'big-60 small-100'
         },
         {
-            xtype: 'dashboardhddusagepanel',
-            responsiveCls: 'big-20 small-50'
+            xtype: 'hddusage',
+            userCls: 'big-20 small-50'
         },
         {
-            xtype: 'dashboardearningspanel',
-            responsiveCls: 'big-20 small-50'
+            xtype: 'earnings',
+            userCls: 'big-20 small-50'
         },
         {
-            xtype: 'dashboardsalespanel',
-            responsiveCls: 'big-20 small-50'
+            xtype: 'sales',
+            userCls: 'big-20 small-50'
         },
         {
-            xtype: 'dashboardtopmoviepanel',
-            responsiveCls: 'big-20 small-50'
+            xtype: 'topmovies',
+            userCls: 'big-20 small-50'
         },
         {
-            xtype: 'dashboardweatherpanel',
-            responsiveCls: 'big-40 small-100'
+            xtype: 'weather',
+            cls: 'weather-panel shadow',
+            userCls: 'big-40 small-100'
         },
         {
-            xtype: 'dashboardtodospanel',
-            responsiveCls: 'big-60 small-100'
+            xtype: 'todo',
+            userCls: 'big-60 small-100'
         },
         {
-            xtype: 'dashboardservicespanel',
-            responsiveCls: 'big-40 small-100'
+            xtype: 'services',
+            userCls: 'big-40 small-100'
         }
     ]
 });

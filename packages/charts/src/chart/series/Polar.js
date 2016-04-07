@@ -142,6 +142,8 @@ Ext.define('Ext.chart.series.Polar', {
         return count;
     },
 
+    isStoreDependantColorCount: true,
+
     getDefaultSpriteConfig: function () {
         return {
             type: this.seriesType,

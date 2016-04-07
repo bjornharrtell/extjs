@@ -9,7 +9,6 @@ Ext.define('KitchenSink.view.binding.TwoWayFormula', {
     //</example>
 
     viewModel: 'binding-twowayformula',
-    scrollable: false,
 
     items: {
         xtype: 'fieldset',

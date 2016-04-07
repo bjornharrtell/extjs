@@ -194,16 +194,16 @@ $grid-header-menu-glyph-color: dynamic($menu-glyph-color);
  * @var {string/list}
  * Glyph for the grid header menu "sort ascending" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$grid-header-menu-sort-asc-glyph: dynamic($fa-var-sort-alpha-asc $grid-header-menu-glyph-font-size $font-icon-font-family);
+$grid-header-menu-sort-asc-glyph: dynamic($ext-var-sort-up $grid-header-menu-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph for the grid header menu "sort descending" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$grid-header-menu-sort-desc-glyph: dynamic($fa-var-sort-alpha-desc $grid-header-menu-glyph-font-size $font-icon-font-family);
+$grid-header-menu-sort-desc-glyph: dynamic($ext-var-sort-down $grid-header-menu-glyph-font-size ExtJS);
 
 /**
  * @var {string/list}
  * Glyph for the grid header menu "columns" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
-$grid-header-menu-columns-glyph: dynamic($ext-icon-columns $grid-header-menu-glyph-font-size ExtJS);
+$grid-header-menu-columns-glyph: dynamic($ext-var-columns $grid-header-menu-glyph-font-size ExtJS);

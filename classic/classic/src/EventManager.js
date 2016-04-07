@@ -352,6 +352,7 @@ Ext.define('Ext.EventManager', {
     // no sense to check this every time, for every event, whether
     // the string is equal.
     /**
+     * @method
      * Resolve any text nodes accounting for browser differences.
      * @private
      * @param {HTMLElement} node The node

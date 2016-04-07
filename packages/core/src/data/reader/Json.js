@@ -270,11 +270,16 @@ Ext.define('Ext.data.reader.Json', {
     },
 
     getResponseData: function(response) {
+        var error;
+
         try {
             return Ext.decode(response.responseText);
         } catch (ex) {
+            error = this.createReadError(ex.message);
+
             Ext.Logger.warn('Unable to parse the JSON returned by the server');
-            return this.createReadError(ex.message);   
+            this.fireEvent('exception', this, response, error);
+            return error;
         }
     },
 

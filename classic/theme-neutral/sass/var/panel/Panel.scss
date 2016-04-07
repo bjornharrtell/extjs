@@ -293,7 +293,12 @@ $panel-frame-border-style: dynamic(solid);
 
 /**
  * @var {number}
- * The padding of framed Panels
+ * The padding of {@link Ext.panel.Panel#cfg-frame framed} Panels.
+ * 
+ * The padding value must be equal to or greater than value specified in the 
+ * {@link #$panel-frame-border-radius} variable (or the maximum value if corner values 
+ * are specified individually).  
+ * See also: {@link #$panel-ignore-frame-padding}
  */
 $panel-frame-padding: dynamic(4px);
 
@@ -415,5 +420,7 @@ $include-panel-default-framed-ui: dynamic($include-default-uis);
  * border radius is larger than border width.  This is intended to prevent the content
  * from colliding with the rounded corners of the frame.  Set this to true to prevent
  * the panel frame from adding this extra padding.
+ * 
+ * **Note:** This var is not applicable to IE8 & IE9.
  */
 $panel-ignore-frame-padding: dynamic(false);

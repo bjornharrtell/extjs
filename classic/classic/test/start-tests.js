@@ -8,6 +8,10 @@
     if (/disableTryCatch=true/i.test(top.location.search)) {
         this.jasmine.CATCH_EXCEPTIONS = false;
     }
+    
+    if (/disableLeakChecks=true/i.test(top.location.search)) {
+        this.jasmine.DISABLE_LEAK_CHECKS = true;
+    }
 
     if (window.Cmd) {
         top.Cmd = Cmd;

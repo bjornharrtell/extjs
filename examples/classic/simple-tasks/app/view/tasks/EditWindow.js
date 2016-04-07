@@ -49,7 +49,6 @@ Ext.define('SimpleTasks.view.tasks.EditWindow', {
             layout: 'anchor',
             bodyPadding: 10,
             border: false,
-            frame: true,
             items: [
                 {
                     xtype: 'textfield',
@@ -86,7 +85,7 @@ Ext.define('SimpleTasks.view.tasks.EditWindow', {
                     ]
                 },
                 {
-                    xtype: 'box',
+                    xtype: 'component',
                     autoEl: {
                         cls: 'divider'
                     }

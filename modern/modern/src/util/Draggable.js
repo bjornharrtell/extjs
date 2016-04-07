@@ -16,7 +16,7 @@ Ext.define('Ext.util.Draggable', {
 
     /**
      * @event dragstart
-     * @preventable initDragStart
+     * @preventable
      * Fires whenever the component starts to be dragged
      * @param {Ext.util.Draggable} this
      * @param {Ext.event.Event} e the event object

@@ -20,6 +20,7 @@ Ext.define('Ext.draw.Point', {
 
     statics: {
         /**
+         * @method
          * @static
          * Creates a flyweight Ext.draw.Point instance.
          * Takes the same parameters as the {@link Ext.draw.Point#constructor}.

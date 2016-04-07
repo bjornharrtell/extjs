@@ -521,6 +521,12 @@ describe("Ext.Date", function() {
     });
 
     describe("clearTime", function() {
+       it("should return 'Invalid Date' if the date is invalid", function() {
+           var date = new Date('foo'),
+               clearedTimeDate = Ext.Date.clearTime(date);
+           expect(clearedTimeDate.getTime()).toBeNaN();
+       });
+
        it("should reset hrs/mins/secs/millis to 0", function() {
            var date = new Date(2012, 11, 21, 21, 21, 21, 21);
            Ext.Date.clearTime(date);

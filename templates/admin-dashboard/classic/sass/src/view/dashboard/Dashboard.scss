@@ -18,64 +18,34 @@
         font-size: 14px;
     }
 }
-.dashboard-tools{
-    font-size: 18px;
-    color: #fff;
-    line-height: 15px;
-    .x-tool-img{
-        background-image: none;
-    }
-}
+
 .graph-analysis-left .x-progress-bar {
     background-color: $progress-bar-background-color;
 }
-#dashboard {
-    .quick-graph-panel {
-        .x-panel-header {
-            background: $lightest-color;
-            padding: 12px;
-            .x-tool-img {
-                display: none;
-            }
-            .x-fa, .x-title-text {
-                color: $color;
-                line-height: 16px;
-                &.x-title-text {
-                    padding-left: 10px;
-                }
-            }
-            .x-title-icon-wrap {
-                height: 30px;
-                width: 30px;
-                border-radius: 15px;
-                background: $chart-icon-background-color;
-                padding: 0;
-            }
+
+.quick-graph-panel {
+    .x-panel-header {
+        padding-left: 22px;
+    }
+
+    .x-title-icon {
+        position: relative;
+
+        &:before {
+            position: absolute;
+            height: 30px;
+            width: 30px;
+            top: -7px;
+            left: -7px;
+            border-radius: 15px;
+            background-color: #f1f1f1;
+            line-height: 30px;
+            text-align: center;
         }
     }
-}
 
-.weather-panel {
-    background: #fff;
-}
-
-.weather-image-container {
-    height: 80px;
-    width: 100px;
-    float: left;
-    background: $weather-img-background-color;
-    text-align: center;
-    padding-top: 20px;
-}
-.weather-details-container {
-    color: $progress-bar-background-color;
-    line-height: 20px;
-    float: left;
-    padding: 20px;
-
-    :first-child{
-        margin-bottom: 4px;
-        font-size: 30px;
+    .x-title-text {
+        padding-left: 8px;
     }
 }
 
@@ -180,4 +150,10 @@
 
 .white-panel {
     background: #fff;
+}
+
+// Custom Tool type: 'wrench'
+.#{$prefix}tool-wrench {
+    @include font-icon($fa-var-wrench 16px);
+    background: none;
 }

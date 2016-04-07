@@ -4,15 +4,15 @@ Ext.define('Admin.view.email.EmailController', {
     alias: 'controller.email',
 
     init: function() {
-        this.setCurrentView('emailinbox');
+        this.setCurrentView('inbox');
     },
 
     onBackBtnClick: function() {
-        this.setCurrentView('emailinbox');
+        this.setCurrentView('inbox');
     },
 
-    onMenuClick: function(menu, item){
-        if(item) {
+    onMenuClick: function (menu, item) {
+        if (item && item.routeId === 'emailcompose') {
             this.setCurrentView(item.routeId, item.params);
         }
     },

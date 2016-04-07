@@ -1,0 +1,50 @@
+@include button-ui(
+    $ui: 'launch',
+    $background-color: #fff,
+    $border-width: 0,
+    $padding: 14px,
+    $padding-big: 14px
+);
+
+.x-button-launch:after {
+    content: $fa-var-chevron-right;
+    font-family: FontAwesome;
+    font-size: 80%;
+    position: absolute;
+    right: 12px;
+    vertical-align: middle;
+    color: silver;
+}
+
+@include button-ui(
+    $ui: 'presence',
+    $background-color: #fff,
+    $border-width: 0,
+    $padding: 14px,
+    $padding-big: 14px
+);
+
+.x-button-presence:after {
+    content: $fa-var-circle;
+    font-family: FontAwesome;
+    font-size: 80%;
+    position: absolute;
+    right: 12px;
+    vertical-align: middle;
+    color: silver;
+}
+
+.x-button-presence.online:after {
+    color: green;
+}
+
+.inbox-unread {
+    .inbox-from, .inbox-title {
+        font-weight: 600;
+    }
+}
+
+.email-toolbox {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+}

@@ -4,27 +4,27 @@ Ext.define('Admin.view.authentication.AuthenticationController', {
 
     //TODO: implement central Facebook OATH handling here
 
-    onFaceBookLogin : function(button, e) {
-        this.redirectTo("dashboard");
+    onFaceBookLogin : function() {
+        this.redirectTo('dashboard', true);
     },
 
-    onLoginButton: function(button, e, eOpts) {
-        this.redirectTo("dashboard");
+    onLoginButton: function() {
+        this.redirectTo('dashboard', true);
     },
 
-    onLoginAsButton: function(button, e, eOpts) {
-        this.redirectTo("authentication.login");
+    onLoginAsButton: function() {
+        this.redirectTo('login', true);
     },
 
-    onNewAccount:  function(button, e, eOpts) {
-        this.redirectTo("authentication.register");
+    onNewAccount:  function() {
+        this.redirectTo('register', true);
     },
 
-    onSignupClick:  function(button, e, eOpts) {
-        this.redirectTo("dashboard");
+    onSignupClick:  function() {
+        this.redirectTo('dashboard', true);
     },
 
-    onResetClick:  function(button, e, eOpts) {
-        this.redirectTo("dashboard");
+    onResetClick:  function() {
+        this.redirectTo('dashboard', true);
     }
 });

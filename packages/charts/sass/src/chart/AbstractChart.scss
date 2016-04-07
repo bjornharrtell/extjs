@@ -66,7 +66,9 @@
   position: absolute;
   width: $chart-marker-size;
   height: $chart-marker-size;
-  @include border-radius($chart-marker-size/2);
+  @if ($chart-legend-border-radius) {
+    @include border-radius($chart-marker-size / 2);
+  }
   @include box-shadow(rgba(#fff, .3) 0 1px 0, rgba(#000, .4) 0 1px 0 inset);
   left: .7em;
   top: .85em;

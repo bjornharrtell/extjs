@@ -101,7 +101,7 @@ describe("Ext.form.action.DirectLoad", function() {
             createAction({ stringMethods: true });
             TestDirect = null;
             
-            var ex = 'Cannot resolve Ext.Direct API method TestDirect.load';
+            var ex = 'Cannot resolve Ext Direct API method TestDirect.load';
             
             expect(function() { action.run(); }).toThrow(ex);
         });

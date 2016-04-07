@@ -310,6 +310,12 @@ $menu-item-arrow-glyph-font-size: dynamic(16px);
 $menu-item-arrow-glyph: dynamic($fa-var-caret-right $menu-item-arrow-glyph-font-size $font-icon-font-family);
 
 /**
+ * @var {string/list}
+ * Glyph for the RTL menu arrow icon when {@link Global_CSS#$enable-font-icons} is `true`.
+ */
+$menu-item-arrow-glyph-rtl: dynamic($fa-var-caret-left $menu-item-arrow-glyph-font-size $font-icon-font-family);
+
+/**
  * @var {number}
  * The opacity of disabled {@link Ext.menu.Item Menu Items}
  */

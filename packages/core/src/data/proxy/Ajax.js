@@ -347,7 +347,7 @@ Ext.define('Ext.data.proxy.Ajax', {
     
     /**
      * Fires a request
-     * @param {Ext.data.Request} The request
+     * @param {Ext.data.Request} request The request
      * @return {Ext.data.Request} The request
      * @private
      */

@@ -42,6 +42,7 @@ Ext.define('Ext.chart.axis.segmenter.Segmenter', {
     },
 
     /**
+     * @method
      * Returns the difference between the min and max value based on the given unit scale.
      * 
      * @param {*} min The smaller value.
@@ -52,6 +53,7 @@ Ext.define('Ext.chart.axis.segmenter.Segmenter', {
     diff: Ext.emptyFn,
 
     /**
+     * @method
      * Align value with step of units.
      * For example, for the date segmenter, if the unit is "Month" and step is 3, the value will be aligned by
      * seasons.
@@ -64,6 +66,7 @@ Ext.define('Ext.chart.axis.segmenter.Segmenter', {
     align: Ext.emptyFn,
 
     /**
+     * @method
      * Add `step` `unit`s to the value.
      * @param {*} value  The value to be added.
      * @param {Number} step The step of units. Negative value are allowed.
@@ -72,6 +75,7 @@ Ext.define('Ext.chart.axis.segmenter.Segmenter', {
     add: Ext.emptyFn,
 
     /**
+     * @method
      * Given a start point and estimated step size of a range, determine the preferred step size.
      * 
      * @param {*} start The start point of range.

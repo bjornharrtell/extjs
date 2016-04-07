@@ -86,5 +86,12 @@ Ext.define('Ext.draw.sprite.Image', {
             Ext.Array.include(loadingStub.pendingSprites, me);
             Ext.Array.include(loadingStub.pendingSurfaces, surface);
         }
+
+        //<debug>
+        var debug = attr.debug || this.statics().debug || Ext.draw.sprite.Sprite.debug;
+        if (debug) {
+            debug.bbox && this.renderBBox(surface, ctx);
+        }
+        //</debug>
     }
 });

@@ -107,7 +107,7 @@ Ext.define('Ext.grid.locking.HeaderContainer', {
     },
 
     // Lockable uses its headerCt to apply column state
-    applyColumnsState: function (columns) {
+    applyColumnsState: function (columns, storeState) {
         var me             = this,
             lockedGrid     = me.lockable.lockedGrid,
             lockedHeaderCt = lockedGrid.headerCt,
@@ -130,7 +130,7 @@ Ext.define('Ext.grid.locking.HeaderContainer', {
 
             if (existing) {
                 if (existing.applyColumnState) {
-                    existing.applyColumnState(col);
+                    existing.applyColumnState(col, storeState);
                 }
                 if (existing.locked === undefined) {
                     existing.locked = !!lockedDefault;

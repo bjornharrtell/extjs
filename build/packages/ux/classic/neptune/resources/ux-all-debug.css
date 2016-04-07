@@ -22,11 +22,14 @@
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/GroupTabPanel.scss:2 */
 .x-grouptabpanel {
+    /* Main GroupTabPanel style */
     background-color: #4e78b1;
     border: solid 15px #4e78b1;
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/GroupTabPanel.scss:9 */
 .x-grouptabcontainer {
+    /* End of GroupTabPanel style */
+    /* Card Layout container */
     background-color: white;
     border-top: 1px solid #d9d9d9 !important;
     border-bottom: 1px solid #d9d9d9 !important;
@@ -34,6 +37,7 @@
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/GroupTabPanel.scss:17 */
 .x-grouptabpanel .x-grouptab .x-grid-cell-inner {
+    /* End of Card Layout container */
     font-family: tahoma, arial, sans-serif;
     text-decoration: none!important;
 }
@@ -65,7 +69,6 @@
     padding-left: 6px;
     padding-bottom: 2px;
     overflow: visible;
-    /* To allow round corner blobs (.x-grouptabs-corner) to occlude the element border */
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/GroupTabPanel.scss:51 */
 .x-grouptabbar .x-grouptab-first {
@@ -113,6 +116,7 @@
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/GroupTabPanel.scss:96 */
 .x-grouptabbar .x-grouptabs-corner {
+    /* Tab corners */
     background-image: url(images/grouptabpanel/corners.gif);
     display: none;
     width: 11px;
@@ -314,6 +318,7 @@
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/colorpick/Selector.scss:2 */
 .x-colorpicker {
+    /* The actual pop window with the color picker components */
     overflow: visible;
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/colorpick/Selector.scss:8 */
@@ -388,22 +393,30 @@
 /* http://localhost:1842/packages/ux/classic/sass/src/colorpick/Selector.scss:91 */
 .x-colorpicker-saturation > .x-colorpicker-draghandle-container {
     background: -mox-linear-gradient(top, #fff 0%, #000 100%);
+    /* FF3.6+ */
     background: -webkit-linear-gradient(top, #fff 0%, #000 100%);
+    /* Chrome10+,Safari5.1+ */
     background: -o-linear-gradient(top, #fff 0%, #000 100%);
+    /* Opera 11.10+ */
     background: -ms-linear-gradient(top, #fff 0%, #000 100%);
+    /* IE10+ */
     background: linear-gradient(to bottom, #fff 0%, #000 100%);
+    /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#000000',GradientType=0 );
-    /* IE6-9 */
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/colorpick/Selector.scss:102 */
 .x-colorpicker-value > .x-colorpicker-draghandle-container {
     background: -mox-linear-gradient(top, red 0%, #000 100%);
+    /* FF3.6+ */
     background: -webkit-linear-gradient(top, red 0%, #000 100%);
+    /* Chrome10+,Safari5.1+ */
     background: -o-linear-gradient(top, red 0%, #000 100%);
+    /* Opera 11.10+ */
     background: -ms-linear-gradient(top, red 0%, #000 100%);
+    /* IE10+ */
     background: linear-gradient(to bottom, red 0%, #000 100%);
+    /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff0000', endColorstr='#000000',GradientType=0 );
-    /* IE6-9 */
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/colorpick/Selector.scss:113 */
 .x-colorpicker-alpha > .x-colorpicker-draghandle-container {
@@ -497,6 +510,7 @@
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/form/ItemSelector.scss:3 */
 .x-form-multiselect-body .x-boundlist .x-mask {
+    /* Styles used by Ext.ux.form.ItemSelector */
     background: none;
 }
 /* http://localhost:1842/packages/ux/classic/sass/src/form/ItemSelector.scss:7 */
@@ -531,11 +545,11 @@
 .x-grid-subtable {
     border-collapse: collapse;
 }
-/* http://localhost:1842/packages/ux/classic/sass/src/grid/SubTable.scss:5 */
+/* http://localhost:1842/packages/ux/classic/sass/src/grid/SubTable.scss:7 */
 tr.x-grid-subtable-row {
     background-color: #fff;
 }
-/* http://localhost:1842/packages/ux/classic/sass/src/grid/SubTable.scss:9 */
+/* http://localhost:1842/packages/ux/classic/sass/src/grid/SubTable.scss:11 */
 .x-grid-subtable-header {
     border: 1px solid #c2c2c2;
     color: #666;
@@ -545,7 +559,7 @@ tr.x-grid-subtable-row {
     padding: 6px 10px 6px 10px;
     text-overflow: ellipsis;
 }
-/* http://localhost:1842/packages/ux/classic/sass/src/grid/SubTable.scss:27 */
+/* http://localhost:1842/packages/ux/classic/sass/src/grid/SubTable.scss:29 */
 .x-grid-subtable-cell {
     border-top: 1px solid #ededed;
     border-right: 1px solid #ededed;

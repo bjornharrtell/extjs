@@ -74,15 +74,15 @@ Ext.define('Ext.panel.Table', {
     variableRowHeight: false,
 
     /**
-     * @cfg {Number}
+     * @cfg {Number} [numFromEdge]
      * This configures the zone which causes new rows to be appended to the view. As soon as the edge
      * of the rendered grid is this number of rows from the edge of the viewport, the view is moved.
      */
     numFromEdge: 2,
 
     /**
-     * @cfg {Number}
-     * TableViews are buffer rendered in 5.x which means that only the visible subset of data rows
+     * @cfg {Number} [trailingBufferZone]
+     * TableViews are buffer rendered in 5.x and above which means that only the visible subset of data rows
      * are rendered into the DOM. These are removed and added as scrolling demands.
      *
      * This configures the number of extra rows to render on the trailing side of scrolling
@@ -91,8 +91,8 @@ Ext.define('Ext.panel.Table', {
     trailingBufferZone: 10,
 
     /**
-     * @cfg {Number}
-     * TableViews are buffer rendered in 5.x which means that only the visible subset of data rows
+     * @cfg {Number} [leadingBufferZone]
+     * TableViews are buffer rendered in 5.x and above which means that only the visible subset of data rows
      * are rendered into the DOM. These are removed and added as scrolling demands.
      *
      * This configures the number of extra rows to render on the leading side of scrolling
@@ -392,6 +392,23 @@ Ext.define('Ext.panel.Table', {
     bufferedRenderer: true,
 
     /**
+     * @cfg stateEvents
+     * @inheritdoc Ext.state.Stateful#cfg-stateEvents
+     * @localdoc By default the following stateEvents are added:
+     * 
+     *  - {@link #event-resize} - _(added by Ext.Component)_
+     *  - {@link #event-collapse} - _(added by Ext.panel.Panel)_
+     *  - {@link #event-expand} - _(added by Ext.panel.Panel)_
+     *  - {@link #event-columnresize}
+     *  - {@link #event-columnmove}
+     *  - {@link #event-columnhide}
+     *  - {@link #event-columnshow}
+     *  - {@link #event-sortchange}
+     *  - {@link #event-filterchange}
+     *  - {@link #event-groupchange}
+     */
+
+    /**
      * @property {Boolean} optimizedColumnMove
      * If you are writing a grid plugin or a {Ext.grid.feature.Feature Feature} which creates a column-based structure which
      * needs a view refresh when columns are moved, then set this property in the grid.
@@ -460,8 +477,6 @@ Ext.define('Ext.panel.Table', {
         store.trackStateChanges = true;
 
         if (me.autoLoad) {
-            store.unblockLoad();
-
             // Note: if there is a store bound by a VM, we (might) do the load in #setStore.
             if (!store.isEmptyStore) {
                 store.load();
@@ -505,11 +520,6 @@ Ext.define('Ext.panel.Table', {
         
         me.enableLocking = me.enableLocking || me.hasLockedColumns(headerCtCfg);
 
-        // Block store loads during construction or initialization of plugins!
-        if (me.autoLoad) {
-            me.store.blockLoad();
-        }
-
         // Construct the plugins now rather than in the constructor of AbstractComponent because the component may have a subclass
         // that has overridden initComponent and defined plugins in it. For plugins like RowExpander that rely upon a grid feature,
         // this is a problem because the view needs to know about all its features before it's constructed. Constructing the plugins
@@ -546,6 +556,13 @@ Ext.define('Ext.panel.Table', {
                     headerCtCfg.setHeight(0);
                     // don't set the hidden property, we still need these to layout
                     headerCtCfg.hiddenHeaders = true;
+                } else {
+                    // the header container is not user scrollable, but it has a scroller instance
+                    // so that we can sync its scroll position with that of the grid view
+                    headerCtCfg.setScrollable({
+                        x: false,
+                        y: false
+                    });
                 }
 
                 me.headerCt = headerCt = headerCtCfg;
@@ -573,7 +590,13 @@ Ext.define('Ext.panel.Table', {
                     enableColumnMove: me.enableColumnMove,
                     enableColumnResize: me.enableColumnResize,
                     columnLines: me.columnLines,
-                    sealed: me.sealedColumns
+                    sealed: me.sealedColumns,
+                    // the header container is not user scrollable, but if it is visible,
+                    // it has a scroller instance so that we can sync its scroll position with that of the grid view
+                    scrollable: me.hideHeaders ? undefined : {
+                        x: false,
+                        y: false
+                    }
                 });
                 if (me.hideHeaders) {
                     headerCtCfg.height = 0;
@@ -586,13 +609,6 @@ Ext.define('Ext.panel.Table', {
                 }
                 me.headerCt = headerCt = new Ext.grid.header.Container(headerCtCfg);
             }
-
-            // the header container is not user scrollable, but it has a scroller instance
-            // so that we can sync its scroll position with that of the grid view
-            headerCt.setScrollable({
-                x: false,
-                y: false
-            });
         }
 
         // Maintain backward compatibiliy by providing the initial leaf column set as a property.
@@ -1002,6 +1018,106 @@ Ext.define('Ext.panel.Table', {
             delete headerCt.$initParent;
         }
         me.addStateEvents(['columnresize', 'columnmove', 'columnhide', 'columnshow', 'sortchange', 'filterchange', 'groupchange']);
+        
+        // rowBody feature events
+        /**
+         * @event beforerowbodymousedown
+         * @preventable
+         * @inheritdoc Ext.view.Table#event-beforerowbodymousedown
+         */
+
+        /**
+         * @event beforerowbodymouseup
+         * @preventable
+         * @inheritdoc Ext.view.Table#event-beforerowbodymouseup
+         */
+
+        /**
+         * @event beforerowbodyclick
+         * @preventable
+         * @inheritdoc Ext.view.Table#event-beforerowbodyclick
+         */
+
+        /**
+         * @event beforerowbodydblclick
+         * @preventable
+         * @inheritdoc Ext.view.Table#event-beforerowbodydblclick
+         */
+
+        /**
+         * @event beforerowbodycontextmenu
+         * @preventable
+         * @inheritdoc Ext.view.Table#event-beforerowbodycontextmenu
+         */
+    
+        /**
+         * @event beforerowbodylongpress
+         * @preventable
+         * @inheritdoc Ext.view.Table#event-beforerowbodylongpress
+         */
+
+        /**
+         * @event beforerowbodykeydown
+         * @preventable
+         * @inheritdoc Ext.view.Table#event-beforerowbodykeydown
+         */
+
+        /**
+         * @event beforerowbodykeyup
+         * @preventable
+         * @inheritdoc Ext.view.Table#event-beforerowbodykeyup
+         */
+
+        /**
+         * @event beforerowbodykeypress
+         * @preventable
+         * @inheritdoc Ext.view.Table#event-beforerowbodykeypress
+         */
+
+        /**
+         * @event rowbodymousedown
+         * @inheritdoc Ext.view.Table#event-rowbodymousedown
+         */
+
+        /**
+         * @event rowbodymouseup
+         * @inheritdoc Ext.view.Table#event-rowbodymouseup
+         */
+
+        /**
+         * @event rowbodyclick
+         * @inheritdoc Ext.view.Table#event-rowbodyclick
+         */
+
+        /**
+         * @event rowbodydblclick
+         * @inheritdoc Ext.view.Table#event-rowbodydblclick
+         */
+
+        /**
+         * @event rowbodycontextmenu
+         * @inheritdoc Ext.view.Table#event-rowbodycontextmenu
+         */
+    
+        /**
+         * @event rowbodylongpress
+         * @inheritdoc Ext.view.Table#event-rowbodylongpress
+         */
+
+        /**
+         * @event rowbodykeydown
+         * @inheritdoc Ext.view.Table#event-rowbodykeydown
+         */
+
+        /**
+         * @event rowbodykeyup
+         * @inheritdoc Ext.view.Table#event-rowbodykeyup
+         */
+
+        /**
+         * @event rowbodykeypress
+         * @inheritdoc Ext.view.Table#event-rowbodykeypress
+         */
     },
 
     beforeRender: function() {
@@ -1031,7 +1147,7 @@ Ext.define('Ext.panel.Table', {
                 bufferedRenderer = {
                     xclass: 'Ext.grid.plugin.BufferedRenderer'
                 };
-                Ext.copyTo(bufferedRenderer, me, 'variableRowHeight,numFromEdge,trailingBufferZone,leadingBufferZone,scrollToLoadBuffer');
+                Ext.copy(bufferedRenderer, me, 'variableRowHeight,numFromEdge,trailingBufferZone,leadingBufferZone,scrollToLoadBuffer');
                 me.bufferedRenderer = me.addPlugin(bufferedRenderer);
             }
             
@@ -1109,7 +1225,7 @@ Ext.define('Ext.panel.Table', {
         this.headerCt.enable();
     },
 
-    /*
+    /**
      * @private
      * Determine if there are any columns with a locked configuration option.
      */
@@ -1211,7 +1327,8 @@ Ext.define('Ext.panel.Table', {
         me.callParent(arguments);
 
         if (columns) {
-            me.headerCt.applyColumnsState(columns);
+            // Column state restoration needs to examine store state
+            me.headerCt.applyColumnsState(columns, storeState);
         }
 
         // Old stored sort state. Deprecated and will die out.
@@ -1653,7 +1770,6 @@ Ext.define('Ext.panel.Table', {
                 // Note that if it's a grid feature then this is sorted out in view.bindStore(), and it's own
                 // implementation of .bindStore() will be called.
                 view.bindStore(store, false);
-
             }
 
             me.mon(store, {
@@ -1683,6 +1799,8 @@ Ext.define('Ext.panel.Table', {
             view;
 
         if (store) {
+            store.trackStateChanges = false;
+
             me.store = null;
 
             me.mun(store, {
@@ -1717,7 +1835,7 @@ Ext.define('Ext.panel.Table', {
     setStore: function (store) {
         this.reconfigure(store);
 
-        if (this.autoLoad && !(store.loading || store.isLoaded())) {
+        if (this.autoLoad && !store.isEmptyStore && !(store.loading || store.isLoaded())) {
             store.load();
         }
     },
@@ -1861,7 +1979,7 @@ Ext.define('Ext.panel.Table', {
                 view = me.getView(),
                 domNode = view.getNode(record),
                 callback, scope, animate,
-                highlight, select, doFocus, scrollable;
+                highlight, select, doFocus, scrollable, column, cell;
 
             if (options) {
                 callback = options.callback;
@@ -1870,6 +1988,7 @@ Ext.define('Ext.panel.Table', {
                 highlight = options.highlight;
                 select = options.select;
                 doFocus = options.focus;
+                column = options.column;
             }
 
             // Always supercede any prior deferred request
@@ -1877,10 +1996,12 @@ Ext.define('Ext.panel.Table', {
                 me.deferredEnsureVisible.destroy();
             }
 
-            // We have not yet run the first refresh. Defer until the view is ready to scroll.
-            if (!view.viewReady) {
+            // We have not yet run the layout.
+            // Add this to the end of the first sizing process.
+            // By using the resize event, we will come in AFTER any Component's onResize and onBoxReady handling.
+            if (!view.componentLayoutCounter) {
                 me.deferredEnsureVisible = view.on({
-                    boxready: me.doEnsureVisible,
+                    resize: me.doEnsureVisible,
                     args: Ext.Array.slice(arguments),
                     scope: me,
                     single: true,
@@ -1889,11 +2010,18 @@ Ext.define('Ext.panel.Table', {
                 return;
             }
 
+            if (typeof column === 'number') {
+                column = me.ownerGrid.getVisibleColumnManager().getColumns()[column];
+            }
+            
             // We found the DOM node associated with the record
             if (domNode) {
                 scrollable = view.getScrollable();
+                if (column) {
+                    cell = Ext.fly(domNode).selectNode(column.getCellSelector());
+                }
                 if (scrollable) {
-                    scrollable.scrollIntoView(domNode, null, animate, highlight);
+                    scrollable.scrollIntoView(cell || domNode, !!column, animate, highlight);
                 }
                 if (!record.isEntity) {
                     record = view.getRecord(domNode);
@@ -1913,6 +2041,7 @@ Ext.define('Ext.panel.Table', {
                     highlight: highlight,
                     select: select,
                     focus: doFocus,
+                    column: column,
                     callback: function(recordIdx, record, domNode) {
                         Ext.callback(callback, scope || me, [true, record, domNode]);
                     }

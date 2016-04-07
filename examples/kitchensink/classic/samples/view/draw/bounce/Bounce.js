@@ -21,7 +21,7 @@ Ext.define('KitchenSink.view.draw.bounce.Bounce', {
         height: 500,
         sprites: [{
             type: 'image',
-            src: 'classic/samples/view/draw/bounce/sencha.png',
+            src: Ext.getResourcePath('images/samples/sencha.png'),
             id: 'logo',
             x: 100,
             y: 100,

@@ -58,11 +58,25 @@ describe("Ext.data.TreeStore", function() {
 
     function makeStore(nodes, cfg) {
         store = new Ext.data.TreeStore(Ext.apply({
+            asynchronousLoad: false,
             root: {
                 expanded: true,
                 children: expandify(nodes)
             }
         }, cfg));
+    }
+
+    function expectOrder(parent, ids) {
+        var childNodes = parent.childNodes,
+            i, len;
+
+        expect((childNodes || []).length).toBe(ids.length);
+
+        if (childNodes) {
+            for (i = 0, len = childNodes.length; i < len; ++i) {
+                expect(childNodes[i].id).toBe(ids[i]);
+            }
+        }
     }
 
     beforeEach(function() {
@@ -95,7 +109,7 @@ describe("Ext.data.TreeStore", function() {
             }]
         };
 
-        MockAjaxManager.addMethods();   
+        MockAjaxManager.addMethods();
 
         loadStore = function(store, options) {
             store.load(options);
@@ -213,19 +227,6 @@ describe("Ext.data.TreeStore", function() {
     });
 
     describe("sorting", function() {
-        function expectOrder(parent, ids) {
-            var childNodes = parent.childNodes,
-                i, len;
-
-            expect((childNodes || []).length).toBe(ids.length);
-
-            if (childNodes) {
-                for (i = 0, len = childNodes.length; i < len; ++i) {
-                    expect(childNodes[i].id).toBe(ids[i]);
-                }
-            }
-        }
-
         function expectStoreOrder(ids) {
             var len = ids.length,
                 i;
@@ -857,10 +858,11 @@ describe("Ext.data.TreeStore", function() {
         describe("when loading asynchronously from a url", function() {
            describe("if the root node is expanded", function() {
                 it("should load the TreeStore automatically", function() {
-                    spyOn(Ext.data.TreeStore.prototype, 'load');
+                    spyOn(Ext.data.TreeStore.prototype, 'load').andCallThrough();
                     
                     store = new Ext.data.TreeStore({
                         model: NodeModel,
+                        asynchronousLoad: true,
                         root: {
                             expanded: true,
                             id: 0,
@@ -873,12 +875,13 @@ describe("Ext.data.TreeStore", function() {
 
                 describe("with autoLoad: true", function() {
                     it("should not load twice with a root defined", function() {
-                        spyOn(Ext.data.TreeStore.prototype, 'load');
-                    
+                        spyOn(Ext.data.TreeStore.prototype, 'flushLoad').andCallThrough();
+
                         runs(function() {
-                            store = new Ext.data.TreeStore({
+                            store = Ext.create('Ext.data.TreeStore', {
                                 model: NodeModel,
                                 autoLoad: true,
+                                asynchronousLoad: true,
                                 root: {
                                     expanded: true,
                                     id: 0,
@@ -889,23 +892,25 @@ describe("Ext.data.TreeStore", function() {
                         // autoLoad runs on a timer, can't use waitsFor here
                         waits(10);
                         runs(function() {
-                            expect(store.load.callCount).toBe(1);
+                            expect(store.flushLoad.callCount).toBe(1);
                         });
                     });
 
                     it("should not load twice without a root defined", function() {
-                        spyOn(Ext.data.TreeStore.prototype, 'load');
-                    
+                        spyOn(Ext.data.TreeStore.prototype, 'flushLoad').andCallThrough();
+
                         runs(function() {
-                            store = new Ext.data.TreeStore({
+                            store = Ext.create('Ext.data.TreeStore', {
                                 model: NodeModel,
-                                autoLoad: true
+                                autoLoad: true,
+                                asynchronousLoad: true
                             });
                         });
+
                         // autoLoad runs on a timer, can't use waitsFor here
                         waits(10);
                         runs(function() {
-                            expect(store.load.callCount).toBe(1);
+                            expect(store.flushLoad.callCount).toBe(1);
                         });
                     });
                 });
@@ -916,6 +921,7 @@ describe("Ext.data.TreeStore", function() {
                     store = new Ext.data.TreeStore({
                         model: NodeModel,
                         autoLoad: false,
+                        asynchronousLoad: true,
                         root: {
                             expanded: false,
                             id: 0,
@@ -930,6 +936,7 @@ describe("Ext.data.TreeStore", function() {
 
                 it("should be loading while the request is still in progress", function() {
                     store.load();
+                    store.flushLoad();
                     expect(store.isLoading()).toBe(true);
                 });
 
@@ -941,11 +948,12 @@ describe("Ext.data.TreeStore", function() {
                 
                 describe("if autoLoad is set to true", function() {
                     beforeEach(function() {
-                        spyOn(Ext.data.TreeStore.prototype, 'load').andCallFake(function() {});
+                        spyOn(Ext.data.TreeStore.prototype, 'load').andCallThrough();
 
                         store = new Ext.data.TreeStore({
                             model: NodeModel,
                             autoLoad: true,
+                            asynchronousLoad: true,
                             root: {
                                 expanded: false,
                                 id: 0,
@@ -965,6 +973,7 @@ describe("Ext.data.TreeStore", function() {
                     store = new Ext.data.TreeStore({
                         model: NodeModel,
                         autoLoad: false,
+                        asynchronousLoad: false,
                         root: {
                             expanded: false,
                             id: 0,
@@ -1094,11 +1103,15 @@ describe("Ext.data.TreeStore", function() {
             beforeEach(function(){
                 store = new Ext.data.TreeStore({
                     model: NodeModel,
+                    asynchronousLoad: false,
                     root: {
                         expanded: true,
                         id: 0,
                         name: 'Root Node'
                     }
+                });
+                completeWithData({
+                    children: []
                 });
             });
             
@@ -1243,7 +1256,7 @@ describe("Ext.data.TreeStore", function() {
 
         describe('adding childless non-leaf nodes', function () {
             beforeEach(function () {
-                spyOn(Ext.data.TreeStore.prototype, 'load').andCallFake(function () {});
+                spyOn(Ext.data.TreeStore.prototype, 'load').andCallThrough();
 
                 store = new Ext.data.TreeStore({
                     model: NodeModel,
@@ -1332,6 +1345,7 @@ describe("Ext.data.TreeStore", function() {
         beforeEach(function() {
             store = new Ext.data.TreeStore({
                 model: NodeModel,
+                asynchronousLoad: false,
                 root: {
                     expanded: true,
                     name: 'Root Node'
@@ -2304,19 +2318,19 @@ describe("Ext.data.TreeStore", function() {
                     children: dummyData.children
                 }
             });
+        });
+        it('should fire update events from descendants of collapsed nodes', function() {
+            var updateSpy = spyOnEvent(store, 'update');
             
             waitsFor(function() {
                 return !!store.getNodeById(5);
-            }, 'Store to load', 1000);
-        });
-        
-        it('should fire update events from descendants of collapsed nodes', function() {
-            var updateSpy = spyOnEvent(store, 'update');
+            });
+            runs(function() {
+                store.getNodeById(5).set('name', 'modified');
 
-            store.getNodeById(5).set('name', 'modified');
-
-            // Data notifications take precedance over filering
-            expect(updateSpy).toHaveBeenCalled();
+                // Data notifications take precedance over filering
+                expect(updateSpy).toHaveBeenCalled();
+            });
         });
     });
 
@@ -3399,6 +3413,23 @@ describe("Ext.data.TreeStore", function() {
             // Only "Bar" and "Bletch" present now.
             expect(store.getCount()).toBe(2);
         });
+
+        it('should remove deleted records from removed list if they get added back', function() {
+            var bletchNode = store.findNode('name', 'Bletch'),
+                bletchParent = bletchNode.parentNode;
+
+            // Queue the node for destruction upon the next store sync.
+            bletchNode.drop();
+
+            // Should be in destruction queue
+            expect(Ext.Array.contains(store.getRemovedRecords(), bletchNode)).toBe(true);
+
+            // Change ourt mind, add it back
+            bletchParent.appendChild(bletchNode);
+            
+            // Should NOT be in destruction queue
+            expect(Ext.Array.contains(store.getRemovedRecords(), bletchNode)).toBe(false);            
+        });
     });
 
     describe("parentIdProperty", function() {
@@ -3417,15 +3448,24 @@ describe("Ext.data.TreeStore", function() {
             root = null;
         });
 
+        function makeNode(id, parent) {
+            var o = {
+                id: id,
+                expanded: true
+            };
+            if (arguments.length > 1) {
+                o.foo = parent;
+            }
+            return o;
+        }
+
         it("should append items without a parentId to the loaded item", function() {
             root.expand();
-            completeWithData([{
-                id: 1
-            }, {
-                id: 2
-            }, {
-                id: 3
-            }]);
+            completeWithData([
+                makeNode(1),
+                makeNode(2),
+                makeNode(3)
+             ]);
 
             var childNodes = root.childNodes;
             expect(byId(1)).toBe(childNodes[0]);
@@ -3435,12 +3475,10 @@ describe("Ext.data.TreeStore", function() {
 
         it("should allow a parentId of 0", function() {
             root.expand();
-            completeWithData([{
-                id: 0
-            }, {
-                id: 1,
-                foo: 0
-            }]);
+            completeWithData([
+                makeNode(0),
+                makeNode(1, 0)
+             ]);
 
             expect(byId(1)).toBe(byId(0).childNodes[0]);
         });
@@ -3448,100 +3486,136 @@ describe("Ext.data.TreeStore", function() {
         it("should throw an exception if a matching parent is not found", function() {
             root.expand();
             expect(function() {
-                completeWithData([{
-                    id: 1
-                }, {
-                    id: 2,
-                    foo: 100
-                }]);
+                completeWithData([
+                    makeNode(1),
+                    makeNode(2, 100)
+                ]);
             }).toThrow();
         });
 
         it("should add children to their parent nodes, retaining any implied order", function() {
             root.expand();
-            completeWithData([{
-                id: 'c21',
-                foo: 'c2'
-            }, {
-                id: 'a'
-            }, {
-                id: 'c2',
-                foo: 'c'
-            }, {
-                id: 'a1',
-                foo: 'a'
-            }, {
-                id: 'c'
-            }, {
-                id: 'b'
-            }, {
-                id: 'b1',
-                foo: 'b'
-            }, {
-                id: 'a2',
-                foo: 'a'
-            }, {
-                id: 'c1',
-                foo: 'c'
-            }, {
-                id: 'c22',
-                foo: 'c2'
-            }, {
-                id: 'a32',
-                foo: 'a3'
-            }, {
-                id: 'a31',
-                foo: 'a3'
-            }, {
-                id: 'a21',
-                foo: 'a2'
-            }, {
-                id: 'b11',
-                foo: 'b1'
-            }, {
-                id: 'a3',
-                foo: 'a'
-            }, {
-                id: 'a211',
-                foo: 'a21'
-            }]);
+            completeWithData([
+                makeNode('c21', 'c2'),
+                makeNode('a'),
+                makeNode('c2', 'c'),
+                makeNode('a1', 'a'),
+                makeNode('c'),
+                makeNode('b'),
+                makeNode('b1', 'b'),
+                makeNode('a2', 'a'),
+                makeNode('c1', 'c'),
+                makeNode('c22', 'c2'),
+                makeNode('a32', 'a3'),
+                makeNode('a31', 'a3'),
+                makeNode('a21', 'a2'),
+                makeNode('b12', 'b1'),
+                makeNode('b11', 'b1'),
+                makeNode('a3', 'a'),
+                makeNode('a211', 'a21')
+            ]);
 
-            var a = byId('a'),
-                b = byId('b'),
-                c = byId('c');
+            expectOrder(root, ['a', 'c', 'b']);
 
-            expect(a).toBe(root.childNodes[0]);
-            expect(c).toBe(root.childNodes[1]);
-            expect(b).toBe(root.childNodes[2]);
+            expectOrder(byId('a'), ['a1', 'a2', 'a3']);
+            expectOrder(byId('a2'), ['a21']);
+            expectOrder(byId('a21'), ['a211']);
 
-            var a2 = byId('a2'),
-                a21 = byId('a21'),
-                a3 = byId('a3');
+            expectOrder(byId('b'), ['b1']);
+            expectOrder(byId('b1'), ['b12', 'b11']);
 
-            expect(byId('a1')).toBe(a.childNodes[0]);
-            expect(a2).toBe(a.childNodes[1]);
-            expect(a3).toBe(a.childNodes[2]);
+            expectOrder(byId('c'), ['c2', 'c1']);
+            expectOrder(byId('c2'), ['c21', 'c22']);
+        });
 
-            expect(a21).toBe(a2.childNodes[0]);
+        describe("sorting", function() {
+            it("should sort nodes via sorter", function() {
+                store.getSorters().add('id');
+                root.expand();
+                completeWithData([
+                    makeNode('c'),
+                    makeNode('a'),
+                    makeNode('b'),
+                    makeNode('c3', 'c'),
+                    makeNode('b3', 'b'),
+                    makeNode('a3', 'a'),
+                    makeNode('c2', 'c'),
+                    makeNode('b2', 'b'),
+                    makeNode('a2', 'a'),
+                    makeNode('c1', 'c'),
+                    makeNode('b1', 'b'),
+                    makeNode('a1', 'a')
+                ]);
 
-            expect(byId('a211')).toBe(a21.childNodes[0]);
+                expectOrder(root, ['a', 'b', 'c']);
 
-            expect(byId('a32')).toBe(a3.childNodes[0]);
-            expect(byId('a31')).toBe(a3.childNodes[1]);
+                expectOrder(byId('a'), ['a1', 'a2', 'a3']);
+                expectOrder(byId('b'), ['b1', 'b2', 'b3']);
+                expectOrder(byId('c'), ['c1', 'c2', 'c3']);
+            });
 
-            var b1 = byId('b1');
+            it("should do an index sort if required", function() {
+                root.expand();
+                completeWithData([
+                    {id: 'a', index: 2},
+                    {id: 'b', index: 1},
+                    {id: 'c', index: 0},
+                    {id: 'a1', foo: 'a', index: 2},
+                    {id: 'a2', foo: 'a', index: 1},
+                    {id: 'a3', foo: 'a', index: 0}
+                ]);
 
-            expect(b1).toBe(b.childNodes[0]);
+                expectOrder(root, ['c', 'b', 'a']);
+                expectOrder(byId('a'), ['a3', 'a2', 'a1']);
+            });
+        });
 
-            expect(byId('b11')).toBe(b1.childNodes[0]);
+        describe("filtering", function() {
+            it("should apply filters", function() {
+                var allowed = ['a', 'c', 'a2', 'c1', 'c11', 'c13'];
+                store.getFilters().add({
+                    filterFn: function(node) {
+                        return Ext.Array.indexOf(allowed, node.id) > -1;
+                    }
+                });
 
-            var c2 = byId('c2');
+                root.expand();
+                completeWithData([
+                    makeNode('a'),
+                    makeNode('b'),
+                    makeNode('c'),
+                    makeNode('a1', 'a'),
+                    makeNode('a2', 'a'),
+                    makeNode('a3', 'a'),
+                    makeNode('b1', 'b'),
+                    makeNode('b2', 'b'),
+                    makeNode('b3', 'b'),
+                    makeNode('c1', 'c'),
+                    makeNode('c11', 'c1'),
+                    makeNode('c12', 'c1'),
+                    makeNode('c13', 'c1'),
+                    makeNode('c2', 'c'),
+                    makeNode('c3', 'c')
+                ]);
 
-            expect(c2).toBe(c.childNodes[0]);
-            expect(byId('c1')).toBe(c.childNodes[1]);
+                expect(store.isVisible(byId('a'))).toBe(true);
+                expect(store.isVisible(byId('a1'))).toBe(false);
+                expect(store.isVisible(byId('a2'))).toBe(true);
+                expect(store.isVisible(byId('a3'))).toBe(false);
 
-            expect(byId('c21')).toBe(c2.childNodes[0]);
-            expect(byId('c22')).toBe(c2.childNodes[1]);
+                expect(store.isVisible(byId('b'))).toBe(false);
+                expect(store.isVisible(byId('b1'))).toBe(false);
+                expect(store.isVisible(byId('b2'))).toBe(false);
+                expect(store.isVisible(byId('b3'))).toBe(false);
+
+                expect(store.isVisible(byId('c'))).toBe(true);
+                expect(store.isVisible(byId('c1'))).toBe(true);
+                expect(store.isVisible(byId('c11'))).toBe(true);
+                expect(store.isVisible(byId('c12'))).toBe(false);
+                expect(store.isVisible(byId('c13'))).toBe(true);
+                expect(store.isVisible(byId('c2'))).toBe(false);
+                expect(store.isVisible(byId('c3'))).toBe(false);
+            });
         });
     });
     

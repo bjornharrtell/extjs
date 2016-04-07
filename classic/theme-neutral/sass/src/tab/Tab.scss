@@ -1613,6 +1613,23 @@
         }
         @if ($ui-background-opacity != null) and ($ui-background-opacity != 1) {
             @include background-opacity($ui-background-color, $ui-background-opacity);
+
+            @if $include-ie {
+                // Background opacity uses a filter in IE8, which overrides the rotation filter
+                // Unfortunately rotation and opacity cannot coexist, or the tab background
+                // turns black, so we will just have to do without background opacity in IE8
+                &.#{$prefix}tab-rotate-left {
+                    .#{$prefix}ie8 & {
+                        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                    }
+                }
+
+                &.#{$prefix}tab-rotate-right {
+                    .#{$prefix}ie8 & {
+                        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                    }
+                }
+            }
         }
 
         @if $ui-plain-background-color != $ui-background-color {
@@ -2215,6 +2232,23 @@
 
         @if ($ui-background-opacity-focus != null) {
             @include background-opacity($ui-background-color-focus, $ui-background-opacity-focus);
+
+            @if $include-ie {
+                // Background opacity uses a filter in IE8, which overrides the rotation filter
+                // Unfortunately rotation and opacity cannot coexist, or the tab background
+                // turns black, so we will just have to do without background opacity in IE8
+                &.#{$prefix}tab-rotate-left {
+                    .#{$prefix}ie8 & {
+                        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                    }
+                }
+
+                &.#{$prefix}tab-rotate-right {
+                    .#{$prefix}ie8 & {
+                        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                    }
+                }
+            }
         } @else {
             background-color: $ui-background-color-focus;
         }
@@ -2336,6 +2370,23 @@
 
             @if ($ui-background-opacity-over != null) {
                 @include background-opacity($ui-background-color-over, $ui-background-opacity-over);
+
+                @if $include-ie {
+                    // Background opacity uses a filter in IE8, which overrides the rotation filter
+                    // Unfortunately rotation and opacity cannot coexist, or the tab background
+                    // turns black, so we will just have to do without background opacity in IE8
+                    &.#{$prefix}tab-rotate-left {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                        }
+                    }
+
+                    &.#{$prefix}tab-rotate-right {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                        }
+                    }
+                }
             } @else {
                 background-color: $ui-background-color-over;
             }
@@ -2433,6 +2484,23 @@
 
             @if ($ui-background-opacity-focus-over != null) {
                 @include background-opacity($ui-background-color-focus-over, $ui-background-opacity-focus-over);
+
+                @if $include-ie {
+                    // Background opacity uses a filter in IE8, which overrides the rotation filter
+                    // Unfortunately rotation and opacity cannot coexist, or the tab background
+                    // turns black, so we will just have to do without background opacity in IE8
+                    &.#{$prefix}tab-rotate-left {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                        }
+                    }
+
+                    &.#{$prefix}tab-rotate-right {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                        }
+                    }
+                }
             } @else {
                 background-color: $ui-background-color-focus-over;
             }
@@ -2533,6 +2601,23 @@
 
             @if ($ui-background-opacity-active != null) {
                 @include background-opacity($ui-background-color-active, $ui-background-opacity-active);
+
+                @if $include-ie {
+                    // Background opacity uses a filter in IE8, which overrides the rotation filter
+                    // Unfortunately rotation and opacity cannot coexist, or the tab background
+                    // turns black, so we will just have to do without background opacity in IE8
+                    &.#{$prefix}tab-rotate-left {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                        }
+                    }
+
+                    &.#{$prefix}tab-rotate-right {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                        }
+                    }
+                }
             } @else {
                 background-color: $ui-background-color-active;
             }
@@ -2629,6 +2714,23 @@
 
             @if ($ui-background-opacity-focus-active != null) {
                 @include background-opacity($ui-background-color-focus-active, $ui-background-opacity-focus-active);
+
+                @if $include-ie {
+                    // Background opacity uses a filter in IE8, which overrides the rotation filter
+                    // Unfortunately rotation and opacity cannot coexist, or the tab background
+                    // turns black, so we will just have to do without background opacity in IE8
+                    &.#{$prefix}tab-rotate-left {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                        }
+                    }
+
+                    &.#{$prefix}tab-rotate-right {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                        }
+                    }
+                }
             } @else {
                 background-color: $ui-background-color-focus-active;
             }
@@ -2730,6 +2832,23 @@
 
             @if $ui-background-opacity-disabled != null {
                 @include background-opacity($ui-background-color-disabled, $ui-background-opacity-disabled);
+
+                @if $include-ie {
+                    // Background opacity uses a filter in IE8, which overrides the rotation filter
+                    // Unfortunately rotation and opacity cannot coexist, or the tab background
+                    // turns black, so we will just have to do without background opacity in IE8
+                    &.#{$prefix}tab-rotate-left {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                        }
+                    }
+
+                    &.#{$prefix}tab-rotate-right {
+                        .#{$prefix}ie8 & {
+                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                        }
+                    }
+                }
             } @else {
                 background-color: $ui-background-color-disabled;
             }

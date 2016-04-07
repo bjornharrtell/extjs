@@ -1042,9 +1042,12 @@ describe("Ext.data.Connection", function() {
         });
     });
 
-    describe("successful requests", function(){
-        it("should fire the success handler on a successful request", function(){
+    describe("successful requests", function() {
+        beforeEach(function() {
             makeConnection();
+        });
+        
+        it("should fire the success handler on a successful request", function() {
             var o = {
                 fn: function(){
                     scope = this;
@@ -1064,7 +1067,6 @@ describe("Ext.data.Connection", function() {
         });    
 
         it("should fire the callback", function(){
-            makeConnection();
             var o = {
                 fn: function(){
                     scope = this;
@@ -1084,7 +1086,6 @@ describe("Ext.data.Connection", function() {
         });
 
         it("should fire the requestcomplete event", function(){
-            makeConnection();
             var o = {
                 fn: Ext.emptyFn 
             }, scope;
@@ -1103,7 +1104,6 @@ describe("Ext.data.Connection", function() {
 
         it("should copy properties to response", function(){
             var o = {};
-            makeConnection();
             request = connection.request({
                 url: 'foo',
                 success: function(response){
@@ -1124,10 +1124,9 @@ describe("Ext.data.Connection", function() {
             expect(o.responseText).toEqual('response');
             expect(o.responseXML).toEqual({});
         });
-
+        
         it("should not fire the requestexception event", function(){
             var fn = jasmine.createSpy("request successful");
-            makeConnection();
             connection.on('requestexception', fn);
             request = connection.request({
                 url: 'foo'
@@ -1137,11 +1136,51 @@ describe("Ext.data.Connection", function() {
             });
             expect(fn).not.toHaveBeenCalled();
         });
+        
+        describe("response headers", function() {
+            var response;
+            
+            beforeEach(function() {
+                connection.request({
+                    url: 'foo',
+                    success: function(r) {
+                        response = r;
+                    }
+                });
+                
+                connection.mockComplete({
+                    status: 200,
+                    statusText: 'statusText',
+                    responseText: 'response',
+                    responseHeaders: { foo: 'bar', baz: 'qux' },
+                    responseXML: {}
+                });
+            });
+            
+            afterEach(function() {
+                response = null;
+            });
+            
+            it("should have getAllResponseHeaders method", function() {
+                var headers = response.getAllResponseHeaders();
+                
+                expect(headers).toEqual({ foo: 'bar', baz: 'qux' });
+            });
+            
+            it("should have getResponseHeader method", function() {
+                var header = response.getResponseHeader('FOO');
+                
+                expect(header).toBe('bar');
+            });
+        });
     });
 
-    describe("failures", function(){
-        it("should fire the failure handler on a failed request", function(){
+    describe("failures", function() {
+        beforeEach(function() {
             makeConnection();
+        });
+        
+        it("should fire the failure handler on a failed request", function(){
             var o = {
                 fn: function(){
                     scope = this;
@@ -1161,7 +1200,6 @@ describe("Ext.data.Connection", function() {
         });    
 
         it("should fire the callback", function(){
-            makeConnection();
             var o = {
                 fn: function(){
                     scope = this;
@@ -1181,7 +1219,6 @@ describe("Ext.data.Connection", function() {
         });
 
         it("should fire the requestexception event", function(){
-            makeConnection();
             var o = {
                 fn: Ext.emptyFn 
             }, scope;
@@ -1196,6 +1233,43 @@ describe("Ext.data.Connection", function() {
                 status: 404
             });
             expect(o.fn).toHaveBeenCalled();
+        });
+        
+        describe("response headers", function() {
+            var response;
+            
+            beforeEach(function() {
+                connection.request({
+                    url: 'foo',
+                    failure: function(r) {
+                        response = r;
+                    }
+                });
+                
+                connection.mockComplete({
+                    status: 404,
+                    statusText: 'statusText',
+                    responseText: 'response',
+                    responseHeaders: { foo: 'bar', baz: 'qux' },
+                    responseXML: {}
+                });
+            });
+            
+            afterEach(function() {
+                response = null;
+            });
+            
+            it("should have getAllResponseHeaders method", function() {
+                var headers = response.getAllResponseHeaders();
+                
+                expect(headers).toEqual({ foo: 'bar', baz: 'qux' });
+            });
+            
+            it("should have getResponseHeader method", function() {
+                var header = response.getResponseHeader('FOO');
+                
+                expect(header).toBe('bar');
+            });
         });
     });
     

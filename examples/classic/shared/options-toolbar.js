@@ -151,8 +151,7 @@
                             { value: 'crisp', name: 'Crisp' },
                             { value: 'crisp-touch', name: 'Crisp Touch' },
                             { value: 'classic', name: 'Classic' },
-                            { value: 'gray', name: 'Gray' },
-                            { value: 'triton', name: 'Triton' }
+                            { value: 'gray', name: 'Gray' }
                         ]
                     }),
                     value: theme,

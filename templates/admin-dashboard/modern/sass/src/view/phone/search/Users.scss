@@ -1,0 +1,30 @@
+.search-user-item {
+    overflow: hidden;
+    padding: 20px;
+    border-bottom: 1px solid $border-color;
+}
+
+.search-user-title {
+    @include list-item-title();
+}
+
+.search-user-email {
+    margin-bottom: 5px;
+}
+
+.search-user-image {
+    float: left;
+
+    > img {
+        border: 2px solid $border-color;
+    }
+}
+
+.search-user-content {
+    margin-left: 70px;
+
+    &:after {
+        content: " ";
+        clear: both;
+    }
+}

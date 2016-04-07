@@ -118,11 +118,8 @@ Ext.define('Ext.menu.Separator', {
     
     ariaRole: 'separator',
 
-    beforeRender: function(ct, pos) {
-        var me = this;
-
-        me.callParent();
-
-        me.addCls(me.separatorCls);
+    beforeRender: function() {
+        this.addCls(this.separatorCls);
+        this.callParent();
     }
 });

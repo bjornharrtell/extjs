@@ -238,7 +238,7 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
      * using a drag gesture.  Only fired when the SpreadsheetSelectionModel is used and 
      * configured with the 
      * {@link Ext.grid.selection.SpreadsheetModel#extensible extensible} config.
-     * @param {Ext.panel.Table} The owning grid.
+     * @param {Ext.panel.Table} grid The owning grid.
      * @param {Ext.grid.selection.Selection} An object which encapsulates a contiguous selection block.
      * @param {Object} extension An object describing the type and size of extension.
      * @param {String} extension.type `"rows"` or `"columns"`
@@ -254,7 +254,7 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
      * encompass a new range.  Only fired when the SpreadsheetSelectionModel is used and 
      * configured with the 
      * {@link Ext.grid.selection.SpreadsheetModel#extensible extensible} config.
-     * @param {Ext.panel.Table} The owning grid.
+     * @param {Ext.panel.Table} grid The owning grid.
      * @param {Ext.grid.selection.Selection} An object which encapsulates a contiguous selection block.
      * @param {Object} extension An object describing the type and size of extension.
      * @param {String} extension.type `"rows"` or `"columns"`
@@ -429,15 +429,28 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
     },
 
     /**
-     * Handles the grid's reconfigure event.  Adds the checkbox header if the columns have been reconfigured.
+     * Handles the grid's beforereconfigure event.  Adds the checkbox header if the columns have been reconfigured.
+     * Also adds the row numberer.
      * @param {Ext.panel.Table} grid
      * @param {Ext.data.Store} store
      * @param {Object[]} columns
      * @private
      */
-    onReconfigure: function(grid, store, columns) {
+    onBeforeReconfigure: function(grid, store, columns, oldStore, oldColumns) {
+        var me = this;
         if (columns) {
-            this.addCheckbox(this.views[0]);
+            Ext.suspendLayouts();
+            // Remove our utility columns without destroying. Reconfigure destroys columns by default.
+            // Add them into the new column set at the beginning.
+            if (me.numbererColumn) {
+                me.numbererColumn.ownerCt.remove(me.numbererColumn, false);
+                columns.unshift(me.numbererColumn);
+            }
+            if (me.checkColumn) {
+                me.checkColumn.ownerCt.remove(me.checkColumn, false);
+                columns.unshift(me.checkColumn);
+            }
+            Ext.resumeLayouts();
         }
     },
 
@@ -959,8 +972,8 @@ Ext.define('Ext.grid.selection.SpreadsheetModel', {
 
                 if (me.checkboxSelect) {
                     me.addCheckbox(view, true);
-                    me.mon(view.ownerGrid, 'reconfigure', me.onReconfigure, me);
                 }
+                me.mon(view.ownerGrid, 'beforereconfigure', me.onBeforeReconfigure, me);
             }
 
             // Disable sortOnClick if we're columnSelecting

@@ -69,17 +69,19 @@ Ext.define('Ext.layout.Default', {
     },
 
     onContainerInitialized: function() {
-        var me = this,
-            options = {
-                delegate: '> component'
-            };
+        var me = this;
 
         me.handleDockedItemBorders();
 
-        me.container.on('centeredchange', 'onItemCenteredChange', me, options, 'before')
-            .on('floatingchange', 'onItemFloatingChange', me, options, 'before')
-            .on('dockedchange', 'onBeforeItemDockedChange', me, options, 'before')
-            .on('afterdockedchange', 'onAfterItemDockedChange', me, options);
+        me.container.on({
+            delegate: '> component',
+
+            beforecenteredchange: 'onItemCenteredChange',
+            beforefloatingchange: 'onItemFloatingChange',
+            afterdockedchange: 'onAfterItemDockedChange', // see Component#updateDocked
+
+            scope: me
+        });
     },
 
     monitorSizeStateChange: function() {
@@ -219,17 +221,16 @@ Ext.define('Ext.layout.Default', {
         }
     },
 
-    onBeforeItemDockedChange: function(item, docked, oldDocked) {
-        if (oldDocked) {
-            this.undockItem(item);
-        }
-    },
-
     onAfterItemDockedChange: function(item, docked, oldDocked) {
         // Prevent this from being called during initialization of child items, the
         // setting of docked on the component will occur before add to the container
-        if (docked && item.initialized) {
-            this.dockItem(item);
+        if (item.initialized) {
+            if (oldDocked) {
+                this.undockItem(item);
+            }
+            if (docked) {
+                this.dockItem(item);
+            }
         }
     },
 

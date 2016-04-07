@@ -166,6 +166,15 @@ Ext.define('Ext.form.FieldSet', {
         '</div>'
     ],
 
+    /**
+     * @cfg stateEvents
+     * @inheritdoc Ext.state.Stateful#cfg-stateEvents
+     * @localdoc By default the following stateEvents are added:
+     * 
+     *  - {@link #event-resize} - _(added by Ext.Component)_
+     *  - {@link #event-collapse}
+     *  - {@link #event-expand}
+     */
     stateEvents : [ 'collapse', 'expand' ],
 
     maskOnDisable: false,

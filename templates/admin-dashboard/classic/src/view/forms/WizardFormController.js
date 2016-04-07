@@ -51,10 +51,10 @@ Ext.define('Admin.view.forms.WizardFormController', {
             item = progressItems[i];
 
             if (activeIndex === item.step) {
-                item.addCls('active');
+                item.setPressed(true);
             }
             else {
-                item.removeCls('active');
+                item.setPressed(false);
             }
             
             // IE8 has an odd bug with handling font icons in pseudo elements;

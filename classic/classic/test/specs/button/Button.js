@@ -1728,35 +1728,30 @@ describe("Ext.button.Button", function() {
         // see EXTJSIV-10376
         describe('frame', function() {
             it('should call the click listener on the wrapped table when the button is clicked', function() {
-                // have to spy on the prototype method, because EventManager saves a reference
-                // to the method, so it's impossible to spy on the instance.
-                // TODO: may not have to do this in sencha 5 with the new event system.
-                spyOn(Ext.button.Button.prototype, 'frameTableListener').andCallFake();
-
                 makeButton({
                     frame: true,
                     href: '/foo',
-                    renderTo: Ext.getBody()
+                    renderTo: Ext.getBody(),
+                    xhooks: {
+                        frameTableListener: jasmine.createSpy('frameTableListener')
+                    }
                 });
 
                 button.frameTable.dom.click();
 
-                expect(Ext.button.Button.prototype.frameTableListener).toHaveBeenCalled();
+                expect(button.frameTableListener).toHaveBeenCalled();
             });
 
             it('should call NOT the navigate method when a disabled button is clicked', function() {
                 // see EXTJSIV-11276
-                // have to spy on the prototype method, because EventManager saves a reference
-                // to the method, so it's impossible to spy on the instance.
-                // TODO: may not have to do this in sencha 5 with the new event system.
-                spyOn(Ext.button.Button.prototype, 'doNavigate').andCallFake();
-
                 makeButton({
                     frame: true,
                     href: '/foo',
                     disabled: true,
                     renderTo: Ext.getBody()
                 });
+                
+                spyOn(button, 'doNavigate');
 
                 button.frameTable.dom.click();
                 expect(button.doNavigate).not.toHaveBeenCalled();
@@ -1772,8 +1767,11 @@ describe("Ext.button.Button", function() {
                     href: '/foo',
                     renderTo: Ext.getBody()
                 });
-
+                
+                window.open = Ext.emptyFn;
                 button.frameTable.dom.click();
+                window.open = undefined; // IE8 :(
+                
                 expect(button.getHref).toHaveBeenCalled();
             });
         });

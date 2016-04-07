@@ -76,6 +76,10 @@ Ext.define('Ext.Sheet', {
             easing: 'ease-in'
         },
 
+        /**
+         * @cfg
+         * @inheritdoc
+         */
         border: null
     },
 

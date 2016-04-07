@@ -29,11 +29,11 @@
 .x-legend-container {
     display: inline-block;
     line-height: 0;
-    -webkit-border-radius: 5px;
-    -moz-border-radius: 5px;
-    -ms-border-radius: 5px;
-    -o-border-radius: 5px;
-    border-radius: 5px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -o-border-radius: 3px;
+    border-radius: 3px;
     border: 1px solid #ccc;
     background: #fff;
     -webkit-box-shadow: rgba(255, 255, 255, 0.6) 0 1px 1px;
@@ -42,7 +42,7 @@
 }
 /* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:45 */
 .x-legend-item {
-    padding: .8em 1em .8em 1.8em;
+    padding: 0.8em 1em 0.8em 1.8em;
     color: #333;
     background: rgba(255, 255, 255, 0);
     max-width: 16em;
@@ -64,8 +64,8 @@
 /* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:65 */
 .x-legend-item-marker {
     position: absolute;
-    width: .8em;
-    height: .8em;
+    width: 0.8em;
+    height: 0.8em;
     -webkit-border-radius: 0.4em;
     -moz-border-radius: 0.4em;
     -ms-border-radius: 0.4em;
@@ -74,66 +74,66 @@
     -webkit-box-shadow: rgba(255, 255, 255, 0.3) 0 1px 0, rgba(0, 0, 0, 0.4) 0 1px 0 inset;
     -moz-box-shadow: rgba(255, 255, 255, 0.3) 0 1px 0, rgba(0, 0, 0, 0.4) 0 1px 0 inset;
     box-shadow: rgba(255, 255, 255, 0.3) 0 1px 0, rgba(0, 0, 0, 0.4) 0 1px 0 inset;
-    left: .7em;
-    top: .85em;
+    left: 0.7em;
+    top: 0.85em;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:75 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:77 */
 .x-rtl > * > .x-legend-item {
-    padding: .8em 1.8em .8em 1em;
+    padding: 0.8em 1.8em 0.8em 1em;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:79 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:81 */
 .x-rtl > * > * > .x-legend-item-marker {
-    right: .7em;
+    right: 0.7em;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:83 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:85 */
 .x-legend,
 .x-legend-panel {
     background: #fff;
     outline: none;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:88 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:90 */
 .x-legend.x-docked-top .x-legend-item,
 .x-legend.x-docked-bottom .x-legend-item,
 .x-legend-panel.x-docked-top .x-legend-item,
 .x-legend-panel.x-docked-bottom .x-legend-item {
     border-left: 1px solid rgba(204, 204, 204, 0.5);
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:90 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:92 */
 .x-legend.x-docked-top .x-legend-item:first-child,
 .x-legend.x-docked-bottom .x-legend-item:first-child,
 .x-legend-panel.x-docked-top .x-legend-item:first-child,
 .x-legend-panel.x-docked-bottom .x-legend-item:first-child {
     border-left: none;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:95 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:97 */
 .x-legend.x-docked-top.x-rtl .x-legend-item:first-child,
 .x-legend.x-docked-bottom.x-rtl .x-legend-item:first-child,
 .x-legend-panel.x-docked-top.x-rtl .x-legend-item:first-child,
 .x-legend-panel.x-docked-bottom.x-rtl .x-legend-item:first-child {
     border-left: 1px solid rgba(204, 204, 204, 0.5);
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:98 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:100 */
 .x-legend.x-docked-top.x-rtl .x-legend-item:last-child,
 .x-legend.x-docked-bottom.x-rtl .x-legend-item:last-child,
 .x-legend-panel.x-docked-top.x-rtl .x-legend-item:last-child,
 .x-legend-panel.x-docked-bottom.x-rtl .x-legend-item:last-child {
     border-left: none;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:105 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:107 */
 .x-legend.x-docked-left .x-legend-item,
 .x-legend.x-docked-right .x-legend-item,
 .x-legend-panel.x-docked-left .x-legend-item,
 .x-legend-panel.x-docked-right .x-legend-item {
     border-top: 1px solid rgba(204, 204, 204, 0.5);
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:107 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:109 */
 .x-legend.x-docked-left .x-legend-item:first-child,
 .x-legend.x-docked-right .x-legend-item:first-child,
 .x-legend-panel.x-docked-left .x-legend-item:first-child,
 .x-legend-panel.x-docked-right .x-legend-item:first-child {
     border-top: none;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:111 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:113 */
 .x-legend.x-docked-left .x-legend-inner,
 .x-legend.x-docked-right .x-legend-inner,
 .x-legend-panel.x-docked-left .x-legend-inner,
@@ -142,15 +142,15 @@
     -webkit-box-align: center;
     -webkit-box-pack: center;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:119 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:121 */
 .x-legend.x-horizontal {
     white-space: nowrap;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:121 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:123 */
 .x-legend.x-horizontal .x-legend-item {
     display: inline-block;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:126 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:128 */
 .x-chart-toolbar {
     position: absolute;
     z-index: 9;
@@ -158,13 +158,13 @@
     display: -moz-box;
     display: -ms-box;
     display: box;
-    padding: .6em;
+    padding: 0.6em;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:132 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:134 */
 .x-chart-toolbar .x-button {
-    margin: .2em;
+    margin: 0.2em;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:136 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:138 */
 .x-chart-toolbar[data-side=left],
 .x-chart-toolbar[data-side=right] {
     top: 0;
@@ -173,15 +173,15 @@
     -ms-box-orient: vertical;
     box-orient: vertical;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:141 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:143 */
 .x-chart-toolbar[data-side=left] {
     left: 0;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:145 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:147 */
 .x-chart-toolbar[data-side=right] {
     right: 0;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:149 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:151 */
 .x-chart-toolbar[data-side=top],
 .x-chart-toolbar[data-side=bottom] {
     -webkit-box-orient: horizontal;
@@ -190,11 +190,11 @@
     box-orient: horizontal;
     right: 0;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:154 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:156 */
 .x-chart-toolbar[data-side=top] {
     top: 0;
 }
-/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:158 */
+/* http://localhost:1842/packages/charts/sass/src/chart/AbstractChart.scss:160 */
 .x-chart-toolbar[data-side=bottom] {
     bottom: 0;
     -webkit-box-orient: horizontal;

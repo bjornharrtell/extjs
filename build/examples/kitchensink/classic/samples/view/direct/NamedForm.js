@@ -1,5 +1,5 @@
 /**
- * This example shows how to submit form values via Ext.Direct method
+ * This example shows how to submit form values via Ext Direct method
  * that accepts named arguments.
  */
 Ext.define('KitchenSink.view.direct.NamedForm', {
@@ -12,9 +12,9 @@ Ext.define('KitchenSink.view.direct.NamedForm', {
     ],
     
     //<example>
-    exampleTitle: 'Form submission via Ext.Direct method',
+    exampleTitle: 'Form submission via Ext Direct method',
     exampleDescription: [
-        '<p>This example demonstrates how to use a generic Ext.Direct method ',
+        '<p>This example demonstrates how to use a generic Ext Direct method ',
         'that accepts named arguments to submit form values to the server side.</p>'
     ].join(''),
     

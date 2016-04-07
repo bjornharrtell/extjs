@@ -22,7 +22,8 @@ Ext.define('Ext.util.HashMap', {
     ],
 
     /**
-     * @private Mutation counter which is incremented upon add and remove.
+     * Mutation counter which is incremented upon add and remove.
+     * @readonly
      */
     generation: 0,
     
@@ -239,7 +240,9 @@ Ext.define('Ext.util.HashMap', {
      */
 
     // We use this syntax because we don't want the initial param to be part of the public API
-    /** @ignore **/
+    /**
+     * @ignore
+     */
     clear: function(/* private */ initial) {
         var me = this;
 

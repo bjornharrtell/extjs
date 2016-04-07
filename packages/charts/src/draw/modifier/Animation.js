@@ -279,8 +279,7 @@ Ext.define('Ext.draw.modifier.Animation', {
             ignite = false,
             timer, name, newValue, startValue, parser, easing, duration;
 
-        if (!any) {
-            // If there is no animation enabled
+        if (!any) { // If there is no animation enabled.
             // When applying changes to attributes, simply stop current animation
             // and set the value.
             for (name in changes) {
@@ -293,8 +292,7 @@ Ext.define('Ext.draw.modifier.Animation', {
                 delete timers[name];
             }
             return changes;
-        } else {
-            // If any animation
+        } else { // If any animation.
             for (name in changes) {
                 newValue = changes[name];
                 startValue = attr[name];
@@ -375,7 +373,7 @@ Ext.define('Ext.draw.modifier.Animation', {
      * This method will not affect the values of lower layers, but may delete a
      * value from it.
      * @param {Object} attr The source attributes.
-     * @return {Object} The changes to pop up.
+     * @return {Object} The changes to pop up or null.
      */
     updateAttributes: function (attr) {
         if (!attr.animating) {
@@ -390,7 +388,7 @@ Ext.define('Ext.draw.modifier.Animation', {
 
         // If updated in the same frame, return.
         if (attr.lastUpdate === now) {
-            return {};
+            return null;
         }
 
         for (name in timers) {
@@ -444,21 +442,16 @@ Ext.define('Ext.draw.modifier.Animation', {
     step: function (frameTime) {
         var me = this,
             pool = me.animatingPool.slice(),
-            attributes,
-            i, ln;
+            ln = pool.length,
+            i = 0,
+            attr, changes;
 
-        for (i = 0, ln = pool.length; i < ln; i++) {
-            attributes = pool[i];
-            var changes = this.updateAttributes(attributes),
-                name;
+        for (; i < ln; i++) {
+            attr = pool[i];
+            changes = me.updateAttributes(attr);
 
-            // Looking for anything in changes
-            //noinspection LoopStatementThatDoesntLoopJS
-            for (name in changes) {
-                if (this._next) {
-                    this._next.popUp(attributes, changes);
-                }
-                break;
+            if (changes && me._next) {
+                me._next.popUp(attr, changes);
             }
         }
     },

@@ -72,19 +72,9 @@ Ext.define('Ext.Action', {
      */
     /**
      * @cfg {String} [iconCls='']
-     * The CSS class selector that specifies a background image to be used as the header icon for
-     * all components configured by this Action.
-     *
-     * An example of specifying a custom icon class would be something like:
-     *
-     *     // specify the property in the config for the class:
-     *          ...
-     *          iconCls: 'do-something'
-     *
-     *     // css class that specifies background image to be used as the icon image:
-     *     .do-something { background-image: url(../images/my-icon.gif) 0 6px no-repeat !important; }
-     *
-     * There are no default icon classes that come with Ext JS.
+     * @localdoc **Note:** The CSS class(es) specifying the background image will apply 
+     * to all components configured by this Action.
+     * @inheritdoc Ext.panel.Header#cfg-iconCls
      */
     /**
      * @cfg {Boolean} [disabled=false]
@@ -119,7 +109,7 @@ Ext.define('Ext.Action', {
         this.items = [];
     },
 
-    /*
+    /**
      * @property {Boolean} isAction
      * `true` in this class to identify an object as an instantiated Action, or subclass thereof.
      */
@@ -142,8 +132,9 @@ Ext.define('Ext.Action', {
     },
 
     /**
-     * Sets the icon CSS class for all components configured by this Action.  The class should supply
-     * a background image that will be used as the icon image.
+     * Sets the {@link #iconCls icon CSS class} for all components configured by this 
+     * Action.  The class should supply a background image that will be used as the icon 
+     * image.
      * @param {String} cls The CSS class supplying the icon image
      */
     setIconCls : function(cls){

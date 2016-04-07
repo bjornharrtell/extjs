@@ -1213,11 +1213,12 @@ var noArgs = [],
          *
          *      alert(obj.x);  // now alerts 42
          *
-         * This also works with static methods.
+         * This also works with static and private methods.
          *
          *      Ext.define('My.Derived2', {
          *          extend: 'My.Base',
          *
+         *          // privates: {
          *          statics: {
          *              method: function (x) {
          *                  return this.callParent([x*2]); // calls My.Base.method
@@ -1233,6 +1234,7 @@ var noArgs = [],
          *      Ext.define('My.Derived2Override', {
          *          override: 'My.Derived2',
          *
+         *          // privates: {
          *          statics: {
          *              method: function (x) {
          *                  return this.callParent([x*2]); // calls My.Derived2.method
@@ -1243,7 +1245,7 @@ var noArgs = [],
          *      alert(My.Derived2.method(10); // now alerts 40
          *
          * To override a method and replace it and also call the superclass method, use
-         * {@link #callSuper}. This is often done to patch a method to fix a bug.
+         * {@link #method-callSuper}. This is often done to patch a method to fix a bug.
          *
          * @protected
          * @param {Array/Arguments} args The arguments, either an array or the `arguments` object
@@ -1287,9 +1289,9 @@ var noArgs = [],
         },
 
         /**
-         * This method is used by an override to call the superclass method but bypass any
-         * overridden method. This is often done to "patch" a method that contains a bug
-         * but for whatever reason cannot be fixed directly.
+         * This method is used by an **override** to call the superclass method but 
+         * bypass any overridden method. This is often done to "patch" a method that 
+         * contains a bug but for whatever reason cannot be fixed directly.
          * 
          * Consider:
          * 
@@ -1326,10 +1328,11 @@ var noArgs = [],
          *          }
          *      });
          * 
-         * The patch method cannot use `callParent` to call the superclass `method` since
-         * that would call the overridden method containing the bug. In other words, the
-         * above patch would only produce "Fixed" then "Good" in the console log, whereas,
-         * using `callParent` would produce "Fixed" then "Bad" then "Good".
+         * The patch method cannot use {@link #method-callParent} to call the superclass 
+         * `method` since that would call the overridden method containing the bug. In 
+         * other words, the above patch would only produce "Fixed" then "Good" in the 
+         * console log, whereas, using `callParent` would produce "Fixed" then "Bad" 
+         * then "Good".
          *
          * @protected
          * @param {Array/Arguments} args The arguments, either an array or the `arguments` object
@@ -1517,8 +1520,34 @@ var noArgs = [],
         },
 
         /**
-         * Returns the initial configuration passed to constructor when instantiating
-         * this class.
+         * Returns the initial configuration passed to the constructor when 
+         * instantiating this class.
+         * 
+         * Given this example Ext.button.Button definition and instance:
+         * 
+         *     Ext.define('MyApp.view.Button', {
+         *         extend: 'Ext.button.Button',
+         *         xtype: 'mybutton',
+         *     
+         *         scale: 'large',
+         *         enableToggle: true
+         *     });
+         *     
+         *     var btn = Ext.create({
+         *         xtype: 'mybutton',
+         *         renderTo: Ext.getBody(),
+         *         text: 'Test Button'
+         *     });
+         * 
+         * Calling `btn.getInitialConfig()` would return an object including the config 
+         * options passed to the `create` method:
+         * 
+         *     xtype: 'mybutton',
+         *     renderTo: // The document body itself
+         *     text: 'Test Button'
+         * 
+         * Calling `btn.getInitialConfig('text')`returns **'Test Button'**.
+         * 
          * @param {String} [name] Name of the config option to return.
          * @return {Object/Mixed} The full config object or a single config value
          * when `name` parameter specified.
@@ -1593,7 +1622,6 @@ var noArgs = [],
         /**
          * This method is called to cleanup an object and its resources. After calling
          * this method, the object should not be used any further.
-         * @protected
          */
         destroy: function() {
             var me = this,

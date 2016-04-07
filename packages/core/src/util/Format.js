@@ -383,6 +383,7 @@ Ext.define('Ext.util.Format', function () {
         },
 
         /**
+         * @method
          * Simple format for a file size (xxx bytes, xxx KB, xxx MB).
          * @param {Number/String} size The numeric value to format
          * @return {String} The formatted file size

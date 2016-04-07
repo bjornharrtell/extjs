@@ -165,7 +165,7 @@ Ext.define('Ext.util.Collection', {
          *      var filters = collection.getFilters(); // an Ext.util.FilterCollection
          *
          *      function legalAge (item) {
-         *          return item.age >= 21;;
+         *          return item.age >= 21;
          *      }
          *
          *      filters.add(legalAge);
@@ -3101,7 +3101,7 @@ Ext.define('Ext.util.Collection', {
             // In this method, we have changed the filter but since we don't start with
             // any and we create the source collection as needed that means we are getting
             // our first filter.
-            extraKeys = me.getExtraKeys()
+            extraKeys = me.getExtraKeys();
             if (extraKeys) {
                 newKeys = {};
                 for (key in extraKeys) {
@@ -3677,3 +3677,4 @@ function () {
         };
     });
 });
+

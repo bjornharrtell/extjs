@@ -33,6 +33,9 @@ Ext.define('KitchenSink.view.grid.Spreadsheet', {
     }],
     //</example>
 
+    // There is no asymmetric data, we do not need to go to the expense of synching row heights
+    syncRowHeight: false,
+
     xtype: 'spreadsheet',
     controller: 'spreadsheet',
 

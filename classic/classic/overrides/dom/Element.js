@@ -73,8 +73,7 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
     //<feature legacyBrowser>
     if (Ext.isIE8) {
-        var removeNode = Ext.removeNode, // save a reference to the removeNode function defined in sencha-core
-            garbageBin = DOC.createElement('div'),
+        var garbageBin = DOC.createElement('div'),
             destroyQueue = [],
 
             // prevent memory leaks in IE8
@@ -91,16 +90,6 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                 garbageBin.innerHTML = '';
                 destroyQueue.length = 0;
             }, 10);
-
-        Ext.removeNode = function(node) {
-            node = node.dom || node;
-            removeNode(node);
-            destroyQueue[destroyQueue.length] = node;
-
-            // Will perform extra IE8 cleanup in 10 milliseconds
-            // see http://social.msdn.microsoft.com/Forums/ie/en-US/c76967f0-dcf8-47d0-8984-8fe1282a94f5/ie-appendchildremovechild-memory-problem?forum=iewebdevelopment
-            clearGarbage();
-        };
     }
     //</feature>
 
@@ -123,6 +112,13 @@ Ext.define('Ext.overrides.dom.Element', (function() {
 
         _init: function (E) {
             Element = E; // now we can poke this into closure scope
+            
+            // We want to expose destroyQueue on the prototype for testing purposes
+            //<debug>
+            if (WIN.__UNIT_TESTING__) {
+                E.destroyQueue = destroyQueue;
+            }
+            //</debug>
             
             // Allow overriding the attribute name and/or selector; this is
             // done only once for performance reasons
@@ -1699,11 +1695,17 @@ Ext.define('Ext.overrides.dom.Element', (function() {
         /**
          * Updates the innerHTML of this element, optionally searching for and processing scripts.
          * @param {String} html The new HTML
-         * @param {Boolean} [loadScripts] True to look for and process scripts (defaults to false)
-         * @param {Function} [callback] For async script loading you can be notified when the update completes
+         * @param {Boolean} [loadScripts] Pass `true` to look for and process scripts.
+         * @param {Function} [callback] For async script loading you can be notified when the update completes.
+         * @param {Object} [scope=`this`] The scope (`this` reference) in which to execute the callback.
+         * 
+         * Also used as the scope for any *inline* script source if the `loadScripts` parameter is `true`.
+         * Scripts with a `src` attribute cannot be executed in this scope.
+         *
+         * Defaults to this Element.
          * @return {Ext.dom.Element} this
          */
-        setHtml: function(html, loadScripts, callback) {
+        setHtml: function(html, loadScripts, callback, scope) {
             var me = this,
                 id,
                 dom,
@@ -1751,10 +1753,14 @@ Ext.define('Ext.overrides.dom.Element', (function() {
                        }
                        hd.appendChild(s);
                     } else if (match[2] && match[2].length > 0) {
-                        (WIN.execScript || WIN.eval)(match[2]); // jshint ignore:line
+                        if (scope) {
+                            Ext.functionFactory(match[2]).call(scope);
+                        } else {
+                            Ext.globalEval(match[2]);
+                        }
                     }
                 }
-                Ext.callback(callback, me);
+                Ext.callback(callback, scope || me);
             }, 20);
             dom.innerHTML = html.replace(replaceScriptTagRe, '');
             return me;
@@ -3417,6 +3423,73 @@ Ext.define('Ext.overrides.dom.Element', (function() {
             // Removing empty content makes the icon to appear again and be redrawn
             this.removeCls(syncRepaintCls);
         };
+    }
+    
+    if (Ext.isIE10m) {
+        Ext.override(Element, {
+            focus: function(defer, dom) {
+                var me = this,
+                    ex;
+                
+                dom = dom || me.dom;
+                
+                if (Number(defer)) {
+                    Ext.defer(me.focus, defer, me, [null, dom]);
+                }
+                else {
+                    Ext.GlobalEvents.fireEvent('beforefocus', dom);
+                    
+                    // IE10m has an acute problem with focusing input elements;
+                    // when the element was just shown and did not have enough
+                    // time to initialize, focusing it might fail. The problem
+                    // is somewhat random in nature; most of the time focusing
+                    // an input element will succeed, failing only occasionally.
+                    // When it fails, the focus will be thrown to the document
+                    // body element, with subsequent focusout/focusin event pair
+                    // on the body, which throws off our focusenter/focusleave
+                    // processing.
+                    // Fortunately for us, when this focus failure happens, the
+                    // resulting focusout event will happen *synchronously*
+                    // unlike the normal focusing events which IE will fire
+                    // asynchronously. Also fortunately for us, in most cases
+                    // trying to focus the given element the second time
+                    // immediately after it failed to focus the first time
+                    // seems to do the trick; however when second focus attempt
+                    // succeeds, it will result in focusout on the body and
+                    // focusin on the given element, which again wreaks havoc
+                    // on our focusenter/focusleave handling.
+                    // The only workable solution we have is to pretend that
+                    // focus never went to the document body and ignore the
+                    // focusout and focusin caused by failed first focus attempt.
+                    // To this end, we fudge the event stream in Focus publisher
+                    // override.
+                    if (dom && (dom.tagName === 'INPUT' || dom.tagname === 'TEXTAREA')) {
+                        Ext.synchronouslyFocusing = document.activeElement;
+                    }
+                    
+                    // Also note that trying to focus an unfocusable element
+                    // might throw an exception in IE8. What a cute idea, MS. :(
+                    try {
+                        dom.focus();
+                    }
+                    catch (xcpt) {
+                        ex = xcpt;
+                    };
+                    
+                    // Ok so now we have this situation when we tried to focus
+                    // the first time but did not succeed. Let's try again but
+                    // not if there was an exception the first time - when the
+                    // "focus failure" happens it does so silently. :(
+                    if (Ext.synchronouslyFocusing && document.activeElement !== dom && !ex) {
+                        dom.focus();
+                    }
+                    
+                    Ext.synchronouslyFocusing = null;
+                }
+                
+                return me;
+            }
+        });
     }
 
     Ext.apply(Ext, {

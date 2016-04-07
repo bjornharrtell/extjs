@@ -22,14 +22,11 @@ Ext.define('Ext.event.publisher.Dom', {
     // the DOM,  For these events, when the delegated event model is used, we attach a
     // single listener on the window object using the "useCapture" option.
     captureEvents: {
+        animationstart: 1,
+        animationend: 1,
         resize: 1,
         focus: 1,
         blur: 1,
-        paste: 1,
-        input: 1,
-        change: 1,
-        animationstart: 1,
-        animationend: 1,
         scroll: 1
     },
 
@@ -535,7 +532,7 @@ Ext.define('Ext.event.publisher.Dom', {
         // This is not possible to feature detect using synthetic events.
         // Ticket logged: https://bugzilla.mozilla.org/show_bug.cgi?id=1156023
         if (Ext.isGecko && e.type === 'click' && e.button === 2) {
-            return false;
+            return true;
         }
 
         // prevent emulated pointerover, pointerout, pointerenter, and pointerleave

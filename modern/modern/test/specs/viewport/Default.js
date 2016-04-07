@@ -262,5 +262,72 @@ describe("Ext.viewport.Default", function() {
             });
         });
     });
+    
+    
+    describe("scrolling", function(){
+        var viewport,
+            viewportScroller,
+            DomScroller = Ext.scroll.DomScroller,
+            viewportScrollCount = 0,
+            documentScrollCount = 0;
+
+        beforeEach(function() {
+            // Gets destroyed by viewports, so restore to initial conditions for tests
+            if (!DomScroller.document) {
+                DomScroller.document = new DomScroller({
+                    x: true,
+                    y: true,
+                    element: document.body
+                });
+            };
+
+            document.documentElement.style.height = '500px';
+            document.documentElement.style.overflow = 'auto';
+
+            // This must not fire.
+            // We can't use a single global listener because different
+            // event sources are used on different platforms.
+            // We are checking that the global instance is destroyed and fires
+            // no events.
+            DomScroller.document.on('scroll', function() {
+                documentScrollCount++;
+            });
+            viewport = new Viewport({
+                layout: 'default',
+                scrollable: true,
+                items: [{
+                    xtype: 'component',
+                    height: 5000,
+                    width: 100
+                }]
+            });
+            viewportScroller = viewport.getScrollable();
+            viewportScroller.on({
+                scroll: function() {
+                    viewportScrollCount++;
+                }
+            });
+        });
+
+        afterEach(function(){
+            viewport.destroy();
+        });
+
+        it('should only a fire scroll event through the viewport. The global dom scroller must be destroyed', function() {
+            viewportScroller.scrollTo(null, 500);
+
+            // Wait for potentially asynchronous scroll events to fire.
+            waits(100);
+
+            runs(function() {
+                expect(DomScroller.document == null).toBe(true);
+
+                expect(viewportScrollCount).toBe(1);
+
+                // We must have received no scroll events from the document scroller
+                expect(documentScrollCount).toBe(0);
+            });
+        });
+    });
 
 });

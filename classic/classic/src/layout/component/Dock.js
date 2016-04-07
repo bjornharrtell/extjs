@@ -1315,10 +1315,12 @@ Ext.define('Ext.layout.component.Dock', {
     renderItems: function (items, target) {
         var me = this,
             owner = me.owner,
-            dockedItems = owner.dockedItems,
+            dockedItemIds = {},
             dockedItemCount = items.length,
             bodyEl = owner.body,
-            baseIndex, childNodes, childNodeCount, dom, gap, i, item, position;
+            hasFrame = !!owner.frameSize,
+            bodyContainer = owner.bodyContainer,
+            baseIndex, childNodes, childNodeCount, dom, gap, i, item, position, bodyFound;
 
         // TODO: This is affected if users provide custom weight values to their
         // docked items, which puts it out of (t,l,r,b) order. Avoiding a second
@@ -1327,9 +1329,17 @@ Ext.define('Ext.layout.component.Dock', {
         // also for getRefItems() to return a logical ordering (CQ, et al).
 
         if (dockedItemCount) {
+
+            // Build a correct map of docked item ids to match with the ID of found DOM elements.
+            // The "map" property of the dockedItems Collection uses the *itemId* as the key, so 
+            // that will never match, and will cause isValidParent to return false, resulting in DOM motion.
+            for (i = 0; i < dockedItemCount; i++) {
+                item = items[i];
+                dockedItemIds[item.id] = item;
+            }
+
             childNodes = me.getRenderTarget().dom.childNodes;
             childNodeCount = childNodes.length;
-            dockedItems = dockedItems.map; // MixedCollection's map by id
             gap = 0;
 
             // Our childNodes will contain non-item elements as well as the bodyEl. We
@@ -1338,18 +1348,40 @@ Ext.define('Ext.layout.component.Dock', {
             //
             for (i = 0; i < childNodeCount; ++i) {
                 dom = childNodes[i];
+                
+                // When extra framing elements are used, bodyEl will be contained
+                // in the frameBody, which in turn might be contained in other
+                // framing elements.
+                if (hasFrame) {
+                    bodyFound = dom === bodyEl.dom || dom === bodyContainer;
+                    
+                    // Cache the found body container to speed up subsequent layouts
+                    if (!bodyFound && Ext.fly(dom).contains(bodyEl)) {
+                        bodyFound = true;
+                        owner.bodyContainer = dom;
+                    }
+                }
+                else {
+                    bodyFound = dom === bodyEl.dom;
+                }
 
-                if (dom === bodyEl.dom) {
+                if (bodyFound) {
                     // We want top/left dockedItems to be inserted before the body, so
                     // use the bodyEl's index as the base.
                     baseIndex = i;
                     break;
                 }
 
-                if (dockedItems[dom.id]) {
+                if (dockedItemIds[dom.id]) {
                     ++gap;
                 }
             }
+            
+            //<debug>
+            if (!bodyFound) {
+                Ext.log.error('Dock layout error for ' + owner.id + ': bodyEl not found!');
+            }
+            //</debug>
 
             // Subtract the number of rendered dockedItems from the bodyEl's index to get
             // the actual base.

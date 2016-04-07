@@ -1,5 +1,5 @@
 /**
- * This example shows how to use a Tree with nodes loaded dynamically from Ext.Direct
+ * This example shows how to use a Tree with nodes loaded dynamically from Ext Direct
  * back end.
  */
 Ext.define('KitchenSink.view.direct.Tree', {
@@ -12,7 +12,7 @@ Ext.define('KitchenSink.view.direct.Tree', {
     ],
     
     //<example>
-    exampleTitle: 'Ext.Direct Tree integration',
+    exampleTitle: 'Ext Direct Tree integration',
     exampleDescription: [
         '<p>This example shows how to load Tree nodes dynamically from a Direct proxy.</p>'
     ].join(''),

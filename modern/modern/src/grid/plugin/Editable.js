@@ -123,7 +123,7 @@ Ext.define('Ext.grid.plugin.Editable', {
         formConfig: null,
 
         /**
-         * Configures the default form appened to the editable panel.
+         * Configures the default form appended to the editable panel.
          */
         defaultFormConfig: {
             xtype: 'formpanel',

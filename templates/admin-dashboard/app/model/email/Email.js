@@ -31,7 +31,8 @@ Ext.define('Admin.model.email.Email', {
             name: 'attachments'
         },
         {
-            name: 'received_on'
+            name: 'received_on',
+            type: 'date'
         },
         {
             name: 'favorite'

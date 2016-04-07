@@ -408,7 +408,8 @@
      * Extra resources to be copied along when build
      */
     "resources": [
-        "contacts.json"
+        "contacts.json",
+        "resources/images/headshots"
     ],
 
     /**

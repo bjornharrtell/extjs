@@ -1,0 +1,22 @@
+.blank-page-container {
+    text-align: center;
+    color: #cacaca;
+    .fa-outer-class {
+        margin: auto;
+        background-color: #ebebeb;
+        width: 10rem;
+        border-radius: 5rem;
+        .x-fa:before {
+            line-height: 10rem;
+            font-size: 12rem;
+            color: #cacaca;
+        }
+    }
+    h1 {
+        margin: .75rem;
+        font-size: 2.5rem;
+    }
+    .blank-page-text {
+        font-size: 1.5rem;
+    }
+}

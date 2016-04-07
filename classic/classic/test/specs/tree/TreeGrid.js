@@ -1,144 +1,147 @@
 describe("Ext.tree.TreeGrid", function() {
 
     var TreeGridItem = Ext.define(null, {
-        extend: 'Ext.data.Model',
-        fields: ['f1', 'f2'],
-        proxy: {
-            type: 'memory'
-        }
-    }),
-    tree,
-    view,
-    store,
-    recordCount,
-    treeData = {
-        f1: 'root1',
-        f2: 'root.a',
+            extend: 'Ext.data.Model',
+            fields: ['f1', 'f2'],
+            proxy: {
+                type: 'memory'
+            }
+        }),
+        tree,
+        view,
+        store,
+        recordCount,
+        treeData = {
+            f1: 'root1',
+            f2: 'root.a',
 
-        // Add cls. Tests must not throw errors with this present.
-        cls: 'test-EXTJS-16367',
-        children: [{
-            f1: '1',
-            f2: 'a',
+            // Add cls. Tests must not throw errors with this present.
+            cls: 'test-EXTJS-16367',
             children: [{
-                f1: '1.1',
-                f2: 'a.a',
-                leaf: true
+                f1: '1',
+                f2: 'a',
+                children: [{
+                    f1: '1.1',
+                    f2: 'a.a',
+                    leaf: true
+                }, {
+                    f1: '1.2',
+                    f2: 'a.b',
+                    leaf: true
+                }, {
+                    f1: '1.3',
+                    f2: 'a.c',
+                    leaf: true
+                }, {
+                    f1: '1.4',
+                    f2: 'a.d',
+                    leaf: true
+                }]
             }, {
-                f1: '1.2',
-                f2: 'a.b',
-                leaf: true
+                f1: '2',
+                f2: 'b',
+                children: [{
+                    f1: '2.1',
+                    f2: 'b.a',
+                    leaf: true
+                }, {
+                    f1: '2.2',
+                    f2: 'b.b',
+                    leaf: true
+                }, {
+                    f1: '2.3',
+                    f2: 'b.c',
+                    leaf: true
+                }, {
+                    f1: '2.4',
+                    f2: 'b.d',
+                    leaf: true
+                }]
             }, {
-                f1: '1.3',
-                f2: 'a.c',
-                leaf: true
+                f1: '3',
+                f2: 'c',
+                children: [{
+                    f1: '3.1',
+                    f2: 'c.a',
+                    leaf: true
+                }, {
+                    f1: '3.2',
+                    f2: 'c.b',
+                    leaf: true
+                }, {
+                    f1: '3.3',
+                    f2: 'c.c',
+                    leaf: true
+                }, {
+                    f1: '3.4',
+                    f2: 'c.d',
+                    leaf: true
+                }]
             }, {
-                f1: '1.4',
-                f2: 'a.d',
-                leaf: true
+                f1: '4',
+                f2: 'd',
+                children: [{
+                    f1: '4.1',
+                    f2: 'd.a',
+                    leaf: true
+                }, {
+                    f1: '4.2',
+                    f2: 'd.b',
+                    leaf: true
+                }, {
+                    f1: '4.3',
+                    f2: 'd.c',
+                    leaf: true
+                }, {
+                    f1: '4.4',
+                    f2: 'd.d',
+                    leaf: true
+                }]
+            }, {
+                f1: '5',
+                f2: 'e',
+                children: [{
+                    f1: '5.1',
+                    f2: 'e.a',
+                    leaf: true
+                }, {
+                    f1: '5.2',
+                    f2: 'e.b',
+                    leaf: true
+                }, {
+                    f1: '5.3',
+                    f2: 'e.c',
+                    leaf: true
+                }, {
+                    f1: '5.4',
+                    f2: 'e.d',
+                    leaf: true
+                }]
+            }, {
+                f1: '6',
+                f2: 'f',
+                children: [{
+                    f1: '6.1',
+                    f2: 'f.a',
+                    leaf: true
+                }, {
+                    f1: '6.2',
+                    f2: 'f.b',
+                    leaf: true
+                }, {
+                    f1: '6.3',
+                    f2: 'f.c',
+                    leaf: true
+                }, {
+                    f1: '6.4',
+                    f2: 'f.d',
+                    leaf: true
+                }]
             }]
-        }, {
-            f1: '2',
-            f2: 'b',
-            children: [{
-                f1: '2.1',
-                f2: 'b.a',
-                leaf: true
-            }, {
-                f1: '2.2',
-                f2: 'b.b',
-                leaf: true
-            }, {
-                f1: '2.3',
-                f2: 'b.c',
-                leaf: true
-            }, {
-                f1: '2.4',
-                f2: 'b.d',
-                leaf: true
-            }]
-        }, {
-            f1: '3',
-            f2: 'c',
-            children: [{
-                f1: '3.1',
-                f2: 'c.a',
-                leaf: true
-            }, {
-                f1: '3.2',
-                f2: 'c.b',
-                leaf: true
-            }, {
-                f1: '3.3',
-                f2: 'c.c',
-                leaf: true
-            }, {
-                f1: '3.4',
-                f2: 'c.d',
-                leaf: true
-            }]
-        }, {
-            f1: '4',
-            f2: 'd',
-            children: [{
-                f1: '4.1',
-                f2: 'd.a',
-                leaf: true
-            }, {
-                f1: '4.2',
-                f2: 'd.b',
-                leaf: true
-            }, {
-                f1: '4.3',
-                f2: 'd.c',
-                leaf: true
-            }, {
-                f1: '4.4',
-                f2: 'd.d',
-                leaf: true
-            }]
-        }, {
-            f1: '5',
-            f2: 'e',
-            children: [{
-                f1: '5.1',
-                f2: 'e.a',
-                leaf: true
-            }, {
-                f1: '5.2',
-                f2: 'e.b',
-                leaf: true
-            }, {
-                f1: '5.3',
-                f2: 'e.c',
-                leaf: true
-            }, {
-                f1: '5.4',
-                f2: 'e.d',
-                leaf: true
-            }]
-        }, {
-            f1: '6',
-            f2: 'f',
-            children: [{
-                f1: '6.1',
-                f2: 'f.a',
-                leaf: true
-            }, {
-                f1: '6.2',
-                f2: 'f.b',
-                leaf: true
-            }, {
-                f1: '6.3',
-                f2: 'f.c',
-                leaf: true
-            }, {
-                f1: '6.4',
-                f2: 'f.d',
-                leaf: true
-            }]
-        }]
-    };
+        },
+        synchronousLoad = true,
+        treeStoreLoad = Ext.data.TreeStore.prototype.load,
+        loadStore;
     
     function makeTreeGrid(cfg, storeCfg) {
         tree = new Ext.tree.Panel(Ext.apply({
@@ -164,8 +167,22 @@ describe("Ext.tree.TreeGrid", function() {
         }, cfg));
         view = tree.getView();
     }
-    
+
+    beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.TreeStore.prototype.load = function() {
+            treeStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+    });
+
     afterEach(function(){
+        // Undo the overrides.
+        Ext.data.TreeStore.prototype.load = treeStoreLoad;
+
         Ext.destroy(tree);
     });
     

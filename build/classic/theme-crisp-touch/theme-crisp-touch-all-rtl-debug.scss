@@ -1,4 +1,4 @@
-$image-search-path: 'C:/BuildAgent/work/d77fd6bbe169b220/staging/build/classic/theme-crisp-touch/resources' !default;
+$image-search-path: 'C:/BuildAgent/work/b3173c323478ec0c/staging/build/classic/theme-crisp-touch/resources' !default;
 $theme-name:  'theme-crisp-touch' !default;
 $include-ext-abstractcomponent: dynamic(true);;
 $include-ext-abstractcontainer: dynamic(true);;
@@ -26,7 +26,6 @@ $include-ext-cyclebutton: dynamic(true);;
 $include-ext-dataview: dynamic(true);;
 $include-ext-datepicker: dynamic(true);;
 $include-ext-deferred: dynamic(true);;
-$include-ext-direct-transaction: dynamic(true);;
 $include-ext-domhelper: dynamic(true);;
 $include-ext-domquery: dynamic(true);;
 $include-ext-editor: dynamic(true);;
@@ -55,8 +54,10 @@ $include-ext-panel: dynamic(true);;
 $include-ext-perf: dynamic(true);;
 $include-ext-pluginmanager: dynamic(true);;
 $include-ext-pluginmgr: dynamic(true);;
+$include-ext-progress: dynamic(true);;
 $include-ext-progressbar: dynamic(true);;
 $include-ext-progressbarwidget: dynamic(true);;
+$include-ext-progressbase: dynamic(true);;
 $include-ext-promise: dynamic(true);;
 $include-ext-propgridproperty: dynamic(true);;
 $include-ext-quicktip: dynamic(true);;
@@ -608,6 +609,7 @@ $include-ext-mixin-selectable: dynamic(true);;
 $include-ext-mixin-templatable: dynamic(true);;
 $include-ext-mixin-traversable: dynamic(true);;
 $include-ext-overrides-globalevents: dynamic(true);;
+$include-ext-overrides-progress: dynamic(true);;
 $include-ext-overrides-widget: dynamic(true);;
 $include-ext-overrides-app-application: dynamic(true);;
 $include-ext-overrides-app-domain-component: dynamic(true);;
@@ -841,7 +843,6 @@ $include-ext-util-paintmonitor-abstract: dynamic(true);;
 $include-ext-util-paintmonitor-cssanimation: dynamic(true);;
 $include-ext-util-paintmonitor-overflowchange: dynamic(true);;
 $include-ext-util-sizemonitor-abstract: dynamic(true);;
-$include-ext-util-sizemonitor-default: dynamic(true);;
 $include-ext-util-sizemonitor-overflowchange: dynamic(true);;
 $include-ext-util-sizemonitor-scroll: dynamic(true);;
 $include-ext-util-translatable-abstract: dynamic(true);;
@@ -936,6 +937,14 @@ $current-resource-root: $theme-crisp-touch-resource-root;
 $relative-image-path-for-uis: $theme-crisp-touch-resource-path;
 @import '../../../classic/theme-crisp-touch/sass/etc/all';
 
+/* including package theme-crisp-touch */
+$theme-crisp-touch-resource-root: '' !default;
+$theme-crisp-touch-resource-path: 'images' !default;
+$current-package: 'theme-crisp-touch';
+$current-resource-root: $theme-crisp-touch-resource-root;
+$relative-image-path-for-uis: $theme-crisp-touch-resource-path;
+@import '../../../classic/theme-crisp-touch/sass/etc/all';
+
 
 /* ======================== VAR ======================== */
 
@@ -972,6 +981,7 @@ $relative-image-path-for-uis: $theme-neutral-resource-path;
 @import '../../../classic/theme-neutral/sass/var/panel/Header';
 @import '../../../classic/theme-neutral/sass/var/resizer/Splitter';
 @import '../../../classic/theme-neutral/sass/var/toolbar/Toolbar';
+@import '../../../classic/theme-neutral/sass/var/dd/StatusProxy';
 @import '../../../classic/theme-neutral/sass/var/panel/Panel';
 @import '../../../classic/theme-neutral/sass/var/container/ButtonGroup';
 @import '../../../classic/theme-neutral/sass/var/dashboard/Dashboard';
@@ -1010,6 +1020,7 @@ $relative-image-path-for-uis: $theme-neutral-resource-path;
 @import '../../../classic/theme-neutral/sass/var/grid/selection/SpreadsheetModel';
 @import '../../../classic/theme-neutral/sass/var/layout/container/Accordion';
 @import '../../../classic/theme-neutral/sass/var/layout/container/Border';
+@import '../../../classic/theme-neutral/sass/var/resizer/Resizer';
 @import '../../../classic/theme-neutral/sass/var/selection/CheckboxModel';
 @import '../../../classic/theme-neutral/sass/var/slider/Multi';
 @import '../../../classic/theme-neutral/sass/var/tab/Tab';
@@ -1032,6 +1043,7 @@ $relative-image-path-for-uis: $theme-neptune-resource-path;
 @import '../../../classic/theme-neptune/sass/var/panel/Tool';
 @import '../../../classic/theme-neptune/sass/var/resizer/Splitter';
 @import '../../../classic/theme-neptune/sass/var/toolbar/Toolbar';
+@import '../../../classic/theme-neptune/sass/var/dd/StatusProxy';
 @import '../../../classic/theme-neptune/sass/var/panel/Panel';
 @import '../../../classic/theme-neptune/sass/var/container/ButtonGroup';
 @import '../../../classic/theme-neptune/sass/var/window/Window';
@@ -1149,6 +1161,20 @@ $relative-image-path-for-uis: $theme-crisp-touch-resource-path;
 @import '../../../classic/theme-crisp-touch/sass/var/tab/Tab';
 @import '../../../classic/theme-crisp-touch/sass/var/tab/Bar';
 
+/* including package theme-crisp-touch */
+$theme-crisp-touch-resource-root: '' !default;
+$theme-crisp-touch-resource-path: 'images' !default;
+$current-package: 'theme-crisp-touch';
+$current-resource-root: $theme-crisp-touch-resource-root;
+$relative-image-path-for-uis: $theme-crisp-touch-resource-path;
+@import '../../../classic/theme-crisp-touch/sass/var/resizer/Splitter';
+@import '../../../classic/theme-crisp-touch/sass/var/picker/Date';
+@import '../../../classic/theme-crisp-touch/sass/var/grid/feature/Grouping';
+@import '../../../classic/theme-crisp-touch/sass/var/grid/plugin/RowExpander';
+@import '../../../classic/theme-crisp-touch/sass/var/resizer/Resizer';
+@import '../../../classic/theme-crisp-touch/sass/var/tab/Tab';
+@import '../../../classic/theme-crisp-touch/sass/var/tab/Bar';
+
 
 /* ======================== RULE ======================== */
 
@@ -1160,7 +1186,9 @@ $current-resource-root: $core-resource-root;
 $relative-image-path-for-uis: $core-resource-path;
 @import '../../../packages/core/sass/src/util/SizeMonitor';
 @import '../../../packages/core/sass/src/util/PaintMonitor';
+@import '../../../packages/core/sass/src/ProgressBase';
 @import '../../../packages/core/sass/src/util/Translatable';
+@import '../../../packages/core/sass/src/scroll/TouchScroller';
 @import '../../../packages/core/sass/src/scroll/DomScroller';
 @import '../../../packages/core/sass/src/list/TreeItem';
 
@@ -1170,13 +1198,11 @@ $theme-base-resource-path: 'images' !default;
 $current-package: 'theme-base';
 $current-resource-root: $theme-base-resource-root;
 $relative-image-path-for-uis: $theme-base-resource-path;
-@import '../../../classic/theme-base/sass/src/scroll/TouchScroller';
 @import '../../../classic/theme-base/sass/src/rtl/util/Renderable';
 @import '../../../classic/theme-base/sass/src/Component';
 @import '../../../classic/theme-base/sass/src/layout/container/Container';
 @import '../../../classic/theme-base/sass/src/layout/container/Auto';
 @import '../../../classic/theme-base/sass/src/LoadMask';
-@import '../../../classic/theme-base/sass/src/ProgressBar';
 @import '../../../classic/theme-base/sass/src/button/Button';
 @import '../../../classic/theme-base/sass/src/button/Segmented';
 @import '../../../classic/theme-base/sass/src/panel/Title';
@@ -1256,6 +1282,7 @@ $relative-image-path-for-uis: $theme-neutral-resource-path;
 @import '../../../classic/theme-neutral/sass/src/resizer/Splitter';
 @import '../../../classic/theme-neutral/sass/src/layout/container/Box';
 @import '../../../classic/theme-neutral/sass/src/toolbar/Toolbar';
+@import '../../../classic/theme-neutral/sass/src/dd/StatusProxy';
 @import '../../../classic/theme-neutral/sass/src/panel/Panel';
 @import '../../../classic/theme-neutral/sass/src/container/ButtonGroup';
 @import '../../../classic/theme-neutral/sass/src/dashboard/Dashboard';
@@ -1319,7 +1346,6 @@ $current-package: 'theme-neptune';
 $current-resource-root: $theme-neptune-resource-root;
 $relative-image-path-for-uis: $theme-neptune-resource-path;
 @import '../../../classic/theme-neptune/sass/src/button/Button';
-@import '../../../classic/theme-neptune/sass/src/dd/StatusProxy';
 @import '../../../classic/theme-neptune/sass/src/panel/Panel';
 @import '../../../classic/theme-neptune/sass/src/form/field/File';
 @import '../../../classic/theme-neptune/sass/src/form/field/HtmlEditor';

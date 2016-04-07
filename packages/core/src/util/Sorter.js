@@ -255,15 +255,24 @@ Ext.define('Ext.util.Sorter', {
     },
 
     /**
-     * Returns this filter's state.
+     * Returns this sorter's state.
      * @return {Object}
      */
     getState: function() {
-        return {
-            root: this.getRoot(),
-            property: this.getProperty(),
-            direction: this.getDirection()
-        };
+        var me = this,
+            result = {
+                root: me.getRoot(),
+                property: me.getProperty(),
+                direction: me.getDirection()
+            };
+
+        // Do not use getId() which will create an identifier if we have none.
+        // We need to know if we really are identifiable.
+        if (me._id) {
+            result.id = me._id;
+        }
+        
+        return result;
     },
 
     /**

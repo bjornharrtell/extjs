@@ -319,6 +319,25 @@ $grid-empty-font-family: dynamic($font-family);
  */
 $grid-resize-marker-background-color: dynamic(#0f0f0f);
 
+/**
+ * @var {color}
+ * The color of the grid cell dirty indicator when {@link Global_CSS#$enable-font-icons} is `true`.
+ */
+$grid-cell-dirty-glyph-color: dynamic(#c30);
+
+/**
+ * @var {string/list}
+ * Glyph for the grid cell dirty indicator when {@link Global_CSS#$enable-font-icons} is `true`.
+ */
+$grid-cell-dirty-glyph: dynamic($ext-var-dirty 14px ExtJS);
+
+/**
+ * @var {string/list}
+ * Glyph for the grid cell dirty indicator in rtl mode
+ * when {@link Global_CSS#$enable-font-icons} is `true`.
+ */
+$grid-cell-dirty-glyph-rtl: dynamic($ext-var-dirty-rtl 14px ExtJS);
+
 // private
 $grid-row-height: dynamic($grid-row-cell-line-height + vertical($grid-cell-inner-padding));
 // private

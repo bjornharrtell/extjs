@@ -220,9 +220,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                 enlargeEstStepSizeByText: 'layout'
             },
             updaters: {
-                layout: function () {
-                    this.doLayout();
-                }
+                layout: 'layoutUpdater'
             }
         }
     },
@@ -271,12 +269,12 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
 
     getBBox: function () { return null; },
 
-    doDefaultRender: function (v) {
+    defaultRenderer: function (v) {
         // 'this' pointer in this case is a layoutContext
         return this.segmenter.renderer(v, this);
     },
 
-    doLayout: function () {
+    layoutUpdater: function () {
         var me = this,
             chart = me.getAxis().getChart();
 
@@ -293,7 +291,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
             context = {
                 attr: attr,
                 segmenter: me.getSegmenter(),
-                renderer: me.doDefaultRender
+                renderer: me.defaultRenderer
             };
 
         if (position === 'left' || position === 'right') {
@@ -495,7 +493,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
             if (ctx.font !== font) {
                 ctx.font = font;
             } // This can profoundly improve performance.
-            label.setAttributes({translationX: 0, translationY: 0}, true, true);
+            label.setAttributes({translationX: 0, translationY: 0}, true);
             label.applyTransformations();
             labelInverseMatrix = label.attr.inverseMatrix.elements.slice(0);
             switch (docked) {
@@ -513,7 +511,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                     }
                     label.setAttributes({
                         translationX: translation
-                    }, true, true);
+                    }, true);
                     break;
                 case 'right':
                     titlePadding = titleBBox ? clipRect[2] - titleBBox.x : 0;
@@ -529,34 +527,34 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                     }
                     label.setAttributes({
                         translationX: translation
-                    }, true, true);
+                    }, true);
                     break;
                 case 'top':
                     titlePadding = titleBBox ? titleBBox.y + titleBBox.height: 0;
                     label.setAttributes({
                         translationY: surface.roundPixel(titlePadding + (clipRect[3] - titlePadding - tickPadding) / 2) - halfLineWidth
-                    }, true, true);
+                    }, true);
                     break;
                 case 'bottom':
                     titlePadding = titleBBox ? clipRect[3] - titleBBox.y : 0;
                     label.setAttributes({
                         translationY: surface.roundPixel(tickPadding + (clipRect[3] - tickPadding - titlePadding) / 2) + halfLineWidth
-                    }, true, true);
+                    }, true);
                     break;
                 case 'radial' :
                     label.setAttributes({
                         translationX: attr.centerX
-                    }, true, true);
+                    }, true);
                     break;
                 case 'angular':
                     label.setAttributes({
                         translationY: attr.centerY
-                    }, true, true);
+                    }, true);
                     break;
                 case 'gauge':
                     label.setAttributes({
                         translationY: attr.centerY
-                    }, true, true);
+                    }, true);
                     break;
             }
 
@@ -576,7 +574,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                     label.setAttributes({
                         text: String(text),
                         translationY: surface.roundPixel(position * yy + dy)
-                    }, true, true);
+                    }, true);
                     label.applyTransformations();
                     thickness = Math.max(thickness, label.getBBox().width + tickPadding);
                     if (thickness <= me.thickness) {
@@ -608,7 +606,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                     label.setAttributes({
                         text: String(text),
                         translationX: surface.roundPixel(position * xx + dx)
-                    }, true, true);
+                    }, true);
                     label.applyTransformations();
                     thickness = Math.max(thickness, label.getBBox().height + tickPadding);
                     if (thickness <= me.thickness) {
@@ -642,7 +640,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                             attr.max * attr.length * Math.cos(attr.baseRotation + Math.PI / 2),
                             translationY: attr.centerY - surface.roundPixel(position) /
                             attr.max * attr.length * Math.sin(attr.baseRotation + Math.PI / 2)
-                        }, true, true);
+                        }, true);
                         label.applyTransformations();
                         bbox = label.attr.matrix.transformBBox(label.getBBox(true));
                         if (lastBBox && !isBBoxIntersect(bbox, lastBBox)) {
@@ -677,7 +675,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                             text: String(text),
                             translationX: attr.centerX + (attr.length + labelOffset) * Math.cos(angle),
                             translationY: attr.centerY + (attr.length + labelOffset) * Math.sin(angle)
-                        }, true, true);
+                        }, true);
                         label.applyTransformations();
                         bbox = label.attr.matrix.transformBBox(label.getBBox(true));
                         if (lastBBox && !isBBoxIntersect(bbox, lastBBox)) {
@@ -710,7 +708,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                             text: String(text),
                             translationX: attr.centerX + (attr.length + 10) * Math.cos(angle),
                             translationY: attr.centerY + (attr.length + 10) * Math.sin(angle)
-                        }, true, true);
+                        }, true);
                         label.applyTransformations();
                         bbox = label.attr.matrix.transformBBox(label.getBBox(true));
                         if (lastBBox && !isBBoxIntersect(bbox, lastBBox)) {

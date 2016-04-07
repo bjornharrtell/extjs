@@ -4,23 +4,25 @@
  *
  * This example also shows loading an entire tree structure statically in one load call,
  * rather than loading each node asynchronously.
+ *
+ * The beforecheckchange event is used to veto the taking of a nap.
  */
 Ext.define('KitchenSink.view.tree.CheckTree', {
     extend: 'Ext.tree.Panel',
-    
-    requires: [
-        'Ext.data.TreeStore'
-    ],
     xtype: 'check-tree',
     
     //<example>
     exampleTitle: 'Checkbox Selection in a TreePanel',
     otherContent: [{
+        type: 'Controller',
+        path: 'classic/samples/view/tree/CheckTreeController.js'
+    }, {
         type: 'Data',
         path: 'data/tree/check-nodes.json'
     }],
     //</example>
-    
+    controller: 'check-tree',
+    store: 'CheckTree',
     rootVisible: false,
     useArrows: true,
     frame: true,
@@ -29,44 +31,11 @@ Ext.define('KitchenSink.view.tree.CheckTree', {
     height: 300,
     bufferedRenderer: false,
     animate: true,
-    
-    initComponent: function(){
-
-        Ext.apply(this, {
-            store: new Ext.data.TreeStore({
-                proxy: {
-                    type: 'ajax',
-                    url: 'data/tree/check-nodes.json'
-                },
-                sorters: [{
-                    property: 'leaf',
-                    direction: 'ASC'
-                }, {
-                    property: 'text',
-                    direction: 'ASC'
-                }]
-            }),
-            tbar: [{
-                text: 'Get checked nodes',
-                scope: this,
-                handler: this.onCheckedNodesClick
-            }]
-        });
-        this.callParent();
+    listeners: {
+        beforecheckchange: 'onBeforeCheckChange'
     },
-    
-    onCheckedNodesClick: function(){
-        var records = this.getView().getChecked(),
-            names = [];
-                   
-        Ext.Array.each(records, function(rec){
-            names.push(rec.get('text'));
-        });
-                    
-        Ext.MessageBox.show({
-            title: 'Selected Nodes',
-            msg: names.join('<br />'),
-            icon: Ext.MessageBox.INFO
-        });
-    }
+    tbar: [{
+        text: 'Get checked nodes',
+        handler: 'onCheckedNodesClick'
+    }]
 });

@@ -1,0 +1,28 @@
+.finish-form {
+    color: red;
+}
+
+.finish-form-icon,
+.finish-form-title,
+.finish-form-text {
+    color: #888;
+}
+
+.finish-form-icon {
+    float: left;
+    font-size: 8em;
+    width: 1.1em;
+
+    &:before {
+        content: $fa-var-check-circle-o;
+    }
+}
+
+.finish-form-title {
+    margin-top: 20px;
+    font-size: 200%;
+}
+
+.finish-form-text {
+    margin-top: 20px;
+}

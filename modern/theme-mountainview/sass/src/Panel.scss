@@ -22,3 +22,9 @@
 .x-form.x-floating > .x-dock.x-sized {
     margin: 0;
 }
+
+
+.x-panel.x-floating > * > .x-dock-body,
+.x-form.x-floating > * > .x-dock-body {
+    background-color: $background-color;
+}

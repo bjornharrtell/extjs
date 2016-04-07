@@ -88,10 +88,6 @@
      *      }
      */
     "js": [
-        {
-            "path": "app.js",
-            "bundle": true
-        },
     	{
             "path": "lib/prettify/prettify.js",
             "includeInBundle": true
@@ -99,7 +95,11 @@
     	{
             "path": "../classic/shared/examples.js",
             "includeInBundle": true
-    	}
+    	},
+        {
+            "path": "app.js",
+            "bundle": true
+        }
     ],
 
     /**
@@ -168,11 +168,42 @@
      * Extra resources to be copied along when build
      */
     "resources": [
+        {
+            "path": "${toolkit.name}/samples",
+            "mode": "relative"
+        },
+        {
+            "path": "${toolkit.name}/sass",
+            "mode": "relative"
+        },
+        {
+            "path": "${toolkit.name}/src",
+            "mode": "relative"
+        },
+        {
+            "path": "data",
+            "mode": "relative"
+        },
+        {
+            "path": "lib",
+            "mode": "relative"
+        },
+        {
+            "path": "resources",
+            "output": "shared"
+        },
+        {
+            "path": "${toolkit.name}/resources",
+            "mode": "relative"
+        },
+        {
+            "path": "${toolkit.name}/resources/images",
+            "output": "images"
+        },
+        {
+            "path": "${build.id}/resources"
+        }
     ],
-
-    "resource": {
-        "paths": "${app.dir}/resources,${app.dir}/${toolkit.name}/resources"
-    },
 
     /**
      * File / directory name matchers to ignore when copying to the builds, must be valid regular expressions
@@ -219,6 +250,11 @@
     },
 
     "development": {
+        "fashion": {
+            "inliner": {
+                "enable": false
+            }
+        }
     },
 
     /**
@@ -262,9 +298,17 @@
      *
      */
     "output": {
-        "base": "${ext.dir}/build/examples/kitchensink/${build.id}",
-        "page": "../index.html",
-        "manifest": "../${build.id}.json",
+        "base": "${ext.dir}/build/examples/kitchensink",
+        "page": "index.html",
+        "manifest": "${build.id}.json",
+        "js": "${build.id}/app.js",
+        "resources": {
+            "path": "./${build.id}/resources",
+            "images": "./${build.id}/resources/images",
+            "shared": "./resources",
+            "toolkit": "${toolkit.name}/resources",
+            "base": "."
+        },
         "deltas": {
             "enable": false
         },
@@ -435,7 +479,6 @@
             ],
             "theme": "theme-neptune"
         },
-        /*
         "blackberry": {
             "toolkit": "modern",
             "slicer": null,
@@ -447,7 +490,6 @@
             ],
             "theme": "theme-blackberry"
         },
-        */
         "cupertino": {
             "toolkit": "modern",
             "slicer": null,
@@ -482,4 +524,15 @@
             "theme": "theme-windows"
         }
     }
+
+//    "fashion": {
+//        "inliner": {
+//            "enable": false,
+//            "report": true,
+//            "excludes": [
+//                ".*OpenSans.*",
+//                ".*font.?awesome.*"
+//            ]
+//        }
+//    }
 }

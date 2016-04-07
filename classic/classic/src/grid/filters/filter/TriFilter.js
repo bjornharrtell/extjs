@@ -60,17 +60,23 @@ Ext.define('Ext.grid.filters.filter.TriFilter', {
         // Note use the alpha alias for the operators ('gt', 'lt', 'eq') so they map in Filters.onFilterRemove().
         filter.lt = filterLt || me.createFilter({
             operator: 'lt',
-            value: (!stateful && value && value.lt) || null
+            value: (!stateful && value && Ext.isDefined(value.lt)) ?
+                value.lt :
+                null
         }, 'lt');
 
         filter.gt = filterGt || me.createFilter({
             operator: 'gt',
-            value: (!stateful && value && value.gt) || null
+            value: (!stateful && value && Ext.isDefined(value.gt)) ?
+                value.gt :
+                null
         }, 'gt');
 
         filter.eq = filterEq || me.createFilter({
             operator: 'eq',
-            value: (!stateful && value && value.eq) || null
+            value: (!stateful && value && Ext.isDefined(value.eq)) ?
+                value.eq :
+                null
         }, 'eq');
 
         me.filter = filter;
@@ -106,7 +112,7 @@ Ext.define('Ext.grid.filters.filter.TriFilter', {
             field = fields[operator];
             value = filter.getValue();
 
-            if (value) {
+            if (value || value === 0) {
                 field.setValue(value);
 
                 // Some types, such as Date, have additional menu check items in their Filter menu hierarchy. Others, such as Number, do not.
@@ -138,7 +144,7 @@ Ext.define('Ext.grid.filters.filter.TriFilter', {
     deactivate: function () {
         var me = this,
             filters = me.filter,
-            f, filter;
+            f, filter, value;
 
         if (!me.countActiveFilters() || me.preventFilterRemoval) {
             return;
@@ -149,7 +155,8 @@ Ext.define('Ext.grid.filters.filter.TriFilter', {
         for (f in filters) {
             filter = filters[f];
 
-            if (filter.getValue()) {
+            value = filter.getValue();
+            if (value || value === 0) {
                 me.removeStoreFilter(filter);
             }
         }
@@ -290,3 +297,4 @@ Ext.define('Ext.grid.filters.filter.TriFilter', {
         me.preventFilterRemoval = false;
     }
 });
+

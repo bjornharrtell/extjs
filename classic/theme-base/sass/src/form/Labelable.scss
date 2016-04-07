@@ -20,6 +20,15 @@
     display: table-cell;
 }
 
+// IE8 has a bug where a table-cell element sandwiched between two table-row elements
+// takes 100% of the parent element height. Using table-row for the sandwiched
+// element takes care of this.
+@if $include-ie {
+    .#{$prefix}ie8 .#{$prefix}form-fieldcontainer .#{$prefix}form-item-label-top + .#{$prefix}form-item-body {
+        display: table-row;
+    }
+}
+
 .#{$prefix}form-item-body {
     vertical-align: middle;
     height: 100%; // grow if field height is not shrink wrap

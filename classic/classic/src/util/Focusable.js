@@ -55,6 +55,20 @@ Ext.define('Ext.util.Focusable', {
      */
     
     /**
+     * @event focusenter
+     * Fires when focus enters this Component's hierarchy.
+     * @param {Ext.Component} this
+     * @param {Ext.event.Event} event The focusenter event.
+     */
+    
+    /**
+     * @event focusleave
+     * Fires when focus leaves this Component's hierarchy.
+     * @param {Ext.Component} this
+     * @param {Ext.event.Event} event The focusleave event.
+     */
+    
+    /**
      * Template method to do any Focusable related initialization that
      * does not involve event listeners creation.
      * @protected
@@ -166,15 +180,18 @@ Ext.define('Ext.util.Focusable', {
         return false;
     },
     
-    canFocus: function(/* private */ skipVisibility) {
-        var me = this;
+    canFocus: function(/* private */ skipVisibility, includeFocusTarget) {
+        var me = this,
+            canFocus;
         
         // Containers may have focusable children while being non-focusable
         // themselves; this is why we only account for me.focusable for
         // ordinary Components here and below.
-        return (me.isContainer || me.focusable) && me.rendered &&
-               !me.destroying && !me.destroyed && !me.disabled &&
-               (skipVisibility || me.isVisible(true));
+        canFocus = (me.isContainer || me.focusable) && me.rendered &&
+                   !me.destroying && !me.destroyed && !me.disabled &&
+                   (skipVisibility || me.isVisible(true));
+        
+        return canFocus || (includeFocusTarget && !!me.findFocusTarget());
     },
     
     /**
@@ -258,12 +275,14 @@ Ext.define('Ext.util.Focusable', {
                     }
                 }
             }
-        } else {
+        }
+        else {
             // If we are asked to focus while not able to focus though disablement/invisibility etc,
             // focus may revert to document.body if the current focus is being hidden or destroyed.
             // This must be avoided, both for the convenience of keyboard users, and also
             // for when focus is tracked within a tree, such as below an expanded ComboBox.
             focusTarget = me.findFocusTarget();
+            
             if (focusTarget) {
                 return focusTarget.focus(selectText, delay, callback, scope);
             }
@@ -285,6 +304,7 @@ Ext.define('Ext.util.Focusable', {
     },
     
     /**
+     * @method
      * Template method to do any pre-blur processing.
      * @protected
      * @param {Ext.event.Event} e The event object
@@ -330,6 +350,7 @@ Ext.define('Ext.util.Focusable', {
     },
 
     /**
+     * @method
      * Template method to do any post-blur processing.
      * @protected
      * @param {Ext.event.Event} e The event object
@@ -337,6 +358,7 @@ Ext.define('Ext.util.Focusable', {
     postBlur: Ext.emptyFn,
 
     /**
+     * @method
      * Template method to do any pre-focus processing.
      * @protected
      * @param {Ext.event.Event} e The event object
@@ -383,6 +405,7 @@ Ext.define('Ext.util.Focusable', {
     },
     
     /**
+     * @method
      * Template method to do any post-focus processing.
      * @protected
      * @param {Ext.event.Event} e The event object
@@ -528,33 +551,59 @@ Ext.define('Ext.util.Focusable', {
          */
         revertFocus: function() {
             var me = this,
+                previousFocus = me.previousFocus,
                 focusEvent = me.focusEnterEvent,
-                focusTarget, hasFocus;
-
+                focusTarget;
+            
             me.previousFocus = null;
-            me.containsFocus = false;
-
-            // If this about to be hidden component contains focus...
-            hasFocus = me.el.contains(Ext.Element.getActiveElement());
             
             // Before hiding, restore focus to what was focused when we were shown
             // unless we're explicitly told not to (think Panel collapse/expand).
-            if (!me.preventRefocus && focusEvent && hasFocus) {
-                focusTarget = focusEvent.fromComponent;
-
-                // If reverting back to a Component, it will re-route to a close focusable relation
-                // if it is not now focusable. But check that it's a Component because it can be
-                // a Widget instead!
-                if (focusTarget && focusTarget.canFocus && !focusTarget.canFocus()) {
+            if (me.preventRefocus || !me.el.contains(Ext.Element.getActiveElement())) {
+                return;
+            }
+            
+            // Floating menus need an ability to specify previous focus explicitly,
+            // they take it from their parent upon show. Otherwise they would try to
+            // refocus the menu item that opened the submenu, which is pointless.
+            focusTarget = previousFocus || (focusEvent && focusEvent.fromComponent);
+            
+            // If reverting back to a Component, it will re-route to a close focusable relation
+            // if it is not now focusable. But check that it's a Component because it can be
+            // a Widget instead!
+            if (focusTarget) {
+                // Components have very useful canFocus method that we can use
+                // to determine if the component can either focus itself, or find
+                // another related target to focus. It is important that we don't
+                // just blindly try to focus something for the sake of it!
+                if (focusTarget.canFocus && focusTarget.canFocus(false, true)) {
                     focusTarget.focus();
+                    
+                    return;
                 }
-                // The component canFocus, so we can simply focus its element.
                 else {
-                    focusTarget = Ext.fly(focusEvent.relatedTarget);
-                    // TODO: Remove extra check when IE8 retires.
-                    if (Ext.isIE8 || (focusTarget.isFocusable && focusTarget.isFocusable())) {
-                        focusTarget.focus();
+                    // focusTarget can be a plain DOM element, too
+                    if (focusTarget.nodeType) {
+                        focusTarget = Ext.fly(focusTarget);
                     }
+                    
+                    // Element can do a simple check to see if it's focusable.
+                    if (focusTarget.isFocusable && focusTarget.isFocusable()) {
+                        focusTarget.focus();
+                        
+                        return;
+                    }
+                }
+            }
+            
+            // Try falling back to the relatedTarget of the focus event. If that
+            // doesn't work, there's nothing else we can do. :(
+            if (focusEvent) {
+                focusTarget = Ext.fly(focusEvent.relatedTarget);
+                
+                // TODO: Remove extra check when IE8 retires.
+                if (Ext.isIE8 || (focusTarget.isFocusable && focusTarget.isFocusable())) {
+                    focusTarget.focus();
                 }
             }
         },
@@ -628,7 +677,7 @@ Ext.define('Ext.util.Focusable', {
                 
                 // This attribute is a shortcut to look up a Component by its Elements
                 // It only makes sense on focusable elements, so we set it here
-                focusEl.dom.setAttribute(Ext.Component.componentIdAttribute, me.id);
+                focusEl.dom.setAttribute('data-componentid', me.id);
                 
                 // Only focusable components can be keyboard-interactive
                 if (me.config.keyHandlers) {

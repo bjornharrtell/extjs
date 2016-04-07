@@ -1,9 +1,8 @@
 /**
- * Supporting Class for Ext.Direct (not intended to be used directly).
+ * Supporting Class for Ext Direct (not intended to be used directly).
  */
 Ext.define('Ext.direct.Transaction', {
     alias: 'direct.transaction',
-    alternateClassName: 'Ext.Direct.Transaction',
    
     statics: {
         TRANSACTION_ID: 0

@@ -1,0 +1,42 @@
+.faq-title {
+    display: table;
+}
+
+.faq-expander, .faq-question {
+    display: table-cell;
+    font-size: 110%;
+
+    cursor: pointer; // placement of this style controls the expand/collapse logic
+}
+
+.faq-expander {
+    width: 1.8em;
+    text-align: center;
+
+    &:before {
+        content: $fa-var-caret-right;
+    }
+
+    .faq-expanded & {
+        &:before {
+            content: $fa-var-caret-down;
+        }
+    }
+}
+
+.faq-question {
+    @include list-item-title();
+}
+
+.faq-body {
+    > div {
+        padding: 6px 0 10px 10px;
+    }
+
+    height: 0;
+    overflow: hidden;
+
+    .faq-expanded & {
+        height: auto;
+    }
+}

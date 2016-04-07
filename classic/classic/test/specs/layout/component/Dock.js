@@ -1,5 +1,4 @@
 describe('Ext.layout.component.Dock', function(){
-
     var ct;
 
     afterEach(function(){
@@ -438,6 +437,99 @@ describe('Ext.layout.component.Dock', function(){
                         }
                     },
                     1: { el: { xywh: '20 0 20 200' } }
+                }
+            });
+        });
+    });
+    
+    describe("DOM element order", function() {
+        describe("framed", function() {
+            var oldCSS3Support, tabbables;
+            
+            beforeEach(function() {
+                oldCSS3Support = Ext.supports.CSS3BorderRadius;
+                Ext.supports.CSS3BorderRadius = false;
+                
+                makeCt({
+                    frame: true,
+                    title: 'foo',
+                    
+                    closable: true,
+                    
+                    items: [{
+                        xtype: 'textfield'
+                    }],
+                    
+                    buttons: [{
+                        text: 'OK'
+                    }]
+                });
+                
+                // We're using findTabbableElements here because
+                // it's easier than analyzing individual elements
+                tabbables = ct.el.findTabbableElements();
+            });
+            
+            afterEach(function() {
+                tabbables = null;
+                Ext.supports.CSS3BorderRadius = oldCSS3Support;
+            });
+            
+            it("should place header above body", function() {
+                expect(tabbables[0]).toBe(ct.header.el.dom);
+            });
+            
+            it("should place the body in the middle", function() {
+                var input = ct.down('textfield');
+                
+                expect(tabbables[1]).toBe(input.inputEl.dom);
+            });
+            
+            it("should place toolbar below the body", function() {
+                var buttons = ct.down('toolbar');
+                
+                expect(tabbables[2]).toBe(buttons.el.dom);
+            });
+        });
+        
+        describe('not framed', function() {
+            var panel;
+
+            beforeEach(function() {
+                panel = new Ext.panel.Panel({
+                    title: 'Test',
+                    tbar: {
+                        itemId: 'top-toolbar',
+                        items: [{
+                            text: 'Top Button'
+                        }]
+                    },
+                    bbar: {
+                        itemId: 'bottom-toolbar',
+                        items: [{
+                            text: 'Bottom Button'
+                        }]
+                    },
+                    height: 100,
+                    width: 100,
+                    renderTo: document.body
+                });
+            });
+            afterEach(function() {
+                panel.destroy();
+            });
+            
+            it('should not find that isValidParent returns false during a layout when docked items use itemId', function() {
+                spyOn(panel.componentLayout, 'isValidParent').andCallThrough();
+                
+                panel.updateLayout();
+                var calls = panel.componentLayout.isValidParent.calls,
+                    len = calls.length,
+                    i;
+
+                // All the DockLayout's isValidParent calls during the layout must have returned true
+                for (i = 0; i < len; i++) {
+                    expect(calls[i].result).toBe(true);
                 }
             });
         });

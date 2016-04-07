@@ -1,0 +1,196 @@
+/**
+ * @class Ext.Progress
+ */
+
+/**
+ * @var {number}
+ * The height of the ProgressBar
+ */
+$progress-height: dynamic(20px);
+
+/**
+ * @var {color}
+ * The border-color of the ProgressBar
+ */
+$progress-border-color: dynamic($base-color);
+
+/**
+ * @var {number}
+ * The border-width of the ProgressBar
+ */
+$progress-border-width: dynamic(1px);
+
+/**
+ * @var {number}
+ * The border-radius of the ProgressBar
+ */
+$progress-border-radius: dynamic(0);
+
+/**
+ * @var {color}
+ * The background-color of the ProgressBar
+ */
+$progress-background-color: dynamic(#eee);
+
+/**
+ * @var {color}
+ * The background-color of the ProgressBar's moving element
+ */
+$progress-bar-background-color: dynamic($base-color);
+
+/**
+ * @var {string/list}
+ * The background-gradient of the ProgressBar's moving element. Can be either the name of
+ * a predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ */
+$progress-bar-background-gradient: dynamic('none');
+
+/**
+ * @var {color}
+ * The color of the ProgressBar's text when in front of the ProgressBar's moving element
+ */
+$progress-text-color-front: dynamic(#fff);
+
+/**
+ * @var {color}
+ * The color of the ProgressBar's text when the ProgressBar's 'moving element is not under it
+ */
+$progress-text-color-back: dynamic(#000);
+
+/**
+ * @var {string}
+ * The text-align of the ProgressBar's text
+ */
+$progress-text-text-align: dynamic(center);
+
+/**
+ * @var {number}
+ * The font-size of the ProgressBar's text
+ */
+$progress-text-font-size: dynamic($font-size);
+
+/**
+ * @var {string}
+ * The font-weight of the ProgressBar's text
+ */
+$progress-text-font-weight: dynamic($font-weight-bold);
+
+/**
+ * @var {string}
+ * The font-family of the ProgressBar's text
+ */
+$progress-text-font-family: dynamic($font-family);
+
+/**
+ * @var {boolean}
+ * True to include the "default" ProgressBar UI
+ */
+$include-progress-default-ui: dynamic($include-default-uis);
+
+/**
+ * Creates a visual theme for an Ext.ProgressBar
+ *
+ * @param {string} $ui
+ * The name of the UI being created. Can not included spaces or special punctuation
+ * (used in CSS class names).
+ *
+ * @param {color} [$ui-border-color=$progress-border-color]
+ * The border-color of the ProgressBar
+ *
+ * @param {color} [$ui-background-color=$progress-background-color]
+ * The background-color of the ProgressBar
+ *
+ * @param {color} [$ui-bar-background-color=$progress-bar-background-color]
+ * The background-color of the ProgressBar's moving element
+ *
+ * @param {string/list} [$ui-bar-background-gradient=$progress-bar-background-gradient]
+ * The background-gradient of the ProgressBar's moving element. Can be either the name of
+ * a predefined gradient or a list of color stops. Used as the `$type` parameter for
+ * {@link Global_CSS#background-gradient}.
+ *
+ * @param {color} [$ui-color-front=$progress-text-color-front]
+ * The color of the ProgressBar's text when in front of the ProgressBar's moving element
+ *
+ * @param {color} [$ui-color-back=$progress-text-color-back]
+ * The color of the ProgressBar's text when the ProgressBar's 'moving element is not under it
+ *
+ * @param {number} [$ui-height=$progress-height]
+ * The height of the ProgressBar
+ *
+ * @param {number} [$ui-border-width=$progress-border-width]
+ * The border-width of the ProgressBar
+ *
+ * @param {number} [$ui-border-radius=$progress-border-radius]
+ * The border-radius of the ProgressBar
+ *
+ * @param {string} [$ui-text-text-align=$progress-text-text-align]
+ * The text-align of the ProgressBar's text
+ *
+ * @param {number} [$ui-text-font-size=$progress-text-font-size]
+ * The font-size of the ProgressBar's text
+ *
+ * @param {string} [$ui-text-font-weight=$progress-text-font-weight]
+ * The font-weight of the ProgressBar's text
+ *
+ * @member Ext.ProgressBar
+ */
+@mixin progress-ui(
+    $ui: null,
+
+    $border-color: null,
+    $background-color: null,
+
+    $bar-background-color: null,
+    $bar-background-gradient: null,
+
+    $color-front: null,
+    $color-back: null,
+    $height: null,
+    $border-width: null,
+    $border-radius: null,
+    $text-text-align: null,
+    $text-font-size: null,
+    $text-font-weight: null,
+    $text-font-family: null
+){
+    $ui-suffix: ui-suffix($ui);
+
+    .#{$prefix}progress#{$ui-suffix} {
+        background-color: $background-color;
+        border-width: $border-width;
+        height: $height;
+
+        @if $border-radius != 0 {
+            @include border-radius($border-radius);
+        }
+        @if not is-null($border-color) {
+            border-color: $border-color;
+        }
+
+        .#{$prefix}progress-bar {
+            @if $border-radius != 0 {
+                @include border-radius($border-radius);
+            }
+            @if not is-null($bar-background-color) {
+                @include background-gradient($bar-background-color, $bar-background-gradient);
+            }
+        }
+
+        $progress-content-height: $height - vertical($border-width);
+
+        .#{$prefix}progress-text {
+            color: $color-front;
+            font-weight: $text-font-weight;
+            font-size: $text-font-size;
+            font-family: $text-font-family;
+            text-align: $text-text-align;
+            line-height: $progress-content-height;
+        }
+
+        .#{$prefix}progress-text-back {
+            color: $color-back;
+            line-height: $progress-content-height;
+        }
+    }
+}

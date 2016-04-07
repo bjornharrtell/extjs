@@ -1,4 +1,4 @@
-$image-search-path: 'C:/BuildAgent/work/d77fd6bbe169b220/staging/build/packages/charts/modern/modern-neptune/resources' !default;
+$image-search-path: 'C:/BuildAgent/work/b3173c323478ec0c/staging/build/packages/charts/modern/modern-neptune/resources' !default;
 $theme-name:  'theme-neptune' !default;
 $include-ext-abstractcomponent: dynamic(false);;
 $include-ext-abstractmanager: dynamic(false);;
@@ -23,7 +23,6 @@ $include-ext-dataview: dynamic(false);;
 $include-ext-datepicker: dynamic(false);;
 $include-ext-decorator: dynamic(false);;
 $include-ext-deferred: dynamic(false);;
-$include-ext-direct-transaction: dynamic(false);;
 $include-ext-domhelper: dynamic(false);;
 $include-ext-domquery: dynamic(false);;
 $include-ext-element: dynamic(false);;
@@ -32,6 +31,7 @@ $include-ext-evented: dynamic(false);;
 $include-ext-eventedbase: dynamic(false);;
 $include-ext-globalevents: dynamic(false);;
 $include-ext-history: dynamic(false);;
+$include-ext-image: dynamic(false);;
 $include-ext-img: dynamic(false);;
 $include-ext-indexbar: dynamic(false);;
 $include-ext-itemcollection: dynamic(false);;
@@ -50,6 +50,9 @@ $include-ext-nestedlist: dynamic(false);;
 $include-ext-panel: dynamic(false);;
 $include-ext-perf: dynamic(false);;
 $include-ext-picker: dynamic(false);;
+$include-ext-progress: dynamic(false);;
+$include-ext-progressbarwidget: dynamic(false);;
+$include-ext-progressbase: dynamic(false);;
 $include-ext-progressindicator: dynamic(false);;
 $include-ext-promise: dynamic(false);;
 $include-ext-segmentedbutton: dynamic(false);;
@@ -103,6 +106,7 @@ $include-ext-app-route-router: dynamic(false);;
 $include-ext-behavior-behavior: dynamic(false);;
 $include-ext-behavior-draggable: dynamic(false);;
 $include-ext-behavior-translatable: dynamic(false);;
+$include-ext-button-segmented: dynamic(false);;
 $include-ext-carousel-carousel: dynamic(false);;
 $include-ext-carousel-indicator: dynamic(false);;
 $include-ext-carousel-infinite: dynamic(false);;
@@ -396,6 +400,7 @@ $include-ext-draw-modifier-modifier: dynamic(true);;
 $include-ext-draw-modifier-target: dynamic(true);;
 $include-ext-draw-overrides-path: dynamic(true);;
 $include-ext-draw-overrides-surface: dynamic(true);;
+$include-ext-draw-overrides-sprite-instancing: dynamic(true);;
 $include-ext-draw-overrides-sprite-path: dynamic(true);;
 $include-ext-draw-plugin-spriteevents: dynamic(true);;
 $include-ext-draw-sprite-animationparser: dynamic(true);;
@@ -561,7 +566,6 @@ $include-ext-layout-wrapper-dock: dynamic(false);;
 $include-ext-layout-wrapper-inner: dynamic(false);;
 $include-ext-lib-component: dynamic(false);;
 $include-ext-lib-container: dynamic(false);;
-$include-ext-lib-panel: dynamic(false);;
 $include-ext-list-abstracttreeitem: dynamic(false);;
 $include-ext-list-roottreeitem: dynamic(false);;
 $include-ext-list-tree: dynamic(false);;
@@ -588,6 +592,11 @@ $include-ext-overrides-widget: dynamic(false);;
 $include-ext-overrides-app-application: dynamic(false);;
 $include-ext-overrides-list-tree: dynamic(false);;
 $include-ext-overrides-list-treeitem: dynamic(false);;
+$include-ext-overrides-scroll-domscroller: dynamic(false);;
+$include-ext-panel-header: dynamic(false);;
+$include-ext-panel-panel: dynamic(false);;
+$include-ext-panel-title: dynamic(false);;
+$include-ext-panel-tool: dynamic(false);;
 $include-ext-perf-accumulator: dynamic(false);;
 $include-ext-perf-monitor: dynamic(false);;
 $include-ext-picker-date: dynamic(false);;
@@ -597,6 +606,7 @@ $include-ext-plugin-abstract: dynamic(false);;
 $include-ext-plugin-lazyitems: dynamic(false);;
 $include-ext-plugin-listpaging: dynamic(false);;
 $include-ext-plugin-pullrefresh: dynamic(false);;
+$include-ext-plugin-responsive: dynamic(false);;
 $include-ext-plugin-sortablelist: dynamic(false);;
 $include-ext-plugin-field-placeholderlabel: dynamic(false);;
 $include-ext-promise-consequence: dynamic(false);;
@@ -676,7 +686,6 @@ $include-ext-util-paintmonitor-abstract: dynamic(false);;
 $include-ext-util-paintmonitor-cssanimation: dynamic(false);;
 $include-ext-util-paintmonitor-overflowchange: dynamic(false);;
 $include-ext-util-sizemonitor-abstract: dynamic(false);;
-$include-ext-util-sizemonitor-default: dynamic(false);;
 $include-ext-util-sizemonitor-overflowchange: dynamic(false);;
 $include-ext-util-sizemonitor-scroll: dynamic(false);;
 $include-ext-util-translatable-abstract: dynamic(false);;
@@ -763,6 +772,7 @@ $theme-neptune-resource-path: 'images' !default;
 $current-package: 'theme-neptune';
 $current-resource-root: $theme-neptune-resource-root;
 $relative-image-path-for-uis: $theme-neptune-resource-path;
+@import '../../../../../modern/theme-neptune/sass/var/Progress';
 @import '../../../../../modern/theme-neptune/sass/var/Component';
 @import '../../../../../modern/theme-neptune/sass/var/Mask';
 @import '../../../../../modern/theme-neptune/sass/var/list/TreeItem';
@@ -788,6 +798,7 @@ $relative-image-path-for-uis: $theme-neptune-resource-path;
 @import '../../../../../modern/theme-neptune/sass/var/grid/column/Column';
 @import '../../../../../modern/theme-neptune/sass/var/grid/Grid';
 @import '../../../../../modern/theme-neptune/sass/var/grid/plugin/ViewOptions';
+@import '../../../../../modern/theme-neptune/sass/var/panel/Tool';
 @import '../../../../../modern/theme-neptune/sass/var/tab/Tab';
 @import '../../../../../modern/theme-neptune/sass/var/tab/Bar';
 
@@ -799,16 +810,16 @@ $current-resource-root: $charts-resource-root;
 $relative-image-path-for-uis: $charts-resource-path;
 @import '../../../../../packages/charts/sass/var/chart/AbstractChart';
 
+/* including package charts */
+$charts-resource-root: '' !default;
+$charts-resource-path: 'images' !default;
+$current-package: 'charts';
+$current-resource-root: $charts-resource-root;
+$relative-image-path-for-uis: $charts-resource-path;
+@import '../../../../../packages/charts/modern/sass/var/chart/AbstractChart';
+
 
 /* ======================== RULE ======================== */
-
-/* including package theme-base */
-$theme-base-resource-root: '' !default;
-$theme-base-resource-path: 'images' !default;
-$current-package: 'theme-base';
-$current-resource-root: $theme-base-resource-root;
-$relative-image-path-for-uis: $theme-base-resource-path;
-@import '../../../../../modern/theme-base/sass/src/chart/AbstractChart';
 
 /* including package charts */
 $charts-resource-root: '' !default;
@@ -817,3 +828,11 @@ $current-package: 'charts';
 $current-resource-root: $charts-resource-root;
 $relative-image-path-for-uis: $charts-resource-path;
 @import '../../../../../packages/charts/sass/src/chart/AbstractChart';
+
+/* including package charts */
+$charts-resource-root: '' !default;
+$charts-resource-path: 'images' !default;
+$current-package: 'charts';
+$current-resource-root: $charts-resource-root;
+$relative-image-path-for-uis: $charts-resource-path;
+@import '../../../../../packages/charts/modern/sass/src/chart/AbstractChart';

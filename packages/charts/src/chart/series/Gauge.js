@@ -198,6 +198,7 @@ Ext.define('Ext.chart.series.Gauge', {
         var me = this,
             store = me.getStore(),
             count = store && store.getCount() || 0;
+
         return count + (me.getNeedle() ? 0 : 1);
 
     },
@@ -448,7 +449,7 @@ Ext.define('Ext.chart.series.Gauge', {
                                 // In fact, all the style properties from the needle and sectors should go to the series subStyle.
 
         if (sprites && sprites.length) {
-            sprites[0].fx.setConfig(animation);
+            sprites[0].setAnimation(animation);
             return sprites;
         }
 

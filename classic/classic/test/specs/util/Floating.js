@@ -160,20 +160,6 @@ describe("Ext.util.Floating", function() {
     });
 
     describe("shadow", function() {
-        beforeEach(function() {
-            this.addMatchers({
-                toBeWithin: function(deviation, value) {
-                    var actual = this.actual;
-
-                    if (deviation > 0) {
-                        return actual >= (value - deviation) && actual <= (value + deviation);
-                    } else {
-                        return actual >= (value + deviation) && actual <= (value - deviation);
-                    }
-                }
-            });
-        });
-
         it("should have a shadow by default", function() {
             makeComponent();
             component.show();
@@ -260,12 +246,14 @@ describe("Ext.util.Floating", function() {
 
             runs(function() {
                 expect(shadow.el.isVisible()).toBe(true);
-                expect(shadow.el.getX()).toBe(350);
-                expect(shadow.el.getY()).toBe(404);
+                
+                // IE8 does shadows the hard way
+                expect(shadow.el.getX()).toBe(Ext.isIE8 ? 345 : 350);
+                expect(shadow.el.getY()).toBe(Ext.isIE8 ? 397 : 404);
                 
                 // FFWindows gets this off by one
-                expect(shadow.el.getWidth()).toBeWithin(1, 200);
-                expect(shadow.el.getHeight()).toBe(96);
+                expect(shadow.el.getWidth()).toBe(Ext.isIE8 ? 209 : 200);
+                expect(shadow.el.getHeight()).toBe(Ext.isIE8 ? 107 : 96);
             });
         });
 
@@ -304,10 +292,12 @@ describe("Ext.util.Floating", function() {
             runs(function() {
                 expect(shadow.hide).not.toHaveBeenCalled();
                 expect(shadow.el.isVisible()).toBe(true);
-                expect(shadow.el.getX()).toBe(350);
-                expect(shadow.el.getY()).toBe(404);
-                expect(shadow.el.getWidth()).toBe(200);
-                expect(shadow.el.getHeight()).toBe(96);
+                
+                // IE8 does shadows the hard way
+                expect(shadow.el.getX()).toBe(Ext.isIE8 ? 345 : 350);
+                expect(shadow.el.getY()).toBe(Ext.isIE8 ? 397 : 404);
+                expect(shadow.el.getWidth()).toBe(Ext.isIE8 ? 209: 200);
+                expect(shadow.el.getHeight()).toBe(Ext.isIE8 ? 107 : 96);
             });
         });
     });
@@ -363,17 +353,34 @@ describe("Ext.util.Floating", function() {
     describe("scroll alignment when rendered to body", function() {
         var spy, c, floater, count;
 
-        beforeEach(function() {
+        function makeTestComponent(alignToComponent) {
             spy = jasmine.createSpy();
 
             count = Ext.GlobalEvents.hasListeners.scroll;
 
-            c = new Ext.Component({
+            c = {
                 renderTo: Ext.getBody(),
                 width: 400,
                 height: 400,
-                scrollable: true,
-                autoEl: {
+                scrollable: true
+            };
+            if (alignToComponent) {
+                c.items = [{
+                    xtype: 'component',
+                    autoEl: {
+                        html: 'A',
+                        style: 'float:left;width:100px;height:500px'
+                    }
+                }, {
+                    xtype: 'component',
+                    id: 'align',
+                    autoEl: {
+                        html: 'B',
+                        style: 'float:left;width:100px;height:200px'
+                    }
+                }];
+            } else {
+                c.autoEl = {
                     children: [{
                         html: 'A',
                         style: {
@@ -390,8 +397,9 @@ describe("Ext.util.Floating", function() {
                             height: '200px'
                         }
                     }]
-                }
-            });
+                };
+            }
+            c = new (alignToComponent ? Ext.Container : Ext.Component)(c);
 
             floater = new Ext.Component({
                 autoShow: true,
@@ -401,94 +409,187 @@ describe("Ext.util.Floating", function() {
                 height: 50,
                 style: 'border: 1px solid black'
             });
-        });
+        };
 
         afterEach(function() {
             Ext.un('scroll', spy);
             count = c = floater = spy = Ext.destroy(floater, c);
         });
 
-        it("should keep the floater aligned on scroll", function() {
-            var alignToSpy = spyOn(floater, 'alignTo').andCallThrough();
-
-            floater.alignTo(c.getEl().down('.align'), 'tl-bl');
-
-            // We've called it once;
-            expect(alignToSpy.callCount).toBe(1);
-
-            expect(floater.getEl().getTop()).toBe(200);
-
-            Ext.on('scroll', spy);
-
-            c.getScrollable().getElement().dom.scrollTop = 50;
-
-
-            waitsFor(function() {
-                return spy.callCount === 1;
+        describe('aligning to element', function() {
+            beforeEach(function() {
+                makeTestComponent(false);
             });
 
-            runs(function() {
-                // Should realign on scroll event
-                expect(alignToSpy.callCount).toBe(2);
-                expect(floater.getEl().getTop()).toBe(150);
-                c.getScrollable().getElement().dom.scrollTop = 100;
-            });
+            it("should keep the floater aligned on scroll", function() {
+                var alignToSpy = spyOn(floater, 'alignTo').andCallThrough();
 
-            waitsFor(function() {
-                return spy.callCount === 2;
-            });
+                floater.alignTo(c.getEl().down('.align'), 'tl-bl');
 
-            runs(function() {
-                // Should realign on scroll event
-                expect(alignToSpy.callCount).toBe(3);
-                expect(floater.getEl().getTop()).toBe(100);
-            });
-        });
+                // We've called it once;
+                expect(alignToSpy.callCount).toBe(1);
 
-        it("should unbind the scroll listener on destroy", function() {
-            floater.alignTo(c.getEl().down('.align'), 'tl-bl');
-            floater.destroy();
-            expect(Ext.GlobalEvents.hasListeners.scroll).toBe(count);
-        });
-
-        it("should not move the element if the alignTo element is destroyed", function() {
-            floater.alignTo(c.getEl().down('.align'), 'tl-bl');
-
-            expect(floater.getEl().getTop()).toBe(200);
-
-            c.getEl().down('.align').destroy();
-
-            Ext.on('scroll', spy);
-
-            runs(function() {
-                c.getScrollable().getElement().dom.scrollTop = 100;
-            });
-
-            waitsFor(function() {
-                return spy.callCount === 1;
-            });
-
-            runs(function() {
                 expect(floater.getEl().getTop()).toBe(200);
+
+                Ext.on('scroll', spy);
+
+                c.getScrollable().getElement().dom.scrollTop = 50;
+
+
+                waitsFor(function() {
+                    return spy.callCount === 1;
+                });
+
+                runs(function() {
+                    // Should realign on scroll event
+                    expect(alignToSpy.callCount).toBe(2);
+                    expect(floater.getEl().getTop()).toBe(150);
+                    c.getScrollable().getElement().dom.scrollTop = 100;
+                });
+
+                waitsFor(function() {
+                    return spy.callCount === 2;
+                });
+
+                runs(function() {
+                    // Should realign on scroll event
+                    expect(alignToSpy.callCount).toBe(3);
+                    expect(floater.getEl().getTop()).toBe(100);
+                });
+            });
+
+            it("should unbind the scroll listener on destroy", function() {
+                floater.alignTo(c.getEl().down('.align'), 'tl-bl');
+                floater.destroy();
+                expect(Ext.GlobalEvents.hasListeners.scroll).toBe(count);
+            });
+
+            it("should not move the element if the alignTo element is destroyed", function() {
+                floater.alignTo(c.getEl().down('.align'), 'tl-bl');
+
+                expect(floater.getEl().getTop()).toBe(200);
+
+                c.getEl().down('.align').destroy();
+
+                Ext.on('scroll', spy);
+
+                runs(function() {
+                    c.getScrollable().getElement().dom.scrollTop = 100;
+                });
+
+                waitsFor(function() {
+                    return spy.callCount === 1;
+                });
+
+                runs(function() {
+                    expect(floater.getEl().getTop()).toBe(200);
+                });
+            });
+        });
+
+        describe('aligning to component', function() {
+            beforeEach(function() {
+                makeTestComponent(true);
+            });
+
+            it("should keep the floater aligned on scroll", function() {
+                var alignToSpy = spyOn(floater, 'alignTo').andCallThrough();
+
+                floater.alignTo(c.down('#align'), 'tl-bl');
+
+                // We've called it once;
+                expect(alignToSpy.callCount).toBe(1);
+
+                expect(floater.getEl().getTop()).toBe(200);
+
+                Ext.on('scroll', spy);
+
+                c.getScrollable().getElement().dom.scrollTop = 50;
+
+
+                waitsFor(function() {
+                    return spy.callCount === 1;
+                });
+
+                runs(function() {
+                    // Should realign on scroll event
+                    expect(alignToSpy.callCount).toBe(2);
+                    expect(floater.getEl().getTop()).toBe(150);
+                    c.getScrollable().getElement().dom.scrollTop = 100;
+                });
+
+                waitsFor(function() {
+                    return spy.callCount === 2;
+                });
+
+                runs(function() {
+                    // Should realign on scroll event
+                    expect(alignToSpy.callCount).toBe(3);
+                    expect(floater.getEl().getTop()).toBe(100);
+                });
+            });
+
+            it("should unbind the scroll listener on destroy", function() {
+                floater.alignTo(c.down('#align'), 'tl-bl');
+                floater.destroy();
+                expect(Ext.GlobalEvents.hasListeners.scroll).toBe(count);
+            });
+
+            it("should not move the element if the alignTo element is destroyed", function() {
+                floater.alignTo(c.down('#align'), 'tl-bl');
+
+                expect(floater.getEl().getTop()).toBe(200);
+
+                c.down('#align').destroy();
+
+                Ext.on('scroll', spy);
+
+                runs(function() {
+                    c.getScrollable().getElement().dom.scrollTop = 100;
+                });
+
+                waitsFor(function() {
+                    return spy.callCount === 1;
+                });
+
+                runs(function() {
+                    expect(floater.getEl().getTop()).toBe(200);
+                });
             });
         });
     });
 
-
     describe("scroll alignment when rendered into the scrolling element", function() {
         var spy, c, floater, count;
 
-        beforeEach(function() {
+        function makeTestComponent(alignToComponent) {
             spy = jasmine.createSpy();
 
             count = Ext.GlobalEvents.hasListeners.scroll;
 
-            c = new Ext.Component({
+            c = {
                 renderTo: Ext.getBody(),
                 width: 400,
                 height: 400,
-                scrollable: true,
-                autoEl: {
+                scrollable: true
+            };
+            if (alignToComponent) {
+                c.items = [{
+                    xtype: 'component',
+                    autoEl: {
+                        html: 'A',
+                        style: 'float:left;width:100px;height:500px'
+                    }
+                }, {
+                    xtype: 'component',
+                    id: 'align',
+                    autoEl: {
+                        html: 'B',
+                        style: 'float:left;width:100px;height:200px'
+                    }
+                }];
+            } else {
+                c.autoEl = {
                     children: [{
                         html: 'A',
                         style: {
@@ -505,8 +606,9 @@ describe("Ext.util.Floating", function() {
                             height: '200px'
                         }
                     }]
-                }
-            });
+                };
+            }
+            c = new (alignToComponent ? Ext.Container : Ext.Component)(c);
 
             // Render the floater into the scrolling element
             floater = new Ext.Component({
@@ -518,49 +620,105 @@ describe("Ext.util.Floating", function() {
                 style: 'border: 1px solid black',
                 renderTo: c.getContentTarget()
             });
-        });
+        }
 
         afterEach(function() {
             Ext.un('scroll', spy);
             count = c = floater = spy = Ext.destroy(floater, c);
         });
 
-        it("should keep the floater aligned on scroll", function() {
-            var alignToSpy = spyOn(floater, 'alignTo').andCallThrough();
-
-            floater.alignTo(c.getEl().down('.align'), 'tl-bl');
-
-            // We've called it once;
-            expect(alignToSpy.callCount).toBe(1);
-
-            expect(floater.getEl().getTop()).toBe(200);
-
-            Ext.on('scroll', spy);
-
-            c.getScrollable().getElement().dom.scrollTop = 50;
-
-
-            waitsFor(function() {
-                return spy.callCount === 1;
+        describe('aligning to Element', function() {
+            beforeEach(function() {
+                makeTestComponent(false);
             });
 
-            runs(function() {
-                // Should NOT realign because it is scrolling with content
+            it("should keep the floater aligned on scroll", function() {
+                var alignToSpy = spyOn(floater, 'alignTo').andCallThrough();
+
+                floater.alignTo(c.getEl().down('.align'), 'tl-bl');
+
+                // We've called it once, so it will align.
+                // From now on, when we scroll, it should NOT call align
+                // because it is rendered within the scrolling element.
                 expect(alignToSpy.callCount).toBe(1);
 
-                expect(floater.getEl().getTop()).toBe(150);
-                c.getScrollable().getElement().dom.scrollTop = 100;
+                expect(floater.getEl().getTop()).toBe(200);
+
+                Ext.on('scroll', spy);
+
+                c.getScrollable().getElement().dom.scrollTop = 50;
+
+                // We expect nothing to happen on scroll so we cannot wait for anything.
+                // The floater is rendered into the element which scrolls, so
+                // it must not realign - it will scroll along naturally.
+                waits(100);
+
+                runs(function() {
+                    // Should NOT realign because it is scrolling with content
+                    expect(alignToSpy.callCount).toBe(1);
+
+                    expect(floater.getEl().getTop()).toBe(150);
+                    c.getScrollable().getElement().dom.scrollTop = 100;
+                });
+
+                // We expect nothing to happen on scroll so we cannot wait for anything.
+                // The floater is rendered into the element which scrolls, so
+                // it must not realign - it will scroll along naturally.
+                waits(100);
+
+                runs(function() {
+                    // Should NOT realign because it is scrolling with content
+                    expect(alignToSpy.callCount).toBe(1);
+
+                    expect(floater.getEl().getTop()).toBe(100);
+                });
+            });
+        });
+        describe('aligning to Component', function() {
+            beforeEach(function() {
+                makeTestComponent(true);
             });
 
-            waitsFor(function() {
-                return spy.callCount === 2;
-            });
+            it("should keep the floater aligned on scroll", function() {
+                var alignToSpy = spyOn(floater, 'alignTo').andCallThrough();
 
-            runs(function() {
-                // Should NOT realign because it is scrolling with content
+                floater.alignTo(c.down('#align'), 'tl-bl');
+
+                // We've called it once, so it will align.
+                // From now on, when we scroll, it should NOT call align
+                // because it is rendered within the scrolling element.
                 expect(alignToSpy.callCount).toBe(1);
 
-                expect(floater.getEl().getTop()).toBe(100);
+                expect(floater.getEl().getTop()).toBe(200);
+
+                Ext.on('scroll', spy);
+
+                c.getScrollable().getElement().dom.scrollTop = 50;
+
+                // We expect nothing to happen on scroll so we cannot wait for anything.
+                // The floater is rendered into the element which scrolls, so
+                // it must not realign - it will scroll along naturally.
+                waits(100);
+
+                runs(function() {
+                    // Should NOT realign because it is scrolling with content
+                    expect(alignToSpy.callCount).toBe(1);
+
+                    expect(floater.getEl().getTop()).toBe(150);
+                    c.getScrollable().getElement().dom.scrollTop = 100;
+                });
+
+                // We expect nothing to happen on scroll so we cannot wait for anything.
+                // The floater is rendered into the element which scrolls, so
+                // it must not realign - it will scroll along naturally.
+                waits(100);
+
+                runs(function() {
+                    // Should NOT realign because it is scrolling with content
+                    expect(alignToSpy.callCount).toBe(1);
+
+                    expect(floater.getEl().getTop()).toBe(100);
+                });
             });
         });
     });

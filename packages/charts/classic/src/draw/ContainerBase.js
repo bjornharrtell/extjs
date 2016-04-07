@@ -6,6 +6,16 @@ Ext.define('Ext.draw.ContainerBase', {
     extend: 'Ext.panel.Panel',
 
     requires: ['Ext.window.Window'],
+    
+    /**
+     * @cfg {String} previewTitleText The text to place in Preview Chart window title.
+     */
+    previewTitleText: 'Chart Preview',
+    
+    /**
+     * @cfg {String} previewAltText The text to place in the Preview image alt attribute.
+     */
+    previewAltText: 'Chart preview',
 
     layout: 'container',
 
@@ -81,7 +91,7 @@ Ext.define('Ext.draw.ContainerBase', {
     preview: function () {
         var image = this.getImage();
         new Ext.window.Window({
-            title: 'Chart Preview',
+            title: this.previewTitleText,
             closeable: true,
             renderTo: Ext.getBody(),
             autoShow: true,
@@ -99,6 +109,7 @@ Ext.define('Ext.draw.ContainerBase', {
                     xtype: 'image',
                     mode: 'img',
                     cls: Ext.baseCSSPrefix + 'chart-image',
+                    alt: this.previewAltText,
                     src: image.data,
                     listeners: {
                         afterrender: function () {

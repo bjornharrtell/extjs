@@ -474,13 +474,9 @@
                 > .#{$prefix}title-icon-#{$ui} {
                     width: $ui-header-icon-width;
                     height: $ui-header-icon-height;
-                    background-position: $ui-header-icon-background-position;
-                }
-
-                > .#{$prefix}title-glyph {
-                    color: $ui-header-glyph-color;
                     font-size: $ui-header-icon-height;
-                    line-height: $ui-header-icon-height;
+                    color: $ui-header-glyph-color;
+                    background-position: $ui-header-icon-background-position;
 
                     @if $ui-header-glyph-opacity != 1 {
                         // do not use the opacity mixin because we do not want IE's filter version of

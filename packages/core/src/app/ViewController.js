@@ -1,6 +1,6 @@
 /**
  * A view controller is a controller that can be attached to a specific view
- * instance so it can manage the view and it's child components. Each instance of the view
+ * instance so it can manage the view and its child components. Each instance of the view
  * will have a new view controller, so the instances are isolated.
  * 
  * When a controller is specified on a view, the view automatically becomes a {@link Ext.container.Container#referenceHolder},
@@ -134,12 +134,16 @@ Ext.define('Ext.app.ViewController', {
         closeViewAction: 'destroy'
     },
 
+    view: null,
+
     constructor: function() {
         this.compDomain = new Ext.app.domain.View(this);
         this.callParent(arguments);
     },
 
     /**
+     * @method
+     *
      * Called before the view initializes. This is called before the view's
      * initComponent method has been called.
      * @param {Ext.Component} view The view
@@ -148,6 +152,8 @@ Ext.define('Ext.app.ViewController', {
     beforeInit: Ext.emptyFn,
 
     /**
+     * @method
+     *
      * Called when the view initializes. This is called after the view's initComponent
      * method has been called.
      * @param {Ext.Component} view The view
@@ -156,6 +162,8 @@ Ext.define('Ext.app.ViewController', {
     init: Ext.emptyFn,
 
     /**
+     * @method
+     *
      * Called when the view model instance for an attached view is first created.
      * @param {Ext.app.ViewModel} viewModel The ViewModel
      * @protected
@@ -219,7 +227,8 @@ Ext.define('Ext.app.ViewController', {
      * @since 5.0.0
      */
     getReferences: function () {
-        return this.view.getReferences();
+        var view = this.view;
+        return view && view.getReferences();
     },
 
     /**
@@ -229,19 +238,34 @@ Ext.define('Ext.app.ViewController', {
     getView: function() {
         return this.view;
     },
-    
+
     /**
-     * Get a reference to a component set with the {@link Ext.Component#reference}
-     * configuration.
-     * @param {String} key The key for the reference
-     * 
-     * @return {Ext.Component} The component, `null` if the reference doesn't exist.
+     * Gets a reference to the component with the specified {@link #Ext.Componentreference}
+     * value.
      *
+     * The method is a short-hand for the {@link #lookupReference} method.
+     *
+     * @param {String} key The name of the reference to lookup.
+     * @return {Ext.Component} The component, `null` if the reference doesn't exist.
+     * @since 6.0.1
+     */
+    lookup: function (key) {
+        var view = this.view;
+        return view && view.lookup(key);
+    },
+
+    /**
+     * Gets a reference to the component with the specified {@link #Ext.Componentreference}
+     * value.
+     *
+     * The {@link #lookup} method is a short-hand version of this method.
+     *
+     * @param {String} key The name of the reference to lookup.
+     * @return {Ext.Component} The component, `null` if the reference doesn't exist.
      * @since 5.0.0
      */
     lookupReference: function (key) {
-        var view = this.view;
-        return view && view.lookupReference(key);
+        return this.lookup(key);
     },
 
     /**

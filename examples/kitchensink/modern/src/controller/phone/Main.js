@@ -72,6 +72,10 @@ Ext.define('KitchenSink.controller.phone.Main', {
      * @param {KitchenSink.model.Demo} item The Demo model instance for which we want to show a view
      */
     showView: function(item, direct) {
+        if (this.isProfile(item)) {
+            return;
+        }
+        
         var nav    = this.getNav(),
             title  = item.get('text'),
             view   = this.createView(item),

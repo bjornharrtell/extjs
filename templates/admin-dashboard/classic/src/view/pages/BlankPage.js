@@ -1,6 +1,6 @@
 Ext.define('Admin.view.pages.BlankPage', {
     extend: 'Ext.container.Container',
-    xtype: 'blankpage',
+    xtype: 'pageblank',
 
     requires: [
         'Ext.container.Container'

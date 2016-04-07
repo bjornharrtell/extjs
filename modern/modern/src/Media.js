@@ -322,7 +322,7 @@ Ext.define('Ext.Media', {
         return this.media.dom.currentTime;
     },
 
-    /*
+    /**
      * Set the current time of the media.
      * @param {Number} time The time, in seconds.
      * @return {Number}

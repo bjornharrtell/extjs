@@ -154,6 +154,52 @@
     color: $base-color;
 }
 
+//----------------------------------------------------
+
+.#{$prefix}grid-multiselection-column > .x-grid-cell-inner {
+    position: relative;
+    padding: 0;
+
+    &:after {
+        display: block;
+        font-family: FontAwesome;
+        text-align: center;
+        content: $fa-var-square-o;
+
+        font-size: $grid-cell-font-size;
+        line-height: $grid-cell-line-height;
+
+        .x-big & {
+            font-size: $grid-cell-font-size-big;
+            line-height: $grid-cell-line-height-big;
+        }
+    }
+}
+
+.#{$prefix}grid-multiselection-cell > .x-grid-cell-inner {
+    position: relative;
+    padding: 0;
+    text-align: center;
+
+    &:after {
+        display: inline-block;
+        @include font-icon($checkboxfield-checkbox-icon, $pseudo: false);
+        height: $checkboxfield-checkbox-size;
+        width: $checkboxfield-checkbox-size;
+        color: $checkboxfield-checkbox-color;
+
+        .#{$prefix}item-selected & {
+            @include font-icon($checkboxfield-checked-checkbox-icon, $pseudo: false);
+        }
+
+        @if $enable-big {
+            .x-big & {
+                font-size: $checkboxfield-checkbox-font-size-big;
+            }
+        }
+    }
+}
+
 .x-grid-multiselection-column {
 	color: #C0C0C0;
 
@@ -169,6 +215,8 @@
 .x-item-selected .x-grid-multiselection-cell:after {
     color: #1464AE;
 }
+
+//----------------------------------------------------
 
 .x-grid-pagingtoolbar {
     border-top-color: #d7d7d7;

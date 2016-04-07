@@ -3,13 +3,15 @@
     z-index: 100;
     font-size: 1px;
     line-height: $resizer-handle-size;
-    overflow: hidden;
     @include opacity(0);
-    background-color: #fff;
+    background-color: $resizer-handle-background-color;
 
     // Rounded corners if the  theme specifies them
     @if not is-null($resizer-handle-border-radius) and $resizer-handle-border-radius != 0 {
         @include border-radius($resizer-handle-border-radius);
+    }
+    @if $enable-font-icons {
+        color: $resizer-handle-glyph-color;
     }
 }
 
@@ -32,15 +34,59 @@
 }
 .#{$prefix}resizable-handle-southeast {
     cursor: se-resize;
+    @if $enable-font-icons {
+        &:before {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+    }
 }
 .#{$prefix}resizable-handle-northwest {
     cursor: nw-resize;
+    @if $enable-font-icons {
+        &:before {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    }
 }
 .#{$prefix}resizable-handle-northeast {
     cursor: ne-resize;
+    @if $enable-font-icons {
+        &:before {
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
+    }
 }
 .#{$prefix}resizable-handle-southwest {
     cursor: sw-resize;
+    @if $enable-font-icons {
+        &:before {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+    }
+}
+
+@if $enable-font-icons {
+    .#{$prefix}resizable-handle-south,
+    .#{$prefix}resizable-handle-north {
+        text-align: center;
+    }
+    .#{$prefix}resizable-handle-east,
+    .#{$prefix}resizable-handle-west {
+        display: table;
+        &:before {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+        }
+    }
 }
 
 .#{$prefix}resizable-handle-east {
@@ -128,67 +174,64 @@
 
 // themes provide position-x based upon image width
 .#{$prefix}resizable-handle-east-over,
-.#{$prefix}resizable-handle-west-over {
-    background-image: theme-background-image('sizer/e-handle');
+.#{$prefix}resizable-handle-west-over,
+.#{$prefix}resizable-pinned > .#{$prefix}resizable-handle-east,
+.#{$prefix}resizable-pinned > .#{$prefix}resizable-handle-west {
+    @if $enable-font-icons and ($resizer-handle-vertical-glyph != null) {
+        @include font-icon($resizer-handle-vertical-glyph);
+    } @else {
+        background-image: theme-background-image('sizer/e-handle');
+    }
 }
 
 // themes provide position-y based upon image height
 .#{$prefix}resizable-handle-south-over,
-.#{$prefix}resizable-handle-north-over {
-    background-image: theme-background-image('sizer/s-handle');
+.#{$prefix}resizable-handle-north-over,
+.#{$prefix}resizable-pinned > .#{$prefix}resizable-handle-south,
+.#{$prefix}resizable-pinned > .#{$prefix}resizable-handle-north {
+    @if $enable-font-icons and ($resizer-handle-horizontal-glyph != null) {
+        @include font-icon($resizer-handle-horizontal-glyph, $line-height: $resizer-handle-size);
+    } @else {
+        background-image: theme-background-image('sizer/s-handle');
+    }
 }
 
 // themes provide position x y based upon image size
-.#{$prefix}resizable-handle-southeast-over {
-    background-position: top left;
-    background-image: theme-background-image('sizer/se-handle');
-}
-
-.#{$prefix}resizable-handle-northwest-over {
-    background-position: bottom right;
-    background-image: theme-background-image('sizer/nw-handle');
-}
-
-.#{$prefix}resizable-handle-northeast-over {
-    background-position: bottom left;
-    background-image: theme-background-image('sizer/ne-handle');
-}
-
-.#{$prefix}resizable-handle-southwest-over {
-    background-position: top right;
-    background-image: theme-background-image('sizer/sw-handle');
-}
-
-.#{$prefix}resizable-pinned {
-    // themes provide position-x based upon image width
-    .#{$prefix}resizable-handle-east,
-    .#{$prefix}resizable-handle-west {
-        background-image: theme-background-image('sizer/e-handle');
-    }
-
-    // themes provide position-y based upon image height
-    .#{$prefix}resizable-handle-south,
-    .#{$prefix}resizable-handle-north {
-        background-image: theme-background-image('sizer/s-handle');
-    }
-
-    // themes provide position x y based upon image size
-    .#{$prefix}resizable-handle-southeast {
+.#{$prefix}resizable-handle-southeast-over,
+.#{$prefix}resizable-pinned > .#{$prefix}resizable-handle-southeast {
+    @if $enable-font-icons and ($resizer-handle-southeast-glyph != null) {
+        @include font-icon($resizer-handle-southeast-glyph);
+    } @else {
         background-position: top left;
         background-image: theme-background-image('sizer/se-handle');
     }
+}
 
-    .#{$prefix}resizable-handle-northwest {
+.#{$prefix}resizable-handle-northwest-over,
+.#{$prefix}resizable-pinned > .#{$prefix}resizable-handle-northwest {
+    @if $enable-font-icons and ($resizer-handle-northwest-glyph != null) {
+        @include font-icon($resizer-handle-northwest-glyph);
+    } @else {
         background-position: bottom right;
         background-image: theme-background-image('sizer/nw-handle');
     }
+}
 
-    .#{$prefix}resizable-handle-northeast {
+.#{$prefix}resizable-handle-northeast-over,
+.#{$prefix}resizable-pinned > .#{$prefix}resizable-handle-northeast {
+    @if $enable-font-icons and ($resizer-handle-northeast-glyph != null) {
+        @include font-icon($resizer-handle-northeast-glyph);
+    } @else {
         background-position: bottom left;
         background-image: theme-background-image('sizer/ne-handle');
     }
+}
 
-    .#{$prefix}resizable-handle-southwest {
+.#{$prefix}resizable-handle-southwest-over,
+.#{$prefix}resizable-pinned > .#{$prefix}resizable-handle-southwest {
+    @if $enable-font-icons and ($resizer-handle-southwest-glyph != null) {
+        @include font-icon($resizer-handle-southwest-glyph);
+    } @else {
         background-position: top right;
         background-image: theme-background-image('sizer/sw-handle');
     }

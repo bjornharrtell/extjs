@@ -49,21 +49,11 @@
         <generate-dummy-data/>
     </target>
 
-    <target name="-after-build" depends="init">
-        <copy todir="${build.out.base.path}/.." overwrite="true">
-            <fileset dir="${app.dir}"
-                     includes="${toolkit.name}/samples/**/*,
-                               ${toolkit.name}/sass/**/*,
-                               ${toolkit.name}/resources/**/*,
-                               data/**/*,
-                               lib/**/*,
-                               resources/images/**/*"/>
-        </copy>
-
+    <target name="x-after-build" depends="init">
         <if>
             <equals arg1="${toolkit.name}" arg2="modern"/>
             <then>
-                <copy todir="${build.out.base.path}/.." overwrite="true">
+                <copy todir="${build.out.base.path}" overwrite="true">
                     <fileset dir="${app.dir}"
                              includes="${toolkit.name}/src/**/*"/>
                 </copy>

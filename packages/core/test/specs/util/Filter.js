@@ -1290,6 +1290,23 @@ describe("Ext.util.Filter", function() {
             });
         });
 
+        describe("notin", function() {
+            it("should not match when the candidate exists in the value", function() {
+                expect(match('notin', 2, [1, 2, 3, 4])).toBe(false);
+            });
+
+            it("should match when the candidate does not exist in the value", function() {
+                expect(match('notin', 5, [1, 2, 3, 4])).toBe(true);
+            });
+
+            it("should call the convert fn", function() {
+                var convert = function(v) {
+                    return v + 1;
+                }
+                expect(match('notin', 0, [1, 2, 3, 4], {convert: convert})).toBe(false);
+            });
+        });
+
         describe("like", function() {
             it("should match when the candidate matches the value", function() {
                 expect(match('like', 'foo', 'foo')).toBe(true);

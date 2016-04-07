@@ -109,9 +109,6 @@ Ext.define('Ext.ux.statusbar.ValidationStatus', {
         }, this);
     },
 
-    /**
-     * @private
-     */
     onDestroy : function() {
         this.stopMonitoring();
         this.statusBar.statusEl.un('click', this.onStatusClick, this);

@@ -207,7 +207,6 @@ Ext.define('Ext.grid.plugin.RowExpander', {
             // Add row processor which adds collapsed class
             me.bindView(lockedView);
             lockedView.addRowTpl(me.addCollapsedCls).rowExpander = me;
-            ownerLockable.syncRowHeight = true;
             ownerLockable.mon(ownerLockable, {
                 processcolumns: me.onLockableProcessColumns,
                 lockcolumn: me.onColumnLock,
@@ -215,13 +214,32 @@ Ext.define('Ext.grid.plugin.RowExpander', {
                 scope: me
             });
 
-            // Must wait until BOTH sides have finished to sync height of added items.
+            // Process items added.
+            // It may be a re-rendering by the buffered renderer of an expanded item.
+            // If so, schedule a syncRowHeights call.
             me.viewListeners = view.on({
-                itemadd: Ext.Function.createAnimationFrame(ownerLockable.syncRowHeights, ownerLockable)
+                itemadd: me.onItemAdd,
+                scope: me
             });
         } else {
             me.addExpander(grid);
             grid.on('beforereconfigure', me.beforeReconfigure, me);
+        }
+    },
+
+    onItemAdd: function(newRecords, startIndex, newItems) {
+        var me = this,
+            ownerLockable = me.grid.ownerLockable,
+            lockableSyncRowHeights = me.lockableSyncRowHeights || (me.lockableSyncRowHeights = Ext.Function.createAnimationFrame(ownerLockable.syncRowHeights, ownerLockable)),
+            len = newItems.length,
+            i;
+
+        // If any added items are expanded, we will need a syncRowHeights call on next animation frame
+        for (i = 0; i < len; i++) {
+            if (!Ext.fly(newItems[i]).hasCls(me.rowCollapsedCls)) {
+                lockableSyncRowHeights();
+                return;
+            }
         }
     },
 

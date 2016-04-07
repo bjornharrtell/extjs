@@ -1,5 +1,5 @@
 /**
- * This example shows a Form panel with Ext.Direct integration.
+ * This example shows a Form panel with Ext Direct integration.
  */
 Ext.define('KitchenSink.view.direct.Form', {
     extend: 'Ext.panel.Panel',
@@ -13,11 +13,11 @@ Ext.define('KitchenSink.view.direct.Form', {
     ],
     
     //<example>
-    exampleTitle: 'Ext.Direct Form integration',
+    exampleTitle: 'Ext Direct Form integration',
     exampleDescription: [
-        '<p>The following example illustrates how to load a FormPanel or BasicForm through Ext.Direct.</p>',
+        '<p>The following example illustrates how to load a FormPanel or BasicForm through Ext Direct.</p>',
         '<p>Notice that Direct requests will batch together if they occur within the enableBuffer delay period (in milliseconds).</p>',
-        "<p>The Ext.Direct Form api also supports submit in addition to load. The server-side must mark the submit handler as a 'formHandler' and will not be batched.</p>"
+        "<p>The Ext Direct Form api also supports submit in addition to load. The server-side must mark the submit handler as a 'formHandler' and will not be batched.</p>"
     ].join(''),
     
     otherContent: [{
@@ -97,7 +97,7 @@ Ext.define('KitchenSink.view.direct.Form', {
         api: {
             // Note that the method names are quoted in all forms of this
             // example. This makes use of thelazy method resolution feature
-            // that is built in Ext.Direct form actions, as well as Direct
+            // that is built in Ext Direct form actions, as well as Direct
             // data proxy. When KitchenSink.view.direct.Form class is defined
             // upon initial application load, the Profile.getPhoneInfo
             // function does not exist yet; it will be created later when

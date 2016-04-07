@@ -142,6 +142,12 @@ Ext.define('Ext.draw.engine.Canvas', {
                 }
             },
 
+            getLineDash: function () {
+                if (this.$getLineDash) {
+                    return this.$getLineDash();
+                }
+            },
+
             /**
              * Adds points to the subpath such that the arc described by the circumference of the
              * ellipse described by the arguments, starting at the given start angle and ending at
@@ -265,15 +271,7 @@ Ext.define('Ext.draw.engine.Canvas', {
 
         var overrides = Ext.draw.engine.Canvas.contextOverrides,
             ctx = canvas.dom.getContext('2d'),
-            backingStoreRatio = ctx.webkitBackingStorePixelRatio ||
-                ctx.mozBackingStorePixelRatio ||
-                ctx.msBackingStorePixelRatio ||
-                ctx.oBackingStorePixelRatio ||
-                ctx.backingStorePixelRatio || 1,
             name;
-
-        // Windows Phone does not currently support backingStoreRatio
-        this.devicePixelRatio /= (Ext.os.is.WindowsPhone) ? window.innerWidth / window.screen.width : backingStoreRatio;
 
         if (ctx.ellipse) {
             delete overrides.ellipse;
@@ -297,15 +295,6 @@ Ext.define('Ext.draw.engine.Canvas', {
         this.innerElement.appendChild(canvas);
         this.canvases.push(canvas);
         this.contexts.push(ctx);
-    },
-
-    // Have to create canvas element here, instead of in the initElement,
-    // because otherwise the created canvas will be cached along with the
-    // surface's markup and used as a template for future surface
-    // instances.
-    afterCachedConfig: function () {
-        this.callParent();
-        this.createCanvas();
     },
 
     updateHighPrecision: function (highPrecision) {

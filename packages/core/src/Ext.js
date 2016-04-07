@@ -41,7 +41,7 @@
  */
 var Ext = Ext || {}; // jshint ignore:line
 // @define Ext
-Ext._startTime = Date.now ? Date.now() : (+ new Date());
+
 (function() {
     var global = this,
         objectPrototype = Object.prototype,
@@ -63,6 +63,29 @@ Ext._startTime = Date.now ? Date.now() : (+ new Date());
         MSDateRe = /^\\?\/Date\(([-+])?(\d+)(?:[+-]\d{4})?\)\\?\/$/;
 
     Ext.global = global;
+
+    /**
+     * Returns the current timestamp.
+     * @return {Number} Milliseconds since UNIX epoch.
+     * @method now
+     * @member Ext
+     */
+    Ext.now = Date.now || (Date.now = function() {
+        return +new Date();
+    });
+
+    /**
+     * Returns the current high-resolution timestamp.
+     * @return {Number} Milliseconds ellapsed since arbitrary epoch.
+     * @method ticks
+     * @member Ext
+     * @since 6.0.1
+     */
+    Ext.ticks = (global.performance && global.performance.now) ? function() {
+        return performance.now(); // jshint ignore:line
+    } : Ext.now;
+
+    Ext._startTime = Ext.ticks();
 
     // Mark these special fn's for easy identification:
     emptyFn.$nullFn = identityFn.$nullFn = emptyFn.$emptyFn = identityFn.$identityFn =
@@ -125,6 +148,34 @@ Ext._startTime = Date.now ? Date.now() : (+ new Date());
 
         return object;
     };
+
+    // Used by Ext.override
+    function addInstanceOverrides(target, owner, overrides) {
+        var name, value;
+
+        for (name in overrides) {
+            if (overrides.hasOwnProperty(name)) {
+                value = overrides[name];
+
+                if (typeof value === 'function') {
+                    //<debug>
+                    if (owner.$className) {
+                        value.name = owner.$className + '#' + name;
+                    }
+                    //</debug>
+
+                    value.$name = name;
+                    value.$owner = owner;
+
+                    value.$previous = target.hasOwnProperty(name) ?
+                        target[name] // already hooked, so call previous hook
+                        : callOverrideParent; // calls by name on prototype
+                }
+
+                target[name] = value;
+            }
+        }
+    }
 
     Ext.buildSettings = Ext.apply({
         baseCSSPrefix: 'x-'
@@ -201,7 +252,7 @@ Ext._startTime = Date.now ? Date.now() : (+ new Date());
          * It is only reliable during dom-event-initiated cycles and
          * {@link Ext.draw.Animator} initiated cycles.
          */
-        frameStartTime: +new Date(),
+        frameStartTime: Ext.now(),
 
         /**
          * This object is initialized prior to loading the framework (Ext JS or Sencha
@@ -445,17 +496,6 @@ Ext._startTime = Date.now ? Date.now() : (+ new Date());
         },
 
         /**
-         * Returns the current timestamp.
-         * @return {Number} Milliseconds since UNIX epoch.
-         * @method
-         */
-        now: (global.performance && global.performance.now) ? function() {
-            return performance.now(); // jshint ignore:line
-        } : (Date.now || (Date.now = function() {
-            return +new Date();
-        })),
-
-        /**
          * Destroys all of the given objects. If arrays are passed, the elements of these
          * are destroyed recursively.
          *
@@ -541,31 +581,17 @@ Ext._startTime = Date.now ? Date.now() : (+ new Date());
                 Ext.apply(target.prototype, overrides);
             } else {
                 var owner = target.self,
-                    name, value;
+                    privates;
 
                 if (owner && owner.$isClass) { // if (instance of Ext.define'd class)
-                    for (name in overrides) {
-                        if (overrides.hasOwnProperty(name)) {
-                            value = overrides[name];
-
-                            if (typeof value === 'function') {
-                                //<debug>
-                                if (owner.$className) {
-                                    value.name = owner.$className + '#' + name;
-                                }
-                                //</debug>
-
-                                value.$name = name;
-                                value.$owner = owner;
-
-                                value.$previous = target.hasOwnProperty(name) ?
-                                    target[name] // already hooked, so call previous hook
-                                    : callOverrideParent; // calls by name on prototype
-                            }
-
-                            target[name] = value;
-                        }
+                    privates = overrides.privates;
+                    if (privates) {
+                        overrides = Ext.apply({}, overrides);
+                        delete overrides.privates;
+                        addInstanceOverrides(target, owner, privates);
                     }
+
+                    addInstanceOverrides(target, owner, overrides);
                 } else {
                     Ext.apply(target, overrides);
                 }

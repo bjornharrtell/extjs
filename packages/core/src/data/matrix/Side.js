@@ -44,6 +44,15 @@ Ext.define('Ext.data.matrix.Side', {
         me.slices = {};
     },
 
+    commit: function() {
+        var slices = this.slices,
+            id;
+
+        for (id in slices) {
+            slices[id].commit();
+        }
+    },
+
     get: function (id1, id2) {
         var me = this,
             slices = me.slices,
@@ -56,6 +65,13 @@ Ext.define('Ext.data.matrix.Side', {
     update: function (id1, id2, state) {
         var slice = this.get(id1);
         return slice.update(id2, state);
+    },
+
+    updateId: function(oldId, newId) {
+        var slice = this.get(oldId);
+        if (slice) {
+            slice.updateId(newId);
+        }
     },
 
     destroy: function() {

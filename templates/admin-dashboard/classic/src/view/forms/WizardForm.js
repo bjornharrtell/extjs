@@ -24,41 +24,6 @@ Ext.define('Admin.view.forms.WizardForm', {
         defaultButton : 'nextbutton'
     },
 
-    tbar: {
-        reference: 'progress',
-        cls: 'wizardprogressbar',
-        defaults: {
-            disabled: true,
-            iconAlign:'top'
-        },
-        layout: {
-            pack: 'center'
-        },
-        items: [
-            {
-                step: 0,
-                iconCls: 'fa fa-info',
-                cls:'active',
-                text: 'Account'
-            },
-            {
-                step: 1,
-                iconCls: 'fa fa-user',
-                text: 'Profile'
-            },
-            {
-                step: 2,
-                iconCls: 'fa fa-home',
-                text: 'Address'
-            },
-            {
-                step: 3,
-                iconCls: 'fa fa-heart',
-                text: 'Finish'
-            }
-        ]
-    },
-
     items: [
         {
             xtype: 'form',
@@ -169,35 +134,80 @@ Ext.define('Admin.view.forms.WizardForm', {
             ]
         }
     ],
-    
-    bbar: {
-        reference: 'navigation-toolbar',
-        margin: 8,
-        items: [
-            '->',
-            {
-                text: 'Previous',
-                ui: 'blue',
-                formBind: true,
-                bind: {
-                    disabled: '{atBeginning}'
-                },
-                listeners: {
-                    click: 'onPreviousClick'
-                }
+
+    initComponent: function() {
+
+        this.tbar = {
+            reference: 'progress',
+            defaultButtonUI: 'wizard-' + this.colorScheme,
+            cls: 'wizardprogressbar',
+            defaults: {
+                disabled: true,
+                iconAlign:'top'
             },
-            {
-                text: 'Next',
-                ui: 'blue',
-                formBind: true,
-                reference : 'nextbutton',
-                bind: {
-                    disabled: '{atEnd}'
+            layout: {
+                pack: 'center'
+            },
+            items: [
+                {
+                    step: 0,
+                    iconCls: 'fa fa-info',
+                    pressed: true,
+                    enableToggle: true,
+                    text: 'Account'
                 },
-                listeners: {
-                    click: 'onNextClick'
+                {
+                    step: 1,
+                    iconCls: 'fa fa-user',
+                    enableToggle: true,
+                    text: 'Profile'
+                },
+                {
+                    step: 2,
+                    iconCls: 'fa fa-home',
+                    enableToggle: true,
+                    text: 'Address'
+                },
+                {
+                    step: 3,
+                    iconCls: 'fa fa-heart',
+                    enableToggle: true,
+                    text: 'Finish'
                 }
-            }
-        ]
+            ]
+        };
+
+        this.bbar = {
+            reference: 'navigation-toolbar',
+            margin: 8,
+            items: [
+                '->',
+                {
+                    text: 'Previous',
+                    ui: this.colorScheme,
+                    formBind: true,
+                    bind: {
+                        disabled: '{atBeginning}'
+                    },
+                    listeners: {
+                        click: 'onPreviousClick'
+                    }
+                },
+                {
+                    text: 'Next',
+                    ui: this.colorScheme,
+                    formBind: true,
+                    reference : 'nextbutton',
+                    bind: {
+                        disabled: '{atEnd}'
+                    },
+                    listeners: {
+                        click: 'onNextClick'
+                    }
+                }
+            ]
+        };
+
+        this.callParent();
     }
 });

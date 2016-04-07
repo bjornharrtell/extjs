@@ -1,0 +1,33 @@
+$bio-image-size: 66px;
+
+.bio-tile {
+    background-color: #fff;
+}
+
+.bio-banner {
+    background-color: #607d8b;
+}
+
+.bio-banner, .bio-image {
+    background-position: top left !important; // framework rules have higher specificity
+    background-size: 100% auto !important; // framework rules have higher specificity
+}
+
+.bio-image {
+    width: $bio-image-size;
+    height: $bio-image-size;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    margin-left: (-$bio-image-size / 2);
+    margin-top: (-$bio-image-size / 2);
+}
+
+.bio-description {
+    padding-top: $bio-image-size/2 + 8px;
+    text-align: center;
+}
+
+.bio-description > .x-innerhtml::first-line {
+    font-weight: 600;
+    font-size: 130%;
+}

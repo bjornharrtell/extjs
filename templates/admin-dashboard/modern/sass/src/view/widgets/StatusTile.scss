@@ -1,0 +1,38 @@
+.status-tile {
+    background-color: #fff;
+    border: 3px solid transparent;
+    position: relative;
+    text-align: center;
+}
+
+.status-tile-wrap {
+    position: relative;
+    top: 50%;
+    @include transform(translateY(-50%));
+
+    .status-tile-large > & {
+        font-size: 150%;
+    }
+}
+
+.status-tile-quantity {
+    font-size: 250%;
+    font-weight: 500;
+}
+
+.status-tile-icon-wrap {
+    font-size: 180%;
+}
+
+.status-tile-icon-wrap,
+.status-tile-icon {
+    display: inline-block;
+}
+
+.status-tile-icon-first .status-tile-icon-wrap {
+    width: 2.4em;
+    height: 2.4em;
+    line-height: 2.4em;
+    color: #fff;
+    border-radius: 50%;
+}

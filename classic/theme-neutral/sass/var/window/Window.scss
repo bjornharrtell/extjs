@@ -10,7 +10,12 @@ $window-base-color: dynamic($base-color);
 
 /**
  * @var {number}
- * The padding of Windows
+ * The padding of Windows.
+ * 
+ * The padding value must be equal to or greater than value specified in the 
+ * {@link #$window-border-radius} variable (or the maximum value if corner values 
+ * are specified individually).  
+ * See also: {@link #$window-ignore-frame-padding}
  */
 $window-padding: dynamic($panel-frame-padding);
 
@@ -267,10 +272,7 @@ $include-window-default-ui: dynamic($include-default-uis);
 
 /**
  * @var {boolean}
- * True to ignore the frame padding.  By default, the frame mixin adds extra padding when
- * border radius is larger than border width.  This is intended to prevent the content
- * from colliding with the rounded corners of the frame.  Set this to true to prevent
- * the window frame from adding this extra padding.
+ * @inheritdoc Ext.panel.Panel#css_var-$panel-ignore-frame-padding
  */
 $window-ignore-frame-padding: dynamic($panel-ignore-frame-padding);
 

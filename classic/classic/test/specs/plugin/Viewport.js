@@ -1,8 +1,8 @@
 describe("Ext.plugin.Viewport", function() {
-    var c;
+    var c, DomScrollDescribe = Ext.supports.touchScroll ? xdescribe : describe;
 
-    function makeComponent(cfg) {
-        c = new Ext.Component(Ext.apply({
+    function makeComponent(cfg, ComponentClass) {
+        c = new (ComponentClass || Ext.Component)(Ext.apply({
             renderTo: Ext.getBody(),
             plugins: 'viewport'
         }, cfg));
@@ -160,6 +160,238 @@ describe("Ext.plugin.Viewport", function() {
         
         it("should assign role=application to the document body", function() {
             expect(Ext.getBody().dom.getAttribute('role')).toBe('application');
+        });
+    });
+
+    describe('scroll events on auto layout Container viewport', function() {
+        var DomScroller = Ext.scroll.DomScroller,
+            viewportScrollCount = 0,
+            documentScrollCount = 0;
+
+        beforeEach(function() {
+            // Gets destroyed by viewports, so restore to initial conditions for tests
+            if (!DomScroller.document) {
+                DomScroller.document = new DomScroller({
+                    x: true,
+                    y: true,
+                    element: document.body
+                });
+            };
+
+            document.documentElement.style.height = '500px';
+            document.documentElement.style.overflow = 'auto';
+            // This must not fire.
+            // We can't use a single global listener because different
+            // event sources are used on different platforms.
+            // We are checking that the global instance is destroyed and fires
+            // no events.
+            DomScroller.document.on('scroll', function() {
+                documentScrollCount++;
+            });
+            makeComponent({
+                scrollable: true,
+                style: 'background-color:red',
+                items: {
+                    xtype: 'component',
+                    style: 'background-color:green',
+                    height: 5000,
+                    width: 100
+                }
+            }, Ext.Container);
+            c.getScrollable().on({
+                scroll: function() {
+                    viewportScrollCount++;
+                }
+            });
+        });
+        afterEach(function() {
+            document.documentElement.style.height = document.documentElement.style.overflow = document.body.style.backgroundColor = '';
+        });
+        
+        it('should only fire one global scroll event per scroll', function() {
+            c.scrollTo(null, 500);
+
+            // Wait for potentially asynchronous scroll events to fire.
+            waits(100);
+
+            runs(function() {
+                // Document scroller must have been destroyed
+                expect(DomScroller.document == null).toBe(true);
+
+                expect(viewportScrollCount).toBe(1);
+
+                // We must have received no scroll events from the document scroller
+                expect(documentScrollCount).toBe(0);
+            });
+        });
+    });
+
+    describe('scroll events on auto layout Panel Viewport', function() {
+        var DomScroller = Ext.scroll.DomScroller,
+            viewportScrollCount = 0,
+            documentScrollCount = 0;
+
+        beforeEach(function() {
+            // Gets destroyed by viewports, so restore to initial conditions for tests
+            if (!DomScroller.document) {
+                DomScroller.document = new DomScroller({
+                    x: true,
+                    y: true,
+                    element: document.body
+                });
+            };
+
+            document.documentElement.style.height = '500px';
+            document.documentElement.style.overflow = 'auto';
+            // This must not fire.
+            // We can't use a single global listener because different
+            // event sources are used on different platforms.
+            // We are checking that the global instance is destroyed and fires
+            // no events.
+            DomScroller.document.on('scroll', function() {
+                documentScrollCount++;
+            });
+            makeComponent({
+                scrollable: true,
+                items: {
+                    xtype: 'component',
+                    height: 5000,
+                    width: 100
+                }
+            }, Ext.panel.Panel);
+            c.getScrollable().on({
+                scroll: function() {
+                    viewportScrollCount++;
+                }
+            });
+        });
+        afterEach(function() {
+            document.documentElement.style.height = document.documentElement.style.overflow = document.body.style.backgroundColor = '';
+        });
+        
+        it('should only fire one global scroll event per scroll', function() {
+            c.scrollTo(null, 500);
+
+            // Wait for potentially asynchronous scroll events to fire.
+            waits(100);
+
+            runs(function() {
+                // Document scroller must have been destroyed
+                expect(DomScroller.document == null).toBe(true);
+
+                expect(viewportScrollCount).toBe(1);
+
+                // We must have received no scroll events from the document scroller
+                expect(documentScrollCount).toBe(0);
+            });
+        });
+    });
+
+    DomScrollDescribe('Global DOM scroll events on auto layout Container viewport', function() {
+        var DomScroller = Ext.scroll.DomScroller,
+            viewportScrollCount = 0,
+            documentScrollCount = 0;
+
+        beforeEach(function() {
+            // Gets destroyed by viewports, so restore to initial conditions for tests
+            if (!DomScroller.document) {
+                DomScroller.document = new DomScroller({
+                    x: true,
+                    y: true,
+                    element: document.body
+                });
+            };
+
+            // This must not fire.
+            // We can't use a single global listener because different
+            // event sources are used on different platforms.
+            // We are checking that the global instance is destroyed and fires
+            // no events.
+            DomScroller.document.on('scroll', function() {
+                documentScrollCount++;
+            });
+            Ext.on('scroll', function() {
+                viewportScrollCount++;
+            });
+            makeComponent({
+                scrollable: true,
+                items: {
+                    xtype: 'component',
+                    height: 5000,
+                    width: 100
+                }
+            }, Ext.Container);
+        });
+        
+        it('should only fire one global scroll event per scroll', function() {
+            c.scrollTo(null, 500);
+
+            // Wait for potentially asynchronous scroll events to fire.
+            waits(100);
+
+            runs(function() {
+                // Document scroller must have been destroyed
+                expect(DomScroller.document == null).toBe(true);
+
+                expect(viewportScrollCount).toBe(1);
+
+                // We must have received no scroll events from the document scroller
+                expect(documentScrollCount).toBe(0);
+            });
+        });
+    });
+
+    DomScrollDescribe('Global DOM scroll events on auto layout Panel Viewport', function() {
+        var DomScroller = Ext.scroll.DomScroller,
+            viewportScrollCount = 0,
+            documentScrollCount = 0;
+
+        beforeEach(function() {
+            // Gets destroyed by viewports, so restore to initial conditions for tests
+            if (!DomScroller.document) {
+                DomScroller.document = new DomScroller({
+                    x: true,
+                    y: true,
+                    element: document.body
+                });
+            };
+
+            // This must not fire.
+            // We can't use a single global listener because different
+            // event sources are used on different platforms.
+            // We are checking that the global instance is destroyed and fires
+            // no events.
+            DomScroller.document.on('scroll', function() {
+                documentScrollCount++;
+            });
+            Ext.on('scroll', function() {
+                viewportScrollCount++;
+            });
+            makeComponent({
+                scrollable: true,
+                items: {
+                    xtype: 'component',
+                    height: 5000,
+                    width: 100
+                }
+            }, Ext.panel.Panel);
+        });
+        
+        it('should only fire one global scroll event per scroll', function() {
+            c.scrollTo(null, 500);
+
+            // Wait for potentially asynchronous scroll events to fire.
+            waits(100);
+
+            runs(function() {
+                // Document scroller must have been destroyed
+                expect(DomScroller.document == null).toBe(true);
+
+                expect(viewportScrollCount).toBe(1);
+
+                // We must have received no scroll events from the document scroller
+                expect(documentScrollCount).toBe(0);
+            });
         });
     });
 });

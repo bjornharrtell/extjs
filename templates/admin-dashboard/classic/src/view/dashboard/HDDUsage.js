@@ -1,6 +1,6 @@
 Ext.define('Admin.view.dashboard.HDDUsage', {
     extend: 'Ext.panel.Panel',
-    xtype: 'dashboardhddusagepanel',
+    xtype: 'hddusage',
 
     requires: [
         'Ext.chart.CartesianChart',
@@ -11,19 +11,14 @@ Ext.define('Admin.view.dashboard.HDDUsage', {
 
     ],
 
-    cls: 'quick-graph-panel shadow-panel',
+    title: 'HDD Usage',
+    ui: 'light',
+    iconCls: 'x-fa fa-database',
+    headerPosition: 'bottom',
+
+    cls: 'quick-graph-panel shadow',
     height: 130,
     layout: 'fit',
-    headerPosition: 'bottom',
-    iconCls: 'x-fa fa-database',
-
-    title: 'HDD Usage',
-    tools: [
-        {
-            xtype: 'tool',
-            cls: 'quick-graph-panel-tool x-fa fa-ellipsis-v'
-        }
-    ],
 
     items: [
         {
@@ -36,7 +31,7 @@ Ext.define('Admin.view.dashboard.HDDUsage', {
                 '#a9d9ab'
             ],
             bind: {
-                store: '{dashboard.QGAreaStore}'
+                store: '{hddusage}'
             },
             axes: [
                 {

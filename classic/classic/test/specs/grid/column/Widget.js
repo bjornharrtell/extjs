@@ -1,5 +1,8 @@
 describe("Ext.grid.column.Widget", function() {
-    var webkitIt = Ext.isWebKit ? it : xit;
+    var webkitIt = Ext.isWebKit ? it : xit,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
 
     var Model = Ext.define(null, {
         extend: 'Ext.data.Model',
@@ -67,8 +70,22 @@ describe("Ext.grid.column.Widget", function() {
         navModel = view.getNavigationModel();
         colRef = grid.getColumnManager().getColumns();
     }
+    
+    beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+    });
 
     afterEach(function() {
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+
         Ext.destroy(grid);
         grid = store = colRef = null;
     });
@@ -82,6 +99,57 @@ describe("Ext.grid.column.Widget", function() {
         var cell = grid.getView().getEl().down(colRef[0].getCellInnerSelector());
         return parseInt(cell.getStyle('padding-left'), 10) + parseInt(cell.getStyle('padding-right'), 10);
     }
+    
+    describe('refocusing after using a column widget to trigger a delete', function() {
+        it('should refocus the next row upon deletion', function() {
+            createGrid([{
+                text: 'Button',
+                xtype: 'widgetcolumn',
+                width: 200,
+                dataIndex: 'a',
+                widget: {
+                    xtype: 'button',
+                    text: 'Delete row',
+                    handler: function(button) {
+                        var rec = button.getWidgetRecord();
+                        store.remove(rec);
+                    }
+                }
+            }]);
+
+            var widget0 = getWidget(0),
+                rec0 = store.getAt(0),
+                rec1 = store.getAt(1),
+                toDelete = widget0.getWidgetRecord(),
+                newTop = getWidget(1).getWidgetRecord(),
+                storeCount = store.getCount();
+
+            expect(toDelete).toBe(rec0);
+            expect(newTop).toBe(rec1);
+
+            // Focus the button, and enter actionable mode, then click the button.
+            jasmine.fireMouseEvent(widget0.focusEl, 'mousedown');
+            widget0.focusEl.focus();
+            jasmine.fireKeyEvent(widget0.focusEl, 'keydown', Ext.event.Event.SPACE);
+
+            // That should have deleted a record
+            expect(store.getCount()).toBe(storeCount - 1);
+
+            // The widget's record must have gone
+            expect(store.contains(toDelete)).toBe(false);
+
+            // Widget 0 must receive focus when any async focus events have run their course
+            waitsFor(function() {
+                widget0 = getWidget(0);
+                return widget0.hasFocus;
+            });
+
+            runs(function() {
+                // Widget 0 record must be what we got from widget 1 initially
+                expect(widget0.getWidgetRecord()).toBe(newTop);
+            });
+        });
+    });
 
     describe("Widget recycling across refresh", function() {
         it("should recycle widgets", function() {
@@ -1057,6 +1125,109 @@ describe("Ext.grid.column.Widget", function() {
                         grid.down('#ct').hide();
                     }).not.toThrow();
                 });
+            });
+        });
+
+        describe('RadioGroup as a widget', function() {
+            var grid;
+            
+            afterEach(function() {
+                grid.destroy();
+            });
+
+            it("should be able to update value from column's dataIndex", function() {
+                var store = Ext.create('Ext.data.Store', {
+                    fields: ['name', 'progress',
+                        {
+                            name: 'radio',
+                            isEqual: function(v1, v2) {
+                                return String(v1.value) === String(v2.value);
+                            }
+                        }
+                    ],
+                    data: [{
+                        name: 'Test 1',
+                        progress: 0.10,
+                        radio: {
+                            "value": 2
+                        }
+                    }, {
+                        name: 'Test 2',
+                        progress: 0.23,
+                        radio: {
+                            "value": 1
+                        }
+                    }, {
+                        name: 'Test 3',
+                        progress: 0.86,
+                        radio: {
+                            "value": 2
+                        }
+                    }, {
+                        name: 'Test 4',
+                        progress: 0.31,
+                        radio: {
+                            "value": 1
+                        }
+                    }]
+                }),
+                widgetColumn,
+                radioGroup,
+                radio,
+                rec = store.getAt(0);
+
+                grid = Ext.create({
+                    xtype: 'grid',
+                    title: 'Widget Column Demo',
+                    store: store,
+
+                    columns: [{
+                        text: 'Test Number',
+                        dataIndex: 'name',
+                        width: 150
+                    }, {
+                        text: 'Progress',
+                        dataIndex: 'progress',
+                        width: 100
+                    }, {
+                        xtype: 'widgetcolumn',
+                        header: 'Radio Group',
+                        dataIndex: 'radio',
+                        width: 170,
+                        widget: {
+                            xtype: 'radiogroup',
+
+                            // The local config means child Radio names are scoped to this RadioGroup
+                            local: true,
+                            columns: 1,
+                            vertical: true,
+                            items: [{
+                                boxLabel: 'Item 1',
+                                name: 'value',
+                                inputValue: '1'
+                            }, {
+                                boxLabel: 'Item 2',
+                                name: 'value',
+                                inputValue: '2'
+                            }],
+                            listeners: {
+                                change: function(radioGroup, newValue, oldValue) {
+                                    radioGroup.getWidgetRecord().set('radio', newValue);
+                                }
+                            }
+                        }
+                    }],
+                    height: 400,
+                    width: 600,
+                    renderTo: Ext.getBody()
+                });
+                widgetColumn = grid.down('widgetcolumn');
+                radioGroup = widgetColumn.getWidget(rec);
+                radio = radioGroup.child('radio[inputValue=1]');
+                jasmine.fireMouseEvent(radio.inputEl, 'click');
+
+                // Record field must have been updated
+                expect(rec.get('radio').value).toBe('1');
             });
         });
     }

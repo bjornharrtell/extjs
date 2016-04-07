@@ -120,6 +120,8 @@ Ext.define('Ext.LoadMask', {
             '</div>',
         '</div>'
     ],
+
+    maskOnDisable : false,
     
     /**
      * @private
@@ -549,6 +551,7 @@ Ext.define('Ext.LoadMask', {
      * Synchronizes the visible state of the mask with the configuration settings such
      * as {@link #msgWrapCls}, {@link #msg}, sizes the mask to occlude the target element or Component
      * and focuses the mask.
+     * @private
      */
     syncMaskState: function() {
         var me = this,
@@ -579,7 +582,7 @@ Ext.define('Ext.LoadMask', {
 
             // If owner contains focus, focus this.
             // Component level onHide processing takes care of focus reversion on hide.
-            if (ownerCt.containsFocus) {
+            if (ownerCt.el.contains(Ext.Element.getActiveElement())) {
                 me.focus();
             }
             me.sizeMask();

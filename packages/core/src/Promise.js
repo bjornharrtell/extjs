@@ -17,7 +17,7 @@
  *          // the asynchronous action.
  *          //
  *          return new Ext.Promise(function (resolve, reject) {
- *              Ext.Ajax({
+ *              Ext.Ajax.request({
  *                  url: url,
  *
  *                  success: function (response) {

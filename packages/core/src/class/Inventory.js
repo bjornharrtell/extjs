@@ -26,15 +26,15 @@ Ext.Inventory.prototype = {
     dotRe: /\./g,
     wildcardRe: /\*/g,
 
-    addAlias: function (className, alias) {
-        return this.addMapping(className, alias, this.aliasToName, this.nameToAliases);
+    addAlias: function (className, alias, update) {
+        return this.addMapping(className, alias, this.aliasToName, this.nameToAliases, update);
     },
 
     addAlternate: function (className, alternate) {
         return this.addMapping(className, alternate, this.alternateToName, this.nameToAlternates);
     },
 
-    addMapping: function (className, alternate, toName, nameTo) {
+    addMapping: function (className, alternate, toName, nameTo, update) {
         var name = className.$className || className,
             mappings = name,
             array = this._array1,
@@ -62,7 +62,7 @@ Ext.Inventory.prototype = {
 
                 if (toName[a] !== cls) {
                     //<debug>
-                    if (toName[a]) {
+                    if (!update && toName[a]) {
                         Ext.log.warn("Overriding existing mapping: '" + a + "' From '" +
                             toName[a] + "' to '" + cls + "'. Is this intentional?");
                     }

@@ -184,7 +184,7 @@ Ext.Factory.prototype = {
  * @param {Object/String} [config] An object specifying the config for the `Ext.Factory`
  * to be created. If a string is passed it is treated as the `defaultType`.
  * @return {Function}
- *
+ * @static
  * @since 5.0.0
  */
 Ext.Factory.define = function (type, config) {

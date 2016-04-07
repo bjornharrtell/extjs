@@ -2,132 +2,120 @@ Ext.define('Admin.store.NavigationTree', {
     extend: 'Ext.data.TreeStore',
 
     storeId: 'NavigationTree',
+
+    fields: [{
+        name: 'text'
+    }],
+
     root: {
         expanded: true,
         children: [
             {
-                text:   'Dashboard',
-                view:   'dashboard.Dashboard',
-                leaf:   true,
-                iconCls: 'right-icon new-icon x-fa fa-desktop',
-                routeId: 'dashboard'
+                text: 'Dashboard',
+                iconCls: 'x-fa fa-desktop',
+                rowCls: 'nav-tree-badge nav-tree-badge-new',
+                viewType: 'admindashboard',
+                routeId: 'dashboard', // routeId defaults to viewType
+                leaf: true
             },
             {
-                text:   'Email',
-                view:   'email.Email',
-                iconCls: 'right-icon hot-icon x-fa fa-send ',
-                leaf:   true,
-                routeId: 'email'
-
+                text: 'Email',
+                iconCls: 'x-fa fa-send',
+                rowCls: 'nav-tree-badge nav-tree-badge-hot',
+                viewType: 'email',
+                leaf: true
             },
             {
-                text:   'Profile',
-                view:   'profile.UserProfile',
-                leaf:   true,
+                text: 'Profile',
                 iconCls: 'x-fa fa-user',
-                routeId:'profile'
+                viewType: 'profile',
+                leaf: true
             },
             {
-                text:   'Search results',
-                view:   'search.Results',
-                leaf:   true,
+                text: 'Search results',
                 iconCls: 'x-fa fa-search',
-                routeId:'search'
+                viewType: 'searchresults',
+                leaf: true
             },
             {
                 text: 'FAQ',
-                view: 'pages.FAQ',
-                leaf: true,
                 iconCls: 'x-fa fa-question',
-                routeId:'faq'
+                viewType: 'faq',
+                leaf: true
             },
             {
                 text: 'Pages',
+                iconCls: 'x-fa fa-leanpub',
                 expanded: false,
                 selectable: false,
-                iconCls: 'x-fa fa-leanpub',
-                routeId : 'pages-parent',
-                id:       'pages-parent',
+                //routeId: 'pages-parent',
+                //id: 'pages-parent',
+
                 children: [
                     {
                         text: 'Blank Page',
-                        view: 'pages.BlankPage',
-                        leaf: true,
                         iconCls: 'x-fa fa-file-o',
-                        routeId:'pages.blank'
+                        viewType: 'pageblank',
+                        leaf: true
                     },
 
                     {
                         text: '404 Error',
-                        view: 'pages.Error404Window',
-                        leaf: true,
                         iconCls: 'x-fa fa-exclamation-triangle',
-                        routeId:'pages.404'
+                        viewType: 'page404',
+                        leaf: true
                     },
                     {
                         text: '500 Error',
-                        view: 'pages.Error500Window',
-                        leaf: true,
                         iconCls: 'x-fa fa-times-circle',
-                        routeId:'pages.500'
+                        viewType: 'page500',
+                        leaf: true
                     },
                     {
                         text: 'Lock Screen',
-                        view: 'authentication.LockScreen',
-                        leaf: true,
                         iconCls: 'x-fa fa-lock',
-                        routeId:'authentication.lockscreen'
+                        viewType: 'lockscreen',
+                        leaf: true
                     },
 
                     {
                         text: 'Login',
-                        view: 'authentication.Login',
-                        leaf: true,
                         iconCls: 'x-fa fa-check',
-                        routeId:'authentication.login'
+                        viewType: 'login',
+                        leaf: true
                     },
                     {
                         text: 'Register',
-                        view: 'authentication.Register',
-                        leaf: true,
                         iconCls: 'x-fa fa-pencil-square-o',
-                        routeId:'authentication.register'
+                        viewType: 'register',
+                        leaf: true
                     },
                     {
                         text: 'Password Reset',
-                        view: 'authentication.PasswordReset',
-                        leaf: true,
                         iconCls: 'x-fa fa-lightbulb-o',
-                        routeId:'authentication.passwordreset'
+                        viewType: 'passwordreset',
+                        leaf: true
                     }
                 ]
             },
             {
-                text:   'Widgets',
-                view:   'widgets.Widgets',
-                leaf:   true,
+                text: 'Widgets',
                 iconCls: 'x-fa fa-flask',
-                routeId:'widgets'
+                viewType: 'widgets',
+                leaf: true
             },
             {
-                text:   'Forms',
-                view:   'forms.Wizards',
-                leaf:   true,
+                text: 'Forms',
                 iconCls: 'x-fa fa-edit',
-                routeId:'forms'
+                viewType: 'forms',
+                leaf: true
             },
             {
                 text: 'Charts',
-                view: 'charts.Charts',
                 iconCls: 'x-fa fa-pie-chart',
-                leaf:   true,
-                routeId:'charts'
+                viewType: 'charts',
+                leaf: true
             }
         ]
-    },
-    fields: [
-        {
-            name: 'text'
-        }
-    ]
+    }
 });

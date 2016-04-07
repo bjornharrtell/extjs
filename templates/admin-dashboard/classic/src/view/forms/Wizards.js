@@ -1,6 +1,6 @@
 Ext.define('Admin.view.forms.Wizards', {
     extend: 'Ext.container.Container',
-    xtype: 'formswizardscontainer',
+    xtype: 'forms',
 
     requires: [
         'Ext.ux.layout.ResponsiveColumn'
@@ -13,19 +13,19 @@ Ext.define('Admin.view.forms.Wizards', {
     items: [
         {
             xtype: 'formswizardone',
-            responsiveCls: 'big-100'
+            userCls: 'big-100'
         },
         {
             xtype: 'wizardform',
-            cls: 'wizardtwo shadow-panel',
+            cls: 'wizardtwo shadow',
             colorScheme: 'soft-purple',
-            responsiveCls: 'big-50 small-100'
+            userCls: 'big-50 small-100'
         },
         {
             xtype: 'wizardform',
-            cls: 'wizardthree shadow-panel',
+            cls: 'wizardthree shadow',
             colorScheme: 'soft-green',
-            responsiveCls: 'big-50 small-100'
+            userCls: 'big-50 small-100'
         }
     ]
 });

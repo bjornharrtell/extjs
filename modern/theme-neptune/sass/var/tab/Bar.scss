@@ -16,7 +16,7 @@ $tabbar-padding: dynamic(.46rem .5rem);
 
 /**
  * @var {number/list}
- * TabBar padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * TabBar padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $tabbar-padding-big: dynamic(.4rem .67rem);
 
@@ -28,6 +28,6 @@ $tabbar-tab-spacing: dynamic(.4em);
 
 /**
  * @var {number}
- * The space between tabs in the {@link Ext.Component#$enable-big big} sizing scheme
+ * The space between tabs in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $tabbar-tab-spacing-big: dynamic($tabbar-tab-spacing);

@@ -198,6 +198,10 @@
     
     <target name="set-build-production">
         <property name="build.production" value="1"/>
+        
+        <replace file="${basedir}/package.json"
+                 token="&quot;local&quot;: true"
+                 value="&quot;local&quot;: false"/>
     </target>
     
     <target name="apply-production-settings" if="build.production">

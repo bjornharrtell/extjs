@@ -47,7 +47,7 @@
                 -rules=true
                 -class-name-vars=true
                 -variable=$image-search-path:'${image.search.path}' !default
-                -variable=$theme-name: '${package.name}' !default
+                -variable=$theme-name: '${theme.name}' !default
                 -output=${build.all.scss}
                 -forward=${package.sass.dynamic}
             and
@@ -73,7 +73,7 @@
             sass
                 -class-name-vars=true
                 -variable=$image-search-path:'${image.search.path}' !default
-                -variable=$theme-name: '${package.name}' !default
+                -variable=$theme-name: '${theme.name}' !default
                 -output=${build.all.rtl.scss}
                 -forward=${package.sass.dynamic}
             and
@@ -120,7 +120,7 @@
             sass
                 -class-name-vars=true
                 -variable=$image-search-path:'${image.search.path}' !default
-                -variable=$theme-name: '${package.name}' !default
+                -variable=$theme-name: '${theme.name}' !default
                 -output=${build.all.scss}
                 -forward=${package.sass.dynamic}
             and
@@ -197,6 +197,58 @@
         </sequential>
     </macrodef>
 
+    <macrodef name="x-fashion-build-css">
+        <attribute name="dir"/>
+        <attribute name="outdir"/>
+        <attribute name="suffix"/>
+        <attribute name="compress"/>
+        <sequential>
+            <for param="cssfile">
+                <fileset dir="@{dir}" includes="*.scss"/>
+                <sequential>
+                    <local name="css.output.name"/>
+
+                    <x-script-def name="x-calc-path">
+                        <attribute name="file"/>
+                        <attribute name="dir"/>
+                        <attribute name="outdir"/>
+                        <attribute name="suffix"/>
+                        <![CDATA[
+
+                        importPackage(java.io);
+
+                        var file = attributes.get('file') + '',
+                            dir = attributes.get('dir') + '',
+                            outdir = attributes.get('outdir') + '',
+                            name = new File(file).getName() + '',
+                            suffix = attributes.get('suffix') + '',
+                            outName;
+
+                        name = name.replace(/-debug\.scss/g, suffix + '.css');
+                        outName = new File(outdir, name).getAbsolutePath();
+                        project.setProperty('css.output.name', outName);
+
+                        ]]>
+                    </x-script-def>
+
+                    <x-calc-path file="@{cssfile}"
+                                 dir="@{dir}"
+                                 outdir="@{outdir}"
+                                 suffix="@{suffix}"/>
+
+                    <x-echo>Building @{cssfile} to ${css.output.name}</x-echo>
+
+                    <x-sass-build input="@{cssfile}"
+                                  output="${css.output.name}"
+                                  refId="package.web.server"
+                                  split="${build.css.selector.limit}"
+                                  compress="@{compress}"/>
+
+                </sequential>
+            </for>
+        </sequential>
+    </macrodef>
+
     <target name="-compass-compile" depends="-load-sass-page,-compile-sass">
         <if>
             <x-is-true value="${package.sass.fashion}"/>
@@ -204,9 +256,16 @@
                 <if>
                     <x-is-false value="${package.sass.rhino}"/>
                     <then>
-                        <x-sass-build input="${compass.sass.dir}"
-                                      output="${compass.css.dir}"
-                                      refId="package.web.server"/>
+                        <x-fashion-build-css
+                                dir="${package.sass.build.dir}"
+                                outdir="${build.resources.dir}"
+                                suffix="-debug"
+                                compress="false"/>
+                        <x-fashion-build-css
+                                dir="${package.sass.build.dir}"
+                                outdir="${build.resources.dir}"
+                                suffix=""
+                                compress="true"/>
                     </then>
                     <else>
                         <x-fashion-compile
@@ -214,7 +273,7 @@
                                 toFile="${compass.css.dir}"/>
                     </else>
                 </if>
-                
+
             </then>
             <else>
                 <x-compass-compile
@@ -231,15 +290,20 @@
     </target>
 
     <target name="-compile-css" depends="-compass-compile">
-        <x-compress-css-files
-                dir="${build.resources.dir}"
-                prefix="${build.all.css.debug.prefix}"
-                outprefix="${build.all.css.prefix}"/>
+        <if>
+            <not><x-is-true value="${package.sass.fashion}"/></not>
+            <then>
+                <x-compress-css-files
+                        dir="${build.resources.dir}"
+                        prefix="${build.all.css.debug.prefix}"
+                        outprefix="${build.all.css.prefix}"/>
 
-        <x-compress-css-files
-                dir="${build.resources.dir}"
-                prefix="${build.all.rtl.css.debug.prefix}"
-                outprefix="${build.all.rtl.css.prefix}"/>
+                <x-compress-css-files
+                        dir="${build.resources.dir}"
+                        prefix="${build.all.rtl.css.debug.prefix}"
+                        outprefix="${build.all.rtl.css.prefix}"/>
+            </then>
+        </if>
     </target>
 
     <target name="-before-sass"/>

@@ -1,5 +1,5 @@
 @if $enable-font-open-sans {
-    $triton-font-path: get-resource-path('fonts');
+    $triton-font-path: get-resource-path('fonts', 'shared');
     @font-face {
         font-family: 'Open Sans';
         src: url('#{$triton-font-path}/OpenSans-Light.ttf');

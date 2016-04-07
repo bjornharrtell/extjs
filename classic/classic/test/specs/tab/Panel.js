@@ -1923,6 +1923,7 @@ describe("Ext.tab.Panel", function() {
     
     describe("ARIA", function() {
         var expectAria = jasmine.expectAriaAttr,
+            expectNoAria = jasmine.expectNoAriaAttr,
             tab1, tab2, card1, card2;
         
         beforeEach(function() {
@@ -1960,12 +1961,78 @@ describe("Ext.tab.Panel", function() {
                 expectAria(card1, 'aria-labelledby', tab1.id);
             });
             
+            it("should not have aria-label on card1", function() {
+                expectNoAria(card1, 'aria-label');
+            });
+            
             it("should have aria-expanded='true' on card1", function() {
                 expectAria(card1, 'aria-expanded', 'true');
             });
             
             it("should have aria-hidden='false' on card1", function() {
                 expectAria(card1, 'aria-hidden', 'false');
+            });
+            
+            describe("dynamically added panel", function() {
+                var tab3, card3;
+                
+                beforeEach(function() {
+                    card3 = tabPanel.add(new Ext.panel.Panel({
+                        title: '<span style="background-color: red">foo</span>',
+                        html: 'blerg'
+                    }));
+                    
+                    tab3 = card3.tab;
+                    
+                    // This is to render the tab child
+                    tabPanel.setActiveTab(2);
+                });
+                
+                afterEach(function() {
+                    tab3 = card3 = null;
+                });
+                
+                it("should have correct aria-labelledby on card1", function() {
+                    expectAria(card3, 'aria-labelledby', tab3.id);
+                });
+                
+                it("should not have aria-label on card1", function() {
+                    expectNoAria(card3, 'aria-label');
+                });
+            });
+            
+            describe("dynamically moved panel", function() {
+                var tabPanel2, oldTab1Id;
+                
+                beforeEach(function() {
+                    tabPanel2 = new Ext.tab.Panel({
+                        renderTo: Ext.getBody()
+                    });
+                    
+                    oldTab1Id = tab1.id;
+                    
+                    tabPanel.remove(card1, false);
+                    tabPanel2.add(card1);
+                    
+                    tab1 = card1.tab;
+                });
+                
+                afterEach(function() {
+                    tabPanel2.destroy();
+                    tabPanel2 = oldTab1Id = null;
+                });
+                
+                it("should have new tab id on card1", function() {
+                    expect(tab1.id).not.toBe(oldTab1Id);
+                });
+                
+                it("should have correct aria-labelledby on card1", function() {
+                    expectAria(card1, 'aria-labelledby', tab1.id);
+                });
+                
+                it("should not have aria-label on card1", function() {
+                    expectNoAria(card1, 'aria-label');
+                });
             });
         });
         

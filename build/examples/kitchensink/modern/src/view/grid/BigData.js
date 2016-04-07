@@ -49,7 +49,8 @@ Ext.define('KitchenSink.view.grid.BigData', {
     columns: [{
         text: 'Name',
         dataIndex: 'fullName',
-        width: 200,
+        flex: 1,
+        minWidth: 100,
         editable: true,
         summaryType: 'count',
         summaryRenderer: 'nameSummaryRenderer'

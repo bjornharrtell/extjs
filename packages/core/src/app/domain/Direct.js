@@ -1,5 +1,5 @@
 /**
- * This class implements the Ext.Direct event domain. All classes extending from
+ * This class implements the Ext Direct event domain. All classes extending from
  * {@link Ext.direct.Provider} are included in this domain. The selectors are simply provider
  * id's or the wildcard "*" to match any provider.
  *

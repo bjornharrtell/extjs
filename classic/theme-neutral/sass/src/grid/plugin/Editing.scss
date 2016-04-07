@@ -4,6 +4,7 @@
 @if $include-display-field-grid-ui and $include-ext-form-field-display {
     @include extjs-display-field-ui(
         $ui: 'grid-cell',
+        $ui-field-height: $grid-cell-field-height,
         $ui-color: $grid-cell-display-field-color,
         $ui-font-size: $grid-cell-display-field-font-size,
         $ui-font-family: $grid-cell-display-field-font-family,
@@ -22,6 +23,13 @@
     @if $include-ext-grid-column-action {
         .#{$prefix}form-action-col-field {
             padding: $grid-actioncolumn-cell-padding;
+        }
+    }
+
+    @if $include-ext-form-field-text {
+        .#{$prefix}form-text {
+            padding-left: left($grid-cell-inner-padding) - left($form-text-field-border-width);
+            padding-right: right($grid-cell-inner-padding) - right($form-text-field-border-width);
         }
     }
 }

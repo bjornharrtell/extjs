@@ -72,7 +72,7 @@ $button-border-radius: dynamic(.25em);
 
 /**
  * @var {number}
- * Button border-radius in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button border-radius in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $button-border-radius-big: dynamic(.2em);
 
@@ -90,7 +90,7 @@ $button-font-size: dynamic(1rem);
 
 /**
  * @var {number}
- * Button font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $button-font-size-big: dynamic($button-font-size);
 
@@ -102,7 +102,7 @@ $button-line-height: dynamic(1.23em);
 
 /**
  * @var {number}
- * Button line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $button-line-height-big: dynamic(1.6em);
 
@@ -120,9 +120,21 @@ $button-padding: dynamic(.23em .6em);
 
 /**
  * @var {number/list}
- * Button padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button padding in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $button-padding-big: dynamic(.2em .6em);
+
+/**
+ * @var {color}
+ * Button icon color.
+ */
+$button-icon-color: dynamic($button-color);
+
+/**
+ * @var {color}
+ * Button icon color when pressed.
+ */
+$button-pressed-icon-color: dynamic(button-color($button-pressed-background-color));
 
 /**
  * @var {number}
@@ -133,7 +145,7 @@ $button-icon-size: dynamic(1em);
 
 /**
  * @var {number}
- * Button icon size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button icon size in the {@link Global_CSS#$enable-big big} sizing scheme
  * If specified in terms of `em` units, the icon will be sized
  * relative to {@link #$button-icon-font-size-big}.
  */
@@ -147,7 +159,7 @@ $button-icon-font-size: dynamic($button-line-height);
 
 /**
  * @var {number}
- * Button icon font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button icon font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $button-icon-font-size-big: dynamic($button-line-height-big);
 
@@ -160,7 +172,7 @@ $button-icon-horizontal-spacing: dynamic(.6em);
 /**
  * @var {number}
  * The space between the button icon and text when the icon is horizontally aligned
- * in the {@link Ext.Component#$enable-big big} sizing scheme
+ * in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $button-icon-horizontal-spacing-big: dynamic($button-icon-horizontal-spacing);
 
@@ -173,7 +185,7 @@ $button-icon-vertical-spacing: dynamic(.2em);
 /**
  * @var {number}
  * The space between the button icon and text when the icon is vertically aligned
- * in the {@link Ext.Component#$enable-big big} sizing scheme
+ * in the {@link Global_CSS#$enable-big big} sizing scheme
  */
 $button-icon-vertical-spacing-big: dynamic($button-icon-vertical-spacing);
 
@@ -354,7 +366,7 @@ $button-small-ui: dynamic($include-default-uis);
  * Button border-radius
  *
  * @param {number} $border-radius-big
- * Button border-radius in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button border-radius in the {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {number} $font-weight
  * Button font-weight
@@ -363,13 +375,13 @@ $button-small-ui: dynamic($include-default-uis);
  * Button font-size
  *
  * @param {number} $font-size-big
- * Button font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {number} $line-height
  * Button line-height
  *
  * @param {number} $line-height-big
- * Button line-height in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button line-height in the {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {font-family} $font-family
  * Button font-family
@@ -378,33 +390,40 @@ $button-small-ui: dynamic($include-default-uis);
  * Button padding
  *
  * @param {number/list} $padding-big
- * Button padding in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button padding in the {@link Global_CSS#$enable-big big} sizing scheme
  *
+ * @param {color} $icon-color
+ * Button icon color.
+ *
+ * @param {color} $pressed-icon-color
+ * Button icon color when pressed.
+ *
+ * @param {number} $icon-size
  * @param {number} $icon-size
  * Button icon size
  *
  * @param {number} $icon-size-big
- * Button icon size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button icon size in the {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {number} $icon-font-size
  * Button icon font-size.  Used for configuring the size of font icons
  *
  * @param {number} $icon-font-size-big
- * Button icon font-size in the {@link Ext.Component#$enable-big big} sizing scheme
+ * Button icon font-size in the {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {number} $icon-horizontal-spacing
  * The space between the button icon and text when the icon is horizontally aligned
  *
  * @param {number} $icon-horizontal-spacing-big
  * The space between the button icon and text when the icon is horizontally aligned
- * in the {@link Ext.Component#$enable-big big} sizing scheme
+ * in the {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {number} $icon-vertical-spacing
  * The space between the button icon and text when the icon is vertically aligned
  *
  * @param {number} $icon-vertical-spacing-big
  * The space between the button icon and text when the icon is vertically aligned
- * in the {@link Ext.Component#$enable-big big} sizing scheme
+ * in the {@link Global_CSS#$enable-big big} sizing scheme
  *
  * @param {number} $disabled-opacity
  * Button opacity when disabled
@@ -491,6 +510,8 @@ $button-small-ui: dynamic($include-default-uis);
     $padding: null,
     $padding-big: null,
 
+    $icon-color: null,
+    $pressed-icon-color: null,
     $icon-size: null,
     $icon-size-big: null,
     $icon-font-size: null,
@@ -553,6 +574,18 @@ $button-small-ui: dynamic($include-default-uis);
         }
     }
 
+    @if $icon-color == null {
+        $icon-color: $color;
+    }
+
+    @if $pressed-icon-color == null {
+        @if $pressed-color == null and $icon-color != null {
+            $pressed-icon-color: button-pressed-color($icon-color);
+        } @else {
+            $pressed-icon-color: $pressed-color;
+        }
+    }
+
     .x-button#{$ui-suffix} {
         color: $color;
         padding: $padding;
@@ -565,18 +598,10 @@ $button-small-ui: dynamic($include-default-uis);
 
         @if $enable-big {
             .x-big & {
-                @if $padding-big != $padding {
-                    padding: $padding-big;
-                }
-                @if $font-size-big != $font-size {
-                    font-size: $font-size-big;
-                }
-                @if $line-height-big != $line-height {
-                    line-height: $line-height-big;
-                }
-                @if $include-border-radius and ($border-radius-big != $border-radius) {
-                    @include border-radius($border-radius-big);
-                }
+                padding: $padding-big;
+                font-size: $font-size-big;
+                line-height: $line-height-big;
+                @include border-radius($border-radius-big);
             }
         }
 
@@ -589,6 +614,7 @@ $button-small-ui: dynamic($include-default-uis);
         }
 
         .x-button-icon {
+            color: $icon-color;
             width: $icon-size;
             height: $icon-size;
             line-height: $icon-size;
@@ -596,14 +622,10 @@ $button-small-ui: dynamic($include-default-uis);
 
             @if $enable-big {
                 .x-big & {
-                    @if $icon-size-big != $icon-size {
-                        width: $icon-size-big;
-                        height: $icon-size-big;
-                        line-height: $icon-size-big;
-                    }
-                    @if $icon-font-size-big != $icon-font-size {
-                        font-size: $icon-font-size-big;
-                    }
+                    width: $icon-size-big;
+                    height: $icon-size-big;
+                    line-height: $icon-size-big;
+                    font-size: $icon-font-size-big;
                 }
             }
         }
@@ -651,6 +673,52 @@ $button-small-ui: dynamic($include-default-uis);
         .x-button-label {
             // prevents the button height from shrinking when it has no text
             min-height: $line-height;
+        }
+
+        @if $icon-size != null or $icon-horizontal-spacing != null {
+
+            $horz-spacing: $icon-horizontal-spacing;
+            @if $horz-spacing == null {
+                $horz-spacing: $button-icon-horizontal-spacing;
+            }
+
+            $size: $icon-size;
+            @if $size == null {
+                $size: $button-icon-size;
+            }
+
+            &.x-iconalign-right > .x-button-label {
+                padding-left: calc(#{$size} + #{$horz-spacing});
+            }
+
+            &.x-iconalign-left > .x-button-label {
+                padding-right: calc(#{$size} + #{$horz-spacing});
+            }
+        }
+
+        @if $enable-big and ($icon-size-big != null or $icon-horizontal-spacing != null) {
+
+            $horz-spacing: $icon-horizontal-spacing-big;
+            @if $horz-spacing == null {
+                $horz-spacing: $button-icon-horizontal-spacing-big;
+            }
+
+            $size: $icon-size-big;
+            @if $size == null {
+                $size: $button-icon-size-big;
+            }
+
+            &.x-iconalign-right > .x-button-label {
+                .x-big & {
+                    padding-left: calc(#{$size} + #{$horz-spacing});
+                }
+            }
+
+            &.x-iconalign-left > .x-button-label {
+                .x-big & {
+                    padding-right: calc(#{$size} + #{$horz-spacing});
+                }
+            }
         }
 
         &.x-item-disabled {

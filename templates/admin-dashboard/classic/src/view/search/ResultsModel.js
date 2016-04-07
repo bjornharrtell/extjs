@@ -13,16 +13,16 @@ Ext.define('Admin.view.search.ResultsModel', {
     ],
 
     stores: {
-        allresultsstore: {
+        allResults: {
             type: 'searchresults'
         },
 
-        usersStore: {
+        usersResults: {
             type: 'searchusers'
         },
         
-        EmailInboxStore: {
-            type: 'emailinbox'
+        inboxResults: {
+            type: 'inbox'
         }
     }
 });

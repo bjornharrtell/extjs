@@ -416,4 +416,45 @@ describe('Ext.chart.AbstractChart', function() {
             expect(chart.getSeries().length).toBe(0);
         });
     });
+
+    describe('getInteraction', function () {
+        it("should return a correct interaction based on its type", function () {
+            makeStore(3);
+            chart = new Ext.chart.CartesianChart({
+                store: store,
+                interactions: [
+                    {
+                        type: 'itemhighlight'
+                    },
+                    {
+                        type: 'itemedit'
+                    },
+                    {
+                        type: 'crosszoom'
+                    }
+                ],
+                axes: [{
+                    type: 'numeric',
+                    position: 'left'
+                }, {
+                    type: 'category',
+                    position: 'bottom'
+                }],
+                series: {
+                    type: 'bar',
+                    xField: 'label',
+                    yField: 'value'
+                }
+            });
+
+            var itemhighlight = chart.getInteraction('itemhighlight'),
+                crosszoom = chart.getInteraction('crosszoom'),
+                itemedit = chart.getInteraction('itemedit');
+
+            expect(itemhighlight.isItemHighlight).toBe(true);
+            expect(crosszoom.isCrossZoom).toBe(true);
+            expect(itemedit.isItemEdit).toBe(true);
+        });
+    });
+
 });

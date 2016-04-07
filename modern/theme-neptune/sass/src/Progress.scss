@@ -1,0 +1,19 @@
+@if $include-progress-default-ui {
+    @include progress-ui(
+        $border-color: $progress-border-color,
+        $background-color: $progress-background-color,
+
+        $bar-background-color: $progress-bar-background-color,
+        $bar-background-gradient: $progress-bar-background-gradient,
+
+        $color-front: $progress-text-color-front,
+        $color-back: $progress-text-color-back,
+        $height: $progress-height,
+        $border-width: $progress-border-width,
+        $border-radius: $progress-border-radius,
+        $text-text-align: $progress-text-text-align,
+        $text-font-size: $progress-text-font-size,
+        $text-font-weight: $progress-text-font-weight,
+        $text-font-family: $progress-text-font-family
+    );
+}

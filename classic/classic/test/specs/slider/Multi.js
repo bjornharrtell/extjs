@@ -1,5 +1,6 @@
 describe("Ext.slider.Multi", function() {
-    var slider,
+    var expectAria = jasmine.expectAriaAttr,
+        slider,
         createSlider;
 
     beforeEach(function() {
@@ -50,6 +51,16 @@ describe("Ext.slider.Multi", function() {
             });
         });
         
+        describe("if horizontal", function() {
+            beforeEach(function() {
+                createSlider();
+            });
+            
+            it("should set aria-orientation attribute", function() {
+                expectAria(slider, 'aria-orientation', 'horizontal');
+            });
+        });
+        
         describe("if vertical", function() {
             beforeEach(function() {
                 createSlider({
@@ -63,7 +74,10 @@ describe("Ext.slider.Multi", function() {
                     expect(slider[key]).toBe(value);
                 });
             });
-
+            
+            it("should set aria-orientation attribute", function() {
+                expectAria(slider, 'aria-orientation', 'vertical');
+            });
         });
 
         describe("thumbs", function() {
@@ -97,6 +111,26 @@ describe("Ext.slider.Multi", function() {
                         });
                     });
                 });
+            });
+        });
+        
+        describe("ARIA attributes", function() {
+            beforeEach(function() {
+                createSlider({
+                    value: 42
+                });
+            });
+            
+            it("should set aria-valuemin", function() {
+                expectAria(slider, 'aria-valuemin', '0');
+            });
+            
+            it("should set aria-valuemax", function() {
+                expectAria(slider, 'aria-valuemax', '100');
+            });
+            
+            it("should set aria-valuenow", function() {
+                expectAria(slider, 'aria-valuenow', '42');
             });
         });
     });
@@ -711,13 +745,11 @@ describe("Ext.slider.Multi", function() {
     });
     
     describe("setMinValue/setMaxValue", function(){
-        
         var getLeft = function(){
             return parseFloat(slider.thumbs[0].el.getStyle('left'));    
         };
         
         describe("setMinValue", function() {
-        
             it("should limit the value to the minimum", function(){
                 createSlider();
                 slider.setMinValue(50);
@@ -775,10 +807,16 @@ describe("Ext.slider.Multi", function() {
                 slider.setMinValue(60);
                 expect(called).toBe(true);
             });
+            
+            it("should set aria-valuemin attribute", function() {
+                createSlider();
+                slider.setMinValue(42);
+                
+                expectAria(slider, 'aria-valuemin', '42');
+            });
         });
         
         describe("setMaxValue", function() {
-        
             it("should limit the value to the maximum", function(){
                 createSlider();
                 slider.setMaxValue(50);
@@ -836,23 +874,57 @@ describe("Ext.slider.Multi", function() {
                 slider.setMaxValue(40);
                 expect(called).toBe(true);
             });
+            
+            it("should set aria-valuemax attribute", function() {
+                createSlider();
+                slider.setMaxValue(42);
+                
+                expectAria(slider, 'aria-valuemax', '42');
+            });
         });
     });
 
-    describe('configuring invalid values', function() {
-        it('should constrain configured value within minimum', function() {
+    describe("getNearest should always keep thumbs in order", function() {
+        it("should work when all thumbs have the max value and we click on the left", function() {
+            createSlider({
+                values: [30,70],
+                minValue: 0,
+                maxValue: 100
+            });
+            slider.setValue([100,100]);
+            jasmine.fireMouseEvent(slider.el, 'click', 0, 0);
+            waitsFor(function() {
+                return slider.getValue(0) === 0;
+            }, "Slider value incorrect");
+        });
+        it("should work when all thumbs have the min value and we click on the right", function() {
+            createSlider({
+                values: [30,70],
+                minValue: 0,
+                maxValue: 100
+            });
+            slider.setValue([0,0]);
+            jasmine.fireMouseEvent(slider.el, 'click', slider.el.getWidth(), 0);
+            waitsFor(function() {
+                return slider.getValue(1) === 100;
+            }, "Slider value incorrect");
+        });
+    });
+
+    describe("configuring invalid values", function() {
+        it("should constrain configured value within minimum", function() {
             createSlider({
                 value: -10
             });
             expect(slider.getValue(0)).toBe(0);
         });
-        it('should constrain configured value within maximum', function() {
+        it("should constrain configured value within maximum", function() {
             createSlider({
                 value: 120
             });
             expect(slider.getValue(0)).toBe(100);
         });
-        it('should constrain configured value to snap points', function() {
+        it("should constrain configured value to snap points", function() {
             createSlider({
                 increment: 2,
                 value: 3

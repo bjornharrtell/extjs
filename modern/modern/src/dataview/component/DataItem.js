@@ -158,7 +158,7 @@ Ext.define('Ext.dataview.component.DataItem', {
          */
         dataMap: {},
 
-        /*
+        /**
          * @private dataview
          */
         dataview: null,

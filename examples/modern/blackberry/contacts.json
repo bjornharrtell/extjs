@@ -1,0 +1,9 @@
+[
+     { "firstName": "Homer", "lastName": "Simpson" },
+     { "firstName": "Marge", "lastName": "Simpson" },
+     { "firstName": "Bart", "lastName": "Simpson" },
+     { "firstName": "Lisa", "lastName": "Simpson" },
+     { "firstName": "Maggie", "lastName": "Simpson" },
+     { "firstName": "Santa's Little Helper", "lastName": "Simpson" },
+     { "firstName": "Snowball II", "lastName": "Simpson" }
+]

@@ -1,24 +1,9 @@
-.x-scroll-view {
-    position: relative;
-    display: block;
-    overflow: hidden;
-}
-
-.x-scroll-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-}
-
+// Ext.Component's innerElement doubles as the scroller's inner element.
+// This rule overrides the height/width: 100% set by the .x-inner rule.
+// This element must be allowed to expand with it's content since it is
+// used by the scroller to determine the scroll size.
 .x-scroll-scroller {
-    position: absolute;
-    min-width: 100%;
-    min-height: 100%;
-}
-
-// Added as workaround for https://sencha.jira.com/browse/EXTJS-17314
-// This needs to be re-visited
-.x-scroll-scroller:not(.x-grid-scrollelement) {
     height: auto !important;
     width: auto !important;
+    position: relative !important;
 }

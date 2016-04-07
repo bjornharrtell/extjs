@@ -1,4 +1,4 @@
-//@tag dom,core
+// @tag dom,core
 
 /**
  * An Identifiable mixin.

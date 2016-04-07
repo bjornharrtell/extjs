@@ -57,6 +57,7 @@ Ext.define('KitchenSink.view.binding.Selection', {
             type: 'hbox',
             align: 'stretch'
         },
+        padding: 15,
         items: [{
             title: 'Customers Grid',
             flex: 1,
@@ -75,7 +76,7 @@ Ext.define('KitchenSink.view.binding.Selection', {
             cls: 'binding-selection-view',
             itemSelector: '.customer',
             xtype: 'dataview',
-            tpl: '<h1>Customer View</h1><tpl for="."><div class="customer">{name}</div></tpl>',
+            tpl: '<h1>Customer View</h1><tpl for="."><div class="customer"><div class="indicator"></div>{name}<div class="indicator rtl"></div></div></tpl>',
             bind: {
                 store: '{customers}',
                 selection: '{selectedCustomer}'

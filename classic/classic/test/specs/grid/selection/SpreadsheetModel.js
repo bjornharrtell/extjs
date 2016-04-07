@@ -3,7 +3,10 @@ describe("Ext.grid.selection.SpreadsheetModel", function() {
     var grid, view, store, selModel, colRef,
         // Unreliable synthetic events on IE.
         // SelModel tests are not broiwser-dependent though
-        smDescribe = Ext.isIE ? xdescribe : describe;
+        smDescribe = Ext.isIE ? xdescribe : describe,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
     
     function triggerCellMouseEvent(type, rowIdx, cellIdx, button, x, y) {
         var target = findCell(rowIdx, cellIdx);
@@ -132,7 +135,21 @@ describe("Ext.grid.selection.SpreadsheetModel", function() {
         colRef = grid.getColumnManager().getColumns();
     }
     
+    beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+    });
+
     afterEach(function(){
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+
         Ext.destroy(grid, store);
         selModel = grid = store = view = null;
         Ext.undefine('spec.SpreadsheetModel');
@@ -1032,6 +1049,26 @@ describe("Ext.grid.selection.SpreadsheetModel", function() {
                 expect(isColumnSelected(2)).toBe(true);
             });
         });
+        
+        describe('copying selected columns from locked grid', function() {
+            it('should arrange the column data in column-ordinal order according to the outermost grid', function() {
+                makeGrid(null, {
+                    plugins: 'clipboard'
+                }, null, null, true);
+                var clipboard = grid.findPlugin('clipboard'),
+                    data;
+
+                // This is column 0 in the normal grid
+                selModel.selectColumn(colRef[2]);
+
+                // This is column 1 in the locked grid
+                selModel.selectColumn(colRef[1], true);
+
+                // But the clipboard should sort them into the order they are in in the outermost grid
+                data = clipboard.getCellData();
+                expect(data).toEqual("1.1\t1.2\n2.1\t2.2\n3.1\t3.2\n4.1\t4.2\n5.1\t5.2\n6.1\t6.2\n7.1\t7.2\n8.1\t8.2\n9.1\t9.2\n10.1\t10.2")
+            });
+        });
     });
 
     describe('mouse column selection', function() {
@@ -1195,7 +1232,15 @@ describe("Ext.grid.selection.SpreadsheetModel", function() {
             colRef[1].setWidth(colRef[1].getWidth() + 100);
 
             // Handle should have moved with it.
-            expect(selModel.extensible.handle.getX()).toBe(handleX + 100);
+            var have = selModel.extensible.handle.getX();
+            
+            // Need a bit of fuzziness for IE8
+            if (Ext.isIE8) {
+                expect(have).toBeWithin(2, handleX + 100);
+            }
+            else {
+                expect(have).toBe(handleX + 100);
+            }
         });
 
         describe('multiple selection', function() {
@@ -1330,6 +1375,28 @@ describe("Ext.grid.selection.SpreadsheetModel", function() {
                     expect(store.getAt(7).data).toEqual(r4Data);
                 });
             });
+        });
+    });
+
+    describe('reconfigure', function() {
+        var newColumnSet;
+
+        beforeEach(function() {
+            makeGrid(null, null, {
+                checkboxSelect: true
+            });
+            newColumnSet = Ext.clone(grid.initialConfig.columns);
+        });
+        it('should re-insert the checkbox and row numberer columns on reconfigure', function() {
+            var columns = grid.getVisibleColumnManager().getColumns();
+
+            // There should be the checkbox column and the rpw numberer column in addition to the initial column set
+            expect(columns.length).toBe(newColumnSet.length + 2);
+
+            grid.reconfigure(null, newColumnSet);
+
+            // There should be the checkbox column and the rpw numberer column in addition to the initial column set
+            expect(columns.length).toBe(newColumnSet.length + 2);
         });
     });
 });

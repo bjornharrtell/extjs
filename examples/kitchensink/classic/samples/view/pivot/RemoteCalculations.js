@@ -1,8 +1,10 @@
 /**
  *
- * This example shows how to create a pivot grid and do the
- * calculations remotely.
+ * This example shows how to create a pivot grid with remote calculations
+ * and how to drill down the results.
  *
+ * DblClick a cell to open the drill down window and see all records used to
+ * aggregate that cell.
  *
  */
 Ext.define('KitchenSink.view.pivot.RemoteCalculations', {
@@ -28,6 +30,38 @@ Ext.define('KitchenSink.view.pivot.RemoteCalculations', {
         type:   'remote',
         url:    '/KitchenSink/RemoteSalesData'
     },
+
+    plugins: [{
+        ptype: 'pivotdrilldown',
+        // define the columns used by the grid
+        columns: [
+            {dataIndex: 'company', text: 'Company'},
+            {dataIndex: 'continent', text: 'Continent'},
+            {dataIndex: 'country', text: 'Country'},
+            {dataIndex: 'person', text: 'Person'},
+            {dataIndex: 'date', text: 'Date', xtype: 'datecolumn'},
+            {dataIndex: 'value', text: 'Value', xtype: 'numbercolumn', align: 'right'},
+            {dataIndex: 'quantity', text: 'Qty', xtype: 'numbercolumn', align: 'right'},
+            {dataIndex: 'year', text: 'Year', xtype: 'numbercolumn', formatter: 'number(0)', align: 'right'},
+            {dataIndex: 'month', text: 'Month', xtype: 'numbercolumn', formatter: 'number(0)', align: 'right'}
+        ],
+
+        // define a remote store that will be used to filter the records
+        remoteStore: {
+            model: 'KitchenSink.model.pivot.Sale',
+
+            proxy: {
+                // load using HTTP
+                type: 'ajax',
+                url: '/KitchenSink/RemoteSalesData',
+                // the return will be JSON, so lets set up a reader
+                reader: {
+                    type: 'json',
+                    rootProperty: 'data'
+                }
+            }
+        }
+    }],
 
     // Set layout type to "outline". If this config is missing then the default layout is "outline"
     viewLayoutType: 'outline',

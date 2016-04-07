@@ -198,7 +198,7 @@ Ext.env.Ready = {
         var me = Ext.env.Ready;
 
         if (!me.state) {
-            Ext._readyTime = Ext.now();
+            Ext._readyTime = Ext.ticks();
             Ext.isDomReady = true;
             me.state = 1;
 
@@ -233,9 +233,9 @@ Ext.env.Ready = {
         if (me.state === 1) {
             me.state = 2;
 
-            Ext._beforeReadyTime = Ext.now();
+            Ext._beforeReadyTime = Ext.ticks();
             me.invokeAll();
-            Ext._afterReadytime = Ext.now();
+            Ext._afterReadyTime = Ext.ticks();
         }
     },
 

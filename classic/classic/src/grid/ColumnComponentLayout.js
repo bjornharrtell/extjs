@@ -33,7 +33,7 @@ Ext.define('Ext.grid.ColumnComponentLayout', {
         if (shrinkWrap) {
             owner.el.setWidth('');
         }
-        owner.textContainerEl[shrinkWrap ? 'addCls' : 'removeCls'](me.columnAutoCls);
+        owner.textContainerEl[shrinkWrap && !owner.isGroupHeader ? 'addCls' : 'removeCls'](me.columnAutoCls);
         owner.titleEl.setStyle(me._paddingReset);
     },
 

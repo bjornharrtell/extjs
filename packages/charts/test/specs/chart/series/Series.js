@@ -1,6 +1,25 @@
 describe('Ext.chart.series.Series', function() {
 
-    var proto = Ext.chart.series.Series.prototype;
+    var proto = Ext.chart.series.Series.prototype,
+        synchronousLoad = true,
+        proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
+        loadStore;
+
+    beforeEach(function() {
+        // Override so that we can control asynchronous loading
+        loadStore = Ext.data.ProxyStore.prototype.load = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
+    });
+
+    afterEach(function() {
+        // Undo the overrides.
+        Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
+    });
 
     describe('resolveListenerScope', function () {
 
@@ -997,6 +1016,122 @@ describe('Ext.chart.series.Series', function() {
 
             chart.destroy();
         });
+    });
+
+    describe('showMarkers config', function () {
+        var chart, series;
+
+        beforeEach(function () {
+            chart = new Ext.chart.CartesianChart({
+                renderTo: Ext.getBody(),
+                width: 300,
+                height: 200,
+                innerPadding: 10,
+                animation: false,
+                store: {
+                    fields: ['x', 'y1', 'y2'],
+                    data: [
+                        {
+                            x: 0,
+                            y1: 1,
+                            y2: 2
+                        },
+                        {
+                            x: 1,
+                            y1: 5,
+                            y2: 4
+                        },
+                        {
+                            x: 2,
+                            y1: 2,
+                            y2: 3
+                        }
+                    ]
+                },
+                axes: [{
+                    type: 'numeric',
+                    position: 'left'
+                }, {
+                    type: 'category',
+                    position: 'bottom'
+                }],
+                series: [{
+                    type: 'line',
+                    xField: 'x',
+                    yField: 'y1',
+                    marker: {
+                        type: 'square'
+                    },
+                    showMarkers: false
+                }, {
+                    type: 'line',
+                    xField: 'x',
+                    yField: 'y2',
+                    marker: {
+                        type: 'arrow'
+                    },
+                    showMarkers: true
+                }]
+            });
+            chart.performLayout();
+            series = chart.getSeries();
+        });
+
+        afterEach(function () {
+            series = chart = Ext.destroy(chart);
+        });
+
+        it("should work with initial value of 'false'", function () {
+            var sprite = series[0].getSprites()[0],
+                markers = sprite.getMarker('markers'),
+                template = markers.getTemplate();
+
+            expect(template.attr.hidden).toBe(true);
+        });
+        it("should toggle properly from false to true", function () {
+            var seriesItem = series[0],
+                sprite = seriesItem.getSprites()[0],
+                markers = sprite.getMarker('markers'),
+                template = markers.getTemplate();
+
+            expect(template.attr.hidden).toBe(true);
+            seriesItem.setShowMarkers(true);
+            expect(template.attr.hidden).toBe(false);
+        });
+        it("should toggle properly from true to false", function () {
+            var seriesItem = series[1],
+                sprite = seriesItem.getSprites()[0],
+                markers = sprite.getMarker('markers'),
+                template = markers.getTemplate();
+
+            expect(template.attr.hidden).toBe(false);
+            seriesItem.setShowMarkers(false);
+            expect(template.attr.hidden).toBe(true);
+        });
+        it("should remain 'false' after series itself are hidden and shown again", function () {
+            var seriesItem = series[0],
+                sprite = seriesItem.getSprites()[0],
+                markers = sprite.getMarker('markers'),
+                template = markers.getTemplate();
+
+            expect(template.attr.hidden).toBe(true);
+            seriesItem.setHiddenByIndex(0, true);
+            seriesItem.setHiddenByIndex(0, false);
+            expect(template.attr.hidden).toBe(true);
+        });
+
+        it("should remain 'true' after series itself are hidden and shown again", function () {
+            var seriesItem = series[1],
+                sprite = seriesItem.getSprites()[0],
+                markers = sprite.getMarker('markers'),
+                template = markers.getTemplate();
+
+            expect(template.attr.hidden).toBe(false);
+            seriesItem.setHiddenByIndex(0, true);
+            seriesItem.setHiddenByIndex(0, false);
+            expect(template.attr.hidden).toBe(false);
+        });
+
     });
 
 });

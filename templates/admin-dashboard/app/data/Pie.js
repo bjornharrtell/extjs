@@ -1,7 +1,7 @@
 Ext.define('Admin.data.Pie', {
     extend: 'Admin.data.Simulated',
 
-	data: [
+    data: [
         {
             "xvalue": "Drama",
             "yvalue": 10
@@ -14,5 +14,5 @@ Ext.define('Admin.data.Pie', {
             "xvalue": "Action",
             "yvalue": 12
         }
-    ]	
+    ]
 });

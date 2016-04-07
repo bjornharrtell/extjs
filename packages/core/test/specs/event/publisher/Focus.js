@@ -331,23 +331,28 @@ describe("Ext.event.publisher.Focus", function() {
                 c1Focused = false;
 
                 // Suspend the focus publisher
-                Ext.suspendFocus();
+                c[3].suspendFocusEvents();
+                c[1].suspendFocusEvents();
 
                 c[1].focus();
             });
 
             // Wait for focus to have moved to c[1]
-            waitsFor(function() {
-                return c1Focused;
-            }, 'Focus to move from a[1]>b[2]>c[3] to a[1]>b[1]>c[1]');
+            jasmine.waitForFocus(c[1], 'Focus to move from a[1]>b[2]>c[3] to a[1]>b[1]>c[1]');
 
             // a[1]'s focusmove event must NOT have been fired during suspension
             runs(function() {
                 expect(a1focusMove).toBe(null);
 
                 // Resume the focus publisher
-                Ext.resumeFocus();
-
+                c[1].resumeFocusEvents();
+                c[3].resumeFocusEvents();
+            });
+            
+            // Give IE enough cycles to run resumeFocusEvents callback
+            jasmine.waitAWhile();
+            
+            runs(function() {
                 // This will move focus within a[1]
                 c[2].focus();
             });

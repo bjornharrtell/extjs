@@ -249,7 +249,7 @@ Ext.define('Ext.data.proxy.Server', {
         return request;
     },
 
-    /*
+    /**
      * Processes response, which may involve updating or committing records, each of which
      * will inform the owning stores and their interested views. Finally, we may perform
      * an additional layout if the data shape has changed. 
@@ -315,6 +315,7 @@ Ext.define('Ext.data.proxy.Server', {
     },
 
     /**
+     * @method
      * Template method to allow subclasses to specify how to get the response for the reader.
      * @template
      * @private

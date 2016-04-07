@@ -7,6 +7,11 @@ Ext.define('Ext.event.gesture.LongPress', {
     priority: 400,
 
     inheritableStatics: {
+        /**
+         * @private
+         * @static
+         * @inheritable
+         */
         DURATION_NOT_ENOUGH: 'Duration Not Enough'
     },
 

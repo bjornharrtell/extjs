@@ -1457,6 +1457,11 @@ Test.SandBoxImpl.prototype.createIframe = function() {
     win = iframe.contentWindow || window.frames[iframe.name];
     this.iframe = iframe;
     this.win = win;
+    
+    // We need a reliable way to detect if we're running under the test harness
+    // while executing Ext startup code
+    win.id = 'sandboxWindow';
+    win.__UNIT_TESTING__ = true;
 };
 
 Test.SandBoxImpl.prototype.getIframe = function() {
@@ -2906,6 +2911,7 @@ Test.panel.TreeGrid = function(config) {
                         Test.Options.renderCheckbox("showDisabled", "Show disabled"),
                         Test.Options.renderCheckbox("collapseAll", "Collapse all"),
                         Test.Options.renderCheckbox("disableTryCatch", "No Jasmine try/catch"),
+                        Test.Options.renderCheckbox("disableLeakChecks", "Disable leak checks")
                         //Test.Options.renderCheckbox("disableBodyClean", "Disable Body Autoclean"),
                         //Test.Options.renderCheckbox("disableCacheBuster", "Disable CacheBuster"),
                         //Test.Options.renderCheckbox("showTimings", "Show Timings"),

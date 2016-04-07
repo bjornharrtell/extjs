@@ -1,6 +1,6 @@
 /**
- * This class is created to manage a direct bind. Both `Ext.data.Session`
- * and `Ext.app.ViewModel` return these objects from their `bind` method.
+ * This class is created to manage a direct bind.  `Ext.app.ViewModel` returns this from 
+ * its {@link Ext.app.ViewModel#method-bind bind} method.
  */
 Ext.define('Ext.app.bind.Binding', {
     extend: 'Ext.app.bind.BaseBinding',
@@ -123,7 +123,7 @@ Ext.define('Ext.app.bind.Binding', {
      * that the value is just not available yet. In specific cases, when the bound property
      * is an `Ext.data.Model` it means that a request to the server is in progress to get
      * the record. For an `Ext.data.Store` it means that
-     * `{@link Ext.data.Store#load load}` has been called on the store but it is
+     * `{@link Ext.data.Store#method-load load}` has been called on the store but it is
      * still in progress.
      * @return {Boolean}
      * @since 5.0.0

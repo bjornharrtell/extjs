@@ -26,6 +26,13 @@ Ext.define('KitchenSink.view.grid.BigData', {
     title: 'Editable Big Data Grid',
     multiColumnSort: true,
 
+    // We do not need automatic height synching.
+    // The Grouping plugin renders the same DOM into each side to keep heights the same,
+    // The normal side is visibility:hidden.
+    // And the RowExpander handles this itself when a row is expanded, or when an expanded
+    // row is scrolled back into the rendered block.
+    syncRowHeight: false,
+
     //<example>
     exampleTitle: 'Editable Big Data Grid',
     otherContent: [{
@@ -44,7 +51,8 @@ Ext.define('KitchenSink.view.grid.BigData', {
         '<p>As an illustration of the ability of grid columns to act as containers, the ' +
         'Title column has a filter text field built in which filters as you type.</p>' +
         '<p>The grid is editable using the RowEditing plugin.</p>',
-        '<p>The <code>multiColumnSort</code> config is used to allow multiple columns to have sorters.</p>'
+        '<p>The <code>multiColumnSort</code> config is used to allow multiple columns to have sorters.</p>' +
+        '<p>The full name column uses a custom sorter which sorts on the surname.</p>'
     ].join(''),
     //</example>
     controller: 'bigdata',
@@ -92,6 +100,19 @@ Ext.define('KitchenSink.view.grid.BigData', {
         renderer: 'concatNames',
         editor: {
             xtype: 'textfield'
+        },
+        // Sort prioritizing surname over forename as would be expected.
+        sorter: function(rec1, rec2) {
+            var rec1Name = rec1.get('surname') + rec1.get('forename'),
+                rec2Name = rec2.get('surname') + rec2.get('forename');
+
+            if (rec1Name > rec2Name) {
+                return 1;
+            }
+            if (rec1Name < rec2Name) {
+                return -1;
+            }
+            return 0;
         },
         items    : {
             xtype: 'textfield',

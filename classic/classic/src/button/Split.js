@@ -76,7 +76,7 @@ Ext.define('Ext.button.Split', {
         
         // Don't warn if we're under the slicer
         if (Ext.enableAriaButtons && !Ext.slicer && me.menu &&
-            (me.arrowHandler || me.hasListeners.arrowclick)) {
+            (me.arrowHandler || me.hasListeners.hasOwnProperty('arrowclick'))) {
             // Hard error if full ARIA compatibility is enabled, otherwise a warning
             var logFn = Ext.enableAria ? Ext.log.error : Ext.log.warn;
             
@@ -138,7 +138,7 @@ Ext.define('Ext.button.Split', {
         el = me.arrowEl;
         
         if (el) {
-            el.dom.setAttribute(Ext.Component.componentIdAttribute, me.id);
+            el.dom.setAttribute('data-componentid', me.id);
             el.setVisibilityMode(Ext.dom.Element.DISPLAY);
             
             el.on({

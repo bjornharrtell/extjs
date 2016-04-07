@@ -148,13 +148,12 @@ Ext.define('Ext.chart.axis.Axis', {
         limits: null,
 
         /**
-         * @cfg {Function} renderer Allows to change the text shown next the tick.
+         * @cfg {Function} renderer Allows to change the text shown next to the tick.
          * @param {Ext.chart.axis.Axis} axis The axis.
-         * @param {Object} data The renderer data object:
-         * @param {String/Number} data.label The label.
-         * @param {String/Number/null} data.lastLabel The last label (if any).
-         * @param {Object} data.layoutContext The object that holds calculated positions
+         * @param {String/Number} label The label.
+         * @param {Object} layoutContext The object that holds calculated positions
          * of axis' ticks based on current layout, segmenter, axis length and configuration.
+         * @param {String/Number/null} lastLabel The last label (if any).
          * @return {String} The label to display.
          */
         renderer: null,
@@ -559,7 +558,7 @@ Ext.define('Ext.chart.axis.Axis', {
                     titles: new Ext.draw.sprite.Instancing()
                 };
                 me.limits.lines.setTemplate({xclass: 'grid.' + gridAlignment});
-                me.limits.lines.getTemplate().setAttributes({strokeStyle: 'black'});
+                me.limits.lines.getTemplate().setAttributes({strokeStyle: 'black'}, true);
                 me.limits.surface.add(me.limits.lines);
                 axisSprite.bindMarker(gridAlignment + '-limit-lines', me.limits.lines);
 
@@ -1147,7 +1146,7 @@ Ext.define('Ext.chart.axis.Axis', {
                 me.updateTitleSprite();
             } else {
                 baseSprite = me.sprites[0];
-                baseSprite.fx.setConfig(animation);
+                baseSprite.setAnimation(animation);
                 baseSprite.setAttributes(style);
             }
 
@@ -1183,7 +1182,7 @@ Ext.define('Ext.chart.axis.Axis', {
                         y: margin + titleMargin / 2,
                         textBaseline: 'top',
                         textAlign: 'center'
-                    }, true, true);
+                    }, true);
                     title.applyTransformations();
                     me.titleOffset = title.getBBox().height + titleMargin;
                     break;
@@ -1193,7 +1192,7 @@ Ext.define('Ext.chart.axis.Axis', {
                         y: thickness + titleMargin / 2,
                         textBaseline: 'top',
                         textAlign: 'center'
-                    }, true, true);
+                    }, true);
                     title.applyTransformations();
                     me.titleOffset = title.getBBox().height + titleMargin;
                     break;
@@ -1206,7 +1205,7 @@ Ext.define('Ext.chart.axis.Axis', {
                         rotationCenterX: margin + titleMargin / 2,
                         rotationCenterY: anchor,
                         rotationRads: -Math.PI / 2
-                    }, true, true);
+                    }, true);
                     title.applyTransformations();
                     me.titleOffset = title.getBBox().width + titleMargin;
                     break;
@@ -1219,7 +1218,7 @@ Ext.define('Ext.chart.axis.Axis', {
                         rotationCenterX: thickness + titleMargin / 2,
                         rotationCenterY: anchor,
                         rotationRads: Math.PI / 2
-                    }, true, true);
+                    }, true);
                     title.applyTransformations();
                     me.titleOffset = title.getBBox().width + titleMargin;
                     break;
