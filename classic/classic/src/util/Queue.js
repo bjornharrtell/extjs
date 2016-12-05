@@ -8,14 +8,18 @@ Ext.define('Ext.util.Queue', {
         this.clear();
     },
 
-    add : function(obj) {
+    add : function(obj, replace) {
         var me = this,
-            key = me.getKey(obj);
+            key = me.getKey(obj),
+            prevEntry;
 
-        if (!me.map[key]) {
+        if (!(prevEntry = me.map[key])) {
             ++me.length;
             me.items.push(obj);
             me.map[key] = obj;
+        } else if (replace) {
+            me.map[key] = obj;
+            me.items[Ext.Array.indexOf(me.items, prevEntry)] = obj;
         }
 
         return obj;

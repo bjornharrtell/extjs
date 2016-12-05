@@ -6,7 +6,6 @@ Ext.define('KitchenSink.view.form.LoginForm', {
     xtype: 'form-login',
     
     //<example>
-    exampleTitle: 'Login Form',
     profiles: {
         classic: {
             labelWidth: 100
@@ -52,12 +51,8 @@ Ext.define('KitchenSink.view.form.LoginForm', {
         { text:'Login' }
     ],
     
-    initComponent: function() {
-        this.defaults = {
-            anchor: '100%',
-            labelWidth: this.profileInfo.labelWidth
-        };
-        
-        this.callParent();
+    defaults: {
+        anchor: '100%',
+        labelWidth: '${labelWidth}'
     }
 });

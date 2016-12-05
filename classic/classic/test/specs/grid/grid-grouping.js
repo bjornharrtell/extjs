@@ -1,3 +1,5 @@
+/* global Ext, jasmine, expect */
+
 describe("grid-grouping", function() {
     function createSuite(buffered) {
         describe(buffered ? "with buffered rendering" : "without buffered rendering", function() {
@@ -207,7 +209,7 @@ describe("grid-grouping", function() {
                         groupStoreIndex = view.dataSource.indexOf(rec25);
 
                     grid.view.refreshNode(25);
-                    expect(spy).toHaveBeenCalledWith(rec25, 25, view.all.item(groupStoreIndex).dom);
+                    expect(spy).toHaveBeenCalledWith(rec25, 25, view.all.item(groupStoreIndex).dom, view);
                 });
 
                 it("should fire itemupdate event with recordIndex when group above is collapsed", function() {
@@ -218,7 +220,7 @@ describe("grid-grouping", function() {
                     triggerHeaderClick('t1');
                     groupStoreIndex = view.dataSource.indexOf(rec25);
                     grid.view.refreshNode(25);
-                    expect(spy).toHaveBeenCalledWith(rec25, 25, view.all.item(groupStoreIndex).dom);
+                    expect(spy).toHaveBeenCalledWith(rec25, 25, view.all.item(groupStoreIndex).dom, view);
                 });
 
                 it("should expand a collapsed header on clicking", function(){
@@ -233,7 +235,7 @@ describe("grid-grouping", function() {
                     expect(grid.getSelectionModel().isSelected(getRec(25))).toBe(true);
                 });
 
-                it("should restore selection after collapsing and expading", function(){
+                it("should restore selection after collapsing and expanding", function(){
                     var row;
 
                     // Select record 0
@@ -299,6 +301,91 @@ describe("grid-grouping", function() {
                             }
                         });
                     }
+                });
+
+                describe("store events", function() {
+                    it("should fire the store remove event on remove", function() {
+                        var spy = jasmine.createSpy();
+                        store.on('remove', spy);
+                        store.removeAt(0);
+                        expect(spy.callCount).toBe(1);
+                    });
+
+                    it("should fire the store add event on add", function() {
+                        var spy = jasmine.createSpy();
+                        store.on('add', spy);
+                        store.add({
+                            group: 't1',
+                            name: 'Foo'
+                        });
+                        expect(spy.callCount).toBe(1);
+                    });
+                });
+            });
+
+            describe("groups with html characters", function() {
+                function runSuite(g1, g2) {
+                    makeGrid(false, null, [{
+                        id: 1,
+                        name: 'Item1',
+                        type: g1
+                    }, {
+                        id: 2,
+                        name: 'Item2',
+                        type: g1
+                    }, {
+                        id: 3,
+                        name: 'Item3',
+                        type: g2
+                    }, {
+                        id: 4,
+                        name: 'Item4',
+                        type: g2
+                    }]);
+
+                    grouping.collapse(g1);
+                    grouping.collapse(g2);
+
+                    expect(grouping.isExpanded(g1)).toBe(false);
+                    expect(grouping.isExpanded(g2)).toBe(false);
+
+                    expect(view.el.select('.x-grid-group-hd').getCount()).toBe(2);
+                    expect(view.getNodes().length).toBe(2);
+
+                    grouping.expand(g1);
+                    grouping.expand(g2);
+
+                    expect(grouping.isExpanded(g1)).toBe(true);
+                    expect(grouping.isExpanded(g2)).toBe(true);
+
+                    expect(view.el.select('.x-grid-group-hd').getCount()).toBe(2);
+                    expect(view.getNodes().length).toBe(4);
+
+                    triggerHeaderClick(g1);
+                    triggerHeaderClick(g2);
+
+                    expect(grouping.isExpanded(g1)).toBe(false);
+                    expect(grouping.isExpanded(g2)).toBe(false);
+
+                    expect(view.el.select('.x-grid-group-hd').getCount()).toBe(2);
+                    expect(view.getNodes().length).toBe(2);
+
+                    triggerHeaderClick(g1);
+                    triggerHeaderClick(g2);
+
+                    expect(grouping.isExpanded(g1)).toBe(true);
+                    expect(grouping.isExpanded(g2)).toBe(true);
+
+                    expect(view.el.select('.x-grid-group-hd').getCount()).toBe(2);
+                    expect(view.getNodes().length).toBe(4);
+                }
+
+                it("should be able to expand/collapse a group with html characters", function() {
+                    runSuite('Bar&Name', 'Foo&Name');
+                });
+
+                it("should be able to expand/collapse a group with already encoded html characters", function() {
+                    runSuite('Bar&amp;Name', 'Foo&amp;Name');
                 });
             });
 
@@ -389,7 +476,7 @@ describe("grid-grouping", function() {
                             });
                         });
                     });
-                })
+                });
             });
 
             describe("moving columns", function() {
@@ -864,7 +951,6 @@ describe("grid-grouping", function() {
                     makeGrid();
                     // scroll to the bottom. Record 0 must not be focused, otherwise it will
                     // scroll into view upon a refresh caused by the collapse;
-                    grid.getSelectionModel().preventFocus = true;
                     grid.getSelectionModel().select(0);
                     grid.scrollByDeltaY(2000);
                     grouping.collapse('t4');
@@ -1010,6 +1096,65 @@ describe("grid-grouping", function() {
                     expect(Ext.Element.getActiveElement()).toBe(normalView.el.dom);
                 });
             });
+
+            describe("loading new data", function() {
+                 it("should be able to collapse and expand groups after loading new data", function() {
+                     makeGrid();
+                     store.loadData([{
+                         id: 1001,
+                         type: 't1'
+                     }, {
+                         id: 1002,
+                         type: 't1'
+                     }, {
+                         id: 1003,
+                         type: 't2'
+                     }, {
+                         id: 1004,
+                         type: 't2'
+                     }]);
+ 
+                     grouping.expand('t1');
+                     grouping.expand('t2');
+ 
+                     expect(grouping.isExpanded('t1')).toBe(true);
+                     expect(grouping.isExpanded('t2')).toBe(true);
+ 
+                     grouping.collapse('t1');
+                     grouping.collapse('t2');
+                     
+                     expect(grouping.isExpanded('t1')).toBe(false);
+                     expect(grouping.isExpanded('t2')).toBe(false);
+                 });
+ 
+                 it("should be able to collapse and expand groups after loading new data with startCollapsed: true", function() {
+                     makeGrid(null, null, null, null, {
+                         startCollapsed: true
+                     });
+ 
+                     grouping.expand('t1');
+ 
+                     store.loadData([{
+                         id: 1001,
+                         type: 't1'
+                     }, {
+                         id: 1002,
+                         type: 't1'
+                     }, {
+                         id: 1003,
+                         type: 't2'
+                     }, {
+                         id: 1004,
+                         type: 't2'
+                     }]);
+ 
+                     grouping.collapse('t1');
+                     expect(grouping.isExpanded('t1')).toBe(false);
+ 
+                     grouping.expand('t1');
+                     expect(grouping.isExpanded('t1')).toBe(true);
+                 });
+             });
 
             describe("reconfiguring", function() {
                 function createReconfigureSuite(withLocking) {

@@ -2,7 +2,8 @@ Ext.require([
     'Ext.data.*',
     'Ext.panel.Panel',
     'Ext.layout.container.Card',
-    'Ext.tip.QuickTipManager'
+    'Ext.tip.QuickTipManager',
+    'Ext.grid.column.Date'
 ]);
 
 Ext.define('Customer', {
@@ -35,7 +36,6 @@ Ext.define('Order', {
         type: 'date',
         dateFormat: 'Y-m-d'
     }],
-    belongsTo: 'Customer',
     associations: [{
         model: 'OrderItem',
         type: 'hasMany',
@@ -62,7 +62,6 @@ Ext.define('OrderItem', {
         name: 'price',
         type: 'float'
     }],
-    belongsTo: 'Order',
     proxy: {
         type: 'ajax',
         url: 'orderitem.php'
@@ -74,43 +73,42 @@ Ext.define('CustomerGrid', {
     alias: 'widget.customergrid',
     
     title: 'Customers',
-    
-    initComponent: function(){
-        Ext.apply(this, {
-            store: {
-                autoLoad: true,
-                model: 'Customer',
-                listeners: {
-                    load: function() {
-                        Logger.log('Customer store loaded', false);
-                    }
-                }
-            },
-            columns: [{
-                text: 'Id',
-                dataIndex: 'id'
-            },{
-                text: 'Name',
-                dataIndex: 'name',
-                flex: 1
-            }, {
-                width: 140,
-                text: 'Phone',
-                dataIndex: 'phone'
-            }],
-            dockedItems: [{
-                xtype: 'toolbar',
-                items: {
-                    itemId: 'load',
-                    text: 'Load Orders',
-                    scope: this,
-                    handler: this.loadOrders,
-                    disabled: true
-                }
-            }]
-        });
-        this.callParent();
-        this.getSelectionModel().on('selectionchange', this.onSelectChange, this);
+
+    defaultListenerScope: true,
+
+    store: {
+        autoLoad: true,
+        model: 'Customer',
+        listeners: {
+            load: function() {
+                Logger.log('Customer store loaded', false);
+            }
+        }
+    },
+    columns: [{
+        text: 'Id',
+        dataIndex: 'id'
+    },{
+        text: 'Name',
+        dataIndex: 'name',
+        flex: 1
+    }, {
+        width: 140,
+        text: 'Phone',
+        dataIndex: 'phone'
+    }],
+    dockedItems: [{
+        xtype: 'toolbar',
+        items: {
+            itemId: 'load',
+            text: 'Load Orders',
+            handler: 'loadOrders',
+            disabled: true
+        }
+    }],
+
+    listeners: {
+        selectionchange: 'onSelectChange'
     },
     
     onSelectChange: function(selModel, selections) {
@@ -145,35 +143,34 @@ Ext.define('CustomerGrid', {
 Ext.define('OrderGrid', {
     extend: 'Ext.grid.Panel',
     alias: 'widget.ordergrid',
-    
-    initComponent: function(){
-        Ext.apply(this, {
-            columns: [{
-                text: 'Id',
-                dataIndex: 'id'
-            },{
-                flex: 1,
-                text: 'Date',
-                dataIndex: 'date',
-                renderer: Ext.util.Format.dateRenderer('Y-m-d')
-            }],
-            dockedItems: [{
-                xtype: 'toolbar',
-                items: [{
-                    text: 'Back',
-                    scope: this,
-                    handler: this.onBackClick
-                },{
-                    itemId: 'load',
-                    text: 'Load Order Items',
-                    scope: this,
-                    handler: this.loadItems,
-                    disabled: true
-                }]
-            }]
-        });
-        this.callParent();
-        this.getSelectionModel().on('selectionchange', this.onSelectChange, this);
+
+    defaultListenerScope: true,
+
+    columns: [{
+        text: 'Id',
+        dataIndex: 'id'
+    },{
+        xtype: 'datecolumn',
+        flex: 1,
+        text: 'Date',
+        dataIndex: 'date',
+        format: 'Y-m-d'
+    }],
+    dockedItems: [{
+        xtype: 'toolbar',
+        items: [{
+            text: 'Back',
+            handler: 'onBackClick'
+        },{
+            itemId: 'load',
+            text: 'Load Order Items',
+            handler: 'loadItems',
+            disabled: true
+        }]
+    }],
+
+    listeners: {
+        selectionchange: 'onSelectChange'
     },
     
     onBackClick: function(){
@@ -210,42 +207,40 @@ Ext.define('OrderGrid', {
 Ext.define('OrderItemGrid', {
     extend: 'Ext.grid.Panel',
     alias: 'widget.orderitemgrid',
-    
-    initComponent: function(){
-        Ext.apply(this, {
-            columns: [{
-                text: 'Id',
-                dataIndex: 'id'
-            },{
-                flex: 1,
-                text: 'Product',
-                dataIndex: 'product'
-            }, {
-                text: 'Quantity',
-                dataIndex: 'quantity'
-            }, {
-                text: 'Price',
-                dataIndex: 'price',
-                renderer: Ext.util.Format.usMoney
-            }],
-            dockedItems: [{
-                xtype: 'toolbar',
-                items: [{
-                    text: 'Back',
-                    scope: this,
-                    handler: this.onBackClick
-                }, {
-                    itemId: 'load',
-                    text: 'Parent association loader',
-                    tooltip: 'Demonstrate loading parent relationships - A new record will be created so we ignore any previous associations setup',
-                    scope: this,
-                    handler: this.onLoadClick,
-                    disabled: true
-                }]
-            }]
-        });
-        this.callParent();
-        this.getSelectionModel().on('selectionchange', this.onSelectChange, this);
+
+    defaultListenerScope: true,
+
+    columns: [{
+        text: 'Id',
+        dataIndex: 'id'
+    },{
+        flex: 1,
+        text: 'Product',
+        dataIndex: 'product'
+    }, {
+        text: 'Quantity',
+        dataIndex: 'quantity'
+    }, {
+        text: 'Price',
+        dataIndex: 'price',
+        formatter: 'usMoney'
+    }],
+    dockedItems: [{
+        xtype: 'toolbar',
+        items: [{
+            text: 'Back',
+            handler: 'onBackClick'
+        }, {
+            itemId: 'load',
+            text: 'Parent association loader',
+            tooltip: 'Demonstrate loading parent relationships - A new record will be created so we ignore any previous associations setup',
+            handler: 'onLoadClick',
+            disabled: true
+        }]
+    }],
+
+    listeners: {
+        selectionchange: 'onSelectChange'
     },
     
     onSelectChange: function(selModel, selections) {
@@ -275,29 +270,28 @@ Ext.define('OrderItemGrid', {
 
 Ext.define('ItemLoader', {
     extend: 'Ext.window.Window',
+
+    defaultListenerScope: true,
+
+    border: false,
+    scrollable: true,
+    dockedItems: [{
+        xtype: 'toolbar',
+        items: [{
+            text: 'Print order detail',
+            handler: 'onOrderClick'
+        }, {
+            itemId: 'company',
+            text: 'Print company detail',
+            disabled: true,
+            handler: 'onCompanyClick'
+        }]
+    }],
+    bodyPadding: 5,
+    tpl: '<div>{type} {id} - {value}</div>',
+    tplWriteMode: 'append',
     
     initComponent: function(){
-        Ext.apply(this, {
-            border: false,
-            scrollable: true,
-            dockedItems: [{
-                xtype: 'toolbar',
-                items: [{
-                    text: 'Print order detail',
-                    scope: this,
-                    handler: this.onOrderClick
-                }, {
-                    itemId: 'company',
-                    text: 'Print company detail',
-                    disabled: true,
-                    scope: this,
-                    handler: this.onCompanyClick
-                }]
-            }],
-            bodyPadding: 5,
-            tpl: '<div>{type} {id} - {value}</div>',
-            tplWriteMode: 'append'
-        });
         this.callParent();
         this.orderItem = new OrderItem(this.orderItemData);
     },

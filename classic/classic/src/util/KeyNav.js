@@ -32,7 +32,7 @@
  *             fn: selectAll
  *         },
  *
- *         // Binding may be keyed by a key code (45 = {@link Ext.event.Event#property-INSERT INSERT})
+ *         // Binding may be keyed by a key code (45 = INSERT)
  *         45: {
  *             fn: doInsert
  *         }

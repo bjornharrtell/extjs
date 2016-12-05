@@ -11,92 +11,90 @@
  */
 Ext.define('KitchenSink.view.tree.TwoTrees', {
     extend: 'Ext.container.Container',
-    
+    xtype: 'tree-two',
+
     requires: [
-        'Ext.tree.*',
-        'Ext.data.*',
+        'Ext.data.TreeStore',
         'Ext.layout.container.HBox'
     ],
-    xtype: 'tree-two',
-    
+
     //<example>
-    exampleTitle: 'Drag and Drop between 2 TreePanels',
     //</example>
     
+    height: 300,
+    width: 550,
+
     layout: {
         type: 'hbox',
         align: 'stretch'
     },
-    height: 300,
-    width: 550,
-    
-    initComponent: function(){
-        var group = this.id + '-ddgroup';
-        
-        Ext.apply(this, {
-            items: [{
-                title: 'Source',
-                xtype: 'treepanel',
-                store: new Ext.data.TreeStore({
-                    proxy: {
-                        type: 'ajax',
-                        url: '/tree/get-nodes.php'
-                    },
-                    root: {
-                        text: 'Ext JS',
-                        id: 'src',
-                        expanded: true
-                    },
-                    folderSort: true,
-                    sorters: [{
-                        property: 'text',
-                        direction: 'ASC'
-                    }]
-                }),
-                margin: '0 15 0 0',
-                flex: 1,
-                viewConfig: {
-                    plugins: {
-                        ptype: 'treeviewdragdrop',
-                        ddGroup: group,
-                        appendOnly: true,
-                        sortOnDrop: true,
-                        containerScroll: true
-                    }
-                }
-            }, {
-                title: 'Custom Build',
-                xtype: 'treepanel',
-                store: new Ext.data.TreeStore({
-                    proxy: {
-                        type: 'ajax',
-                        url: '/tree/get-nodes.php'
-                    },
-                    root: {
-                        text: 'Custom Ext JS',
-                        id: 'src',
-                        expanded: true,
-                        children: []
-                    },
-                    folderSort: true,
-                    sorters: [{
-                        property: 'text',
-                        direction: 'ASC'
-                    }]
-                }),
-                flex: 1,
-                viewConfig: {
-                    plugins: {
-                        ptype: 'treeviewdragdrop',
-                        ddGroup: group,
-                        appendOnly: true,
-                        sortOnDrop: true,
-                        containerScroll: true,
-                        allowContainerDrops: true
-                    }
-                }
+
+    items: [{
+        title: 'Source',
+        xtype: 'treepanel',
+        margin: '0 15 0 0',
+        flex: 1,
+
+        store: {
+            type: 'tree',
+            proxy: {
+                type: 'ajax',
+                url: '/tree/get-nodes.php'
+            },
+            root: {
+                text: 'Ext JS',
+                id: 'src',
+                expanded: true
+            },
+            folderSort: true,
+            sorters: [{
+                property: 'text',
+                direction: 'ASC'
             }]
-        });
-        this.callParent();
-    }
+        },
+
+        viewConfig: {
+            plugins: {
+                ptype: 'treeviewdragdrop',
+                ddGroup: 'two-trees-drag-drop',
+                appendOnly: true,
+                sortOnDrop: true,
+                containerScroll: true
+            }
+        }
+    }, {
+        title: 'Custom Build',
+        xtype: 'treepanel',
+        flex: 1,
+
+        store: {
+            type: 'tree',
+            proxy: {
+                type: 'ajax',
+                url: '/tree/get-nodes.php'
+            },
+            root: {
+                text: 'Custom Ext JS',
+                id: 'src',
+                expanded: true,
+                children: []
+            },
+            folderSort: true,
+            sorters: [{
+                property: 'text',
+                direction: 'ASC'
+            }]
+        },
+
+        viewConfig: {
+            plugins: {
+                ptype: 'treeviewdragdrop',
+                ddGroup: 'two-trees-drag-drop',
+                appendOnly: true,
+                sortOnDrop: true,
+                containerScroll: true,
+                allowContainerDrops: true
+            }
+        }
+    }]
 });

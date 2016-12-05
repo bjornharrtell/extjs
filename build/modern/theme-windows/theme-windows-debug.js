@@ -1,10 +1,3 @@
-Ext.define('Ext.theme.windows.Component', {
-    override: 'Ext.Component'
-}, function() {
-    Ext.namespace('Ext.theme.is').Windows = true;
-    Ext.theme.name = 'Windows';
-});
-
 Ext.define('Ext.theme.windows.Sheet', {
     override: 'Ext.Sheet',
     config: {
@@ -173,4 +166,7 @@ Ext.define('Ext.theme.device_base.grid.plugin.SummaryRow', {
         height: 32
     }
 });
+
+Ext.namespace('Ext.theme.is').Windows = true;
+Ext.theme.name = 'Windows';
 

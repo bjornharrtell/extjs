@@ -292,6 +292,15 @@ Ext.define('Ext.grid.selection.Cells', {
         },
 
         /**
+         * @private
+         * Called through {@link Ext.grid.selection.SpreadsheetModel#getLastSelected} by {@link Ext.panel.Table#updateBindSelection} when publishing the `selection` property.
+         * It should yield the last record selected.
+         */
+        getLastSelected: function() {
+            return this.view.dataSource.getAt(this.endCell.rowIdx);
+        },
+
+        /**
          * Returns the row range which encapsulates the range - the view range that needs
          * updating.
          * @return {Number[]}

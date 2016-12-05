@@ -24,10 +24,7 @@ Ext.define('Ext.rtl.Component', {
         // Since anchoring is done based on page level coordinates, we need to invert
         // left and right in the position spec when the direction of the compoent being
         // aligned is not the same as the direction of the viewport/body
-        if ((Ext.rootInheritedState.rtl || false) !== (this.getInherited().rtl || false)) {
-            posSpec = posSpec.replace(/l/g, 'tmp').replace(/r/g, 'l').replace(/tmp/g, 'r');
-        }
-        return posSpec;
+        return Ext.util.Region.getAlignInfo(posSpec, (Ext.rootInheritedState.rtl || false) !== (this.getInherited().rtl || false));
     },
 
     getAnchorToXY: function(el, anchor, local, mySize) {

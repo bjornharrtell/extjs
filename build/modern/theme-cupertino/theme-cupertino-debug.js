@@ -1,10 +1,3 @@
-Ext.define('Ext.theme.cupertino.Component', {
-    override: 'Ext.Component'
-}, function() {
-    Ext.namespace('Ext.theme.is').Cupertino = true;
-    Ext.theme.name = 'Cupertino';
-});
-
 Ext.define('Ext.theme.cupertino.TitleBar', {
     override: 'Ext.TitleBar',
     config: {
@@ -75,4 +68,7 @@ Ext.define('Ext.theme.device_base.grid.plugin.SummaryRow', {
         height: 32
     }
 });
+
+Ext.namespace('Ext.theme.is').Cupertino = true;
+Ext.theme.name = 'Cupertino';
 

@@ -539,6 +539,8 @@ describe("Ext-more", function() {
         });
         
         afterEach(function() {
+            Ext.app.Application.instance.destroy();
+            
             Ext.undefine('Test.$application');
             Ext.undefine('Test');
             try {

@@ -18,6 +18,14 @@
             }
         },
 
+        // <example>
+        otherContent: [{
+            type: 'Controller',
+            path: 'modern/src/view/chart/ChartController.js'
+        }],
+        // </example>
+    
+        shadow: true,
         layout: 'fit',
         items: [{
             xtype: 'toolbar',
@@ -31,9 +39,6 @@
                 handler: function() {
                     Ext.getStore('BubbleStore').setData(createData(50));
                 }
-            }, {
-                text: 'Reset',
-                handler: 'onReset'
             }]
         }, {
             xtype: 'cartesian',
@@ -70,7 +75,7 @@
                         config.radius = interpolate(storeItem.data.g3, 0, 1000, 5, 30);
                         config.fillOpacity = interpolate(storeItem.data.g3, 0, 1000, 1, 0.7);
                         config.fill = interpolateColor(storeItem.data.g3, 0, 1000);
-                        config.stroke = Ext.draw.Color.fromString(config.fill).createDarker(0.15).toString();
+                        config.stroke = Ext.util.Color.fromString(config.fill).createDarker(0.15).toString();
                     }
                 }
             }],
@@ -139,12 +144,12 @@
         return minDst + (maxDst - minDst) * Math.max(0, Math.min(1, (lambda - minSrc) / (maxSrc - minSrc)));
     }
 
-    var fromHSL = Ext.draw.Color.fly('blue').getHSL(),
-        toHSL = Ext.draw.Color.fly('red').getHSL();
+    var fromHSL = Ext.util.Color.fly('blue').getHSL(),
+        toHSL = Ext.util.Color.fly('red').getHSL();
     fromHSL[2] = 0.5;
 
     function interpolateColor(lambda, minSrc, maxSrc) {
-        return Ext.draw.Color.fly(0, 0, 0, 0).setHSL(
+        return Ext.util.Color.fly(0, 0, 0, 0).setHSL(
             interpolate(lambda, minSrc, maxSrc, fromHSL[0], toHSL[0]),
             interpolate(lambda, minSrc, maxSrc, fromHSL[1], toHSL[1]),
             interpolate(lambda, minSrc, maxSrc, fromHSL[2], toHSL[2])

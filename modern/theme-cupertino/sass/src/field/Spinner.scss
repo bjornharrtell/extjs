@@ -1,4 +1,4 @@
-.x-desktop.x-windows.x-chrome .x-spinner {
+.x-desktop.x-windows.x-chrome .x-spinnerfield {
 	.x-spinner-button-down {
 		line-height: .7em;
 	}
@@ -8,7 +8,7 @@
 	}
 }
 
-.x-spinner {
+.x-spinnerfield {
 	.x-spinner-button {
 		margin-top: .25em;
 		margin-bottom: .25em;
@@ -39,7 +39,7 @@
 		-webkit-text-fill-color: black;
 	}
 
-	&.x-item-disabled {
+	&.x-disabled {
 		.x-input-el {
 			color: #B3B3B3;
 			-webkit-text-fill-color: #B3B3B3;

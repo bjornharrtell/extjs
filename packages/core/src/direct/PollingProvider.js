@@ -54,7 +54,7 @@ Ext.define('Ext.direct.PollingProvider', {
      * The url which the PollingProvider should contact with each request. This can also be
      * an imported Ext Direct method which will be passed baseParams as named arguments.
      *
-     * *Note* that using string `url` is deprecated, use {@link #pollFn} instead.
+     * *Note* that using Function `url` is deprecated, use {@link #pollFn} instead.
      * @deprecated 5.1.0
      */
     
@@ -67,6 +67,12 @@ Ext.define('Ext.direct.PollingProvider', {
      *
      * The method should accept named arguments and will be passed {@link #baseParams}
      * if set.
+     */
+    
+    /**
+     * @cfg {Number} [timeout]
+     *
+     * The timeout to use for each request.
      */
     
     /**
@@ -142,11 +148,13 @@ Ext.define('Ext.direct.PollingProvider', {
     },
 
     doDisconnect: function() {
-        this.pollTask.stop();
+        if (this.pollTask) {
+            this.pollTask.stop();
+        }
     },
     
     getInterval: function() {
-        return this.pollTask.interval;
+        return this.pollTask && this.pollTask.interval;
     },
     
     setInterval: function(interval) {
@@ -176,7 +184,7 @@ Ext.define('Ext.direct.PollingProvider', {
             url = me.url,
             pollFn = me.pollFn,
             baseParams = me.baseParams,
-            args;
+            args, request;
         
         if (me.fireEvent('beforepoll', me) !== false) {
             if (pollFn) {
@@ -189,12 +197,19 @@ Ext.define('Ext.direct.PollingProvider', {
                 pollFn.apply(window, args);
             }
             else {
-                Ext.Ajax.request({
+                request = {
                     url: url,
                     callback: me.onData,
                     scope: me,
-                    params: baseParams
-                });
+                    params: baseParams,
+                    headers: me.getHeaders()
+                };
+                
+                if (me.timeout != null) {
+                    request.timeout = me.timeout;
+                }
+                
+                me.sendAjaxRequest(request);
             }
             
             me.fireEvent('poll', me);
@@ -206,25 +221,34 @@ Ext.define('Ext.direct.PollingProvider', {
      */
     onData: function(opt, success, response) {
         var me = this, 
-            i, len, events;
+            i, len, events, event;
         
         if (success) {
             events = me.createEvents(response);
             
             for (i = 0, len = events.length; i < len; ++i) {
-                me.fireEvent('data', me, events[i]);
+                event = events[i];
+                
+                me.fireEvent('data', me, event);
+                
+                if (!event.status) {
+                    me.fireEvent('exception', me, event);
+                }
             }
         }
         else {
-            events = new Ext.direct.ExceptionEvent({
+            event = new Ext.direct.ExceptionEvent({
                 data: null,
                 code: Ext.direct.Manager.exceptions.TRANSPORT,
                 message: 'Unable to connect to the server.',
                 xhr: response
             });
             
-            me.fireEvent('data', me, events);
+            me.fireEvent('data', me, event);
+            me.fireEvent('exception', me, event);
         }
+        
+        me.callParent([opt, success, response]);
     },
     
     /**

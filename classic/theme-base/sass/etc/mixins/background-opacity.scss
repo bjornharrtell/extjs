@@ -17,7 +17,7 @@
             $ie-background-str: ie-hex-str($background-opaque);
 
             .#{$prefix}ie8 & {
-                filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#{$ie-background-str}, endColorstr=#{$ie-background-str});
+                -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#{$ie-background-str}, endColorstr=#{$ie-background-str})";
                 zoom: 1;
             }
         }

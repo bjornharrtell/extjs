@@ -10,7 +10,7 @@ describe("Ext.Widget", function() {
             // The spec wants to run in "not first" mode - this means we need to create
             // an instance and throw it away, so that the spec operates on the second
             // instance of the Widget ever created.
-            var first = new spec.Widget();
+            first = new spec.Widget();
             first.destroy();
         }
     }
@@ -80,7 +80,7 @@ describe("Ext.Widget", function() {
 
                 widget = new spec.Widget();
 
-                expect(widget.element.dom.className).toBe('foo');
+                expect(widget.element).toHaveCls('foo');
             });
 
             it("should resolve element references, and remove the 'reference' attributes from the dom", function() {
@@ -177,6 +177,38 @@ describe("Ext.Widget", function() {
                 expect(onClick.mostRecentCall.object).toBe(widget);
 
                 widget.destroy();
+            });
+
+            it("should be able to direct element listeners to controllers", function() {
+                var C = Ext.define(null, {
+                    extend: 'Ext.app.ViewController',
+                    someFn: Ext.emptyFn
+                });
+
+                defineWidget(first, {
+                    xtype: 'custom'
+                });
+
+                var controller = new C();
+
+                var ct = new Ext.container.Container({
+                    renderTo: Ext.getBody(),
+                    controller: controller,
+                    items: {
+                        xtype: 'custom',
+                        listeners: {
+                            click: 'someFn',
+                            element: 'element'
+                        }
+                    }
+                });
+                widget = ct.down('custom');
+
+                spyOn(controller, 'someFn');
+                jasmine.fireMouseEvent(widget.element, 'click');
+                expect(controller.someFn.callCount).toBe(1);
+
+                ct.destroy();
             });
 
             it("should add listeners to child elements", function() {
@@ -1009,15 +1041,7 @@ describe("Ext.Widget", function() {
         });
 
         afterEach(function() {
-            if (widget) {
-                widget.destroy();
-            }
-            if (parent) {
-                parent.destroy();
-            }
-            if (grandparent) {
-                grandparent.destroy();
-            }
+            widget = parent = grandparent = Ext.destroy(widget, parent, grandparent);
         });
 
         describe("listener declared on class body", function() {
@@ -1268,7 +1292,7 @@ describe("Ext.Widget", function() {
                     defineParent({
                         controller: new ParentController(),
                         defaultListenerScope: true
-                    })
+                    });
                 });
 
                 it("should resolve to the parent with unspecified scope", function() {
@@ -1824,13 +1848,18 @@ describe("Ext.Widget", function() {
             describe("with handler declared as a function reference", function() {
                 var handler, scope;
 
-                function defineWidget(cfg) {
-                    Widget = Ext.define(null, Ext.merge({
+                function defineWidget(cfg, setScope) {
+                    cfg = Ext.merge({
                         extend: 'Ext.Widget',
                         listeners: {
                             foo: handler
                         }
-                    }, cfg))
+                    }, cfg);
+                    if (setScope) {
+                        cfg.listeners.scope = setScope;
+                    }
+
+                    Widget = Ext.define(null, cfg);
                 }
 
                 beforeEach(function() {
@@ -1855,14 +1884,10 @@ describe("Ext.Widget", function() {
                 it("should use an arbitrary object as the scope", function() {
                     var obj = {};
 
-                    defineWidget({
-                        listeners: {
-                            scope: obj
-                        }
-                    });
+                    defineWidget({}, obj);
                     widget = new Widget();
                     widget.fireEvent('foo');
-                    expect(scope).toBe(scope);
+                    expect(scope).toBe(obj);
                 });
 
                 it("should use the widget with scope:'this'", function() {
@@ -2982,16 +3007,16 @@ describe("Ext.Widget", function() {
 
                 it("should use an arbitrary object as the scope", function() {
                     defineWidget();
-                    var scope = {};
+                    var obj = {};
 
                     widget = new Widget({
                         listeners: {
                             foo: handler,
-                            scope: scope
+                            scope: obj
                         }
                     });
                     widget.fireEvent('foo');
-                    expect(scope).toBe(scope);
+                    expect(scope).toBe(obj);
                 });
 
                 it("should use the widget with scope:'this'", function() {
@@ -3231,6 +3256,495 @@ describe("Ext.Widget", function() {
                     });
                 });
             });
+        });
+    });
+
+    (Ext.supports.PointerEvents ? describe : xdescribe)("touchAction", function() {
+        var Widget, widget;
+
+        function makeWidgetWithTouchAction(touchAction) {
+            Widget = Ext.define(null, {
+                extend: 'Ext.Widget',
+                element: {
+                    reference: 'element',
+                    children: [{
+                        reference: 'child'
+                    }]
+                }
+            });
+            widget = new Widget({
+                touchAction: touchAction
+            });
+        }
+
+        function expectTouchAction(el, value) {
+            // touch actions read from the dom are not always returned in the same order
+            // as they were set, so we have to parse theme out.
+            var expectedTouchAction = el.getStyle('touch-action').split(' '),
+                actualTouchAction = value.split(' ');
+
+            expect(actualTouchAction.length).toBe(expectedTouchAction.length);
+
+            Ext.each(expectedTouchAction, function(item) {
+                expect(Ext.Array.contains(actualTouchAction, item)).toBe(true);
+            });
+        }
+
+        afterEach(function() {
+            if (widget) {
+                widget.destroy();
+                widget = null;
+            }
+        });
+
+        it("should default to auto", function() {
+            makeWidgetWithTouchAction(null);
+
+            expectTouchAction(widget.element, 'auto');
+            expectTouchAction(widget.child, 'auto');
+        });
+
+        it("should disable panX", function() {
+            makeWidgetWithTouchAction({
+                panX: false
+            });
+
+            expectTouchAction(widget.element, 'pan-y pinch-zoom double-tap-zoom');
+        });
+
+        it("should disable panY", function() {
+            makeWidgetWithTouchAction({
+                panY: false
+            });
+
+            expectTouchAction(widget.element, 'pan-x pinch-zoom double-tap-zoom');
+        });
+
+        it("should disable panX and panY", function() {
+            makeWidgetWithTouchAction({
+                panX: false,
+                panY: false
+            });
+
+            expectTouchAction(widget.element, 'pinch-zoom double-tap-zoom');
+        });
+
+        it("should disable pinchZoom", function() {
+            makeWidgetWithTouchAction({
+                pinchZoom: false
+            });
+
+            expectTouchAction(widget.element, 'pan-x pan-y double-tap-zoom');
+        });
+
+        it("should disable panX and pinchZoom", function() {
+            makeWidgetWithTouchAction({
+                panX: false,
+                pinchZoom: false
+            });
+
+            expectTouchAction(widget.element, 'pan-y double-tap-zoom');
+        });
+
+        it("should disable panY and pinchZoom", function() {
+            makeWidgetWithTouchAction({
+                panY: false,
+                pinchZoom: false
+            });
+
+            expectTouchAction(widget.element, 'pan-x double-tap-zoom');
+        });
+
+        it("should disable panX, panY, and PinchZoom", function() {
+            makeWidgetWithTouchAction({
+                panX: false,
+                panY: false,
+                pinchZoom: false
+            });
+
+            expectTouchAction(widget.element, 'double-tap-zoom');
+        });
+
+        it("should disable doubleTapZoom", function() {
+            makeWidgetWithTouchAction({
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(widget.element, 'manipulation');
+        });
+
+        it("should disable panX and doubleTapZoom", function() {
+            makeWidgetWithTouchAction({
+                panX: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(widget.element, 'pan-y pinch-zoom');
+        });
+
+        it("should disable panY and doubleTapZoom", function() {
+            makeWidgetWithTouchAction({
+                panY: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(widget.element, 'pan-x pinch-zoom');
+        });
+
+        it("should disable panX, panY, and doubleTapZoom", function() {
+            makeWidgetWithTouchAction({
+                panX: false,
+                panY: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(widget.element, 'pinch-zoom');
+        });
+
+        it("should disable pinchZoom and doubleTapZoom", function() {
+            makeWidgetWithTouchAction({
+                pinchZoom: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(widget.element, 'pan-x pan-y');
+        });
+
+        it("should disable panX, pinchZoom, and doubleTapZoom", function() {
+            makeWidgetWithTouchAction({
+                panX: false,
+                pinchZoom: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(widget.element, 'pan-y');
+        });
+
+        it("should disable panY, pinchZoom, and doubleTapZoom", function() {
+            makeWidgetWithTouchAction({
+                panY: false,
+                pinchZoom: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(widget.element, 'pan-x');
+        });
+
+        it("should disable all touch actions", function() {
+            makeWidgetWithTouchAction({
+                panX: false,
+                panY: false,
+                pinchZoom: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(widget.element, 'none');
+        });
+
+        it("should set touch action on a reference element", function() {
+            makeWidgetWithTouchAction({
+                panX: false,
+                child: {
+                    panY: false,
+                    pinchZoom: false
+                }
+            });
+
+            expectTouchAction(widget.element, 'pan-y pinch-zoom double-tap-zoom');
+            expectTouchAction(widget.child, 'pan-x double-tap-zoom');
+        });
+    });
+
+    describe("classCls", function() {
+        it("should add the classCls to the element", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo'
+            });
+
+            widget = new Foo();
+
+            expect(widget.element.dom.className).toBe('foo');
+        });
+
+        it("should inherit classCls from ancestors", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo'
+            });
+
+            var Bar = Ext.define(null, {
+                extend: Foo,
+                classCls: 'bar'
+            });
+
+            var Baz = Ext.define(null, {
+                extend: Bar,
+                classCls: 'baz'
+            });
+
+            widget = new Baz();
+
+            expect(widget.element).toHaveCls('foo');
+            expect(widget.element).toHaveCls('bar');
+            expect(widget.element).toHaveCls('baz');
+        });
+
+        it("should allow the classCls to be changed via override", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo'
+            });
+
+            var Bar = Ext.define(null, {
+                extend: Foo,
+                classCls: 'bar'
+            });
+
+            var Baz = Ext.define(null, {
+                extend: Bar,
+                classCls: 'baz'
+            });
+
+            Foo.override({
+                classCls: 'far'
+            });
+
+            widget = new Baz();
+
+            expect(widget.element).toHaveCls('far');
+            expect(widget.element).toHaveCls('bar');
+            expect(widget.element).toHaveCls('baz');
+        });
+
+        it("should not inherit classCls if classClsRoot is true", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo'
+            });
+
+            var Bar = Ext.define(null, {
+                extend: Foo,
+                classCls: 'bar',
+                classClsRoot: true
+            });
+
+            var Baz = Ext.define(null, {
+                extend: Bar,
+                classCls: 'baz'
+            });
+
+            widget = new Baz();
+
+            expect(widget.element).not.toHaveCls('foo');
+            expect(widget.element).toHaveCls('bar');
+            expect(widget.element).toHaveCls('baz');
+        });
+
+        it("should accept an array of classes", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: ['foo', 'bar']
+            });
+
+            var Baz = Ext.define(null, {
+                extend: Foo,
+                classCls: 'baz'
+            });
+
+            widget = new Baz();
+
+            expect(widget.element).toHaveCls('foo');
+            expect(widget.element).toHaveCls('bar');
+            expect(widget.element).toHaveCls('baz');
+
+            widget.setUi('ui');
+
+            expect(widget.element).toHaveCls('foo-ui');
+            expect(widget.element).toHaveCls('bar-ui');
+            expect(widget.element).toHaveCls('baz-ui');
+        });
+    });
+
+    describe("baseCls", function() {
+
+        it("should add the baseCls to the element", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                baseCls: 'foo'
+            });
+
+            widget = new Foo();
+
+            expect(widget.element).toHaveCls('foo');
+        });
+
+        it("should add a ui cls by appending the ui to the baseCls", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                baseCls: 'foo',
+                ui: 'bar'
+            });
+
+            widget = new Foo();
+
+            expect(widget.element).toHaveCls('foo');
+            expect(widget.element).toHaveCls('foo-bar');
+        });
+
+        it("should default to classCls when baseCls is true", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo'
+                // baseCls defaults to true on the Ext.Widget prototype
+            });
+
+            widget = new Foo();
+
+            expect(widget.element).toHaveCls('foo');
+            expect(widget.getBaseCls()).toBe('foo');
+        });
+
+        it("should not default to classCls when baseCls is a string", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo',
+                baseCls: 'bar'
+            });
+
+            widget = new Foo();
+
+            expect(widget.element).toHaveCls('foo');
+            expect(widget.element).toHaveCls('bar');
+            expect(widget.getBaseCls()).toBe('bar');
+        });
+
+        it("should default to xtype when baseCls is undefined", function() {
+            Ext.define('Foo', {
+                extend: 'Ext.Widget',
+                classCls: 'foo',
+                xtype: 'mywidget',
+                baseCls: undefined
+            });
+
+            widget = new Foo();
+
+            expect(widget.element).toHaveCls('foo');
+            expect(widget.element).toHaveCls('x-mywidget');
+            expect(widget.getBaseCls()).toBe('x-mywidget');
+
+            Ext.undefine('Foo');
+        });
+    });
+
+    describe("ui", function() {
+        it("should append ui suffix to baseCls", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                baseCls: 'foo',
+                ui: 'xyz'
+            });
+
+            widget = new Foo();
+
+            expect(widget.element).toHaveCls('foo');
+            expect(widget.element).toHaveCls('foo-xyz');
+        });
+
+        it("should append ui suffix to classCls", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo'
+            });
+
+            var Bar = Ext.define(null, {
+                extend: Foo,
+                classCls: 'bar'
+            });
+
+            var Baz = Ext.define(null, {
+                extend: Bar,
+                classCls: 'baz'
+            });
+
+            widget = new Baz({
+                ui: 'xyz'
+            });
+
+            expect(widget.element).toHaveCls('foo');
+            expect(widget.element).toHaveCls('bar');
+            expect(widget.element).toHaveCls('baz');
+            expect(widget.element).toHaveCls('foo-xyz');
+            expect(widget.element).toHaveCls('bar-xyz');
+            expect(widget.element).toHaveCls('baz-xyz');
+        });
+
+        it("should append ui suffix to both classCls and baseCls", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo'
+            });
+
+            var Bar = Ext.define(null, {
+                extend: Foo,
+                classCls: 'bar',
+                baseCls: 'baz'
+            });
+
+            widget = new Bar({
+                ui: 'xyz'
+            });
+
+            expect(widget.element).toHaveCls('foo');
+            expect(widget.element).toHaveCls('bar');
+            expect(widget.element).toHaveCls('baz');
+            expect(widget.element).toHaveCls('foo-xyz');
+            expect(widget.element).toHaveCls('bar-xyz');
+            expect(widget.element).toHaveCls('baz-xyz');
+        });
+
+        it("should add multiple uis", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo'
+            });
+
+            var Bar = Ext.define(null, {
+                extend: Foo,
+                classCls: 'bar'
+            });
+
+            widget = new Bar({
+                ui: 'abc xyz'
+            });
+
+            expect(widget.element).toHaveCls('foo-abc');
+            expect(widget.element).toHaveCls('bar-abc');
+            expect(widget.element).toHaveCls('foo-xyz');
+            expect(widget.element).toHaveCls('bar-xyz');
+        });
+
+        it("should remove multiple uis", function() {
+            var Foo = Ext.define(null, {
+                extend: 'Ext.Widget',
+                classCls: 'foo'
+            });
+
+            var Bar = Ext.define(null, {
+                extend: Foo,
+                classCls: 'bar'
+            });
+
+            widget = new Bar({
+                ui: 'abc xyz'
+            });
+
+            widget.setUi(null);
+
+            expect(widget.element).not.toHaveCls('foo-abc');
+            expect(widget.element).not.toHaveCls('bar-abc');
+            expect(widget.element).not.toHaveCls('foo-xyz');
+            expect(widget.element).not.toHaveCls('bar-xyz');
         });
     });
 });

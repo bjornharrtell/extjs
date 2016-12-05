@@ -68,6 +68,8 @@ Ext.define('Ext.field.File', {
         capture: null
     },
 
+    classCls: Ext.baseCSSPrefix + 'filefield',
+
     /**
      * @private
      */

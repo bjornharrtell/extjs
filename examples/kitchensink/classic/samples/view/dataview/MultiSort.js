@@ -7,20 +7,27 @@
  */
 Ext.define('KitchenSink.view.dataview.MultiSort', {
     extend: 'Ext.panel.Panel',
+    xtype: 'dataview-multisort',
+    controller: 'dataview-multisort',
 
     requires: [
         'Ext.toolbar.TextItem',
         'Ext.view.View',
+        'Ext.ux.BoxReorderer',
         'Ext.ux.DataView.Animated'
     ],
 
-    xtype: 'dataview-multisort',
-    title: 'Multisort DataView',
-    width: 540,
+    title: 'Multi-sort DataView',
     layout: 'fit',
+    width: 540,
+    height: '${height}',
+    
     //<example>
     otherContent: [{
-        type: 'Button View',
+        type: 'Controller',
+        path: 'classic/samples/view/dataview/MultiSortController.js'
+    },{
+        type: 'SortButton',
         path: 'classic/samples/view/dataview/MultiSortButton.js'
     },{
         type: 'Data',
@@ -36,95 +43,64 @@ Ext.define('KitchenSink.view.dataview.MultiSort', {
     },
     //</example>
 
-    initComponent: function() {
-        this.height = this.profileInfo.height;
-        this.tbar = {
-            plugins: {
-                xclass: 'Ext.ux.BoxReorderer',
-                listeners: {
-                    scope: this,
-                    drop: this.updateStoreSorters
-                }
-            },
-            defaults: {
-                listeners: {
-                    scope: this,
-                    changeDirection: this.updateStoreSorters
-                }
-            },
-            items: [{
-                xtype: 'tbtext',
-                text: 'Sort on these fields:',
-                reorderable: false
-            }, {
-                xtype: 'dataview-multisort-sortbutton',
-                text : 'Type',
-                dataIndex: 'type'
-            }, {
-                xtype: 'dataview-multisort-sortbutton',
-                text : 'Name',
-                dataIndex: 'name'
-            }]
-        };
+    tbar: {
+        plugins: {
+            ptype: 'boxreorderer',
+            listeners: {
+                drop: 'updateStoreSorters'
+            }
+        },
 
-        this.items = {
-            xtype: 'dataview',
-            tpl: [
-                '<tpl for=".">',
-                    '<div class="dataview-multisort-item">',
-                        '<img src="classic/resources/images/touch-icons/{thumb}" />',
-                        '<h3>{name}</h3>',
-                    '</div>',
-                '</tpl>'
-            ],
-            plugins: {
-                xclass: 'Ext.ux.DataView.Animated'
-            },
-            itemSelector: 'div.dataview-multisort-item',
-            store: Ext.create('Ext.data.Store', {
-                autoLoad: true,
-                sortOnLoad: true,
-                fields: ['name', 'thumb', 'url', 'type'],
-                proxy: {
-                    type: 'ajax',
-                    url : 'data/sencha-touch-examples.json',
-                    reader: {
-                        type: 'json',
-                        rootProperty: ''
-                    }
-                }
-            })
-        };
+        defaults: {
+            listeners: {
+                changeDirection: 'updateStoreSorters'
+            }
+        },
 
-        this.callParent(arguments);
-        this.updateStoreSorters();
+        items: [{
+            xtype: 'tbtext',
+            text: 'Sort on these fields:',
+            reorderable: false
+        }, {
+            xtype: 'dataview-multisort-sortbutton',
+            text : 'Type',
+            dataIndex: 'type'
+        }, {
+            xtype: 'dataview-multisort-sortbutton',
+            text : 'Name',
+            dataIndex: 'name'
+        }]
     },
 
-    /**
-     * Returns the array of Ext.util.Sorters defined by the current toolbar button order
-     * @return {Array} The sorters
-     */
-    getSorters: function() {
-        var buttons = this.query('toolbar dataview-multisort-sortbutton'),
-            sorters = [];
-        Ext.Array.each(buttons, function(button) {
-            sorters.push({
-                property : button.getDataIndex(),
-                direction: button.getDirection()
-            });
-        });
+    items: {
+        xtype: 'dataview',
+        reference: 'dataview',
+        plugins: {
+            ptype: 'ux-animated-dataview'
+        },
 
-        return sorters;
-    },
+        itemSelector: 'div.dataview-multisort-item',
+        tpl: [
+            '<tpl for=".">',
+                '<div class="dataview-multisort-item">',
+                    '<img src="classic/resources/images/touch-icons/{thumb}" />',
+                    '<h3>{name}</h3>',
+                '</div>',
+            '</tpl>'
+        ],
 
-    /**
-     * @private
-     * Updates the DataView's Store's sorters based on the current Toolbar button configuration
-     */
-    updateStoreSorters: function() {
-        var sorters = this.getSorters(),
-            view = this.down('dataview');
-
-        view.store.sort(sorters);
+        store: {
+            autoLoad: true,
+            sortOnLoad: true,
+            fields: ['name', 'thumb', 'url', 'type'],
+            proxy: {
+                type: 'ajax',
+                url : 'data/sencha-touch-examples.json',
+                reader: {
+                    type: 'json',
+                    rootProperty: ''
+                }
+            }
+        }
     }
 });

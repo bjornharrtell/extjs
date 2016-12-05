@@ -2,19 +2,19 @@
  * @class Ext.field.Radio
  */
 
-.x-field-radio .x-field-mask {
+.x-radiofield .x-mask-el {
     &:before {
         @include border-radius(32px);
     }
-}
 
-.x-input-radio:checked ~ .x-field-mask:after {
-    position: absolute;
-    content: '';
-    top: 8px;
-    right: 8px;
-    width: 16px;
-    height: 16px;
-    background: #000;
-    @include border-radius(22px);
+    .x-input-el:checked ~ .x-mask-el:after {
+        position: absolute;
+        content: '';
+        top: 8px;
+        right: 8px;
+        width: 16px;
+        height: 16px;
+        background: #000;
+        @include border-radius(22px);
+    }
 }

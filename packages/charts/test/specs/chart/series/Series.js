@@ -21,6 +21,68 @@ describe('Ext.chart.series.Series', function() {
         Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
     });
 
+    describe('label', function () {
+        it('should allow for dynamic updates of the "field" config', function () {
+            var chart;
+
+            runs(function () {
+                chart = Ext.create({
+                    xtype: 'polar',
+                    animation: false,
+                    renderTo: document.body,
+                    width: 400,
+                    height: 400,
+                    theme: 'green',
+                    store: {
+                        fields: ['name', 'data1'],
+                        data: [{
+                            name: 'metric one',
+                            name2: 'metric 1',
+                            data1: 14
+                        }, {
+                            name: 'metric two',
+                            name2: 'metric 2',
+                            data1: 16
+                        }]
+                    },
+                    series: {
+                        id: 'mySeries',
+                        type: 'pie',
+                        highlight: true,
+                        angleField: 'data1',
+                        label: {
+                            field: 'name',
+                            display: 'rotate'
+                        },
+                        donut: 30
+                    }
+                });
+            });
+
+            waitsFor(function () {
+                // wait till sprites have rendered
+                return !chart.getSeries()[0].getSprites()[0].getDirty();
+            });
+
+            runs(function () {
+                var series = chart.get('mySeries');
+                var label = series.getLabel();
+
+                expect(label.get(0).text).toBe('metric one');
+                expect(label.get(1).text).toBe('metric two');
+
+                series.setLabel({
+                    field: 'name2'
+                });
+
+                expect(label.get(0).text).toBe('metric 1');
+                expect(label.get(1).text).toBe('metric 2');
+
+                Ext.destroy(chart);
+            });
+        });
+    });
+
     describe('resolveListenerScope', function () {
 
         var testScope;

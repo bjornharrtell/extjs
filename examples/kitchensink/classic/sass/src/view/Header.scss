@@ -30,21 +30,22 @@ $kitchensink-header-use-gradient: true;
     }
 }
 
-#app-header-title {
-    padding: 15px 0 10px 0;
-
-    color: #fff;
-    font-size: 18px;
-    font-weight: bold;
+#app-header-title,
+#app-header-logo {
+    color: white;
     @if $kitchensink-header-text-shadow-color != null {
         text-shadow: 0 1px 0 $kitchensink-header-text-shadow-color;
     }
 }
 
-#app-header-logo {
-    width: 40px;
-    height: 25px;
-
-    background: url(get-resource-path('images/logo.png', 'toolkit')) no-repeat center 4px;
+#app-header-title {
+    padding: 10px 0 10px 0;
+    font-size: 18px;
+    font-weight: bold;
 }
 
+#app-header-logo {
+    font-size: 26px;
+    line-height: 1.2;
+    margin: 0 10px;
+}

@@ -16,6 +16,777 @@ describe('Ext.Button', function() {
         button = null;
     });
 
+    describe("pressed", function() {
+        function createRenderButton(config) {
+            Ext.apply(config, {
+                renderTo: Ext.getBody(),
+                text: 'Foo'
+            });
+            createButton(config);
+        }
+
+        describe("configuration", function() {
+            describe("pressed state", function() {
+                it("should not be pressed by default", function() {
+                    createRenderButton();
+                    expect(button.isPressed()).toBe(false);
+                });
+
+                it("should not be pressed with pressed: false", function() {
+                    createRenderButton({
+                        pressed: false
+                    });
+                    expect(button.isPressed()).toBe(false);
+                });
+
+                it("should be pressed with pressed: true", function() {
+                    createRenderButton({
+                        pressed: true
+                    });
+                    expect(button.isPressed()).toBe(true);
+                });
+            });
+
+            describe("pressedCls", function() {
+                it("should not have the pressedCls by default", function() {
+                    createRenderButton();
+                    expect(button.element).not.toHaveCls(button.getPressedCls());
+                });
+
+                it("should not have the pressedCls with pressed: false", function() {
+                    createRenderButton({
+                        pressed: false
+                    });
+                    expect(button.element).not.toHaveCls(button.getPressedCls());
+                });
+
+                it("should have the pressedCls with pressed: true", function() {
+                    createRenderButton({
+                        pressed: true
+                    });
+                    expect(button.element).toHaveCls(button.getPressedCls());
+                });
+
+                it("should accept a custom pressedCls", function() {
+                    createRenderButton({
+                        pressed: true,
+                        pressedCls: 'foo'
+                    });
+                    expect(button.element).toHaveCls('foo');
+                });
+            });
+
+            describe("events", function() {
+                it("should not fire events with pressed: false", function() {
+                    var spy = jasmine.createSpy();
+                    createRenderButton({
+                        pressed: false,
+                        listeners: {
+                            beforepressedchange: spy,
+                            pressedchange: spy
+                        }
+                    });
+                    expect(spy).not.toHaveBeenCalled();
+                });
+
+                it("should not fire events with pressed: true", function() {
+                    var spy = jasmine.createSpy();
+                    createRenderButton({
+                        pressed: true,
+                        listeners: {
+                            beforepressedchange: spy,
+                            pressedchange: spy
+                        }
+                    });
+                    expect(spy).not.toHaveBeenCalled();
+                });
+            }); 
+        });
+
+        describe("dynamic", function() {
+            describe("setPressed", function() {
+                describe("when pressed: false", function() {
+                    describe("setPressed(false)", function() {
+                        it("should leave the pressed state as false", function() {
+                            createRenderButton({
+                                pressed: false
+                            });
+                            button.setPressed(false);
+                            expect(button.isPressed()).toBe(false);
+                        });
+
+                        it("should not add the pressedCls", function() {
+                            createRenderButton({
+                                pressed: false
+                            });
+                            button.setPressed(false);
+                            expect(button.element).not.toHaveCls(button.getPressedCls());
+                        });
+
+                        describe("events", function() {
+                            it("should not fire events", function() {
+                                var spy = jasmine.createSpy();
+                                createRenderButton({
+                                    pressed: false,
+                                    listeners: {
+                                        beforepressedchange: spy,
+                                        pressedchange: spy
+                                    }
+                                });
+                                button.setPressed(false);
+                                expect(spy).not.toHaveBeenCalled();
+                            });
+                        });
+                    });
+
+                    describe("setPressed(true)", function() {
+                        it("should set the pressed state to true", function() {
+                            createRenderButton({
+                                pressed: false
+                            });
+                            button.setPressed(true);
+                            expect(button.isPressed()).toBe(true);
+                        });
+
+                        it("should add the pressedCls", function() {
+                            createRenderButton({
+                                pressed: false
+                            });
+                            button.setPressed(true);
+                            expect(button.element).toHaveCls(button.getPressedCls());
+                        });
+
+                        describe("events", function() {
+                            it("should fire the beforepressedchange and pressedchange events, in that order", function() {
+                                var order = [],
+                                    beforeSpy = jasmine.createSpy().andCallFake(function() {
+                                        order.push('beforechange');
+                                    }),
+                                    spy = jasmine.createSpy().andCallFake(function() {
+                                        order.push('change');
+                                    });
+
+                                createRenderButton({
+                                    pressed: false,
+                                    listeners: {
+                                        beforepressedchange: beforeSpy,
+                                        pressedchange: spy
+                                    }
+                                });
+                                button.setPressed(true);
+
+                                expect(beforeSpy.callCount).toBe(1);
+                                expect(beforeSpy.mostRecentCall.args[0]).toBe(button);
+                                expect(beforeSpy.mostRecentCall.args[1]).toBe(true);
+                                expect(beforeSpy.mostRecentCall.args[2]).toBe(false);
+
+                                expect(spy.callCount).toBe(1);
+                                expect(spy.mostRecentCall.args[0]).toBe(button);
+                                expect(spy.mostRecentCall.args[1]).toBe(true);
+                                expect(spy.mostRecentCall.args[2]).toBe(false);
+
+                                expect(order).toEqual(['beforechange', 'change']);
+                            });
+
+                            it("should not set the pressed state if beforepressedchange returns false", function() {
+                                var beforeSpy = jasmine.createSpy().andReturn(false),
+                                    spy = jasmine.createSpy();
+
+                                createRenderButton({
+                                    pressed: false,
+                                    listeners: {
+                                        beforepressedchange: beforeSpy,
+                                        pressedchange: spy
+                                    }
+                                });
+                                button.setPressed(true);
+
+                                expect(beforeSpy.callCount).toBe(1);
+                                expect(spy).not.toHaveBeenCalled();
+                                expect(button.isPressed()).toBe(false);
+                            });
+                        });
+                    });
+                });
+
+                describe("when pressed: true", function() {
+                    describe("setPressed(true)", function() {
+                        it("should leave the pressed state as true", function() {
+                            createRenderButton({
+                                pressed: true
+                            });
+                            button.setPressed(true);
+                            expect(button.isPressed()).toBe(true);
+                        });
+
+                        it("should not remove the pressedCls", function() {
+                            createRenderButton({
+                                pressed: true
+                            });
+                            button.setPressed(true);
+                            expect(button.element).toHaveCls(button.getPressedCls());
+                        });
+
+                        describe("events", function() {
+                            it("should not fire events", function() {
+                                var spy = jasmine.createSpy();
+                                createRenderButton({
+                                    pressed: true,
+                                    listeners: {
+                                        beforepressedchange: spy,
+                                        pressedchange: spy
+                                    }
+                                });
+                                button.setPressed(true);
+                                expect(spy).not.toHaveBeenCalled();
+                            });
+                        });
+                    });
+
+                    describe("setPressed(false)", function() {
+                        it("should set the pressed state to false", function() {
+                            createRenderButton({
+                                pressed: true
+                            });
+                            button.setPressed(false);
+                            expect(button.isPressed()).toBe(false);
+                        });
+
+                        it("should remove the pressedCls", function() {
+                            createRenderButton({
+                                pressed: true
+                            });
+                            button.setPressed(false);
+                            expect(button.element).not.toHaveCls(button.getPressedCls());
+                        });
+
+                        describe("events", function() {
+                            it("should fire the beforepressedchange and pressedchange events, in that order", function() {
+                                var order = [],
+                                    beforeSpy = jasmine.createSpy().andCallFake(function() {
+                                        order.push('beforechange');
+                                    }),
+                                    spy = jasmine.createSpy().andCallFake(function() {
+                                        order.push('change');
+                                    });
+
+                                createRenderButton({
+                                    pressed: true,
+                                    listeners: {
+                                        beforepressedchange: beforeSpy,
+                                        pressedchange: spy
+                                    }
+                                });
+                                button.setPressed(false);
+
+                                expect(beforeSpy.callCount).toBe(1);
+                                expect(beforeSpy.mostRecentCall.args[0]).toBe(button);
+                                expect(beforeSpy.mostRecentCall.args[1]).toBe(false);
+                                expect(beforeSpy.mostRecentCall.args[2]).toBe(true);
+
+                                expect(spy.callCount).toBe(1);
+                                expect(spy.mostRecentCall.args[0]).toBe(button);
+                                expect(spy.mostRecentCall.args[1]).toBe(false);
+                                expect(spy.mostRecentCall.args[2]).toBe(true);
+
+                                expect(order).toEqual(['beforechange', 'change']);
+                            });
+
+                            it("should not set the pressed state if beforepressedchange returns false", function() {
+                                var beforeSpy = jasmine.createSpy().andReturn(false),
+                                    spy = jasmine.createSpy();
+
+                                createRenderButton({
+                                    pressed: true,
+                                    listeners: {
+                                        beforepressedchange: beforeSpy,
+                                        pressedchange: spy
+                                    }
+                                });
+                                button.setPressed(false);
+
+                                expect(beforeSpy.callCount).toBe(1);
+                                expect(spy).not.toHaveBeenCalled();
+                                expect(button.isPressed()).toBe(true);
+                            });
+                        });
+                    });
+                });
+            });
+
+            describe("toggle", function() {
+                describe("when not pressed", function() {
+                    it("should set the pressed state to true", function() {
+                        createRenderButton({
+                            pressed: false
+                        });
+                        button.toggle();
+                        expect(button.isPressed()).toBe(true);
+                    });
+
+                    it("should add the pressedCls", function() {
+                        createRenderButton({
+                            pressed: false
+                        });
+                        button.toggle();
+                        expect(button.element).toHaveCls(button.getPressedCls());
+                    });
+
+                    describe("events", function() {
+                        it("should fire the beforepressedchange and pressedchange events, in that order", function() {
+                            var order = [],
+                                beforeSpy = jasmine.createSpy().andCallFake(function() {
+                                    order.push('beforechange');
+                                }),
+                                spy = jasmine.createSpy().andCallFake(function() {
+                                    order.push('change');
+                                });
+
+                            createRenderButton({
+                                pressed: false,
+                                listeners: {
+                                    beforepressedchange: beforeSpy,
+                                    pressedchange: spy
+                                }
+                            });
+                            button.toggle();
+
+                            expect(beforeSpy.callCount).toBe(1);
+                            expect(beforeSpy.mostRecentCall.args[0]).toBe(button);
+                            expect(beforeSpy.mostRecentCall.args[1]).toBe(true);
+                            expect(beforeSpy.mostRecentCall.args[2]).toBe(false);
+
+                            expect(spy.callCount).toBe(1);
+                            expect(spy.mostRecentCall.args[0]).toBe(button);
+                            expect(spy.mostRecentCall.args[1]).toBe(true);
+                            expect(spy.mostRecentCall.args[2]).toBe(false);
+
+                            expect(order).toEqual(['beforechange', 'change']);
+                        });
+
+                        it("should not set the pressed state if beforepressedchange returns false", function() {
+                            var beforeSpy = jasmine.createSpy().andReturn(false),
+                                spy = jasmine.createSpy();
+
+                            createRenderButton({
+                                pressed: false,
+                                listeners: {
+                                    beforepressedchange: beforeSpy,
+                                    pressedchange: spy
+                                }
+                            });
+                            button.toggle();
+
+                            expect(beforeSpy.callCount).toBe(1);
+                            expect(spy).not.toHaveBeenCalled();
+                            expect(button.isPressed()).toBe(false);
+                        });
+                    });
+                });
+
+                describe("when pressed", function() {
+                    it("should set the pressed state to false", function() {
+                        createRenderButton({
+                            pressed: true
+                        });
+                        button.toggle();
+                        expect(button.isPressed()).toBe(false);
+                    });
+
+                    it("should remove the pressedCls", function() {
+                        createRenderButton({
+                            pressed: true
+                        });
+                        button.toggle();
+                        expect(button.element).not.toHaveCls(button.getPressedCls());
+                    });
+
+                    describe("events", function() {
+                        it("should fire the beforepressedchange and pressedchange events, in that order", function() {
+                            var order = [],
+                                beforeSpy = jasmine.createSpy().andCallFake(function() {
+                                    order.push('beforechange');
+                                }),
+                                spy = jasmine.createSpy().andCallFake(function() {
+                                    order.push('change');
+                                });
+
+                            createRenderButton({
+                                pressed: true,
+                                listeners: {
+                                    beforepressedchange: beforeSpy,
+                                    pressedchange: spy
+                                }
+                            });
+                            button.toggle();
+
+                            expect(beforeSpy.callCount).toBe(1);
+                            expect(beforeSpy.mostRecentCall.args[0]).toBe(button);
+                            expect(beforeSpy.mostRecentCall.args[1]).toBe(false);
+                            expect(beforeSpy.mostRecentCall.args[2]).toBe(true);
+
+                            expect(spy.callCount).toBe(1);
+                            expect(spy.mostRecentCall.args[0]).toBe(button);
+                            expect(spy.mostRecentCall.args[1]).toBe(false);
+                            expect(spy.mostRecentCall.args[2]).toBe(true);
+
+                            expect(order).toEqual(['beforechange', 'change']);
+                        });
+
+                        it("should not set the pressed state if beforepressedchange returns false", function() {
+                            var beforeSpy = jasmine.createSpy().andReturn(false),
+                                spy = jasmine.createSpy();
+
+                            createRenderButton({
+                                pressed: true,
+                                listeners: {
+                                    beforepressedchange: beforeSpy,
+                                    pressedchange: spy
+                                }
+                            });
+                            button.toggle();
+
+                            expect(beforeSpy.callCount).toBe(1);
+                            expect(spy).not.toHaveBeenCalled();
+                            expect(button.isPressed()).toBe(true);
+                        });
+                    });
+                });
+            });
+
+            describe("user interaction", function() {
+                function clickIt() {
+                    // Ideally this would fire using events, however for now it's
+                    // difficult to simulate across devices
+                    button.onTap();
+                }
+
+                describe("with enableToggle: false", function() {
+                    it("should not set the pressed state on tap", function() {
+                        createRenderButton({
+                            enableToggle: false
+                        });
+                        clickIt();
+                        expect(button.getPressed()).toBe(false);
+                    });
+
+                    describe("events", function() {
+                        it("should not fire events", function() {
+                            var spy = jasmine.createSpy();
+
+                            createRenderButton({
+                                enableToggle: false,
+                                listeners: {
+                                    beforepressedchange: spy,
+                                    pressedchange: spy
+                                }
+                            });
+                            clickIt();
+                            expect(spy).not.toHaveBeenCalled();
+                        });
+                    });
+                });
+
+                describe("with enableToggle: true", function() {
+                    function createToggleRenderButton(config) {
+                        Ext.apply(config, {
+                            enableToggle: true
+                        });
+                        createRenderButton(config);
+                    }
+
+                    describe("when not pressed", function() {
+                        describe("with allowDepress: false", function() {
+                            it("should set the pressed state to true", function() {
+                                createToggleRenderButton({
+                                    pressed: false,
+                                    allowDepress: false
+                                });
+                                clickIt();
+                                expect(button.isPressed()).toBe(true);
+                            });
+
+                            it("should add the pressedCls", function() {
+                                createToggleRenderButton({
+                                    pressed: false,
+                                    allowDepress: false
+                                });
+                                clickIt();
+                                expect(button.element).toHaveCls(button.getPressedCls());
+                            });
+
+                            describe("events", function() {
+                                it("should fire the beforepressedchange and pressedchange events, in that order", function() {
+                                    var order = [],
+                                        beforeSpy = jasmine.createSpy().andCallFake(function() {
+                                            order.push('beforechange');
+                                        }),
+                                        spy = jasmine.createSpy().andCallFake(function() {
+                                            order.push('change');
+                                        });
+
+                                    createToggleRenderButton({
+                                        pressed: false,
+                                        allowDepress: false,
+                                        listeners: {
+                                            beforepressedchange: beforeSpy,
+                                            pressedchange: spy
+                                        }
+                                    });
+                                    clickIt();
+
+                                    expect(beforeSpy.callCount).toBe(1);
+                                    expect(beforeSpy.mostRecentCall.args[0]).toBe(button);
+                                    expect(beforeSpy.mostRecentCall.args[1]).toBe(true);
+                                    expect(beforeSpy.mostRecentCall.args[2]).toBe(false);
+
+                                    expect(spy.callCount).toBe(1);
+                                    expect(spy.mostRecentCall.args[0]).toBe(button);
+                                    expect(spy.mostRecentCall.args[1]).toBe(true);
+                                    expect(spy.mostRecentCall.args[2]).toBe(false);
+
+                                    expect(order).toEqual(['beforechange', 'change']);
+                                });
+
+                                it("should not set the pressed state if beforepressedchange returns false", function() {
+                                    var beforeSpy = jasmine.createSpy().andReturn(false),
+                                        spy = jasmine.createSpy();
+
+                                    createToggleRenderButton({
+                                        pressed: false,
+                                        allowDepress: false,
+                                        listeners: {
+                                            beforepressedchange: beforeSpy,
+                                            pressedchange: spy
+                                        }
+                                    });
+                                    clickIt();
+
+                                    expect(beforeSpy.callCount).toBe(1);
+                                    expect(spy).not.toHaveBeenCalled();
+                                    expect(button.isPressed()).toBe(false);
+                                });
+                            });
+                        });
+
+                        describe("with allowDepress: true", function() {
+                            it("should set the pressed state to true", function() {
+                                createToggleRenderButton({
+                                    pressed: false,
+                                    allowDepress: true
+                                });
+                                clickIt();
+                                expect(button.isPressed()).toBe(true);
+                            });
+
+                            it("should add the pressedCls", function() {
+                                createToggleRenderButton({
+                                    pressed: false,
+                                    allowDepress: true
+                                });
+                                clickIt();
+                                expect(button.element).toHaveCls(button.getPressedCls());
+                            });
+
+                            describe("events", function() {
+                                it("should fire the beforepressedchange and pressedchange events, in that order", function() {
+                                    var order = [],
+                                        beforeSpy = jasmine.createSpy().andCallFake(function() {
+                                            order.push('beforechange');
+                                        }),
+                                        spy = jasmine.createSpy().andCallFake(function() {
+                                            order.push('change');
+                                        });
+
+                                    createToggleRenderButton({
+                                        pressed: false,
+                                        allowDepress: true,
+                                        listeners: {
+                                            beforepressedchange: beforeSpy,
+                                            pressedchange: spy
+                                        }
+                                    });
+                                    clickIt();
+
+                                    expect(beforeSpy.callCount).toBe(1);
+                                    expect(beforeSpy.mostRecentCall.args[0]).toBe(button);
+                                    expect(beforeSpy.mostRecentCall.args[1]).toBe(true);
+                                    expect(beforeSpy.mostRecentCall.args[2]).toBe(false);
+
+                                    expect(spy.callCount).toBe(1);
+                                    expect(spy.mostRecentCall.args[0]).toBe(button);
+                                    expect(spy.mostRecentCall.args[1]).toBe(true);
+                                    expect(spy.mostRecentCall.args[2]).toBe(false);
+
+                                    expect(order).toEqual(['beforechange', 'change']);
+                                });
+
+                                it("should not set the pressed state if beforepressedchange returns false", function() {
+                                    var beforeSpy = jasmine.createSpy().andReturn(false),
+                                        spy = jasmine.createSpy();
+
+                                    createToggleRenderButton({
+                                        pressed: false,
+                                        allowDepress: true,
+                                        listeners: {
+                                            beforepressedchange: beforeSpy,
+                                            pressedchange: spy
+                                        }
+                                    });
+                                    clickIt();
+
+                                    expect(beforeSpy.callCount).toBe(1);
+                                    expect(spy).not.toHaveBeenCalled();
+                                    expect(button.isPressed()).toBe(false);
+                                });
+                            });
+                        });
+                    });
+
+                    describe("when pressed", function() {
+                        describe("with allowDepress: false", function() {
+                            it("should not alter the pressed state", function() {
+                                createToggleRenderButton({
+                                    pressed: true,
+                                    allowDepress: false
+                                });
+                                clickIt();
+                                expect(button.isPressed()).toBe(true);
+                            });
+
+                            it("should leave the pressedCls", function() {
+                                createToggleRenderButton({
+                                    pressed: true,
+                                    allowDepress: false
+                                });
+                                clickIt();
+                                expect(button.element).toHaveCls(button.getPressedCls());
+                            });
+
+                            describe("events", function() {
+                                it("should not fire events", function() {
+                                    var spy = jasmine.createSpy();
+
+                                    createToggleRenderButton({
+                                        pressed: true,
+                                        allowDepress: false,
+                                        listeners: {
+                                            beforepressedchange: spy,
+                                            pressedchange: spy
+                                        }
+                                    });
+                                    clickIt();
+
+                                    expect(spy).not.toHaveBeenCalled();
+                                });
+                            });
+                        });
+
+                        describe("with allowDepress: true", function() {
+                            it("should set the pressed state to false", function() {
+                                createToggleRenderButton({
+                                    pressed: true,
+                                    allowDepress: true
+                                });
+                                clickIt();
+                                expect(button.isPressed()).toBe(false);
+                            });
+
+                            it("should remove the pressedCls", function() {
+                                createToggleRenderButton({
+                                    pressed: true,
+                                    allowDepress: true
+                                });
+                                clickIt();
+                                expect(button.element).not.toHaveCls(button.getPressedCls());
+                            });
+
+                            describe("events", function() {
+                                it("should fire the beforepressedchange and pressedchange events, in that order", function() {
+                                    var order = [],
+                                        beforeSpy = jasmine.createSpy().andCallFake(function() {
+                                            order.push('beforechange');
+                                        }),
+                                        spy = jasmine.createSpy().andCallFake(function() {
+                                            order.push('change');
+                                        });
+
+                                    createToggleRenderButton({
+                                        pressed: true,
+                                        allowDepress: true,
+                                        listeners: {
+                                            beforepressedchange: beforeSpy,
+                                            pressedchange: spy
+                                        }
+                                    });
+                                    clickIt();
+
+                                    expect(beforeSpy.callCount).toBe(1);
+                                    expect(beforeSpy.mostRecentCall.args[0]).toBe(button);
+                                    expect(beforeSpy.mostRecentCall.args[1]).toBe(false);
+                                    expect(beforeSpy.mostRecentCall.args[2]).toBe(true);
+
+                                    expect(spy.callCount).toBe(1);
+                                    expect(spy.mostRecentCall.args[0]).toBe(button);
+                                    expect(spy.mostRecentCall.args[1]).toBe(false);
+                                    expect(spy.mostRecentCall.args[2]).toBe(true);
+
+                                    expect(order).toEqual(['beforechange', 'change']);
+                                });
+
+                                it("should not set the pressed state if beforepressedchange returns false", function() {
+                                    var beforeSpy = jasmine.createSpy().andReturn(false),
+                                        spy = jasmine.createSpy();
+
+                                    createToggleRenderButton({
+                                        pressed: true,
+                                        allowDepress: true,
+                                        listeners: {
+                                            beforepressedchange: beforeSpy,
+                                            pressedchange: spy
+                                        }
+                                    });
+                                    clickIt();
+
+                                    expect(beforeSpy.callCount).toBe(1);
+                                    expect(spy).not.toHaveBeenCalled();
+                                    expect(button.isPressed()).toBe(true);
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+
+            describe("pressedCls", function() {
+                describe("when not pressed", function() {
+                    it("should add the pressedCls when being pressed", function() {
+                        createRenderButton({
+                            pressed: false
+                        });
+                        button.setPressedCls('someCls');
+                        expect(button.element).not.toHaveCls('someCls');
+                        button.setPressed(true);
+                        expect(button.element).toHaveCls('someCls');
+                    });
+                });
+
+                describe("when pressed", function() {
+                    it("should update the pressed cls", function() {
+                        createRenderButton({
+                            pressed: true,
+                            pressedCls: 'oldCls'
+                        });
+                        expect(button.element).toHaveCls('oldCls');
+                        button.setPressedCls('newCls');
+                        expect(button.element).not.toHaveCls('oldCls');
+                        expect(button.element).toHaveCls('newCls');
+                    });
+                });
+            });
+        });
+    });
+
     describe("configurations", function() {
         describe("autoHandler", function() {
             describe("configuration", function() {
@@ -531,7 +1302,7 @@ describe('Ext.Button', function() {
 
             button.refreshIconAlign();
 
-            expect(button.updateIconAlign).wasCalled();
+            expect(button.updateIconAlign).toHaveBeenCalled();
         });
     });
 
@@ -551,7 +1322,7 @@ describe('Ext.Button', function() {
 
             button.onTap();
 
-            expect(button.fireAction).wasCalled();
+            expect(button.fireAction).toHaveBeenCalled();
         });
     });
 
@@ -576,7 +1347,7 @@ describe('Ext.Button', function() {
 
                     button.doTap(button);
 
-                    expect(button.testFoo).wasCalled();
+                    expect(button.testFoo).toHaveBeenCalled();
                 });
             });
 
@@ -589,7 +1360,7 @@ describe('Ext.Button', function() {
 
                     button.doTap(button);
 
-                    expect(button.testFoo).wasCalled();
+                    expect(button.testFoo).toHaveBeenCalled();
                 });
             });
         });
@@ -607,7 +1378,7 @@ describe('Ext.Button', function() {
 
                 button.el.fireAction('tap', [], Ext.emptyFn);
 
-                expect(button.onTap).wasCalled();
+                expect(button.onTap).toHaveBeenCalled();
             });
         });
 
@@ -617,7 +1388,7 @@ describe('Ext.Button', function() {
 
                 button.el.fireAction('touchstart', [], Ext.emptyFn);
 
-                expect(button.onPress).wasCalled();
+                expect(button.onPress).toHaveBeenCalled();
             });
         });
 
@@ -627,7 +1398,7 @@ describe('Ext.Button', function() {
 
                 button.el.fireAction('touchend', [], Ext.emptyFn);
 
-                expect(button.onRelease).wasCalled();
+                expect(button.onRelease).toHaveBeenCalled();
             });
         });
     });

@@ -28,6 +28,12 @@
         border-bottom: 0 none;
         border-top: 0 none;
     }
+
+    // Needed to stop the border layout container background leaking through
+    // in layout: 'border' locking grids.
+    > :first-child {
+        background-color: $grid-body-background-color;
+    }
 }
 
 // Hide expander cell in summary rows

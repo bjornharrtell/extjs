@@ -154,6 +154,45 @@ describe("Ext.Date", function() {
         });
     });
 
+    describe("isWeekend", function() {
+        var days;
+
+        beforeEach(function() {
+            days = Ext.Date.weekendDays;
+        });
+
+        afterEach(function() {
+            Ext.Date.weekendDays = days;
+            days = null;
+        });
+
+        it("should return true when the date is on the weekendDays", function() {
+            expect(Ext.Date.isWeekend(new Date(2015, 0, 3))).toBe(true); // Sat, 3rd Jan
+            expect(Ext.Date.isWeekend(new Date(2015, 0, 4))).toBe(true); // Sun, 4th Jan
+        });
+
+        it("should return false when the date is not on the weekendDays", function() {
+            expect(Ext.Date.isWeekend(new Date(2015, 0, 2))).toBe(false); // Fri, 2nd Jan
+            expect(Ext.Date.isWeekend(new Date(2015, 0, 5))).toBe(false); // Mon, 5th Jan
+        });
+
+        describe("localized weekendDays", function() {
+            beforeEach(function() {
+                Ext.Date.weekendDays = [1, 5]; // Mon, Fri
+            });
+
+            it("should return true when the date is on the weekendDays", function() {
+                expect(Ext.Date.isWeekend(new Date(2015, 0, 2))).toBe(true); // Fri, 2nd Jan
+                expect(Ext.Date.isWeekend(new Date(2015, 0, 5))).toBe(true); // Mon, 5th Jan
+            });
+
+            it("should return false when the date is not on the weekendDays", function() {
+                expect(Ext.Date.isWeekend(new Date(2015, 0, 3))).toBe(false); // Sat, 3rd Jan
+                expect(Ext.Date.isWeekend(new Date(2015, 0, 4))).toBe(false); // Sun, 4th Jan
+            });
+        });
+    });
+
     describe("parse", function() {
         it("should parse year-only", function() {
             var date = Ext.Date.parse("2011", "Y"),
@@ -937,5 +976,9 @@ describe("Ext.Date", function() {
                 });
             });
         });
+    });
+
+    describe("toUtc", function() {
+        // TODO, once we have a library for mocking timezones
     });
 });

@@ -40,20 +40,21 @@ Ext.define('KitchenSink.view.binding.ChildSessionForm', {
             fieldLabel: 'Name',
             reference: 'name',
             msgTarget: 'side',
-            bind: '{theCustomer.name}'
+            bind: '{theCompany.name}'
         }, {
             xtype: 'textfield',
             fieldLabel: 'Phone',
             reference: 'phone',
             msgTarget: 'side',
-            bind: '{theCustomer.phone}'
+            bind: '{theCompany.phone}'
         }, {
             xtype: 'grid',
+            autoLoad: true,
             flex: 1,
             reference: 'orders',
             margin: '10 0 0 0',
             title: 'Orders',
-            bind: '{theCustomer.orders}',
+            bind: '{theCompany.orders}',
             tbar: [{
                 text: 'Add Order',
                 handler: 'onAddOrderClick'

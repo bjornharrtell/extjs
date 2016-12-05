@@ -1,6 +1,6 @@
 describe("Ext.selection.CellModel", function() {
     
-    var grid, view, store, sm, colRef;
+    var grid, view, store, selModel, colRef;
     
     function triggerCellMouseEvent(type, rowIdx, cellIdx, button, x, y) {
         var target = findCell(rowIdx, cellIdx);
@@ -24,9 +24,8 @@ describe("Ext.selection.CellModel", function() {
             ]
         });
 
-        sm = new Ext.selection.CellModel(selModelCfg || {});
-        
-        
+        selModel = new Ext.selection.CellModel(selModelCfg || {});
+
         var data = [],
             defaultCols = [],
             i;
@@ -58,19 +57,19 @@ describe("Ext.selection.CellModel", function() {
         grid = new Ext.grid.Panel(Ext.apply({
             columns: columns || defaultCols,
             store: store,
-            selModel: sm,
+            selModel: selModel,
             width: 1000,
             height: 500,
             renderTo: Ext.getBody()
         }, cfg));
         view = grid.getView();
-        sm = grid.getSelectionModel();
+        selModel = grid.getSelectionModel();
         colRef = grid.getColumnManager().getColumns();
     }
     
     afterEach(function(){
         Ext.destroy(grid, store);
-        sm = grid = store = view = null;
+        selModel = grid = store = view = null;
         Ext.undefine('spec.CellModel');
         Ext.data.Model.schema.clear();
     });
@@ -79,13 +78,13 @@ describe("Ext.selection.CellModel", function() {
         makeGrid();
         triggerCellMouseEvent('click', 0, 0, 3);
 
-        expect(sm.getSelection().length).toBe(1);
+        expect(selModel.getSelection().length).toBe(1);
     });
 
     describe("deselectOnContainerClick", function() {
         it("should default to false", function() {
             makeGrid();
-            expect(sm.deselectOnContainerClick).toBe(false);
+            expect(selModel.deselectOnContainerClick).toBe(false);
         });
 
         describe("deselectOnContainerClick: false", function() {
@@ -93,12 +92,12 @@ describe("Ext.selection.CellModel", function() {
                 makeGrid(null, null, {
                     deselectOnContainerClick: false
                 });
-                sm.selectByPosition({
+                selModel.selectByPosition({
                     row: 0,
                     column: 0
                 });
                 jasmine.fireMouseEvent(view.getEl(), 'click', 800, 200);
-                var pos = sm.getPosition();
+                var pos = selModel.getPosition();
                 expect(pos.record).toBe(store.getAt(0));
                 expect(pos.column).toBe(colRef[0]);
             });
@@ -109,12 +108,12 @@ describe("Ext.selection.CellModel", function() {
                 makeGrid(null, null, {
                     deselectOnContainerClick: true
                 });
-                sm.selectByPosition({
+                selModel.selectByPosition({
                     row: 0,
                     column: 0
                 });
                 jasmine.fireMouseEvent(view.getEl(), 'click', 800, 200);
-                expect(sm.getPosition()).toBeNull();
+                expect(selModel.getPosition()).toBeNull();
             });
         });
     });
@@ -130,7 +129,7 @@ describe("Ext.selection.CellModel", function() {
                 dataIndex: 'field3'
             }]);
             triggerCellMouseEvent('click', 0, 2);
-            var pos = sm.getPosition();    
+            var pos = selModel.getPosition();    
             expect(pos.column).toBe(colRef[2]);
             expect(pos.record).toBe(grid.getStore().getAt(0));
         });  
@@ -139,19 +138,19 @@ describe("Ext.selection.CellModel", function() {
     describe("store actions", function(){
         it("should have no selection when clearing the store", function(){
             makeGrid();
-            sm.selectByPosition({
+            selModel.selectByPosition({
                 row: 1,
                 column: 0
             });
             store.removeAll();
-            expect(sm.getPosition()).toBeNull();
+            expect(selModel.getPosition()).toBeNull();
         });  
         
         it("should update the position when removing records", function() {
             makeGrid();
             var rec = store.getAt(8);
             
-            sm.selectByPosition({
+            selModel.selectByPosition({
                 column: 1,
                 row: 8
             });
@@ -160,7 +159,7 @@ describe("Ext.selection.CellModel", function() {
             store.removeAt(0);
             store.removeAt(0);
             
-            var pos = sm.getPosition();
+            var pos = selModel.getPosition();
             expect(pos.column).toBe(colRef[1]);
             expect(pos.record).toBe(rec);
         });
@@ -169,7 +168,7 @@ describe("Ext.selection.CellModel", function() {
             makeGrid();
             var rec = store.getAt(1);
             
-            sm.selectByPosition({
+            selModel.selectByPosition({
                 column: 2,
                 row: 1
             });
@@ -178,15 +177,34 @@ describe("Ext.selection.CellModel", function() {
             store.insert(0, {});
             store.insert(0, {});
             
-            var pos = sm.getPosition();
+            var pos = selModel.getPosition();
             expect(pos.column).toBe(colRef[2]);
             expect(pos.record).toBe(rec);
+        });
+        
+        it("should update the position on moving records", function() {
+            makeGrid();
+            var rec = store.getAt(0);
+            
+            selModel.selectByPosition({
+                column: 2,
+                row: 0
+            });
+
+            // Move record 0 to be record 9
+            store.add(rec);
+            
+            // Cell selectino should still be consistent
+            var pos = selModel.getPosition();
+            expect(pos.column).toBe(colRef[2]);
+            expect(pos.record).toBe(rec);
+            expect(pos.rowIdx).toBe(9);
         });
     });
 
     it("should render cells with the x-grid-cell-selected cls (EXTJSIV-11254)", function() {
         makeGrid();
-        sm.select(0);
+        selModel.select(0);
 
         grid.getStore().sort([{
             property: 'name',
@@ -203,7 +221,7 @@ describe("Ext.selection.CellModel", function() {
             makeGrid();
             triggerCellMouseEvent('click', 0, 0);
             grid.headerCt.move(0, 3);
-            var pos = sm.getCurrentPosition();
+            var pos = selModel.getCurrentPosition();
             expect(pos.column).toBe(3);
             expect(pos.row).toBe(0);
             expect(pos.record).toBe(grid.getStore().getAt(0));
@@ -214,7 +232,7 @@ describe("Ext.selection.CellModel", function() {
             makeGrid();
             triggerCellMouseEvent('click', 0, 0);
             var spy = jasmine.createSpy();
-            sm.on('selectionchange', spy);
+            selModel.on('selectionchange', spy);
             grid.headerCt.move(0, 3);
             expect(spy).not.toHaveBeenCalled();
         });
@@ -251,8 +269,157 @@ describe("Ext.selection.CellModel", function() {
                 // Destroying the grid during a drag should throw no errors.
                 grid.destroy();
                 jasmine.fireMouseEvent(document.body, 'mousemove', 40, 40);
+                // Clean up
+                jasmine.fireMouseEvent(document.body, 'mouseup');
             });
         });
     });
     
+    describe("view model selection", function() {
+        var viewModel, spy;
+
+        beforeEach(function() {
+            spy = jasmine.createSpy();
+            viewModel = new Ext.app.ViewModel();
+        });
+
+        afterEach(function() {
+            spy = selModel = viewModel = null;
+        });
+
+        function selectNotify(rec) {
+            selModel.select(rec);
+            viewModel.notify();
+        }
+
+        function byName(name) {
+            var index = store.findExact('name', name);
+            return store.getAt(index);
+        }
+
+        describe("reference", function() {
+            beforeEach(function() {
+                makeGrid(null, {
+                    reference: 'userList',
+                    viewModel: viewModel
+                });
+                viewModel.bind('{userList.selection}', spy);
+                viewModel.notify();
+            });
+
+            it("should publish null by default", function() {
+                var args = spy.mostRecentCall.args;
+                expect(args[0]).toBeNull();
+                expect(args[1]).toBeUndefined();
+            });
+
+            it("should publish the value when selected", function() {
+                var rec = store.getAt(0);
+                selectNotify(rec);
+                var args = spy.mostRecentCall.args;
+                expect(args[0]).toBe(rec);
+                expect(args[1]).toBeNull();
+            });
+
+            it("should publish when the selection is changed", function() {
+                var rec1 = store.getAt(0),
+                    rec2 = store.getAt(1);
+
+                selectNotify(rec1);
+                spy.reset();
+                selectNotify(rec2);
+                var args = spy.mostRecentCall.args;
+                expect(args[0]).toBe(rec2);
+                expect(args[1]).toBe(rec1);
+            });
+
+            it("should publish when an item is deselected", function() {
+                var rec = store.getAt(0);
+                selectNotify(rec);
+                spy.reset();
+                selModel.deselect(rec);
+                viewModel.notify();
+                var args = spy.mostRecentCall.args;
+                expect(args[0]).toBeNull();
+                expect(args[1]).toBe(rec);
+            });
+        });
+
+        describe("two way binding", function() {
+            beforeEach(function() {
+                makeGrid(null, {
+                    viewModel: viewModel,
+                    bind: {
+                        selection: '{foo}'
+                    }
+                });
+                viewModel.bind('{foo}', spy);
+                viewModel.notify();
+            });
+
+            describe("changing the selection", function() {
+                it("should trigger the binding when adding a selection", function() {
+                    var rec = store.getAt(0);
+                    selectNotify(rec);
+                    var args = spy.mostRecentCall.args;
+                    expect(args[0]).toBe(rec);
+                    expect(args[1]).toBeUndefined();
+                });
+
+                it("should trigger the binding when changing the selection", function() {
+                    var rec1 = store.getAt(0),
+                        rec2 = store.getAt(1);
+
+                    selectNotify(rec1);
+                    spy.reset();
+                    selectNotify(rec2);
+                    var args = spy.mostRecentCall.args;
+                    expect(args[0]).toBe(rec2);
+                    expect(args[1]).toBe(rec1);
+                });
+
+                it("should trigger the binding when an item is deselected", function() {
+                    var rec = store.getAt(0);
+                    selectNotify(rec);
+                    spy.reset();
+                    selModel.deselect(rec);
+                    viewModel.notify();
+                    var args = spy.mostRecentCall.args;
+                    expect(args[0]).toBeNull();
+                    expect(args[1]).toBe(rec);
+                });
+            });
+
+            describe("changing the viewmodel value", function() {
+                it("should select the record when setting the value", function() {
+                    var rec = store.getAt(0);
+                    viewModel.set('foo', rec);
+                    viewModel.notify();
+                    expect(selModel.isSelected(rec)).toBe(true);
+                });
+
+                it("should select the record when updating the value", function() {
+                    var rec1 = store.getAt(0),
+                        rec2 = store.getAt(1);
+
+                    viewModel.set('foo', rec1);
+                    viewModel.notify();
+                    viewModel.set('foo', rec2);
+                    viewModel.notify();
+                    expect(selModel.isSelected(rec1)).toBe(false);
+                    expect(selModel.isSelected(rec2)).toBe(true);
+                });
+
+                it("should deselect when clearing the value", function() {
+                    var rec = store.getAt(0);
+
+                    viewModel.set('foo', rec);
+                    viewModel.notify();
+                    viewModel.set('foo', null);
+                    viewModel.notify();
+                    expect(selModel.isSelected(rec)).toBe(false);
+                });
+            });
+        });
+    });
 });

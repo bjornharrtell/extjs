@@ -286,18 +286,25 @@
             border: $ui-header-border-width $ui-header-border-style $ui-header-border-color;
         }
 
-        .#{$prefix}tool-img {
-            @if $enable-font-icons {
-                @if $ui-tool-glyph-color != $tool-glyph-color {
+        @if $enable-font-icons {
+            @if $ui-tool-glyph-color != $tool-glyph-color {
+                .#{$prefix}tool-tool-el {
                     color: $ui-tool-glyph-color;
                 }
-            } @else if $ui-tool-background-image != $tool-background-image {
-                background-image: theme-background-image($ui-tool-background-image);
             }
-            @if is-null($ui-header-background-gradient) {
-                // EXTJSIV-8846: partially transparent png images do not display correctly
-                // in winXP/IE8 when the image element has a transparent background.
-                // to fix this, we give the element the same background-color as the header.
+        } @else {
+            .#{$prefix}tool-img {
+                @if $ui-tool-background-image != $tool-background-image {
+                    background-image: theme-background-image($ui-tool-background-image);
+                }
+            }
+        }
+
+        @if is-null($ui-header-background-gradient) {
+            // EXTJSIV-8846: partially transparent png images do not display correctly
+            // in winXP/IE8 when the image element has a transparent background.
+            // to fix this, we give the element the same background-color as the header.
+            .#{$prefix}tool-tool-el {
                 background-color: $ui-header-background-color;
             }
         }
@@ -478,20 +485,22 @@
                     color: $ui-header-glyph-color;
                     background-position: $ui-header-icon-background-position;
 
-                    @if $ui-header-glyph-opacity != 1 {
-                        // do not use the opacity mixin because we do not want IE's filter version of
-                        // opacity to be included.  We emulate the opacity setting in IE8m by mixing
-                        // the icon color into the background color. (see below)
-                        opacity: $ui-header-glyph-opacity;
-                    }
-                    // In IE8 and below when a glyph contains partially transparent pixels, we
-                    // can't apply an opacity filter to the glyph element, because IE8m will render
-                    // the partially transparent pixels of the glyph as black. To work around this,
-                    // we emulate the approximate color that the glyph would have if it had opacity
-                    // applied by mixing the glyph color with the header's background-color.
-                    @if $include-ie {
-                        .#{$prefix}ie8 & {
-                            color: mix($ui-header-glyph-color, $ui-header-background-color, $ui-header-glyph-opacity * 100);
+                    &.#{$prefix}title-glyph {
+                        @if $ui-header-glyph-opacity != 1 {
+                            // do not use the opacity mixin because we do not want IE's filter version of
+                            // opacity to be included.  We emulate the opacity setting in IE8m by mixing
+                            // the icon color into the background color. (see below)
+                            opacity: $ui-header-glyph-opacity;
+                        }
+                        // In IE8 and below when a glyph contains partially transparent pixels, we
+                        // can't apply an opacity filter to the glyph element, because IE8m will render
+                        // the partially transparent pixels of the glyph as black. To work around this,
+                        // we emulate the approximate color that the glyph would have if it had opacity
+                        // applied by mixing the glyph color with the header's background-color.
+                        @if $include-ie {
+                            .#{$prefix}ie8 & {
+                                color: mix($ui-header-glyph-color, $ui-header-background-color, $ui-header-glyph-opacity * 100);
+                            }
                         }
                     }
                 }

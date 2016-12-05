@@ -1,8 +1,16 @@
+/* global Ext, expect, jasmine */
+
 describe('Ext.grid.Panel', function(){
     var itShowsScrollbars = Ext.getScrollbarSize().width ? it : xit,
         synchronousLoad = true,
         proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
-        loadStore;
+        loadStore = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
 
     function completeWithData(theData) {
         Ext.Ajax.mockComplete({
@@ -105,13 +113,7 @@ describe('Ext.grid.Panel', function(){
 
     beforeEach(function() {
         // Override so that we can control asynchronous loading
-        loadStore = Ext.data.ProxyStore.prototype.load = function() {
-            proxyStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        };
+        Ext.data.ProxyStore.prototype.load = loadStore;
 
         failedLayouts = Ext.failedLayouts || 0;
     });
@@ -120,7 +122,7 @@ describe('Ext.grid.Panel', function(){
         // Undo the overrides.
         Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
 
-        grid = view = selModel = Ext.destroy(grid);
+        grid = view = selModel = store = Ext.destroy(grid, store);
     });
 
     function expectNoFailedLayouts () {
@@ -131,7 +133,16 @@ describe('Ext.grid.Panel', function(){
     describe('scrollable: false', function() {
         var field;
         afterEach(function() {
-            field.destroy();
+            if (field) {
+                field.destroy();
+            }
+        });
+        it('should disable scrolling with scrollable: false', function() {
+            createGrid(null, {
+                scrollable: false
+            });
+            expect(grid.view.getScrollable()).toBe(false);
+            expect(grid.view.getScrollable()).toBe(false);
         });
         it('should be able to focus for a second time without throwing an error', function() {
             createGrid(null, {
@@ -156,6 +167,14 @@ describe('Ext.grid.Panel', function(){
         it('should not throw an error', function() {
             var TestGrid = Ext.define(null, {
                 extend: 'Ext.grid.Panel',
+
+                // Assign to the closure grid var eaerly in the constructor
+                // so that if an error DOES throw before the return and assignment
+                // take place, the afterEach can still clean up.
+                constructor: function() {
+                    grid = this;
+                    this.callParent(arguments);
+                },
                 
                 afterRender: function() {
                     this.callParent(arguments);
@@ -168,6 +187,23 @@ describe('Ext.grid.Panel', function(){
                 store: store,
                 renderTo: Ext.getBody()
             });
+        });
+    });
+    
+    describe('Splitter in locked grid', function() {
+        it('should allow configuration of the splitter', function() {
+            createGrid(null, {
+                height: 100,
+                split: {
+                    width: 30
+                },
+                columns: [
+                    { header: 'Name',  dataIndex: 'name', width: 200, locked: true },
+                    { header: 'Email', dataIndex: 'email', width: 200 },
+                    { header: 'Phone', dataIndex: 'phone', width: 200 }
+                ]
+            });
+            expect(grid.child('splitter').getWidth()).toBe(30);
         });
     });
 
@@ -369,7 +405,7 @@ describe('Ext.grid.Panel', function(){
             });
 
             // Width must be the locked column width plus any left & right borders
-            expect(grid.lockedGrid.getWidth()).toBe(210);
+            expect(grid.lockedGrid.getWidth()).toBe(200 + grid.lockedGrid.gridPanelBorderWidth);
         });
 
         it('should properly place table below header', function () {
@@ -608,6 +644,60 @@ describe('Ext.grid.Panel', function(){
     describe("reconfigure", function() {
         var tds;
 
+        it('should destroy the header column menu is the columns are not sortable', function() {
+            var col,
+                menu,
+                columnsItem;
+
+            grid = new Ext.grid.Panel({
+                height: 300,
+                width: 600,
+                renderTo: Ext.getBody(),
+                sortableColumns: false,
+                columns: [{
+                    text: 'Forename',
+                    dataIndex: 'name'
+                }],
+                store: new Ext.data.Store({
+                    fields: ['name', 'surname'],
+                    data: [
+                        {name: 'Tom', surname: 'Jones'},
+                        {name: 'Pete', surname: 'Tong'},
+                        {name: 'Brian', surname: 'May'}
+                    ]
+                })
+            });
+            col = grid.getVisibleColumnManager().getColumns()[0];
+            col.triggerEl.show();
+            jasmine.fireMouseEvent(col.triggerEl.dom, 'click');
+            menu = col.activeMenu;
+            expect(menu.isVisible()).toBe(true);
+
+            columnsItem = menu.child('[text=Columns]');
+
+            // The single menu item should be for the "Forename" column
+            expect(columnsItem.menu.items.items.length).toBe(1);
+            expect(columnsItem.menu.items.items[0].text).toBe('Forename');
+
+            menu.hide();
+
+            // Reconfigure and check that the columns menu reflects the new column set
+            grid.reconfigure(null, [{dataIndex: 'surname', text: 'Surname'}]);
+
+            col = grid.getVisibleColumnManager().getColumns()[0];
+            col.triggerEl.show();
+            jasmine.fireMouseEvent(col.triggerEl.dom, 'click');
+            menu = col.activeMenu;
+            expect(menu.isVisible()).toBe(true);
+
+            columnsItem = menu.child('[text=Columns]');
+
+            // The single menu item should be for the "Surname" column
+            expect(columnsItem.menu.items.items.length).toBe(1);
+            expect(columnsItem.menu.items.items[0].text).toBe('Surname');
+
+        });
+
         it("Should reconfigure the grid with no error", function() {
             grid = new Ext.grid.Panel({
                 height: 300,
@@ -658,6 +748,57 @@ describe('Ext.grid.Panel', function(){
             expect(Ext.String.trim(tds[0].textContent || tds[0].innerText)).toEqual("Jones");
             expect(Ext.String.trim(tds[1].textContent || tds[1].innerText)).toEqual("Tong");
             expect(Ext.String.trim(tds[2].textContent || tds[2].innerText)).toEqual("May");
+        });
+
+        it("Should reconfigure the grid with no error when there's a buffered renderer and the grid contains focus", function() {
+            grid = new Ext.grid.Panel({
+                height: 300,
+                width: 600,
+                hideHeaders: true,
+                renderTo: Ext.getBody(),
+                columns: [{
+                    dataIndex: 'name'
+                }],
+                store: new Ext.data.Store({
+                    fields: ['name', 'surname'],
+                    data: [
+                        {name: 'Tom', surname: 'Jones'},
+                        {name: 'Pete', surname: 'Tong'},
+                        {name: 'Brian', surname: 'May'}
+                    ]
+                })
+            });
+            var view = grid.getView(),
+                navModel = grid.getNavigationModel();
+            
+            navModel.setPosition(0, 0);
+            
+            waitsFor(function() {
+                return view.containsFocus;
+            });
+            
+            runs(function() {
+                grid.reconfigure(new Ext.data.Store({
+                    fields: ['name', 'surname'],
+                    data: [
+                        {name: 'Tom', surname: 'Jones'},
+                        {name: 'Pete', surname: 'Tong'},
+                        {name: 'Brian', surname: 'May'}
+                    ]
+                }), [{dataIndex: 'surname'}]);
+                tds = grid.view.el.query('tbody td');
+                expect(Ext.String.trim(tds[0].textContent || tds[0].innerText)).toEqual("Jones");
+                expect(Ext.String.trim(tds[1].textContent || tds[1].innerText)).toEqual("Tong");
+                expect(Ext.String.trim(tds[2].textContent || tds[2].innerText)).toEqual("May");
+            });
+
+            // Same cell by row/column should be focused after the reconfigure even though the record and column are different
+            waitsFor(function() {
+                var position = navModel.getPosition();
+                
+                return view.containsFocus && position &&
+                       position.isEqual(new Ext.grid.CellContext(view).setPosition(0, 0));
+            }, 'position to match', 1000);
         });
 
         it("Should reconfigure the grid with no error when no columns are passed", function() {
@@ -1679,11 +1820,57 @@ describe('Ext.grid.Panel', function(){
 
             MockAjaxManager.addMethods();
         });
-
+            
         afterEach(function () {
+            Ext.state.Manager.set(grid.getStateId(), null);
             MockAjaxManager.removeMethods();
             Ext.state.Manager.clear('foo');
             rawData = data = null;
+        });
+        
+        describe ('locked column state', function() {
+            // https://sencha.jira.com/browse/EXTJS-19598
+            // If the only visible locked column was moved to the locked side
+            // as a result of state restoration, the locked grid did not display properly.
+            it('should restore a locked column and ensure the locked side is visible', function() {
+                createGrid(null, {
+                    stateful: true,
+                    stateId: 'lockedColumnState',
+                    enableLocking: true
+                });
+
+                // Locked grid is hidden because it is empty
+                expect(grid.lockedGrid.isVisible()).toBe(false);
+
+                // colRef[2] begins life unlocked and hidden
+                expect(colRef[2].locked).not.toBe(true);
+                expect(colRef[2].isVisible()).toBe(false);
+
+                colRef[2].show();
+                grid.lock(colRef[2]);
+
+                // This should cause show of the locked grid.
+                expect(grid.lockedGrid.isVisible()).toBe(true);
+
+                // We now expect the locked grid to be the width of colRef[2] plus its border width
+                expect(grid.lockedGrid.width).toBe(colRef[2].getWidth() + grid.lockedGrid.gridPanelBorderWidth);
+
+                grid.saveState();
+                grid.destroy();
+
+                createGrid(null, {
+                    stateful: true,
+                    stateId: 'lockedColumnState',
+                    enableLocking: true
+                });
+
+                // The locked side should render visible because of colRef[2] (It will be colRef[0] now)
+                // being *statefully* visible and locked.
+                expect(grid.lockedGrid.isVisible()).toBe(true);
+
+                // We now expect the locked grid to be the width of colRef[0] plus its border width
+                expect(grid.lockedGrid.width).toBe(colRef[0].getWidth() + grid.lockedGrid.gridPanelBorderWidth);
+            });
         });
 
         describe('autoLoad = false', function () {
@@ -2849,6 +3036,7 @@ describe('Ext.grid.Panel', function(){
             var store = new Ext.data.Store({
                 model: ForumThread,
                 buffered: true,
+                asynchronousLoad: false,
                 pageSize: 350,
                 proxy: {
                     type: 'ajax',

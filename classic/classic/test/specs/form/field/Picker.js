@@ -1,3 +1,5 @@
+/* global Ext, jasmine, expect, describe, spyOn, xdescribe */
+
 describe("Ext.form.field.Picker", function() {
     var component, makeComponent;
 
@@ -12,7 +14,10 @@ describe("Ext.form.field.Picker", function() {
                 // simple implementation
                 createPicker: function() {
                     return new Ext.Component({
+                        id: this.id + '-picker',
+                        floatParent: this,
                         hidden: true,
+                        focusable: true,
                         renderTo: Ext.getBody(),
                         floating: true,
                         html: 'foo'
@@ -30,14 +35,10 @@ describe("Ext.form.field.Picker", function() {
         component = makeComponent = null;
     });
 
-    function clickTrigger() {
-        var trigger = component.getTrigger('picker').el,
+    function clickTrigger(triggerName) {
+        var trigger = component.getTrigger(triggerName || 'picker').el,
             xy = trigger.getXY();
         jasmine.fireMouseEvent(trigger.dom, 'click', xy[0], xy[1]);
-    }
-    
-    function expectAria(attr, value) {
-        jasmine.expectAriaAttr(component, attr, value);
     }
 
     describe("defaults", function() {
@@ -63,11 +64,11 @@ describe("Ext.form.field.Picker", function() {
             });
             
             it("should have aria-haspopup attribute", function() {
-                expectAria('aria-haspopup', 'true');
+                expect(component).toHaveAttr('aria-haspopup', 'true');
             });
             
             it("should have aria-expanded attribute", function() {
-                expectAria('aria-expanded', 'false');
+                expect(component).toHaveAttr('aria-expanded', 'false');
             });
         });
     });
@@ -133,13 +134,20 @@ describe("Ext.form.field.Picker", function() {
         it("should set aria-expanded to true", function() {
             component.expand();
             
-            expectAria('aria-expanded', 'true');
+            expect(component).toHaveAttr('aria-expanded', 'true');
         });
         
-        it("should set aria-owns attribute", function() {
+        it("should set aria-owns attribute if missing", function() {
             component.expand();
             
-            expectAria('aria-owns', component.picker.el.id);
+            expect(component).toHaveAttr('aria-owns', component.picker.el.id);
+        });
+        
+        it("should not override existing aria-owns attribute", function() {
+            component.ariaEl.dom.setAttribute('aria-owns', 'blerg zurg throbbe');
+            component.expand();
+            
+            expect(component).toHaveAttr('aria-owns', 'blerg zurg throbbe');
         });
 
         // TODO
@@ -177,13 +185,13 @@ describe("Ext.form.field.Picker", function() {
         it("should set aria-expanded to false", function() {
             component.collapse();
             
-            expectAria('aria-expanded', 'false');
+            expect(component).toHaveAttr('aria-expanded', 'false');
         });
         
         it("should not remove aria-owns", function() {
             component.collapse();
             
-            expectAria('aria-owns', component.picker.el.id);
+            expect(component).toHaveAttr('aria-owns', component.picker.el.id);
         });
 
         // TODO
@@ -192,53 +200,125 @@ describe("Ext.form.field.Picker", function() {
     });
 
 
-    describe("trigger click", function() {
-        beforeEach(function() {
-            makeComponent({
-                renderTo: Ext.getBody()
+    describe("trigger clicks", function() {
+        describe("single trigger", function() {
+            beforeEach(function() {
+                makeComponent({
+                    renderTo: Ext.getBody()
+                });
             });
-        });
-
-        it("should expand the picker if not already expanded", function() {
-            spyOn(component, 'expand');
-            clickTrigger();
-            expect(component.expand).toHaveBeenCalled();
-        });
-
-        it("should collapse the picker if already expanded", function() {
-            component.expand();
-            spyOn(component, 'collapse');
-            clickTrigger();
-            expect(component.collapse).toHaveBeenCalled();
-        });
-
-        it("should not blur the field", function() {
-            component.focus();
-            waitsFor(function() {
-                return component.hasFocus;
-            });
-            runs(function() {
+    
+            it("should expand the picker if not already expanded", function() {
+                spyOn(component, 'expand');
                 clickTrigger();
+                expect(component.expand).toHaveBeenCalled();
             });
-            // In IE focus events are async, so we have to wait to make sure the
-            // component did not lose focus as a result of the trigger click
-            waitsFor(function() {
-                return component.hasFocus;
+    
+            it("should collapse the picker if already expanded", function() {
+                component.expand();
+                spyOn(component, 'collapse');
+                clickTrigger();
+                expect(component.collapse).toHaveBeenCalled();
+            });
+    
+            it("should not blur the field", function() {
+                focusAndWait(component);
+                
+                runs(function() {
+                    clickTrigger();
+                });
+                
+                // In IE focus events are async, so we have to wait to make sure the
+                // component did not lose focus as a result of the trigger click
+                expectFocused(component);
+            });
+    
+            it("should do nothing if the field is readOnly", function() {
+                component.setReadOnly(true);
+                spyOn(component, 'expand');
+                clickTrigger();
+                expect(component.expand).not.toHaveBeenCalled();
+            });
+    
+            it("should do nothing if the field is disabled", function() {
+                component.setDisabled(true);
+                spyOn(component, 'expand');
+                clickTrigger();
+                expect(component.expand).not.toHaveBeenCalled();
+            });
+            
+            it("should focus the input when field is not focused", function() {
+                clickTrigger();
+                
+                expectFocused(component);
+            });
+            
+            it("should focus the input when picker is focused before collapsing", function() {
+                var picker = component.getPicker();
+                
+                runs(function() {
+                    component.expand();
+                    picker.el.dom.setAttribute('tabIndex', '-1');
+                    picker.el.focus();
+                });
+                
+                waitForFocus(picker);
+                
+                runs(function() {
+                    clickTrigger();
+                });
+                
+                runs(function() {
+                    expectFocused(component, true);
+                });
             });
         });
+        
+        describe("multiple triggers", function() {
+            var picker;
+            
+            beforeEach(function() {
+                makeComponent({
+                    renderTo: Ext.getBody(),
+                    triggers: {
+                        clear: {
+                            handler: Ext.emptyFn
+                        }
+                    }
+                });
+                
+                picker = component.getPicker();
+                picker.el.dom.setAttribute('tabIndex', -1);
+            });
+            
+            afterEach(function() {
+                picker = null;
+            });
+            
+            describe("when picker is expanded and focused", function() {
+                beforeEach(function() {
+                    component.expand();
+                    picker.el.focus();
 
-        it("should do nothing if the field is readOnly", function() {
-            component.setReadOnly(true);
-            spyOn(component, 'expand');
-            clickTrigger();
-            expect(component.expand).not.toHaveBeenCalled();
-        });
-
-        it("should do nothing if the field is disabled", function() {
-            component.setDisabled(true);
-            spyOn(component, 'expand');
-            clickTrigger();
-            expect(component.expand).not.toHaveBeenCalled();
+                    waitForFocus(picker);
+                });
+                
+                it("should focus the input when clicking picker trigger", function() {
+                    clickTrigger();
+                    
+                    runs(function() {
+                        expectFocused(component, true);
+                    });
+                });
+                
+                it("should not focus the input when clicking clear trigger", function() {
+                    clickTrigger('clear');
+                    
+                    runs(function() {
+                        expectFocused(picker, true);
+                    });
+                });
+            });
         });
     });
 
@@ -261,9 +341,9 @@ describe("Ext.form.field.Picker", function() {
         });
 
         it("should collapse the picker when the escape key is pressed", function() {
-            spyOn(component.keyNav.map.bindings[1], "handler").andCallThrough();
+            spyOn(component, component.keyMap.ESC.handler).andCallThrough();
             fireKey(27);
-            expect(component.keyNav.map.bindings[1].handler).toHaveBeenCalled();
+            expect(component[component.keyMap.ESC.handler]).toHaveBeenCalled();
         });
     });
 

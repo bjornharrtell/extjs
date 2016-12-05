@@ -1,3 +1,5 @@
+/* global Ext, jasmine, expect */
+
 describe('Ext.grid.header.Container', function () {
     var createGrid = function (storeCfg, gridCfg) {
         store = Ext.create('Ext.data.Store', Ext.apply({
@@ -68,6 +70,48 @@ describe('Ext.grid.header.Container', function () {
                 return menu.isVisible() && menu.containsFocus;
             });
         });
+        
+        if (Ext.supports.TouchEvents) {
+            it('should show the menu on trigger mousedown+mouseup', function() {
+                var col,
+                    menu;
+
+                createGrid({}, {
+                    renderTo: Ext.getBody()
+                });
+
+                col = grid.columns[0];
+                col.triggerEl.show();
+                jasmine.fireMouseEvent(col.triggerEl.dom, 'mousedown');
+                jasmine.fireMouseEvent(col.triggerEl.dom, 'mouseup');
+
+                menu = col.activeMenu;
+
+                // Should have shown the header menu
+                expect(menu && menu.isVisible()).toBe(true);
+            });
+            it('should show the menu on trigger touchstart+touchend', function() {
+                var col,
+                    menu,
+                    x, y;
+
+                createGrid({}, {
+                    renderTo: Ext.getBody()
+                });
+
+                col = grid.columns[0];
+                col.triggerEl.show();
+                x = col.triggerEl.getX() + col.triggerEl.getWidth() / 2;
+                y = col.triggerEl.getY() + col.triggerEl.getHeight() / 2;
+                jasmine.fireTouchEvent(col.triggerEl.dom, 'touchstart', [{ pageX: x, pageY: y }]);
+                jasmine.fireTouchEvent(col.triggerEl.dom, 'touchend', [{ pageX: x, pageY: y }]);
+
+                menu = col.activeMenu;
+
+                // Should have shown the header menu
+                expect(menu && menu.isVisible()).toBe(true);
+            });
+        }
     });
 
     describe('columnManager delegations', function () {
@@ -314,6 +358,78 @@ describe('Ext.grid.header.Container', function () {
             waitsFor(function() {
                 return emailItem.disabled;
             });
+        });
+    });
+    
+    describe("reconfiguring parent grid", function() {
+        it("should enable tabIndex on its tab guards after adding columns", function() {
+            createGrid({}, { columns: [] });
+            
+            expect(grid.headerCt.el).not.toHaveAttr('tabIndex');
+            
+            grid.reconfigure(null, [
+                { header: 'Name',  dataIndex: 'name', width: 100 },
+                { header: 'Email', dataIndex: 'email', flex: 1 },
+                { header: 'Phone', dataIndex: 'phone', flex: 1, hidden: true }
+            ]);
+            
+            expect(grid.headerCt.tabGuardBeforeEl).toHaveAttr('tabIndex', '0');
+            expect(grid.headerCt.tabGuardAfterEl).toHaveAttr('tabIndex', '0');
+        });
+        
+        it("should disable tabIndex on its tab guards after removing all columns", function() {
+            createGrid();
+            
+            expect(grid.headerCt.tabGuardBeforeEl).toHaveAttr('tabIndex', '0');
+            expect(grid.headerCt.tabGuardAfterEl).toHaveAttr('tabIndex', '0');
+            
+            grid.reconfigure(null, []);
+            
+            expect(grid.headerCt.tabGuardBeforeEl).not.toHaveAttr('tabIndex');
+            expect(grid.headerCt.tabGuardAfterEl).not.toHaveAttr('tabIndex');
+        });
+    });
+
+    describe('grid panel', function(){
+        it('should be notified when adding a column header', function(){
+            createGrid({}, { columns: [] });
+
+            grid.headerCt.insert(0, [
+                { header: 'Name',  dataIndex: 'name', width: 100 },
+                { header: 'Email', dataIndex: 'email', flex: 1 },
+                { header: 'Phone', dataIndex: 'phone', flex: 1 }
+            ]);
+
+            var view = grid.getView(),
+                c0_0 = view.getCellByPosition({row:0,column:0}, true),
+                c0_1 = view.getCellByPosition({row:0,column:1}, true),
+                c0_2 = view.getCellByPosition({row:0,column:2}, true);
+
+            expect(c0_0).not.toBe(false);
+            expect(c0_1).not.toBe(false);
+            expect(c0_2).not.toBe(false);
+
+        });
+
+        // EXTJS-21400
+        it('should be notified when adding a group header', function(){
+            createGrid({}, { columns: [] });
+
+            grid.headerCt.insert(0, {header: 'test', columns: [
+                { header: 'Name',  dataIndex: 'name', width: 100 },
+                { header: 'Email', dataIndex: 'email', flex: 1 },
+                { header: 'Phone', dataIndex: 'phone', flex: 1 }
+            ]});
+
+            var view = grid.getView(),
+                c0_0 = view.getCellByPosition({row:0,column:0}, true),
+                c0_1 = view.getCellByPosition({row:0,column:1}, true),
+                c0_2 = view.getCellByPosition({row:0,column:2}, true);
+
+            expect(c0_0).not.toBe(false);
+            expect(c0_1).not.toBe(false);
+            expect(c0_2).not.toBe(false);
+
         });
     });
 });

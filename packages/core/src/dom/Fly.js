@@ -75,7 +75,8 @@ Ext.define('Ext.dom.Fly', {
         //</debug>
         null
 }, function(Fly) {
-    var flyweights = {};
+    var flyweights = {},
+        detachedBodyEl;
 
     /**
      * @member Ext
@@ -143,5 +144,22 @@ Ext.define('Ext.dom.Fly', {
             }
         }
         return fly;
+    };
+
+    /**
+     * Returns an HTML div element into which {@link Ext.container.Container#method-remove removed} components
+     * are placed so that their DOM elements are not garbage collected as detached Dom trees.
+     * @return {Ext.dom.Element}
+     * @method getDetachedBody
+     * @member Ext
+     * @private
+     */
+    Ext.getDetachedBody = function () {
+        if (!detachedBodyEl) {
+            Ext.detachedBodyEl = detachedBodyEl = new Fly(document.createElement('div'));
+            detachedBodyEl.isDetachedBody = true;
+        }
+
+        return detachedBodyEl;
     };
 });

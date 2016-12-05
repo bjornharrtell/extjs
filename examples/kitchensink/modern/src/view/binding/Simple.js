@@ -1,11 +1,11 @@
 Ext.define('KitchenSink.view.binding.Simple', {
     extend: 'Ext.Container',
 
-    //<example>
+    // <example>
     requires: [
         'Ext.app.ViewModel'
     ],
-    //</example>
+    // </example>
 
     viewModel: {
         data: {
@@ -23,6 +23,9 @@ Ext.define('KitchenSink.view.binding.Simple', {
     },
 
     scrollable: true,
+
+    shadow: true,
+    cls: 'demo-solid-background',
 
     items: [{
         xtype: 'titlebar',

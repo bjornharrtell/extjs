@@ -25,14 +25,14 @@ Ext.define('KitchenSink.view.binding.ChildSession', {
         path: 'classic/samples/view/binding/ChildSessionForm.js'
     }, {
         type: 'Model',
-        path: 'classic/samples/model/Customer.js'
+        path: 'classic/samples/model/Company.js'
     }, {
         type: 'Model',
         path: 'classic/samples/model/Order.js'
     }],
     //</example>
 
-    title: 'All Customers',
+    title: 'All Companies',
     frame: true,
     width: 420,
     height: 320,
@@ -53,8 +53,8 @@ Ext.define('KitchenSink.view.binding.ChildSession', {
     items: [{
         flex: 1,
         xtype: 'grid',
-        reference: 'customerGrid',
-        bind: '{customers}',
+        reference: 'companyGrid',
+        bind: '{companies}',
         columns: [{
             dataIndex: 'name',
             flex: 1,
@@ -69,19 +69,19 @@ Ext.define('KitchenSink.view.binding.ChildSession', {
             widget: {
                 xtype: 'button',
                 text: 'Edit',
-                handler: 'onEditCustomerClick'
+                handler: 'onEditCompanyClick'
             }
         }]
     }],
 
     tbar: [{
-        text: 'Add Customer',
-        handler: 'onAddCustomerClick'
+        text: 'Add Company',
+        handler: 'onAddCompanyClick'
     }, {
-        text: 'Remove Customer',
-        handler: 'onRemoveCustomerClick',
+        text: 'Remove Company',
+        handler: 'onRemoveCompanyClick',
         bind: {
-            disabled: '{!customerGrid.selection}'
+            disabled: '{!companyGrid.selection}'
         }
     }],
 

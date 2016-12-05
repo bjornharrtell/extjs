@@ -32,10 +32,47 @@ Ext.String = (function() {
 
             return other.length <= s.length; 
         },
-        
+        fromCharCode = String.fromCharCode,
         ExtString;
 
     return ExtString = {
+
+        /**
+         * Creates a string created by using the specified sequence of code points.
+         * @param {Number...} codePoint Codepoints from which to build the string.
+         * @return {String} A string built from the sequence of code points passed.
+         */
+        fromCodePoint: String.fromCodePoint || function() {
+            var codePoint,
+                result = '',
+                codeUnits = [],
+                index = -1,
+                length = arguments.length;
+
+            while (++index < length) {
+                codePoint = Number(arguments[index]);
+                if (
+                    !isFinite(codePoint) ||       // `NaN`, `+Infinity`, or `-Infinity`
+                    codePoint < 0 ||              // not a valid Unicode code point
+                    codePoint > 0x10FFFF ||       // not a valid Unicode code point
+                    Math.floor(codePoint) !== codePoint // not an integer
+                ) {
+                    Ext.raise('Invalid code point: ' + codePoint);
+                }
+                if (codePoint <= 0xFFFF) { // BMP code point
+                    codeUnits.push(codePoint);
+                } else { // Astral code point; split in surrogate halves
+                    // http://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+                    codePoint -= 0x10000;
+                    codeUnits.push((codePoint >> 10) + 0xD800, (codePoint % 0x400) + 0xDC00);
+                }
+                if (index + 1 === length) {
+                    result += fromCharCode(codeUnits);
+                    codeUnits.length = 0;
+                }
+            }
+            return result;
+        },
 
         /**
          * Inserts a substring into a string.
@@ -448,7 +485,7 @@ Ext.String.resetCharacterEntities();
 /**
  * Old alias to {@link Ext.String#htmlEncode}
  * @deprecated Use {@link Ext.String#htmlEncode} instead
- * @method
+ * @method htmlEncode
  * @member Ext
  * @inheritdoc Ext.String#htmlEncode
  */
@@ -458,7 +495,7 @@ Ext.htmlEncode = Ext.String.htmlEncode;
 /**
  * Old alias to {@link Ext.String#htmlDecode}
  * @deprecated Use {@link Ext.String#htmlDecode} instead
- * @method
+ * @method htmlDecode
  * @member Ext
  * @inheritdoc Ext.String#htmlDecode
  */
@@ -467,7 +504,7 @@ Ext.htmlDecode = Ext.String.htmlDecode;
 /**
  * Old alias to {@link Ext.String#urlAppend}
  * @deprecated Use {@link Ext.String#urlAppend} instead
- * @method
+ * @method urlAppend
  * @member Ext
  * @inheritdoc Ext.String#urlAppend
  */

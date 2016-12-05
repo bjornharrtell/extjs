@@ -170,6 +170,13 @@
         .#{$prefix}box-scroller-body-horizontal {
             margin-left: max($horizontal-width + horizontal($left-margin) - left($container-padding), 0);
         }
+
+        @if $include-rtl {
+            &.#{$prefix}rtl .#{$prefix}box-scroller-body-horizontal {
+                margin-left: 0;
+                margin-right: max($horizontal-width + horizontal($left-margin) - left($container-padding), 0);
+            }
+        }
     }
 
     .#{$prefix}#{$type}-#{$ui}-vertical-scroller {

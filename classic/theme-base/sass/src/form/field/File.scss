@@ -14,6 +14,9 @@
     height: 100%;
     overflow: hidden;
     
+    // Disable blinking caret in IE
+    text-indent: -10000px;
+    
     @include opacity(0);
     
      /* Yes, there's actually a good reason for this...

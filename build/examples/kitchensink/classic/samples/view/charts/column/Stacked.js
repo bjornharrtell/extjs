@@ -39,6 +39,7 @@ Ext.define('KitchenSink.view.charts.column.Stacked', {
             type: 'browsers'
         },
         legend: {
+            type: 'sprite',
             docked: 'bottom'
         },
         interactions: {

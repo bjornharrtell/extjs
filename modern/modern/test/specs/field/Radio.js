@@ -149,7 +149,7 @@ describe('Ext.field.Radio', function() {
 
             var f = fieldset.getAt(1);
 
-            jasmine.fireMouseEvent(f.getComponent().mask.dom, 'click');
+            jasmine.fireMouseEvent(f.getComponent().maskElement.dom, 'click');
 
             expect(fieldset.getAt(0).getChecked()).toBe(false);
             expect(f.getChecked()).toBe(true);

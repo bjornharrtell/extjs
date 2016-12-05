@@ -188,8 +188,10 @@ Ext.define('Ext.selection.CellModel', {
      *   A record or index of the record (starting at 0)
      * @param {Ext.grid.column.Column/Number} pos.column
      *   A column or index of the column (starting at 0).  Includes visible columns only.
+     * @param keepExisting (private)
+     * @param suppressEvent (private)
      */
-    select: function(pos, /* private */ keepExisting, suppressEvent) {
+    select: function(pos, keepExisting, suppressEvent) {
         var me = this,
             row,
             oldPos = me.getPosition(),
@@ -362,6 +364,25 @@ Ext.define('Ext.selection.CellModel', {
     },
 
     /**
+     * @private
+     * Called when the store is refreshed.
+     * Refresh the current position.
+     * @param {Ext.util.Bag} selected A Collection representing the currently selected records.
+     */
+    updateSelectedInstances: function(selected) {
+        var pos = this.getPosition(),
+            selRec = selected.getAt(0);
+
+        // Keep row/record pointer synchronized.
+        // This handler is scheduled before the refresh op
+        // So UI will appear in the correct state.
+        if (selRec && pos && pos.record.id === selRec.id) {
+            pos.setRow(selRec);
+        }
+        this.callParent([selected]);
+    },
+
+    /**
      * Set the current position based on where the user clicks.
      * @private
      * IMPORTANT* Due to V4.0.0 history, the cellIndex here is the index within ALL columns, including hidden.
@@ -469,7 +490,7 @@ Ext.define('Ext.selection.CellModel', {
         // DO NOT fire events because the selected 
         if (pos && pos.view === view) {
             record = pos.record;
-            column = pos.column;
+            column = view.getColumnByPosition(pos);
 
             // After a refresh, recreate the selection using the same record and grid column as before
             if (!column.isDescendantOf(headerCt)) {

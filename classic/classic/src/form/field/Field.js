@@ -189,6 +189,14 @@ Ext.define('Ext.form.field.Field', {
         me.initialValue = me.originalValue = me.lastValue = me.getValue();
     },
 
+    /**
+     * Cleans up values initialized by this Field mixin on the current instance. 
+     * Components using this mixin should call this method before being destroyed.
+     */
+    cleanupField : function() {
+        delete this._ownerRecord;
+    },
+
     // Fields can be editors, and some editors may not have a name property that maps
     // to its data index, so it's necessary in these cases to look it up by its dataIndex
     // property.  See EXTJSIV-11650.
@@ -313,6 +321,7 @@ Ext.define('Ext.form.field.Field', {
     },
     
     /**
+     * @method
      * Template method before a field is reset.
      * @protected
      */
@@ -342,11 +351,11 @@ Ext.define('Ext.form.field.Field', {
         var me = this,
             newVal, oldVal;
             
-        if (!me.suspendCheckChange) {
+        if (!me.suspendCheckChange && !me.destroying && !me.destroyed) {
             newVal = me.getValue();
             oldVal = me.lastValue;
                 
-            if (!me.destroyed && me.didValueChange(newVal, oldVal)) {
+            if (me.didValueChange(newVal, oldVal)) {
                 me.lastValue = newVal;
                 me.fireEvent('change', me, newVal, oldVal);
                 me.onChange(newVal, oldVal);
@@ -446,7 +455,7 @@ Ext.define('Ext.form.field.Field', {
             result;
 
         if (validationField) {
-            result = validationField.validate(value);
+            result = validationField.validate(value, null, null, this._ownerRecord);
             if (result !== true) {
                 errors.push(result);
             }
@@ -499,6 +508,14 @@ Ext.define('Ext.form.field.Field', {
     },
 
     /**
+     * @private 
+     */
+    setValidationField: function(value, record) {
+        this.callParent([value]);
+        this._ownerRecord = record;
+    },
+
+    /**
      * A utility for grouping a set of modifications which may trigger value changes into a single transaction, to
      * prevent excessive firing of {@link #change} events. This is useful for instance if the field has sub-fields which
      * are being updated as a group; you don't want the container field to check its own changed state for each subfield
@@ -509,9 +526,6 @@ Ext.define('Ext.form.field.Field', {
         try {
             this.suspendCheckChange++;
             fn();
-        }
-        catch (pseudo) {  //required with IE when using 'try'
-            throw pseudo;
         }
         finally {
             this.suspendCheckChange--;

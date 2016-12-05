@@ -7,6 +7,9 @@ Ext.define('Ext.resizer.ResizeTracker', {
     dynamic: true,
     preserveRatio: false,
 
+    // Resizer mousedown must blur active element
+    preventDefault: false,
+
     // Default to no constraint
     constrainTo: null,
     
@@ -118,31 +121,21 @@ Ext.define('Ext.resizer.ResizeTracker', {
     },
 
     onMouseDown: function (e, target) {
-        // Logic to resize components on top of iframes. To properly handle iframes "below"
-        // the resizable component, we cannot wait for triggerStart or onStart because if
-        // mouse moves out of the component and over the iframe we won't detect that the
-        // drag has started. So we have to mask the iframes now. We cannot do this in
+        // Logic to resize components on top of iframes or handle resizers bound to iframes.
+        // To properly handle iframes "below" the resizable component, we cannot wait for 
+        // triggerStart or onStart because if the cursor moves out of the component and over the 
+        // iframe we won't detect that the drag has started. We cannot do this in
         // general because other draggable things cannot assume that mouseDown is safe
-        // for this purpose. In particular ComponentDragger on a maximaizable window will
+        // for this purpose. In particular ComponentDragger on a maximizable window will
         // get tricked by the maximize button onMouseDown and mask everything but will
-        // noever get the onMopuseUp to unmask.
-        var targetEl = Ext.fly(target.parentNode);
-            
-        this.callParent(arguments);
-        
-        if (targetEl && targetEl.shim) {
-            targetEl.maskIframes();
-        }
+        // never get the onMouseUp to unmask.
+        this.callParent([e, target]);
+        Ext.dom.Element.maskIframes();
     },
 
     onMouseUp: function(e) {
-        var targetEl = Ext.fly(this.dragTarget.parentNode);
-        
-        this.callParent(arguments);
-        
-        if (targetEl && targetEl.shim) {
-            targetEl.unmaskIframes();
-        }
+        this.callParent([e]);
+        Ext.dom.Element.unmaskIframes();
     },
 
     onDrag: function(e) {

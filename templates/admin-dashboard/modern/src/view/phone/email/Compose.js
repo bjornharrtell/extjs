@@ -11,6 +11,7 @@ Ext.define('Admin.view.phone.email.Compose', {
 
     layout: 'vbox',
     padding: 20,
+    scrollable: false,
 
     title: 'Compose',
 
@@ -35,7 +36,6 @@ Ext.define('Admin.view.phone.email.Compose', {
         placeHolder: 'Content',
         name: 'message',
         flex: 1,
-        height: '100%',
         margin: '0 0 10 0'
     }, {
         xtype: 'container',

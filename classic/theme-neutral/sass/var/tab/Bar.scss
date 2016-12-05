@@ -200,6 +200,20 @@ $tabbar-scroller-include-plain-icon: dynamic(false);
 $tabbar-scroller-symmetrical-icons: dynamic(true);
 
 /**
+ * @var {color}
+ * The color to use for the {@link #overflowHandler menu overflow} "more" icon when
+ * {@link Global_CSS#$enable-font-icons} is `true`.
+ */
+$tabbar-menu-overflow-glyph-color: dynamic($button-default-glyph-color);
+ 
+/**
+ * @var {string/list}
+ * Glyph for the {@link #overflowHandler menu overflow} "more" icon when
+ * {@link Global_CSS#$enable-font-icons} is `true`.
+ */
+$tabbar-menu-overflow-glyph: dynamic($fa-var-bars $button-small-glyph-font-size $font-icon-font-family);
+
+/**
  * @var {boolean}
  * True to include the "default" tabbar UI
  */

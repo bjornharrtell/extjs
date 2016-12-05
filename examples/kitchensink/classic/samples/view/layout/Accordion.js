@@ -3,107 +3,59 @@
  */
 Ext.define('KitchenSink.view.layout.Accordion', {
     extend: 'Ext.panel.Panel',
-    
+    xtype: 'layout-accordion',
+
     requires: [
         'Ext.layout.container.Accordion',
-        'Ext.grid.*',
-        'KitchenSink.model.Company'
+        'Ext.grid.*'
     ],
-    xtype: 'layout-accordion',
+
     //<example>
-    exampleTitle: 'Accordion Layout',
     otherContent: [{
-        type: 'Store',
-        path: 'classic/samples/data/DataSets.js'
-    },{
+        type: 'Controller',
+        path: 'classic/samples/view/grid/BasicGridController.js'
+    }, {
         type: 'Model',
         path: 'classic/samples/model/Company.js'
     }],
     profiles: {
         classic: {
-            colWidth: 75
+            width: 600,
+            green: 'green',
+            red: 'red'
         },
-        
         neptune: {
-            colWidth: 90
+            width: 700,
+            green: '#73b51e',
+            red: '#cf4c35'
         }
     },
     //</example>
+
+    title: 'Accordion Layout',
     layout: 'accordion',
-    width: 500,
-    height: 400,
+    width: '${width}',
+    height: 500,
     defaults: {
         bodyPadding: 10
     },
-    
-    initComponent: function() {
-        Ext.apply(this, {
-            items: [{
-                bodyPadding: 0,
-                xtype: 'grid',
-                title: 'Array Grid (Click or tap header to collapse)',
-                hideCollapseTool: true,
-                columnLines: true,
-                store: new Ext.data.Store({
-                    model: KitchenSink.model.Company,
-                    data: KitchenSink.data.DataSets.company
-                }),
-                columns: [{
-                    text     : 'Company',
-                    flex     : 1,
-                    sortable : false,
-                    dataIndex: 'name'
-                }, {
-                    text     : 'Price',
-                    width    : 75,
-                    sortable : true,
-                    formatter: 'usMoney',
-                    dataIndex: 'price'
-                }, {
-                    text     : 'Change',
-                    width    : 75,
-                    sortable : true,
-                    renderer : this.changeRenderer,
-                    dataIndex: 'change'
-                }, {
-                    text     : '% Change',
-                    width    : 90,
-                    sortable : true,
-                    renderer : this.pctChangeRenderer,
-                    dataIndex: 'pctChange'
-                }]
-            }, {
-                title: 'Accordion Item 2',
-                html: 'Empty'
-            }, {
-                title: 'Accordion Item 3',
-                html: 'Empty'
-            }, {
-                title: 'Accordion Item 4',
-                html: 'Empty'
-            }, {
-                title: 'Accordion Item 5',
-                html: 'Empty'
-            }]
-        });
-        this.callParent();
-    },
-    
-    changeRenderer: function(val) {
-        if (val > 0) {
-            return '<span style="color:green;">' + val + '</span>';
-        } else if(val < 0) {
-            return '<span style="color:red;">' + val + '</span>';
-        }
-        return val;
-    },
-    
-    pctChangeRenderer: function(val){
-        if (val > 0) {
-            return '<span style="color:green;">' + val + '%</span>';
-        } else if(val < 0) {
-            return '<span style="color:red;">' + val + '%</span>';
-        }
-        return val;
-    }
+
+    items: [{
+        // See Grids / Basic Grid example for this view.
+        xtype: 'array-grid',
+        title: 'Basic Grid (Click or tap header to collapse)',
+        bodyPadding: 0
+    }, {
+        title: 'Accordion Item 2',
+        html: 'Empty'
+    }, {
+        title: 'Accordion Item 3',
+        html: 'Empty'
+    }, {
+        title: 'Accordion Item 4',
+        html: 'Empty'
+    }, {
+        title: 'Accordion Item 5',
+        html: 'Empty'
+    }]
 });

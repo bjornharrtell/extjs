@@ -259,12 +259,16 @@ describe("Ext.Error", function() {
         });
     });
     
-    describe("Throwing an an Ext.Error directly intantiated", function() {
+    describe("Throwing an an Ext.Error directly instantiated", function() {
         describe("Passing an string as constructor argument", function() {
-           it("should contain a msg property with the given string as value", function() {
-              expect(function() {
-                  throw new Ext.Error("expected message");
-              }).toRaiseExtError("expected message");
+            it("should contain a msg property with the given string as value", function() {
+                try {
+                    throw new Ext.Error("expected message");
+                }
+                catch (e) {
+                    expect(e instanceof Error).toBe(true);
+                    expect(e.message).toBe("expected message");
+                }
            });
         });
      });

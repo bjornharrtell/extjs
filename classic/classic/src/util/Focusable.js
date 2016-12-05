@@ -69,6 +69,7 @@ Ext.define('Ext.util.Focusable', {
      */
     
     /**
+     * @method initFocusable
      * Template method to do any Focusable related initialization that
      * does not involve event listeners creation.
      * @protected
@@ -179,8 +180,8 @@ Ext.define('Ext.util.Focusable', {
         
         return false;
     },
-    
-    canFocus: function(/* private */ skipVisibility, includeFocusTarget) {
+
+    canFocus: function(skipVisibility, includeFocusTarget) {
         var me = this,
             canFocus;
         
@@ -324,6 +325,8 @@ Ext.define('Ext.util.Focusable', {
             return;
         }
 
+        me.hasFocus = false;
+
         me.beforeBlur(e);
         
         if (container) {
@@ -336,11 +339,6 @@ Ext.define('Ext.util.Focusable', {
             focusClsEl.removeCls(me.removeClsWithUI(focusCls, true));
         }
         
-        if (me.validateOnBlur) {
-            me.validate();
-        }
-        
-        me.hasFocus = false;
         me.fireEvent('blur', me, e);
         me.postBlur(e);
         
@@ -458,7 +456,7 @@ Ext.define('Ext.util.Focusable', {
     
     /**
      * Set the tabIndex property for this Focusable. If the focusEl
-     * is avalable, set tabIndex attribute on it, too.
+     * is available, set tabIndex attribute on it, too.
      *
      * @param {Number} newTabIndex new tabIndex to set
      */
@@ -506,6 +504,10 @@ Ext.define('Ext.util.Focusable', {
      */
     onFocusEnter: function(e) {
         var me = this;
+        
+        if (me.destroying || me.destroyed) {
+            return;
+        }
 
         // Focusing must being a floating component to the front.
         // Only bring to front if this component is not the manager's
@@ -535,6 +537,10 @@ Ext.define('Ext.util.Focusable', {
     onFocusLeave: function(e) {
         var me = this;
 
+        if (me.destroying || me.destroyed) {
+            return;
+        }
+
         me.focusEnterEvent = null;
         me.containsFocus = false;
         me.fireEvent('focusleave', me, e);
@@ -543,7 +549,8 @@ Ext.define('Ext.util.Focusable', {
     privates: {
         
         /**
-         * Returns focus to the cached previously focused Component or element.
+         * Returns focus to the Component or element found in the cached
+         * focusEnterEvent.
          *
          * Usually called by onHide.
          *
@@ -551,60 +558,31 @@ Ext.define('Ext.util.Focusable', {
          */
         revertFocus: function() {
             var me = this,
-                previousFocus = me.previousFocus,
                 focusEvent = me.focusEnterEvent,
                 focusTarget;
-            
-            me.previousFocus = null;
-            
+                        
             // Before hiding, restore focus to what was focused when we were shown
             // unless we're explicitly told not to (think Panel collapse/expand).
-            if (me.preventRefocus || !me.el.contains(Ext.Element.getActiveElement())) {
+            if (me.preventRefocus || !me.el.contains(Ext.Element.getActiveElement()) || !focusEvent) {
                 return;
             }
             
-            // Floating menus need an ability to specify previous focus explicitly,
-            // they take it from their parent upon show. Otherwise they would try to
-            // refocus the menu item that opened the submenu, which is pointless.
-            focusTarget = previousFocus || (focusEvent && focusEvent.fromComponent);
-            
-            // If reverting back to a Component, it will re-route to a close focusable relation
-            // if it is not now focusable. But check that it's a Component because it can be
-            // a Widget instead!
-            if (focusTarget) {
-                // Components have very useful canFocus method that we can use
-                // to determine if the component can either focus itself, or find
-                // another related target to focus. It is important that we don't
-                // just blindly try to focus something for the sake of it!
-                if (focusTarget.canFocus && focusTarget.canFocus(false, true)) {
-                    focusTarget.focus();
-                    
-                    return;
-                }
-                else {
-                    // focusTarget can be a plain DOM element, too
-                    if (focusTarget.nodeType) {
-                        focusTarget = Ext.fly(focusTarget);
-                    }
-                    
-                    // Element can do a simple check to see if it's focusable.
-                    if (focusTarget.isFocusable && focusTarget.isFocusable()) {
-                        focusTarget.focus();
-                        
-                        return;
-                    }
-                }
+            // Preferred focus target is the actual element from which focus entered this component.
+            // It will be up to its encapsulating component to handle this in an appropriate way.
+            // For example, a grid, upon having focus pushed to a certain cell will set its
+            // navigation position to that cell and highlight it as focused.
+            // Likewise an input field must handle its field acquiring focus.
+            focusTarget = focusEvent && focusEvent.relatedTarget;
+
+            // If the element is in the document and focusable, then we're good. The owning component will handle it.
+            if (Ext.getDoc().contains(focusTarget) && Ext.fly(focusTarget).isFocusable()) {
+                focusTarget.focus();
             }
-            
-            // Try falling back to the relatedTarget of the focus event. If that
-            // doesn't work, there's nothing else we can do. :(
-            if (focusEvent) {
-                focusTarget = Ext.fly(focusEvent.relatedTarget);
-                
-                // TODO: Remove extra check when IE8 retires.
-                if (Ext.isIE8 || (focusTarget.isFocusable && focusTarget.isFocusable())) {
-                    focusTarget.focus();
-                }
+
+            // If the element has gone, or is hidden, we will have to rely on the intelligent focus diversion
+            // of components to send focus back to somewhere that is least surprising for the user.
+            else if (focusEvent.fromComponent && focusEvent.fromComponent.focus) {
+                focusEvent.fromComponent.focus();
             }
         },
 
@@ -630,16 +608,23 @@ Ext.define('Ext.util.Focusable', {
         findFocusTarget: function() {
             var me = this,
                 owner,
-                focusTargets;
+                focusTargets,
+                focusIndex;
 
-            for (owner = me.up(':not([disabled])'); owner; owner = owner.up(':not([disabled])')) {
-                // Use CQ to find a target that is focusable, and not this Component.
+            for (owner = me.up(':visible(true):not([disabled]):not([destroying])'); owner; owner = owner.up(':visible(true):not([disabled]):not([destroying])')) {
+                // Use CQ to find a target that is fully focusable (:canfocus, NOT the theoretical :focusable)
+                // Cannot use :focusable(true) because that consults findFocusTarget and would cause infinite recursion.
+                // Exclude the component which currently has focus.
                 // Cannot use owner.child() because the parent might not be a Container.
                 // Non-Container Components may still have ownership relationships with
                 // other Components. eg: BoundList with PagingToolbar
-                focusTargets = Ext.ComponentQuery.query(':focusable:not([hasFocus])', owner);
+                focusTargets = Ext.ComponentQuery.query(':canfocus()', owner);
                 if (focusTargets.length) {
-                    return focusTargets[0];
+                    focusIndex = Ext.Array.indexOf(focusTargets, Ext.ComponentManager.getActiveComponent());
+
+                    // Return the next focusable, or the previous focusable, or the first focusable
+                    return focusTargets[focusIndex + 1] || focusTargets[focusIndex - 1]
+                        || focusTargets[0];
                 }
 
                 // We found no focusable siblings in our owner, but the owner may itself be focusable,
@@ -678,11 +663,6 @@ Ext.define('Ext.util.Focusable', {
                 // This attribute is a shortcut to look up a Component by its Elements
                 // It only makes sense on focusable elements, so we set it here
                 focusEl.dom.setAttribute('data-componentid', me.id);
-                
-                // Only focusable components can be keyboard-interactive
-                if (me.config.keyHandlers) {
-                    me.initKeyHandlers(focusEl);
-                }
             }
         },
 
@@ -739,19 +719,17 @@ Ext.define('Ext.util.Focusable', {
          * @private
          */
         isFocusing: function(e) {
-            var from = e.fromElement,
-                to = e.toElement,
-                focusEl;
+            var focusEl;
             
             if (this.focusable) {
                 focusEl = this.getFocusEl();
             
                 if (focusEl) {
                     if (focusEl.isComponent) {
-                        return focusEl.isFocusing(from, to);
+                        return focusEl.isFocusing(e);
                     }
                     else {
-                        return to === focusEl.dom && from !== to;
+                        return e.toElement === focusEl.dom && e.fromElement !== e.toElement;
                     }
                 }
             }
@@ -763,19 +741,17 @@ Ext.define('Ext.util.Focusable', {
          * @private
          */
         isBlurring: function(e) {
-            var from = e.fromElement,
-                to = e.toElement,
-                focusEl;
+            var focusEl;
             
             if (this.focusable) {
                 focusEl = this.getFocusEl();
             
                 if (focusEl) {
                     if (focusEl.isComponent) {
-                        return focusEl.isBlurring(from, to);
+                        return focusEl.isBlurring(e);
                     }
                     else {
-                        return from === focusEl.dom && from !== to;
+                        return e.fromElement === focusEl.dom && e.fromElement !== e.toElement;
                     }
                 }
             }
@@ -849,6 +825,47 @@ Ext.define('Ext.util.Focusable', {
             
             if (el) {
                 el.restoreTabbableState();
+            }
+        },
+        
+        updateMaskState: function(state, mask) {
+            var me = this,
+                ariaEl = me.ariaEl.dom,
+                value;
+            
+            if (state) {
+                me.disableTabbing();
+                me.setMasked(true);
+                
+                if (ariaEl) {
+                    ariaEl.setAttribute('aria-busy', 'true');
+                    
+                    // It is possible that ariaEl already has aria-describedby attribute;
+                    // in that case we need to save it to restore later.
+                    value = ariaEl.getAttribute('aria-describedby');
+                    
+                    if (value) {
+                        me._savedAriaDescribedBy = value;
+                    }
+                    
+                    ariaEl.setAttribute('aria-describedby', mask.ariaEl.id);
+                }
+            }
+            else {
+                me.enableTabbing();
+                me.setMasked(false);
+                
+                if (ariaEl) {
+                    ariaEl.removeAttribute('aria-busy');
+                    
+                    value = ariaEl.getAttribute('aria-describedby');
+                    ariaEl.removeAttribute('aria-describedby');
+                    
+                    if (value === mask.ariaEl.id && me._savedAriaDescribedBy) {
+                        ariaEl.setAttribute('aria-describedby', me._savedAriaDescribedBy);
+                        delete me._savedAriaDescribedBy;
+                    }
+                }
             }
         }
     }

@@ -13,22 +13,6 @@ Ext.define('Admin.view.faq.ItemsController', {
             },
             to: {
                 height: to
-            },
-
-            callback: function () {
-                var scroller = view.getScrollable(),
-                    parent;
-
-                if (!scroller) {
-                    parent = view.getParent();
-                    scroller = parent && parent.getScrollable();
-                }
-
-                // We've adjusted the DOM sizes, so we need to ensure the scroller is told
-                // about it so it will adjust its range.
-                if (scroller) {
-                    scroller.refresh();
-                }
             }
         });
     },

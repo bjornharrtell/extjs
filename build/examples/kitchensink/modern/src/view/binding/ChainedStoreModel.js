@@ -1,6 +1,6 @@
-//<example>
+// <example>
 Ext.require('KitchenSink.model.Person', function() {
-//</example>
+// </example>
 Ext.define('KitchenSink.view.binding.ChainedStoreModel', {
     extend: 'Ext.app.ViewModel',
     alias: 'viewmodel.binding-chainedstore',
@@ -27,6 +27,6 @@ Ext.define('KitchenSink.view.binding.ChainedStoreModel', {
         minimumAge: 18
     }
 });
-//<example>
+// <example>
 });
-//</example>
+// </example>

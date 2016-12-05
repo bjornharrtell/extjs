@@ -1,3 +1,5 @@
+/* global expect, spyOn, Ext, jasmine */
+
 describe("Ext.form.field.Spinner", function() {
     var component, makeComponent;
 
@@ -271,8 +273,48 @@ describe("Ext.form.field.Spinner", function() {
                 expect(component.fireEvent).toHaveBeenCalledWith("spindown", component);
             });
         });
+        
+        describe('spinend', function() {
+            var spinUpCount = 0,
+                spinEndCount = 0;
 
+            beforeEach(function() {
+                component = new Ext.form.field.Spinner({
+                    renderTo: Ext.getBody(),
+                    spinUpEnabled: true,
+                    listeners: {
+                        spinup: function() {
+                            spinUpCount++;
+                        },
+                        spinend: function() {
+                            spinEndCount++;
+                        }
+                    }
+                });
+            });
+
+            it('should fire a spinend event when the spin stops', function() {
+                waitsFor(function() {
+                    if (spinUpCount === 100) {
+                        jasmine.fireKeyEvent(component.inputEl, 'keyup', Ext.event.Event.UP);
+                        return true;
+                    }
+                    jasmine.fireKeyEvent(component.inputEl, 'keydown', Ext.event.Event.UP);
+                });
+
+                // The firing of spinend is buffered because of the repeating, so it will fire soon.
+                runs(function() {
+                    expect(spinEndCount).toBe(0);
+                });
+
+                // Only one spinend event must fire, so wait for any extraneous ones.
+                waits(500);
+
+                runs(function() {
+                    expect(spinEndCount).toBe(1);
+                });
+            });
+        });
     });
-
 
 });

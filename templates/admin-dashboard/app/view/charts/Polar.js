@@ -38,6 +38,15 @@ Ext.define('Admin.view.charts.Polar', {
             yField: 'yvalue'
         }],
         platformConfig: {
+            phone: {
+                // On a phone the whole view becomes a vertical strip of charts,
+                // which makes it impossible to scroll the view if touch action
+                // started on a chart. So we use a custom touchAction config.
+                touchAction: {
+                    panX: true,
+                    panY: true
+                }
+            },
             '!phone': {
                 interactions: 'rotate'
             }

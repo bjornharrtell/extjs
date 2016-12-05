@@ -69,31 +69,28 @@ Ext.define('Ext.rtl.dom.Element', {
         var doc = document,
             round = Math.round,
             dom = this.dom,
+            body = doc.body,
             x = 0,
             y = 0,
-            box, scroll;
+            bodyRect, rect;
 
-        if(dom !== doc && dom !== doc.body){
+        if(dom !== doc && dom !== body){
             // IE (including IE10) throws an error when getBoundingClientRect
             // is called on an element not attached to dom
             try {
-                box = dom.getBoundingClientRect();
-            } catch (ex) {
-                box = { left: 0, top: 0 };
-            }
+                bodyRect = body.getBoundingClientRect();
+                rect = dom.getBoundingClientRect();
 
-            doc = Ext.fly(doc, '_internal');
-            if (Ext.rootInheritedState.rtl) {
-                scroll = doc.rtlGetScroll();
-                x = Ext.Element.getViewportWidth() - box.right + scroll.left;
-            } else {
-                scroll = doc.getScroll();
-                x = box.left + scroll.left;
-            }
-            x = round(x);
-            y = round(box.top + scroll.top);
+                x = rect.left - bodyRect.left;
+                y = rect.top - bodyRect.top;
+
+                if (Ext.rootInheritedState.rtl) {
+                    x = body.scrollWidth - rect.right;
+                }
+            } catch (ex) {}
         }
-        return [x, y];
+
+        return [round(x), round(y)];
     },
 
     rtlGetLocalX: function() {
@@ -153,10 +150,7 @@ Ext.define('Ext.rtl.dom.Element', {
             doc = document,
             body = doc.body,
             scroll = me.getScroll(),
-            // The left value returned from getScroll() may be a negative number.  In rtl
-            // mode left should always be reported as a positive number of pixels from the
-            // right, so use the absolute value of left.
-            left = Math.abs(scroll.left),
+            left = scroll.left,
             isDocOrBody = (dom === doc || dom === body);
 
         if (isDocOrBody ? (3 & me._rtlDocScrollFlag) : (me._rtlScrollFlag === 1)) { // jshint ignore:line
@@ -390,20 +384,21 @@ Ext.define('Ext.rtl.dom.Element', {
      * reliably on the documentElement or document.body because the behavior of these
      * elements can be different from other elements in some browsers.
      * 
-     * 0: offset from right (negative number) - firefox
+     * 0: offset from right (negative number) - Firefox & Safari
      * 1: offset from left (positive number) - Webkit
      * 2: offset from right (positive number) - IE8 - IE10
      */
     function cacheRtlScrollFlag() {
         var el = Ext.getBody().createChild({
             tag: 'div',
-            style: 'direction:rtl;position:absolute;overflow:auto;height:100px;width:100px;',
+            style: 'direction:rtl;position:absolute;overflow:auto;height:100px;width:100px;background-color:yellow',
             children: [{
                 tag: 'div',
-                style: 'height:30px;width:150px;'
+                style: 'height:30px;width:150px;background-color:red'
             }]
         }),
         dom = el.dom,
+        inner = dom.firstChild,
         flag = 2;
 
         if (dom.scrollLeft === 50) {
@@ -414,6 +409,14 @@ Ext.define('Ext.rtl.dom.Element', {
                 flag = 0;
             }
         }
+
+        // Make content overflow vertically to see where the vertical scsrollbar is
+        inner.style.width = '30px';
+        inner.style.height = '150px';
+
+        // Scrollbar is erroneously on right in RTL mode if the inner element is not flush against the right egde of the outer.
+        // Safaris suffers from this bug.
+        Element.prototype._rtlScrollbarOnRight = inner.getBoundingClientRect().right < dom.getBoundingClientRect().right;
 
         el.destroy();
         Element.prototype._rtlScrollFlag = flag;
@@ -454,19 +457,9 @@ Ext.define('Ext.rtl.dom.Element', {
             direction = bodyStyle.direction,
             el = Ext.getBody().createChild(
                 '<div style="height:20000px;width:20000px;"></div>'
-            ), 
-            dom = el.dom,
-            ltrRight, rtlRight;
-
-        bodyStyle.direction = 'ltr';
-        ltrRight = dom.getBoundingClientRect().right;
+            );
 
         bodyStyle.direction = 'rtl';
-        rtlRight = dom.getBoundingClientRect().right;
-        
-        // when the body has vertical overflow some browser continue to show the
-        // vertical scrollbar on the right side of the page even in rtl mode.
-        Element.prototype._rtlBodyScrollbarOnRight = (ltrRight === rtlRight);
 
         // First, check if scrollLeft is a non-zero value on the documentElement or
         // body. This means scrollLeft is a positive number offset from the left.

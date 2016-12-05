@@ -1,10 +1,4 @@
 {
-    /**
-     * The namespace of this package.
-     *
-     * As a general rule, all classes that belong to this package should be under this namespace
-     * if multiple namespaces are part of this package, set this to "".
-     */
     "namespace": "Ext",
 
     "name": "font-ext",
@@ -13,15 +7,12 @@
     "framework": "ext",
     "toolkit": "classic",
     "theme": "theme-neptune",
-    //"requires": [
-    //    ...
-    //],
 
     "creator": "Sencha",
     "summary": "Extra font icons",
     "detailedDescription": "Simple web font with additional icons in the Font Awesome style",
 
-    "version": "6.0.1.250",
+    "version": "6.2.0.981",
     "compatVersion": "6.0.0",
     "format": "1",
 

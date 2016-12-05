@@ -19,10 +19,10 @@
  * a predefined gradient or a list of color stops. Used as the `$type` parameter for
  * {@link Global_CSS#background-gradient}.
  *
- * @param {color} [$ui-color-front=$progress-text-color-front]
+ * @param {color} [$ui-color-front=$progress-text-front-color]
  * The color of the ProgressBar's text when in front of the ProgressBar's moving element
  *
- * @param {color} [$ui-color-back=$progress-text-color-back]
+ * @param {color} [$ui-color-back=$progress-text-back-color]
  * The color of the ProgressBar's text when the ProgressBar's 'moving element is not under it
  *
  * @param {number} [$ui-height=$progress-height]
@@ -33,6 +33,15 @@
  *
  * @param {number} [$ui-border-radius=$progress-border-radius]
  * The border-radius of the ProgressBar
+ *
+ * @param {color} [$ui-focus-border-color]
+ * The border color of a focused ProgressBar
+ *
+ * @param {color} [$ui-focus-border-style]
+ * The border style of a focused ProgressBar
+ *
+ * @param {color} [$ui-focus-border-width]
+ * The border width of a focused ProgressBar
  *
  * @param {string} [$ui-text-text-align=$progress-text-text-align]
  * The text-align of the ProgressBar's text
@@ -54,11 +63,16 @@
     $ui-bar-background-color: $progress-bar-background-color,
     $ui-bar-background-gradient: $progress-bar-background-gradient,
 
-    $ui-color-front: $progress-text-color-front,
-    $ui-color-back: $progress-text-color-back,
+    $ui-color-front: $progress-text-front-color,
+    $ui-color-back: $progress-text-back-color,
     $ui-height: $progress-height,
+    $ui-border-style: $progress-border-style,
     $ui-border-width: $progress-border-width,
     $ui-border-radius: $progress-border-radius,
+    $ui-focus-border-color: $progress-focus-border-color,
+    $ui-focus-border-style: $progress-focus-border-style,
+    $ui-focus-border-width: $progress-focus-border-width,
+    
     $ui-text-text-align: $progress-text-text-align,
     $ui-text-font-size: $progress-text-font-size,
     $ui-text-font-weight: $progress-text-font-weight,
@@ -90,6 +104,9 @@
         @if not is-null($ui-border-color) {
             border-color: $ui-border-color;
         }
+        @if not is-null($ui-border-style) {
+            border-style: $ui-border-style;
+        }
 
         .#{$prefix}progress-bar-#{$ui} {
             @if $ui-border-radius != 0 {
@@ -119,18 +136,33 @@
             color: $ui-color-back;
             line-height: $progress-content-height;
         }
+        
+        &.#{$prefix}progress-focus {
+            @include css-outline(
+                $width: $ui-focus-border-width,
+                $style: $ui-focus-border-style,
+                $color: $ui-focus-border-color,
+                $offset: -$ui-focus-border-width,
+                $pseudo: true
+            );
+        }
     }
-
+    
     $stretch: slicer-background-stretch(progress-bar-#{$ui}, bottom);
     @include x-slicer(progress-bar-#{$ui});
 
     @if $include-ext-view-table {
-        .#{$prefix}progressbar-#{$ui}-cell > .#{$prefix}grid-cell-inner,
-        .#{$prefix}progressbarwidget-#{$ui}-cell > .#{$prefix}grid-cell-inner {
-            padding-top:    max(ceil(($grid-row-height - $ui-height) / 2), 0);
-            padding-bottom: max(floor(($grid-row-height - $ui-height) / 2), 0);
-            .#{$prefix}progress-#{$ui} {
-                height: min($progress-height, $grid-row-height - 2);
+        // here we need to add three selectors, one for the progress classic component (xtype: 'pogressbar')
+        // and one for each progressbarwidget alias (xtype: ['progress', 'progressbarwidget']).
+        .#{$prefix}progressbar-#{$ui}-cell,
+        .#{$prefix}progress-#{$ui}-cell,
+        .#{$prefix}progressbarwidget-#{$ui}-cell {
+            > .#{$prefix}grid-cell-inner {
+                padding-top:    max(ceil(($grid-row-height - $ui-height) / 2), 0);
+                padding-bottom: max(floor(($grid-row-height - $ui-height) / 2), 0);
+                .#{$prefix}progress-#{$ui} {
+                    height: min($progress-height, $grid-row-height - 2);
+                }
             }
         }
     }

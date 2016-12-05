@@ -13,10 +13,19 @@ Ext.define('Ext.container.Monitor', {
     removeHandler: null,
     invalidateHandler: null,
     
+    clearPropertiesOnDestroy: false,
+    clearPrototypeOnDestroy: false,
+    
     disabled: 0,
 
-    constructor: function(config){
+    constructor: function(config) {
         Ext.apply(this, config);
+    },
+    
+    destroy: function() {
+        this.unbind();
+        
+        this.callParent();
     },
     
     bind: function(target){
@@ -30,11 +39,13 @@ Ext.define('Ext.container.Monitor', {
     unbind: function() {
         var me = this,
             target = me.target;
-            
-        if (target) {
+        
+        if (target && !target.destroyed) {
+            me.onContainerRemove(target, target);
             target.un('beforedestroy', me.disable, me);
         }
-        me.items = null;
+        
+        me.items = Ext.destroy(me.items);
     },
     
     disable: function(){
@@ -49,7 +60,7 @@ Ext.define('Ext.container.Monitor', {
     
     handleAdd: function(ct, comp) {
         if (!this.disabled) {
-            if (comp.is(this.selector)) {
+            if (Ext.ComponentQuery.is(comp, this.selector)) {
                 this.onItemAdd(comp.ownerCt, comp);
             }
         
@@ -59,7 +70,7 @@ Ext.define('Ext.container.Monitor', {
         }
     },
     
-    onItemAdd: function(ct, comp){
+    onItemAdd: function(ct, comp) {
         var me = this,
             items = me.items,
             handler = me.addHandler;
@@ -68,10 +79,15 @@ Ext.define('Ext.container.Monitor', {
             if (handler) {
                 handler.call(me.scope || comp, comp);
             }
+            
             if (items) {
                 items.add(comp);
             }
         }
+        
+        // This is a temporary hack until we refactor Forms
+        // and kill off Ext.container.Monitor
+        comp.clearPropertiesOnDestroy = comp.clearPrototypeOnDestroy = false;
     },
     
     onItemRemove: function(ct, comp){
@@ -92,15 +108,16 @@ Ext.define('Ext.container.Monitor', {
     onContainerAdd: function(ct, preventChildren) {
         var me = this,
             items, len,
-            handleAdd = me.handleAdd,
-            handleRemove = me.handleRemove,
             i, comp;
         
         if (ct.isContainer) {
-            ct.on('add', handleAdd, me);
-            ct.on('dockedadd', handleAdd, me);
-            ct.on('remove', handleRemove, me);
-            ct.on('dockedremove', handleRemove, me);
+            ct.on({
+                scope: me,
+                add: me.handleAdd,
+                dockedadd: me.handleAdd,
+                remove: me.handleRemove,
+                dockedremove: me.handleRemove
+            });
         }
         
         // Means we've been called by a parent container so the selector
@@ -117,7 +134,10 @@ Ext.define('Ext.container.Monitor', {
         for (i = 0, len = items.length; i < len; ++i) {
             me.onContainerAdd(items[i], true);
         }
-        
+
+        // This is a temporary hack until we refactor Forms
+        // and kill off Ext.container.Monitor
+        ct.clearPropertiesOnDestroy = ct.clearPrototypeOnDestroy = false;
     },
     
     handleRemove: function(ct, comp) {
@@ -126,7 +146,7 @@ Ext.define('Ext.container.Monitor', {
         // During a destroy we don't want to maintain any of this information,
         // so typically we'll be disabled here
         if (!me.disabled) {
-            if (comp.is(me.selector)) {
+            if (Ext.ComponentQuery.is(comp, me.selector)) {
                 me.onItemRemove(ct, comp);
             }
         
@@ -142,31 +162,37 @@ Ext.define('Ext.container.Monitor', {
          
         // If it's not a container, it means it's a queryable that isn't a container.
         // For example a button with a menu
-        if (!comp.destroyed && !comp.destroying && comp.isContainer) {
+        if (!comp.destroyed && comp.isContainer) {
             me.removeCtListeners(comp);
             
-            items = comp.query(me.selector);
-            for (i = 0, len = items.length; i < len; ++i) {
-                item = items[i];
-                me.onItemRemove(item.ownerCt, item);
+            if (!comp.destroying) {
+                items = comp.query(me.selector);
+                for (i = 0, len = items.length; i < len; ++i) {
+                    item = items[i];
+                    me.onItemRemove(item.ownerCt, item);
+                }
+                
+                items = comp.query('container');
+                for (i = 0, len = items.length; i < len; ++i) {
+                    me.removeCtListeners(items[i]);
+                }
             }
-            
-            items = comp.query('container');
-            for (i = 0, len = items.length; i < len; ++i) {
-                me.removeCtListeners(items[i]);
-            }
-        } else {
-            // comp destroying, or we need to invalidate the collection
-            me.invalidateItems(true);
         }
+        
+        // comp destroying, or we need to invalidate the collection
+        me.invalidateItems(true);
     },
     
-    removeCtListeners: function(comp){
+    removeCtListeners: function(ct) {
         var me = this;
-        comp.un('add', me.handleAdd, me);
-        comp.un('dockedadd', me.handleAdd, me);
-        comp.un('remove', me.handleRemove, me);
-        comp.un('dockedremove', me.handleRemove, me);
+        
+        ct.un({
+            scope: me,
+            add: me.handleAdd,
+            dockedadd: me.handleAdd,
+            remove: me.handleRemove,
+            dockedremove: me.handleRemove
+        });
     },
     
     getItems: function(){
@@ -187,6 +213,7 @@ Ext.define('Ext.container.Monitor', {
         if (triggerHandler && handler) {
             handler.call(me.scope || me, me);
         }
-        me.items = null;
+        
+        me.items = Ext.destroy(me.items);
     }
 });

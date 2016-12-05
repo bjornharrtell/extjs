@@ -22,8 +22,11 @@
  * @private
  */
 @mixin font($font-weight: null, $font-size: null, $line-height: null, $font-family: null) {
-    @if $font-family == null or $font-size == null {
-        // if font-family or font-size is null we cannot use a single "font" declaration
+    @if $font-family == null or $font-size == null or $line-height == null {
+        // if font-family, line-height, or font-size is null we cannot use a single "font" declaration
+        // Single font declaration does not work without font-family and font-size, and
+        // omitting line-height results in an effective line-height of "normal" which may
+        // end up unintentionally overriding an explicit line-height set elsewhere.
         font-weight: $font-weight;
         font-size: $font-size;
         line-height: $line-height;

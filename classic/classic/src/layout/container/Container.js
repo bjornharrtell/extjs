@@ -77,8 +77,8 @@ Ext.define('Ext.layout.container.Container', {
     },
 
     destroy: function() {
-        this.callParent();
         this.mixins.elementCt.destroy.call(this);
+        this.callParent();
     },
 
     /**
@@ -214,9 +214,37 @@ Ext.define('Ext.layout.container.Container', {
             Ext.DomHelper.generateMarkup(tree, out);
         }
     },
+    
+    doRenderTabGuard: function(out, renderData, position) {
+        // Careful! This method is bolted on to the renderTpl so all we get for context is
+        // the renderData! The "this" pointer is the renderTpl instance!
+
+        var cmp = renderData.$comp,
+            tabGuardTpl;
+        
+        // Due to framing, we will be called in two different ways: in the frameTpl or in
+        // the renderTpl. The frameTpl version enters via doRenderFramingTabGuard which
+        // sets "$skipTabGuards" on the renderTpl's renderData.
+        //
+        if (cmp.tabGuard && !renderData.$skipTabGuards) {
+            tabGuardTpl = cmp.lookupTpl('tabGuardTpl');
+            
+            if (tabGuardTpl) {
+                renderData.tabGuard = position;
+                renderData.tabGuardEl = cmp.tabGuardElements[position];
+                
+                cmp.addChildEl(renderData.tabGuardEl);
+                tabGuardTpl.applyOut(renderData, out);
+                
+                delete renderData.tabGuard;
+                delete renderData.tabGuardEl;
+            }
+        }
+    },
 
     finishRender: function () {
         var me = this,
+            owner = me.owner,
             target, items;
 
         me.callParent();
@@ -365,11 +393,18 @@ Ext.define('Ext.layout.container.Container', {
             items = me.getLayoutItems(),
             ln = items.length,
             renderedItems = [],
-            i, item;
+            i, pos, item;
 
-        for (i = 0; i < ln; i++) {
+        for (i = 0, pos = 0; i < ln; i++, pos++) {
             item = items[i];
-            if (item.rendered && me.isValidParent(item, target, i)) {
+
+            if (item.rendered) {
+                if (item.ignoreDomPosition) {
+                    --pos;
+                } else if (!this.isValidParent(item, target, pos)) {
+                    continue;
+                }
+
                 renderedItems.push(item);
             }
         }
@@ -489,11 +524,18 @@ Ext.define('Ext.layout.container.Container', {
             items = this.getLayoutItems(),
             ln = items.length,
             visibleItems = [],
-            i, item;
+            i, pos, item;
 
-        for (i = 0; i < ln; i++) {
+        for (i = 0, pos = 0; i < ln; i++, pos++) {
             item = items[i];
-            if (item.rendered && this.isValidParent(item, target, i) && item.hidden !== true && !item.floated) {
+
+            if (item.rendered && item.hidden !== true && !item.floated) {
+                if (item.ignoreDomPosition) {
+                    --pos;
+                } else if (!this.isValidParent(item, target, pos)) {
+                    continue;
+                }
+
                 visibleItems.push(item);
             }
         }
@@ -531,6 +573,7 @@ Ext.define('Ext.layout.container.Container', {
         renderTpl.renderBody = this.doRenderBody;
         renderTpl.renderContainer = this.doRenderContainer;
         renderTpl.renderItems = this.doRenderItems;
+        renderTpl.renderTabGuard = this.doRenderTabGuard;
     },
 
     getContentTarget: function(){

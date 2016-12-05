@@ -128,6 +128,14 @@ Ext.define('Ext.data.schema.ManyToMany', {
             return ret;
         },
 
+        onIdChanged: function(rightRecord, oldId, newId) {
+            var store = this.getAssociatedItem(rightRecord);
+
+            if (store) {
+                store.getFilters().get(this.$roleFilterId).setValue(newId);
+            }
+        },
+
         processLoad: function(store, rightRecord, leftRecords, session) {
             var ret = leftRecords;
             if (session) {

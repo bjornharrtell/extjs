@@ -1,0 +1,50 @@
+.stretch-html .x-innerhtml {
+    height: 100%;
+}
+
+.handle-source {
+    width: 120px;
+    height: 120px;
+    text-align: center;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    color: #FFF;
+    @include border-radius(5px);
+    @include user-select(none);
+
+    .handle {
+        cursor: move;
+        background-color: #6CAE3F;
+        @include border-radius(5px);
+        padding: 3px;
+        width: 90px;
+        margin: 10px 0 10px 15px;
+    }
+}
+
+
+.handle-proxy {
+    color: #FFF;
+    text-align: center;
+    width: 60px;
+    height: 60px;
+    background-color: #43A047;
+    @include border-radius(5px);
+}
+
+.handle-handles {
+    background-color: #FFEB3B;
+    top: 160px;
+    left: 10px;
+
+    .handle {
+        background-color: #039BE5;
+    }
+}
+
+.handle-repeat {
+    background-color: #FF5722;
+    top: 10px;
+    left: 10px;
+}

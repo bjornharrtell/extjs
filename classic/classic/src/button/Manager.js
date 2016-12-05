@@ -26,16 +26,18 @@ Ext.define('Ext.button.Manager', {
     // in case mouse is moved outside of button element.
     onButtonMousedown: function(button, e) {
         var pressed = this.pressedButton;
-        if (pressed) {
+        
+        if (pressed && !pressed.destroying && !pressed.destroyed) {
             pressed.onMouseUp(e);
         }
+        
         this.pressedButton = button;
     },
 
     onDocumentMouseUp: function(e) {
         var pressed = this.pressedButton;
         
-        if (pressed) {
+        if (pressed && !pressed.destroying && !pressed.destroyed) {
             pressed.onMouseUp(e);
             this.pressedButton = null;
         }

@@ -4,16 +4,16 @@ Ext.define('KitchenSink.view.grid.BigDataRowModel', {
     alias: 'viewmodel.grid-bigdata-row',
 
     formulas: {
-        ageGroup: function (get) {
-            var age = get('record.age');
+        ratingGroup: function (get) {
+            var age = get('record.averageRating');
 
-            if (age < 25) {
+            if (age < 4) {
                 return 0;
             }
-            if (age < 30) {
+            if (age < 5) {
                 return 1;
             }
-            if (age < 35) {
+            if (age < 6) {
                 return 2;
             }
 

@@ -155,6 +155,7 @@ Ext.Configurator.prototype = {
             value = config[name];
             isObject = value && value.constructor === Object;
             meta = isObject && '$value' in value ? value : null;
+            isCached = false;
             if (meta) {
                 isCached = !!meta.cached;
                 value = meta.$value;
@@ -342,7 +343,7 @@ Ext.Configurator.prototype = {
             values = me.values,
             remaining = 0,
             firstInstance = !initList,
-            cachedInitList, cfg, getter, needsInit, i, internalName,
+            cachedInitList, cfg, getter, i, internalName,
             ln, names, name, value, isCached, valuesKey, field;
 
         values = me.needsFork ? ExtObject.fork(values) : ExtObject.chain(values);
@@ -358,10 +359,10 @@ Ext.Configurator.prototype = {
             instance.isFirstInstance = true;
 
             for (name in initMap) {
-                needsInit = initMap[name];
                 cfg = configs[name];
                 isCached = cfg.cached;
-                if (needsInit) {
+
+                if (initMap[name]) {
                     names = cfg.names;
                     value = values[name];
 
@@ -541,7 +542,7 @@ Ext.Configurator.prototype = {
                         if (valuesKey && valuesKey.constructor === Object) {
                             value = ExtObject.merge(values[name], value);
                         } else {
-                            value = Ext.clone(value);
+                            value = Ext.clone(value, false);
                         }
                     }
                 }
@@ -649,7 +650,7 @@ Ext.Configurator.prototype = {
                     if (baseValue && baseValue.constructor === Object) {
                         value = Ext.Object.merge(baseValue, value);
                     } else {
-                        value = Ext.clone(value);
+                        value = Ext.clone(value, false);
                     }
                 }
             }

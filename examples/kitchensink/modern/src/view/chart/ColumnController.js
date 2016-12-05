@@ -1,9 +1,10 @@
-Ext.define('KitchenSink.view.chart.BasicController', {
+Ext.define('KitchenSink.view.chart.ColumnController', {
     extend: 'Ext.app.ViewController',
     alias: 'controller.column-chart',
 
     onDownload: function() {
         var chart = this.lookupReference('chart');
+
         if (Ext.os.is.Desktop) {
             chart.download({
                 filename: 'Redwood City Climate Data Chart'
@@ -42,9 +43,23 @@ Ext.define('KitchenSink.view.chart.BasicController', {
         }
     },
 
-    onInitialize: function () {
-        Ext.Viewport.on('orientationchange', this.updateChartTitle, this);
-        this.updateChartTitle();
+    onAfterRender: function () {
+        var me = this,
+            chart = me.lookupReference('chart'),
+            axis = chart.getAxis(0),
+            store = chart.getStore();
+
+        function onAxisRangeChange() {
+            me.onAxisRangeChange(axis);
+        }
+
+        store.on({
+            datachanged: onAxisRangeChange,
+            update: onAxisRangeChange
+        });
+
+        Ext.Viewport.on('orientationchange', me.updateChartTitle, me);
+        me.updateChartTitle();
     },
 
     updateChartTitle: function (viewport, orientation, width, height) {
@@ -60,19 +75,7 @@ Ext.define('KitchenSink.view.chart.BasicController', {
     },
 
     onAfterRender: function () {
-        var me = this,
-            chart = this.lookupReference('chart'),
-            axis = chart.getAxis(0),
-            store = chart.getStore();
 
-        function onAxisRangeChange() {
-            me.onAxisRangeChange(axis);
-        }
-
-        store.on({
-            datachanged: onAxisRangeChange,
-            update: onAxisRangeChange
-        });
     },
 
     onAxisRangeChange: function (axis, range) {

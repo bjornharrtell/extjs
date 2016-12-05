@@ -26,7 +26,7 @@ Ext.define('Ext.draw.Point', {
          * Takes the same parameters as the {@link Ext.draw.Point#constructor}.
          * Do not hold the instance of the flyweight point.
          *
-         * @param point {Number/Number[]/Object/Ext.draw.Point}
+         * @param {Number/Number[]/Object/Ext.draw.Point} point
          * @return {Ext.draw.Point}
          */
         fly: (function () {
@@ -50,7 +50,8 @@ Ext.define('Ext.draw.Point', {
      *     new Ext.draw.Point({x: 3, y: 4});
      *     new Ext.draw.Point(p); // where `p` is a Ext.draw.Point instance.
      *
-     * @param point {Number/Number[]/Object/Ext.draw.Point}
+     * @param {Number/Number[]/Object/Ext.draw.Point} x
+     * @param {Number/Number[]/Object/Ext.draw.Point} y
      */
     constructor: function (x, y) {
         var me = this;
@@ -99,7 +100,7 @@ Ext.define('Ext.draw.Point', {
 
     /**
      * Sets the x-coordinate of the point.
-     * @param x {Number}
+     * @param {Number} x
      */
     setX: function (x) {
         this.x = x;
@@ -108,7 +109,7 @@ Ext.define('Ext.draw.Point', {
 
     /**
      * Sets the y-coordinate of the point.
-     * @param y {Number}
+     * @param {Number} y
      */
     setY: function (y) {
         this.y = y;
@@ -118,7 +119,8 @@ Ext.define('Ext.draw.Point', {
     /**
      * Sets coordinates of the point.
      * Takes the same parameters as the {@link #constructor}.
-     * @param point {Number/Number[]/Object/Ext.draw.Point}
+     * @param {Number/Number[]/Object/Ext.draw.Point} x
+     * @param {Number/Number[]/Object/Ext.draw.Point} y
      */
     set: function (x, y) {
         this.constructor(x, y);
@@ -127,7 +129,7 @@ Ext.define('Ext.draw.Point', {
     /**
      * Sets the angle of the vector (measured from the x-axis to the vector)
      * without changing its length.
-     * @param angle {Number}
+     * @param {Number} angle
      */
     setAngle: function (angle) {
         this.angle = angle;
@@ -136,7 +138,7 @@ Ext.define('Ext.draw.Point', {
 
     /**
      * Sets the length of the vector without changing its angle.
-     * @param length {Number}
+     * @param {Number} length
      */
     setLength: function (length) {
         this.length = length;
@@ -148,8 +150,8 @@ Ext.define('Ext.draw.Point', {
      * A point can be thought of as a vector pointing from the origin to the point's location.
      * This can also be interpreted as setting coordinates of a point in the polar
      * coordinate system.
-     * @param angle {Number}
-     * @param length {Number}
+     * @param {Number} angle
+     * @param {Number} length
      */
     setPolar: function (angle, length) {
         this.angle = angle;
@@ -168,7 +170,8 @@ Ext.define('Ext.draw.Point', {
     /**
      * Adds another vector to this one and returns the resulting vector
      * without changing this vector.
-     * @param point {Number/Number[]/Object/Ext.draw.Point}
+     * @param {Number/Number[]/Object/Ext.draw.Point} x
+     * @param {Number/Number[]/Object/Ext.draw.Point} y
      * @return {Ext.draw.Point}
      */
     add: function (x, y) {
@@ -179,7 +182,8 @@ Ext.define('Ext.draw.Point', {
     /**
      * Subtracts another vector from this one and returns the resulting vector
      * without changing this vector.
-     * @param point {Number/Number[]/Object/Ext.draw.Point}
+     * @param {Number/Number[]/Object/Ext.draw.Point} x
+     * @param {Number/Number[]/Object/Ext.draw.Point} y
      * @return {Ext.draw.Point}
      */
     sub: function (x, y) {
@@ -190,7 +194,7 @@ Ext.define('Ext.draw.Point', {
     /**
      * Returns the result of scalar multiplication of this vector by the given factor.
      * This vector is not modified.
-     * @param n {Number} The factor.
+     * @param {Number} n The factor.
      * @return {Ext.draw.Point}
      */
     mul: function (n) {
@@ -201,7 +205,7 @@ Ext.define('Ext.draw.Point', {
      * Returns a vector which coordinates are the result of division of this vector's
      * coordinates by the given number. This vector is not modified.
      * This vector is not modified.
-     * @param n {Number} The denominator.
+     * @param {Number} n The denominator.
      * @return {Ext.draw.Point}
      */
     div: function (n) {
@@ -210,7 +214,8 @@ Ext.define('Ext.draw.Point', {
 
     /**
      * Returns the dot product of this vector and the given vector.
-     * @param point {Number/Number[]/Object/Ext.draw.Point}
+     * @param {Number/Number[]/Object/Ext.draw.Point} x
+     * @param {Number/Number[]/Object/Ext.draw.Point} y
      * @return {Number}
      */
     dot: function (x, y) {
@@ -220,7 +225,8 @@ Ext.define('Ext.draw.Point', {
 
     /**
      * Checks whether coordinates of the point match those of the point provided.
-     * @param point {Number/Number[]/Object/Ext.draw.Point}
+     * @param {Number/Number[]/Object/Ext.draw.Point} x
+     * @param {Number/Number[]/Object/Ext.draw.Point} y
      * @return {Boolean}
      */
     equals: function (x, y) {
@@ -230,8 +236,8 @@ Ext.define('Ext.draw.Point', {
 
     /**
      * Rotates the point by the given angle. This point is not modified.
-     * @param angle {Number} The rotation angle.
-     * @param center {Ext.draw.Point} The center of rotation (optional). Defaults to origin.
+     * @param {Number} angle The rotation angle.
+     * @param {Ext.draw.Point} [center] The center of rotation (optional). Defaults to origin.
      * @return {Ext.draw.Point} The rotated point.
      */
     rotate: function (angle, center) {
@@ -264,7 +270,7 @@ Ext.define('Ext.draw.Point', {
     /**
      * Transforms the point from one coordinate system to another
      * using the transformation matrix provided. This point is not modified.
-     * @param matrix {Ext.draw.Matrix/Number[]} A trasformation matrix or its elements.
+     * @param {Ext.draw.Matrix/Number[]} matrix A trasformation matrix or its elements.
      * @return {Ext.draw.Point}
      */
     transform: function (matrix) {
@@ -325,32 +331,22 @@ Ext.define('Ext.draw.Point', {
     /**
      * Normalizes the vector by changing its length to 1 without changing its angle.
      * The returned result is a normalized vector. This vector is not modified.
-     * @param length {Number=1} The length of the normalized vector. Defaults to 1.
+     * @param {Number} [factor=1] Multiplication factor. Defaults to 1.
      * @return {Ext.draw.Point}
      */
-    normalize: function (length) {
+    normalize: function (factor) {
         var x = this.x,
             y = this.y,
-            nx, ny, tg;
+            k = (factor || 1) / Math.sqrt(x*x + y*y);
 
-        length = length || 1;
-
-        if (x === 0) {
-            nx = 0;
-            ny = length * Ext.Number.sign(y);
-        } else {
-            tg = y/x;
-            nx = length / Math.sqrt(1 + tg * tg);
-            ny = nx * tg;
-        }
-        return new Ext.draw.Point(nx, ny);
+        return new Ext.draw.Point(x * k, y * k);
     },
 
     /**
      * Returns the vector from the point perpendicular to the line (shortest distance).
      * Where line is specified using two points or the coordinates of those points.
-     * @param p1 {Ext.draw.Point}
-     * @param p2 {Ext.draw.Point}
+     * @param {Ext.draw.Point} p1
+     * @param {Ext.draw.Point} p2
      * @return {Ext.draw.Point}
      */
     getDistanceToLine: function (p1, p2) {
@@ -377,7 +373,7 @@ Ext.define('Ext.draw.Point', {
      * @return {Boolean}
      */
     isNumber: function () {
-        return Ext.isNumber(this.x + this.y);
+        return Ext.isNumber(this.x) && Ext.isNumber(this.y);
     }
 
 });

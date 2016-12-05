@@ -17,7 +17,7 @@
         color: $foreground-color !important;
     }
 
-    &.x-item-disabled {
+    &.x-disabled {
         span.x-button-label,
         .x-button-icon {
             @include opacity(.5);

@@ -104,6 +104,14 @@
  * their hover state by changing their background-position,  When `false` scroller buttons
  * are given their hover state by applying opacity.
  *
+ * @param {color} [$ui-menu-overflow-glyph-color=$tabbar-menu-overflow-glyph-color]
+ * The color to use for the {@link #overflowHandler menu overflow} "more" icon when
+ * {@link Global_CSS#$enable-font-icons} is `true`.
+ *
+ * @param {string/list} [$ui-menu-overflow-glyph=$tabbar-menu-overflow-glyph]
+ * Glyph for the {@link #overflowHandler menu overflow} "more" icon when
+ * {@link Global_CSS#$enable-font-icons} is `true`.
+ *
  * @param {number} [$ui-tab-height]
  * The minimum height of tabs that will be used in this tabbar UI. The tabbar body is given
  * a min-height so that it does not collapse when it does not contain any tabs, but it
@@ -145,6 +153,8 @@
     $ui-scroller-bottom-glyph: $tabbar-scroller-bottom-glyph,
     $ui-scroller-left-glyph: $tabbar-scroller-left-glyph,
     $ui-classic-scrollers: $tabbar-classic-scrollers,
+    $ui-menu-overflow-glyph-color: $tabbar-menu-overflow-glyph-color,
+    $ui-menu-overflow-glyph: $tabbar-menu-overflow-glyph,
     $ui-tab-height:
         if($tabbar-strip-height > 0, top($ui-strip-border-width), vertical($tab-border-width)) +
         max($tab-icon-height, $tab-line-height) + vertical($tab-padding)
@@ -467,6 +477,22 @@
             $classic: $ui-classic-scrollers,
             $include-background-images: $tabbar-scroller-symmetrical-icons
         );
+    }
+
+    @if $include-ext-layout-container-boxoverflow-menu {
+        .#{$prefix}tab-bar-more-icon {
+            @if $enable-font-icons and ($ui-menu-overflow-glyph != null) {
+                @include font-icon($ui-menu-overflow-glyph);
+                color: $ui-menu-overflow-glyph-color;
+            } @else {
+                background-image: theme-background-image('tab-bar/#{$ui}-more');
+                @if $include-rtl {
+                    &.#{$prefix}rtl {
+                        background-image: theme-background-image('tab-bar/#{$ui}-more-left');
+                    }
+                }
+            }
+        }
     }
 
     .#{$prefix}tab-bar-plain {

@@ -3,14 +3,7 @@
  */
 Ext.define('Ext.field.Input', {
     extend: 'Ext.Component',
-    xtype : 'input',
-
-    /**
-     * @event clearicontap
-     * Fires whenever the clear icon is tapped.
-     * @param {Ext.field.Input} this
-     * @param {Ext.event.Event} e The event object
-     */
+    xtype: 'input',
 
     /**
      * @event masktap
@@ -66,29 +59,12 @@ Ext.define('Ext.field.Input', {
 
     cachedConfig: {
         /**
-         * @cfg {String} cls The `className` to be applied to this input.
-         * @accessor
-         */
-        cls: Ext.baseCSSPrefix + 'form-field',
-
-        /**
-         * @cfg {String} focusCls The CSS class to use when the field receives focus.
-         * @accessor
-         */
-        focusCls: Ext.baseCSSPrefix + 'field-focus',
-
-        /**
-         * @private
-         */
-        maskCls: Ext.baseCSSPrefix + 'field-mask',
-
-        /**
           * @cfg {String/Boolean} useMask
-         * `true` to use a mask on this field, or `auto` to automatically select when you should use it.
+         * `true` to use a mask on this field.
          * @private
          * @accessor
          */
-        useMask: 'auto',
+        useMask: null,
 
         /**
          * @cfg {String} type The type attribute for input fields -- e.g. radio, text, password.
@@ -107,12 +83,6 @@ Ext.define('Ext.field.Input', {
 
     config: {
         /**
-         * @cfg
-         * @inheritdoc
-         */
-        baseCls: Ext.baseCSSPrefix + 'field-input',
-
-        /**
          * @cfg {String} name The field's HTML name attribute.
          * __Note:__ This property must be set if this field is to be automatically included with
          * {@link Ext.form.Panel#method-submit form submit()}.
@@ -127,7 +97,7 @@ Ext.define('Ext.field.Input', {
         value: null,
 
         /**
-         * @property {Boolean} `true` if the field currently has focus.
+         * @cfg {Boolean} `true` if the field currently has focus.
          * @accessor
          */
         isFocused: false,
@@ -256,6 +226,8 @@ Ext.define('Ext.field.Input', {
         fastFocus: false
     },
 
+    classCls: Ext.baseCSSPrefix + 'input',
+
     /**
      * @cfg {String/Number} originalValue The original value when the input is rendered.
      * @private
@@ -265,22 +237,38 @@ Ext.define('Ext.field.Input', {
      * @private
      */
     getTemplate: function() {
-        var items = [
-            {
-                reference: 'input',
-                tag: this.tag
-            },
-            {
-                reference: 'mask',
-                classList: [this.config.maskCls]
-            },
-            {
-                reference: 'clearIcon',
-                cls: 'x-clear-icon'
-            }
-        ];
+        var me = this,
+            template = [],
+            beforeTemplate = me.beforeTemplate,
+            afterTemplate = me.afterTemplate;
 
-        return items;
+        if (beforeTemplate) {
+            // hook for subclasses to add elements before the inputElement
+            template.push.apply(template, beforeTemplate);
+        }
+
+        template.push({
+            reference: 'inputBodyElement',
+            cls: Ext.baseCSSPrefix + 'input-body-el',
+            children: [{
+                reference: 'inputElement',
+                tag: this.tag,
+                cls: Ext.baseCSSPrefix + 'input-el'
+            }, {
+                reference: 'maskElement',
+                classList: [
+                    Ext.baseCSSPrefix + 'mask-el',
+                    Ext.baseCSSPrefix + 'hidden-display'
+                ]
+            }]
+        });
+
+        if (afterTemplate) {
+            // hook for subclasses to add elements after the inputElement
+            template.push.apply(template, afterTemplate);
+        }
+
+        return template;
     },
 
     initElement: function() {
@@ -288,7 +276,7 @@ Ext.define('Ext.field.Input', {
 
         me.callParent();
 
-        me.input.on({
+        me.inputElement.on({
             scope: me,
 
             keyup: 'onKeyUp',
@@ -305,31 +293,22 @@ Ext.define('Ext.field.Input', {
         // this prevents the mousedown from focus's an input when not intended (click a message box button or picker button that lays over an input)
         // we then force focus on touchend.
         if(Ext.browser.is.AndroidStock) {
-            me.input.dom.addEventListener("mousedown", function(e) {
+            me.inputElement.dom.addEventListener("mousedown", function(e) {
                 if(document.activeElement != e.target) {
                     e.preventDefault();
                 }
             } );
-            me.input.dom.addEventListener("touchend", function() { me.focus(); });
+            me.inputElement.dom.addEventListener("touchend", function() { me.focus(); });
         }
 
-        me.mask.on({
+        me.maskElement.on({
             scope: me,
             tap: 'onMaskTap'
         });
 
-        if (me.clearIcon) {
-            me.clearIcon.on({
-                tap: 'onClearIconTap',
-                touchstart: 'onClearIconPress',
-                touchend: 'onClearIconRelease',
-                scope: me
-            });
-        }
-
         // Hack for IE10. Seems like keyup event is not fired for 'enter' keyboard button, so we use keypress event instead to handle enter.
         if(Ext.browser.is.ie && Ext.browser.version.major >=10){
-            me.input.on({
+            me.inputElement.on({
                 scope: me,
                 keypress: 'onKeyPress'
             });
@@ -340,13 +319,13 @@ Ext.define('Ext.field.Input', {
        // This is used to prevent 300ms delayed focus bug on iOS
        if (newValue) {
            if (this.getFastFocus() && Ext.os.is.iOS) {
-               this.input.on({
+               this.inputElement.on({
                    scope: this,
                    touchstart: "onTouchStart"
                });
            }
        } else {
-           this.input.un({
+           this.inputElement.un({
                scope: this,
                touchstart: "onTouchStart"
            });
@@ -363,18 +342,11 @@ Ext.define('Ext.field.Input', {
     },
 
     applyUseMask: function(useMask) {
-        if (useMask === 'auto') {
-            useMask = Ext.os.is.iOS && Ext.os.version.lt('5');
-        }
-
-        return Boolean(useMask);
+        return !!useMask;
     },
 
-    /**
-     * Updates the useMask configuration
-     */
     updateUseMask: function(newUseMask) {
-        this.mask[newUseMask ? 'show' : 'hide']();
+        this.maskElement[newUseMask ? 'show' : 'hide']();
     },
 
     updatePattern : function (pattern) {
@@ -386,21 +358,13 @@ Ext.define('Ext.field.Input', {
      * @private
      */
     updateFieldAttribute: function(attribute, newValue) {
-        var input = this.input;
+        var inputElement = this.inputElement;
 
         if (!Ext.isEmpty(newValue, true)) {
-            input.dom.setAttribute(attribute, newValue);
+            inputElement.dom.setAttribute(attribute, newValue);
         } else {
-            input.dom.removeAttribute(attribute);
+            inputElement.dom.removeAttribute(attribute);
         }
-    },
-
-    /**
-     * Updates the {@link #cls} configuration.
-     */
-    updateCls: function(newCls, oldCls) {
-        this.input.addCls(Ext.baseCSSPrefix + 'input-el');
-        this.input.replaceCls(oldCls, newCls);
     },
 
     /**
@@ -408,9 +372,6 @@ Ext.define('Ext.field.Input', {
      * @private
      */
     updateType: function(newType, oldType) {
-        var prefix = Ext.baseCSSPrefix + 'input-';
-
-        this.input.replaceCls(prefix + oldType, prefix + newType);
         this.updateFieldAttribute('type', newType);
     },
 
@@ -427,10 +388,10 @@ Ext.define('Ext.field.Input', {
      * @return {Mixed} value The field value.
      */
     getValue: function() {
-        var input = this.input;
+        var inputElement = this.inputElement;
 
-        if (input) {
-            this._value = input.dom.value;
+        if (inputElement) {
+            this._value = inputElement.dom.value;
         }
 
         return this._value;
@@ -448,14 +409,21 @@ Ext.define('Ext.field.Input', {
      * @private
      */
     updateValue: function(newValue) {
-        var input = this.input;
+        var inputElement = this.inputElement,
+            validity = inputElement.dom.validity,
+            field = inputElement.parent('.x-field');
 
         // We need to check the values due to odd issues on mobile devices with autocomplete
         // Even though the value is equal setting it causes autocomplete to insert text that is wrong
         // https://sencha.jira.com/browse/EXTJS-18840
-        if (input && input.dom.value !== newValue) {
-            input.dom.value = newValue;
+        if (inputElement && inputElement.dom.value !== newValue) {
+            inputElement.dom.value = newValue;
         }
+
+        if (field && validity) {
+            field.toggleCls(Ext.baseCSSPrefix + 'invalid', !validity.valid);
+        }
+
     },
 
     setValue: function(newValue) {
@@ -608,11 +576,11 @@ Ext.define('Ext.field.Input', {
      * @return {Mixed} value The field value
      */
     getChecked: function() {
-        var el = this.input,
+        var inputElement = this.inputElement,
             checked;
 
-        if (el) {
-            checked = el.dom.checked;
+        if (inputElement) {
+            checked = inputElement.dom.checked;
             this._checked = checked;
         }
 
@@ -636,7 +604,7 @@ Ext.define('Ext.field.Input', {
      * @private
      */
     updateChecked: function(newChecked) {
-        this.input.dom.checked = newChecked;
+        this.inputElement.dom.checked = newChecked;
     },
 
     /**
@@ -668,10 +636,10 @@ Ext.define('Ext.field.Input', {
         this.callParent(arguments);
 
         if (Ext.browser.is.Safari && !Ext.os.is.BlackBerry) {
-            this.input.dom.tabIndex = (disabled) ? -1 : 0;
+            this.inputElement.dom.tabIndex = (disabled) ? -1 : 0;
         }
 
-        this.input.dom.disabled = (Ext.browser.is.Safari && !Ext.os.is.BlackBerry) ? false : disabled;
+        this.inputElement.dom.disabled = (Ext.browser.is.Safari && !Ext.os.is.BlackBerry) ? false : disabled;
 
         if (!disabled) {
             this.blur();
@@ -742,7 +710,7 @@ Ext.define('Ext.field.Input', {
      */
     showMask: function() {
         if (this.getUseMask()) {
-            this.mask.setStyle('display', 'block');
+            this.maskElement.setStyle('display', 'block');
         }
     },
 
@@ -751,7 +719,7 @@ Ext.define('Ext.field.Input', {
      */
     hideMask: function() {
         if (this.getUseMask()) {
-            this.mask.setStyle('display', 'none');
+            this.maskElement.setStyle('display', 'none');
         }
     },
 
@@ -761,10 +729,10 @@ Ext.define('Ext.field.Input', {
      */
     focus: function() {
         var me = this,
-            el = me.input;
+            inputElement = me.inputElement;
 
-        if (el && el.dom.focus) {
-            el.dom.focus();
+        if (inputElement && inputElement.dom.focus) {
+            inputElement.dom.focus();
         }
         return me;
     },
@@ -776,10 +744,10 @@ Ext.define('Ext.field.Input', {
      */
     blur: function() {
         var me = this,
-            el = this.input;
+            inputElement = this.inputElement;
 
-        if (el && el.dom.blur) {
-            el.dom.blur();
+        if (inputElement && inputElement.dom.blur) {
+            inputElement.dom.blur();
         }
         return me;
     },
@@ -791,10 +759,10 @@ Ext.define('Ext.field.Input', {
      */
     select: function() {
         var me = this,
-            el = me.input;
+            inputElement = me.inputElement;
 
-        if (el && el.dom.setSelectionRange) {
-            el.dom.setSelectionRange(0, 9999);
+        if (inputElement && inputElement.dom.setSelectionRange) {
+            inputElement.dom.setSelectionRange(0, 9999);
         }
         return me;
     },
@@ -843,28 +811,6 @@ Ext.define('Ext.field.Input', {
         if (String(value) != String(startValue)) {
             me.onChange(me, value, startValue);
         }
-
-    },
-
-    /**
-     * @private
-     */
-    onClearIconTap: function(e) {
-        this.fireEvent('clearicontap', this, e);
-
-        //focus the field after cleartap happens, but only on android.
-        //this is to stop the keyboard from hiding. TOUCH-2064
-        if (Ext.os.is.Android) {
-            this.focus();
-        }
-    },
-
-    onClearIconPress: function() {
-        this.clearIcon.addCls(Ext.baseCSSPrefix + 'pressing');
-    },
-
-    onClearIconRelease: function() {
-        this.clearIcon.removeCls(Ext.baseCSSPrefix + 'pressing');
     },
 
     onClick: function(e) {
@@ -901,7 +847,7 @@ Ext.define('Ext.field.Input', {
     onInput: function(e) {
         var me = this;
 
-        me.fireEvent('input', me, me.input.dom.value);
+        me.fireEvent('input', me, me.inputElement.dom.value);
 
         // if we should ignore input, stop now.
         if (me.ignoreInput) {

@@ -212,6 +212,7 @@ Ext.define("Ext.draw.SegmentTree", {
     },
 
     /**
+     * @method
      * @private
      */
     none: Ext.emptyFn,

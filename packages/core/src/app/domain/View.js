@@ -3,13 +3,15 @@
  */
 Ext.define('Ext.app.domain.View', {
     extend: 'Ext.app.EventDomain',
+
+    requires: ['Ext.Widget'],
     
     isInstance: true,
     
     constructor: function(controller) {
-        this.callParent(arguments);
+        this.callParent([controller]);
         this.controller = controller;
-        this.monitoredClasses = [Ext.Component];
+        this.monitoredClasses = [Ext.Widget];
     },
     
     match: function(target, selector, controller) {

@@ -481,8 +481,8 @@ Ext.define('Ext.form.field.Number', {
         }
         me.callParent([e]);
     },
-    
-    setSpinUpEnabled: function(enabled, /* private */ internal){
+
+    setSpinUpEnabled: function(enabled, internal){
         this.callParent(arguments);
         if (!internal) {
             delete this.spinUpDisabledByToggle;
@@ -498,8 +498,8 @@ Ext.define('Ext.form.field.Number', {
             me.setSpinValue(Ext.Number.constrain(me.getValue() + me.step, me.minValue, me.maxValue));
         }
     },
-    
-    setSpinDownEnabled: function(enabled, /* private */ internal){
+
+    setSpinDownEnabled: function(enabled, internal){
         this.callParent(arguments);
         if (!internal) {
             delete this.spinDownDisabledByToggle;

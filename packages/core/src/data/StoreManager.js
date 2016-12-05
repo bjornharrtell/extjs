@@ -82,13 +82,13 @@ Ext.define('Ext.data.StoreManager', {
                 i,
                 len;
                 
-            if(expand){
+            if (expand) {
                 data = [];
                 for (i = 0, len = store.length; i < len; ++i) {
                     data.push([store[i]]);
                 }
             } else {
-                for(i = 2, len = store[0].length; i <= len; ++i){
+                for (i = 2, len = store[0].length; i <= len; ++i) {
                     fields.push('field' + i);
                 }
             }
@@ -113,8 +113,30 @@ Ext.define('Ext.data.StoreManager', {
     // getKey implementation for MixedCollection
     getKey : function(o) {
          return o.storeId;
+    },
+    
+    addEmptyStore: function() {
+        // A dummy empty store with a fieldless Model defined in it.
+        // Just for binding to Views which are instantiated with no Store defined.
+        // They will be able to run and render fine, and be bound to a generated Store later.
+        var emptyStore = Ext.regStore('ext-empty-store', { proxy: 'memory', useModelWarning: false });
+
+        emptyStore.isEmptyStore = true;
+
+        //<debug>
+        emptyStore.add = emptyStore.remove = emptyStore.insert = emptyStore.loadData = function () {
+            Ext.raise('Cannot modify ext-empty-store');
+        };
+        //</debug>
+        
+        this.add(emptyStore);
+    },
+    
+    clear: function() {
+        this.callParent();
+        this.addEmptyStore();
     }
-}, function() {    
+}, function() {
     /**
      * Creates a new store for the given id and config, then registers it with the {@link Ext.data.StoreManager Store Manager}. 
      * Sample usage:
@@ -165,17 +187,6 @@ Ext.define('Ext.data.StoreManager', {
     Ext.getStore = function(name) {
         return Ext.data.StoreManager.lookup(name);
     };
-
-    // A dummy empty store with a fieldless Model defined in it.
-    // Just for binding to Views which are instantiated with no Store defined.
-    // They will be able to run and render fine, and be bound to a generated Store later.
-    var emptyStore = Ext.regStore('ext-empty-store', { proxy: 'memory', useModelWarning: false });
-
-    emptyStore.isEmptyStore = true;
-
-    //<debug>
-    emptyStore.add = emptyStore.remove = emptyStore.insert = emptyStore.loadData = function () {
-        Ext.raise('Cannot modify ext-empty-store');
-    };
-    //</debug>
+    
+    Ext.data.StoreManager.addEmptyStore();
 });

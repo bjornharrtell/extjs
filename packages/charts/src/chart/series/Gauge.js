@@ -315,7 +315,7 @@ Ext.define('Ext.chart.series.Gauge', {
             angle = me.valueToAngle(value),
             sprites = me.getSprites();
 
-        sprites[0].rendererData.value = value;
+        sprites[0].getRendererData().value = value;
         sprites[0].setAttributes({
             startAngle: (needle ? angle : 0),
             endAngle: angle
@@ -466,8 +466,8 @@ Ext.define('Ext.chart.series.Gauge', {
         sprite.setAttributes({
             zIndex: 10
         }, true);
-        sprite.rendererData = rendererData;
-        sprite.rendererIndex = spriteIndex++;
+        sprite.setRendererData(rendererData);
+        sprite.setRendererIndex(spriteIndex++);
         lineWidths.push(me.getNeedleWidth());
 
         // Create background sprite(s)
@@ -485,8 +485,8 @@ Ext.define('Ext.chart.series.Gauge', {
             };
             Ext.apply(attr, sectors[i].style);
             sprite = me.createSprite();
-            sprite.rendererData = rendererData;
-            sprite.rendererIndex = spriteIndex++;
+            sprite.setRendererData(rendererData);
+            sprite.setRendererIndex(spriteIndex++);
             sprite.setAttributes(attr, true);
             lineWidths.push(attr.lineWidth);
         }

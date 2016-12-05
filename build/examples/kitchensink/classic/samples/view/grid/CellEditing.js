@@ -1,23 +1,23 @@
 /**
- * This example shows how to enable users to edit the contents of a grid. Note that cell
- * editing is not recommeded on keyboardless touch devices.
+ * This example shows how to enable inline editing of grid cells.
+ *
+ * Note that cell editing is ideal for mouse/keyboard users and is not
+ * recommended on touch devices.
  */
 Ext.define('KitchenSink.view.grid.CellEditing', {
     extend: 'Ext.grid.Panel',
+    xtype: 'cell-editing',
+    controller: 'cell-editing',
 
     requires: [
-        'Ext.selection.CellModel',
-        'Ext.grid.*',
-        'Ext.data.*',
-        'Ext.util.*',
-        'Ext.form.*',
-        'KitchenSink.model.grid.Plant'
+        'Ext.selection.CellModel'
     ],
-    xtype: 'cell-editing',
 
     //<example>
-    exampleTitle: 'Cell Editing Grid Example',
     otherContent: [{
+        type: 'Controller',
+        path: 'classic/samples/view/grid/CellEditingController.js'
+    }, {
         type: 'Model',
         path: 'classic/samples/model/grid/Plant.js'
     }],
@@ -27,14 +27,14 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
             height: 300,
             indoorWidth: 55,
             priceWidth: 70,
-            avaliableWidth: 95
+            availableWidth: 95
         },
         neptune: {
             width: 680,
             height: 350,
             indoorWidth: 90,
             priceWidth: 70,
-            avaliableWidth: 95
+            availableWidth: 95
         },
         'neptune-touch': {
             priceWidth: 115,
@@ -43,150 +43,130 @@ Ext.define('KitchenSink.view.grid.CellEditing', {
     },
     //</example>
 
-    title: 'Edit Plants',
+    title: 'Cell Editing Plants',
+    width: '${width}',
+    height: '${height}',
+
+    autoLoad: true,
     frame: true,
+    selModel: {
+        type: 'cellmodel'
+    },
 
-    initComponent: function() {
-        this.cellEditing = new Ext.grid.plugin.CellEditing({
-            clicksToEdit: 1
-        });
+    tbar: [{
+        text: 'Add Plant',
+        handler: 'onAddClick'
+    }],
 
-        Ext.apply(this, {
-            width: this.profileInfo.width,
-            height: this.profileInfo.height,
-            plugins: [this.cellEditing],
-            store: new Ext.data.Store({
-                // destroy the store if the grid is destroyed
-                autoDestroy: true,
-                model: KitchenSink.model.grid.Plant,
-                proxy: {
-                    type: 'ajax',
-                    // load remote data using HTTP
-                    url: 'data/grid/plants.xml',
-                    // specify a XmlReader (coincides with the XML format of the returned data)
-                    reader: {
-                        type: 'xml',
-                        // records will have a 'plant' tag
-                        record: 'plant'
-                    }
-                },
-                sorters: [{
-                    property: 'common',
-                    direction:'ASC'
-                }]
-            }),
-            columns: [{
-                header: 'Common Name',
-                dataIndex: 'common',
-                flex: 1,
-                editor: {
-                    allowBlank: false
-                }
-            }, {
-                header: 'Light',
-                dataIndex: 'light',
-                width: 130,
-                editor: new Ext.form.field.ComboBox({
-                    typeAhead: true,
-                    triggerAction: 'all',
-                    store: [
-                        ['Shade','Shade'],
-                        ['Mostly Shady','Mostly Shady'],
-                        ['Sun or Shade','Sun or Shade'],
-                        ['Mostly Sunny','Mostly Sunny'],
-                        ['Sunny','Sunny']
-                    ]
-                })
-            }, {
-                header: 'Price',
-                dataIndex: 'price',
-                width: this.profileInfo.priceWidth,
-                align: 'right',
-                formatter: 'usMoney',
-                editor: {
-                    xtype: 'numberfield',
-                    allowBlank: false,
-                    minValue: 0,
-                    maxValue: 100000
-                }
-            }, {
-                header: 'Available',
-                dataIndex: 'availDate',
-                xtype: 'datecolumn',
-                width: this.profileInfo.availableWidth,
-                format: 'M d, Y',
-                editor: {
-                    xtype: 'datefield',
-                    format: 'm/d/y',
-                    minValue: '01/01/06',
-                    disabledDays: [0, 6],
-                    disabledDaysText: 'Plants are not available on the weekends'
-                }
-            }, {
-                xtype: 'checkcolumn',
-                header: 'Indoor?',
-                dataIndex: 'indoor',
-                width: this.profileInfo.indoorWidth,
-                stopSelection: false
-            }, {
-                xtype: 'actioncolumn',
-                width: 30,
-                sortable: false,
-                menuDisabled: true,
-                items: [{
-                    iconCls: 'cell-editing-delete-row',
-                    tooltip: 'Delete Plant',
-                    scope: this,
-                    handler: this.onRemoveClick
-                }]
-            }],
-            selModel: {
-                type: 'cellmodel'
-            },
-            tbar: [{
-                text: 'Add Plant',
-                scope: this,
-                handler: this.onAddClick
-            }]
-        });
+    bbar: {
+        platformConfig: {
+            '!Ext.supports.Touch': {
+                hidden: true
+            }
+        },
+        items: [{
+            xtype: 'component',
+            flex: 1,
+            html: '<b>Not recommended on touch devices</b>',
+            style: 'text-align: right;'
+        }]
+    },
 
-        this.callParent();
+    plugins: {
+        ptype: 'cellediting',
+        clicksToEdit: 1
+    },
 
-        if (Ext.supports.Touch) {
-            this.addDocked({
-                xtype: 'header',
-                title: '<b>Note that cell editing is not recommeded on keyboardless touch devices.</b>'
-            });
+    store: {
+        model: 'KitchenSink.model.grid.Plant',
+
+        proxy: {
+            type: 'ajax',
+            url: 'data/grid/plants.xml',
+
+            reader: {
+                type: 'xml',    // XmlReader since returned data is in XML
+                record: 'plant' // records are in 'plant' tags
+            }
+        },
+
+        sorters: [{
+            property: 'common',
+            direction:'ASC'
+        }]
+    },
+
+    columns: [{
+        header: 'Common Name',
+        dataIndex: 'common',
+
+        flex: 1,
+        editor: {
+            allowBlank: false
         }
+    }, {
+        header: 'Light',
+        dataIndex: 'light',
 
-        this.on('afterlayout', this.loadStore, this, {
-            delay: 1,
-            single: true
-        });
-    },
+        width: 130,
+        editor: {
+            xtype: 'combo',
+            typeAhead: true,
+            triggerAction: 'all',
+            store: [
+                ['Shade','Shade'],
+                ['Mostly Shady','Mostly Shady'],
+                ['Sun or Shade','Sun or Shade'],
+                ['Mostly Sunny','Mostly Sunny'],
+                ['Sunny','Sunny']
+            ]
+        }
+    }, {
+        header: 'Price',
+        dataIndex: 'price',
 
-    loadStore: function() {
-        this.getStore().load();
-    },
+        width: '${priceWidth}',
+        align: 'right',
+        formatter: 'usMoney',
+        editor: {
+            xtype: 'numberfield',
 
-    onAddClick: function(){
-        // Create a model instance
-        var rec = new KitchenSink.model.grid.Plant({
-            common: '',
-            light: 'Mostly Shady',
-            price: 0,
-            availDate: Ext.Date.clearTime(new Date()),
-            indoor: false
-        });
+            allowBlank: false,
+            minValue: 0,
+            maxValue: 100000
+        }
+    }, {
+        xtype: 'datecolumn',
+        header: 'Available',
+        dataIndex: 'availDate',
 
-        this.getStore().insert(0, rec);
-        this.cellEditing.startEditByPosition({
-            row: 0,
-            column: 0
-        });
-    },
+        width: '${availableWidth}',
+        format: 'M d, Y',
+        editor: {
+            xtype: 'datefield',
+            format: 'm/d/y',
+            minValue: '01/01/06',
+            disabledDays: [0, 6],
+            disabledDaysText: 'Plants are not available on the weekends'
+        }
+    }, {
+        xtype: 'checkcolumn',
+        header: 'Indoor?',
+        dataIndex: 'indoor',
 
-    onRemoveClick: function(grid, rowIndex){
-        this.getStore().removeAt(rowIndex);
-    }
+        headerCheckbox: true,
+        width: '${indoorWidth}',
+        stopSelection: false
+    }, {
+        xtype: 'actioncolumn',
+
+        width: 30,
+        sortable: false,
+        menuDisabled: true,
+        items: [{
+            iconCls: 'cell-editing-delete-row',
+            tooltip: 'Delete Plant',
+            handler: 'onRemoveClick'
+        }]
+    }]
 });

@@ -143,7 +143,7 @@ Ext.define('Ext.form.field.ComboBox', {
          * By default only the immediate data of the record is passed (no associated data). The {@link #getRecordDisplayData} can
          * be overridden to extend this.
          */
-        displayTpl: false,
+        displayTpl: null,
 
         //<locale>
         /**
@@ -215,6 +215,7 @@ Ext.define('Ext.form.field.ComboBox', {
     hiddenDataCls: Ext.baseCSSPrefix + 'hidden-display ' + Ext.baseCSSPrefix + 'form-data-hidden',
     
     ariaRole: 'combobox',
+    autoDestroyBoundStore: true,
 
     childEls: {
         'hiddenDataEl': true
@@ -441,6 +442,14 @@ Ext.define('Ext.form.field.ComboBox', {
      * select it (unless the value of ({@link #typeAhead}) were true), or use the mouse to select a value.
      */
     autoSelect: true,
+    
+    /**
+     * @cfg {Boolean} [autoSelectLast=true] When `true`, the last selected record in the dropdown
+     * list will be re-selected upon {@link #autoSelect}. Set to `false` to always select the first
+     * record in the drop-down list.
+     * For accessible applications it is recommended to set this option to `false`.
+     */
+    autoSelectLast: true,
 
     /**
      * @cfg {Boolean} typeAhead
@@ -490,6 +499,7 @@ Ext.define('Ext.form.field.ComboBox', {
      * *When {@link #queryMode} is `'local'` only*
      *
      * Set to `true` to have the ComboBox use the typed value as a RegExp source to filter the store to get possible matches.
+     * Invalid regex values will be ignored.
      */
 
     /**
@@ -575,6 +585,8 @@ Ext.define('Ext.form.field.ComboBox', {
      * @private
      */
     clearValueOnEmpty: true,
+
+    newlineRe: /\r?\n/g,
 
     getGrowWidth: function () {
         var me = this,
@@ -684,6 +696,12 @@ Ext.define('Ext.form.field.ComboBox', {
             }
         }
 
+        // Nothing configured, so generate one. This allows the user to
+        // specify displayField in initComponent for extended classes
+        if (!me.displayTpl) {
+            me.setDisplayTpl(false);
+        }
+
         me.bindStore(store || 'ext-empty-store', true, true);
 
         isLocalMode = me.queryMode === 'local';
@@ -708,16 +726,47 @@ Ext.define('Ext.form.field.ComboBox', {
         }
     },
     
+    initEvents: function() {
+        var me = this;
+        
+        me.callParent();
+        
+        // These key bindings need to have higher priority than BoundList keynav
+        // so that Alt-Up/Down arrows would expand and collapse the picker without
+        // highlighting items and/or changing selection
+        me.altArrowKeyNav = new Ext.util.KeyNav({
+            target: me.inputEl,
+            forceKeyDown: true,
+            priority: 1002, // BoundList keynav has 1001
+            scope: me,
+            
+            down: {
+                alt: true,
+                handler: me.onAltDownArrow
+            },
+            up: {
+                alt: true,
+                handler: me.onAltUpArrow
+            }
+        });
+    },
+    
     getSubTplData: function(fieldData) {
-        var data, inputElAttr;
+        var me = this,
+            id = me.id,
+            data, ariaAttr;
         
-        data = this.callParent([fieldData]);
+        data = me.callParent([fieldData]);
         
-        inputElAttr = data.inputElAriaAttributes;
-        
-        if (inputElAttr) {
-            // TODO Change that to reflect the real behavior
-            inputElAttr['aria-autocomplete'] = 'list';
+        if (!me.ariaStaticRoles[me.ariaRole]) {
+            ariaAttr = data.ariaElAttributes;
+            
+            if (ariaAttr) {
+                ariaAttr['aria-owns'] = id + '-inputEl ' + id + '-picker-listEl';
+                
+                // TODO Change that to reflect the real behavior
+                ariaAttr['aria-autocomplete'] = 'list';
+            }
         }
         
         return data;
@@ -838,19 +887,32 @@ Ext.define('Ext.form.field.ComboBox', {
         }
     },
 
-    completeEdit: function(e) {
+    clearLocalFilter: function() {
         var me = this,
             filter = me.queryFilter;
+
+        if (filter) {
+            me.queryFilter = null;
+            // Must set changingFilters flag for this.checkValueOnChange.
+            // the suppressEvents flag does not affect the filterchange event
+            me.changingFilters = true;
+            me.store.removeFilter(filter, true);
+            me.changingFilters = false;
+        }
+    },
+
+    completeEdit: function(e) {
+        var me = this;
 
         this.callParent([e]);
         me.doQueryTask.cancel();
         me.assertValue();
-        
-        if (filter && me.queryMode === 'local' && me.clearFilterOnBlur) {
-            me.getStore().getFilters().remove(filter);
+
+        if (me.queryFilter && me.queryMode === 'local' && me.clearFilterOnBlur) {
+            me.clearLocalFilter();
         }
     },
-    
+
     onFocus: function(e) {
         var me = this;
         
@@ -860,38 +922,74 @@ Ext.define('Ext.form.field.ComboBox', {
             me.doRawQuery();
         }
     },
+    
+    onAltDownArrow: function(e) {
+        e.stopEvent();
+        
+        if (!this.isExpanded) {
+            this.onDownArrow(e);
+        }
+        
+        // Stop further keyNav processing
+        return false;
+    },
+    
+    onAltUpArrow: function(e) {
+        e.stopEvent();
+        
+        if (this.isExpanded) {
+            this.onEsc(e);
+        }
+        
+        // Stop further keyNav processing
+        return false;
+    },
 
     /**
      * @private
      */
     assertValue: function() {
         var me = this,
-            value = me.getRawValue(),
+            rawValue = me.getRawValue(),
             displayValue = me.getDisplayValue(),
             lastRecords = me.lastSelectedRecords,
-            rec;
+            preventChange = false,
+            value, rec;
 
         if (me.forceSelection) {
             if (me.multiSelect) {
                 // For multiselect, check that the current displayed value matches the current
                 // selection, if it does not then revert to the most recent selection.
-                if (value !== displayValue) {
+                if (rawValue !== displayValue) {
                     me.setRawValue(displayValue);
                 }
             } else {
                 // For single-select, match the displayed value to a record and select it,
                 // if it does not match a record then revert to the most recent selection.
-                rec = me.findRecordByDisplay(value);
-                if (rec) {
-                    // Prevent an issue where we have duplicate display values with
-                    // different underlying values.
-                    if (me.getDisplayValue([me.getRecordDisplayData(rec)]) !== displayValue) {
-                        me.select(rec, true);
+                rec = me.findRecordByDisplay(rawValue);
+                if (!rec) {
+                    if (lastRecords && (!me.allowBlank || me.rawValue)) {
+                        rec = lastRecords[0];
+                    } 
+                    // if we have a custom displayTpl it's likely that findRecordByDisplay won't
+                    // find the value based on RawValue, so we give it another try using the data
+                    // stored in displayTplData if there is any.
+                    else if (me.displayTplData && me.displayTplData.length) {
+                        rec = me.findRecordByValue(me.displayTplData[0][me.valueField]);
                     }
-                } else if (lastRecords && (!me.allowBlank || me.rawValue)) {
-                    me.setValue(lastRecords);
-                } else {
-                    if(lastRecords) {
+                } 
+                // Prevent an issue where we have duplicate display values with
+                // different underlying values.
+                else if (me.getDisplayValue([me.getRecordDisplayData(rec)]) === displayValue) {
+                    rec = null;
+                    preventChange = true;
+                }
+
+                if (rec) {
+                    me.select(rec, true);
+                    me.fireEvent('select', me, rec);
+                } else if (!preventChange) {
+                    if (lastRecords) {
                         delete me.lastSelectedRecords;
                     }
                     // We need to reset any value that could have been set in the dom before or during a store load
@@ -901,6 +999,15 @@ Ext.define('Ext.form.field.ComboBox', {
                     me.setRawValue('');
                 }
             }
+        } 
+        // we can only call getValue() in this process if forceSelection is false
+        // otherwise it will break the grid edit on tab
+        else if ((value = me.getValue()) && value == rawValue) {
+            rec = me.findRecordByDisplay(value);
+            if (rec && (rec !== (lastRecords && lastRecords[0]) || me.displayField !== me.valueField)) {
+                me.select(rec, true);
+                me.fireEvent('select', me, rec);
+            }
         }
         me.collapse();
     },
@@ -909,7 +1016,6 @@ Ext.define('Ext.form.field.ComboBox', {
         var me = this,
             displayField = me.displayField,
             record = me.store.findRecord(displayField, me.getRawValue()),
-            boundList = me.getPicker(),
             newValue, len, selStart;
 
         if (record) {
@@ -917,9 +1023,11 @@ Ext.define('Ext.form.field.ComboBox', {
             len = newValue.length;
             selStart = me.getRawValue().length;
 
-            boundList.highlightItem(boundList.getNode(record));
-
             if (selStart !== 0 && selStart !== len) {
+                // Setting the raw value will cause a field mutation event.
+                // Prime the lastMutatedValue so that this does not cause a requery.
+                me.lastMutatedValue = newValue;
+
                 me.setRawValue(newValue);
                 me.selectText(selStart, newValue.length);
             }
@@ -931,31 +1039,25 @@ Ext.define('Ext.form.field.ComboBox', {
     resetToDefault: Ext.emptyFn,
 
     beforeReset: function() {
-        var filter = this.queryFilter;
-        
         this.callParent();
-
-        if (filter) {
-            this.getStore().getFilters().remove(filter);
-        }
+        this.clearLocalFilter();
     },
 
     onUnbindStore: function() {
         var me = this,
-            picker = me.picker,
-            filter = me.queryFilter;
+            picker = me.picker;
 
         // If we'd added a local filter, remove it.
         // Listeners are unbound, so we don't need the changingFilters flag
-        if (filter && !me.store.destroyed) {
-            me.changingFilters = true;
-            me.getStore().removeFilter(filter, true);
-            me.changingFilters = false;
+        if (me.queryFilter && !me.store.destroyed) {
+            me.clearLocalFilter();
         }
-        me.pickerSelectionModel.destroy();
+        
         if (picker) {
             picker.bindStore(null);
         }
+
+        me.pickerSelectionModel.destroy();
     },
 
     onBindStore: function(store, initial) {
@@ -1044,6 +1146,7 @@ Ext.define('Ext.form.field.ComboBox', {
                 // was released but the boundview.  The view will then determine that it should fire a container click, and
                 // the DataViewModel will then deselect all prior selections. Setting `deselectOnContainerClick` here will
                 // prevent the model from deselecting.
+                ordered: true,
                 deselectOnContainerClick: false,
                 enableInitialSelection: false,
                 pruneRemoved: false,
@@ -1060,7 +1163,14 @@ Ext.define('Ext.form.field.ComboBox', {
             }
 
             if (picker) {
+                me.pickerSelectionModel.on({
+                    scope: me,
+                    beforeselect: me.onBeforeSelect,
+                    beforedeselect: me.onBeforeDeselect
+                });
+                
                 picker.setSelectionModel(me.pickerSelectionModel);
+                
                 if (picker.getStore() !== store) {
                     picker.bindStore(store);
                 }
@@ -1136,6 +1246,10 @@ Ext.define('Ext.form.field.ComboBox', {
             }
             else {
                 if (me.forceSelection && !me.changingFilters && !me.findRecordByValue(me.value)) {
+                    // skip this if query mode is remote and the user is typing
+                    if (me.queryMode != 'local' && me.hasFocus) {
+                        return;
+                    }
                     me.setValue(null);
                 }
             }
@@ -1212,20 +1326,24 @@ Ext.define('Ext.form.field.ComboBox', {
     doQuery: function(queryString, forceAll, rawQuery) {
         var me = this,
             store = me.getStore(),
-            // if we have a queryString but no local filters, we should do a localQuery
-            refreshFilters = store.filters && !store.filters.length && !!queryString,
-
+            filters = store.getFilters(),
+            
             // Decide if, and how we are going to query the store
             queryPlan = me.beforeQuery({
+                lastQuery: me.lastQuery || '',
                 query: queryString || '',
                 rawQuery: rawQuery,
                 forceAll: forceAll,
                 combo: me,
                 cancel: false
-            });
+            }),
+            refreshFilters;
 
         // Allow veto.
         if (queryPlan !== false && !queryPlan.cancel) {
+            // if we have a queryString and we don't have a queryFilter or the queryFilter
+            // has changed since the last query, we should run a query.
+            refreshFilters = !!queryString && (!me.queryFilter || me.queryFilter && (filters.indexOf(me.queryFilter) < 0));
 
             // If they're using the same value as last time (and not being asked to query all), 
             // and the filters don't need to be refreshed, just show the dropdown
@@ -1234,6 +1352,7 @@ Ext.define('Ext.form.field.ComboBox', {
                 // refresh the picker DOM while hidden and it will layout on show.
                 me.getPicker().refresh();
                 me.expand();
+                me.afterQuery(queryPlan);
             }
 
             // Otherwise filter or load the store
@@ -1247,9 +1366,16 @@ Ext.define('Ext.form.field.ComboBox', {
                     me.doRemoteQuery(queryPlan);
                 }
             }
+            
+            return true;
+        }
+        // If the query was vetoed we still need to check the change
+        // in case custom validators are used
+        else {
+            me.startCheckChangeTask();
         }
 
-        return true;
+        return false;
     },
 
     /**
@@ -1265,6 +1391,7 @@ Ext.define('Ext.form.field.ComboBox', {
      *
      * @param {Object} queryPlan An object containing details about the query to be executed.
      * @param {String} queryPlan.query The query value to be used to match against the ComboBox's {@link #valueField}.
+     * @param {String} queryPlan.lastQuery The query value used the last time a store query was made.
      * @param {Boolean} queryPlan.forceAll If `true`, causes the query to be executed even if the minChars threshold is not met.
      * @param {Boolean} queryPlan.cancel A boolean value which, if set to `true` upon return, causes the query not to be executed.
      * @param {Boolean} queryPlan.rawQuery If `true` indicates that the raw input field value is being used, and upon store load,
@@ -1294,29 +1421,38 @@ Ext.define('Ext.form.field.ComboBox', {
         var me = this,
             queryString = queryPlan.query,
             store = me.getStore(),
-            filter = me.queryFilter;
+            value = queryString,
+            filter;
 
-        me.queryFilter = null;
-        // Must set changingFilters flag for this.checkValueOnChange.
-        // the suppressEvents flag does not affect the filterchange event
-        me.changingFilters = true;
-        if (filter) {
-            store.removeFilter(filter, true);
-        }
+        me.clearLocalFilter();
 
         // Querying by a string...
         if (queryString) {
-            filter = me.queryFilter = new Ext.util.Filter({
-                id: me.id + '-filter',
-                anyMatch: me.anyMatch,
-                caseSensitive: me.caseSensitive,
-                root: 'data',
-                property: me.displayField,
-                value: me.enableRegEx ? new RegExp(queryString) : queryString
-            });
-            store.addFilter(filter, true);
+            // User can be typing a regex in here, if it's invalid
+            // just swallow the exception and move on
+            if (me.enableRegEx) {
+                try {
+                    value = new RegExp(value);
+                } catch(e) {
+                    value = null;
+                }
+            }
+            if (value !== null) {
+                // Must set changingFilters flag for this.checkValueOnChange.
+                // the suppressEvents flag does not affect the filterchange event
+                me.changingFilters = true;
+                filter = me.queryFilter = new Ext.util.Filter({
+                    id: me.id + '-filter',
+                    anyMatch: me.anyMatch,
+                    caseSensitive: me.caseSensitive,
+                    root: 'data',
+                    property: me.displayField,
+                    value: value
+                });
+                store.addFilter(filter, true);
+                me.changingFilters = false;
+            }
         }
-        me.changingFilters = false;
 
         // Expand after adjusting the filter if there are records or if emptyText is configured.
         if (me.store.getCount() || me.getPicker().emptyText) {
@@ -1376,7 +1512,7 @@ Ext.define('Ext.form.field.ComboBox', {
 
         if (me.store.getCount()) {
             if (me.typeAhead) {
-                me.doTypeAhead();
+                me.doTypeAhead(queryPlan);
             }
 
             if (queryPlan.rawQuery) {
@@ -1427,44 +1563,66 @@ Ext.define('Ext.form.field.ComboBox', {
      */
     doAutoSelect: function() {
         var me = this,
+            store = me.store,
             picker = me.picker,
-            selectionModel,
-            itemNode = 0;
+            itemNode = 0,
+            selectionModel, lastSelected;
 
-        if (picker && me.autoSelect && me.store.getCount() > 0) {
-            selectionModel = me.picker.getSelectionModel();
-            // Highlight the last selected item and scroll it into view
-            if (selectionModel.lastSelected && selectionModel.selected.length) {
-                itemNode = selectionModel.lastSelected;
+        if (picker && me.autoSelect && store.getCount() > 0) {
+            if (me.autoSelectLast) {
+                selectionModel = picker.getSelectionModel();
+                lastSelected = selectionModel.lastSelected;
+                
+                // Highlight the last selected item and scroll it into view,
+                // but only if it wasn't filtered out
+                if (lastSelected && selectionModel.selected.length && store.indexOf(lastSelected) > -1) {
+                    itemNode = lastSelected;
+                }
             }
+            
             picker.getNavigationModel().setPosition(itemNode);
         }
     },
 
-    doTypeAhead: function() {
-        var me = this,
-            Event = Ext.event.Event;
+    doTypeAhead: function(queryPlan) {
+        var me = this;
+
         if (!me.typeAheadTask) {
             me.typeAheadTask = new Ext.util.DelayedTask(me.onTypeAhead, me);
         }
-        if (me.lastKey !== Event.BACKSPACE && me.lastKey !== Event.DELETE) {
+
+        // Only typeahead when user extends the query string, or it's a completely different query
+        // If user is erasing, re-extending with typeahead is not wanted.
+        if (queryPlan.query.length > queryPlan.lastQuery.length || !Ext.String.startsWith(queryPlan.lastQuery, queryPlan.query)) {
             me.typeAheadTask.delay(me.typeAheadDelay);
         }
     },
 
-    onTriggerClick: function() {
-        var me = this;
+    onTriggerClick: function(e) {
+        var me = this,
+            oldAutoSelect;
 
         if (!me.readOnly && !me.disabled) {
             if (me.isExpanded) {
                 me.collapse();
-            } else {
-                if (me.triggerAction === 'all') {
-                    me.doQuery(me.allQuery, true);
-                } else if (me.triggerAction === 'last') {
-                    me.doQuery(me.lastQuery, true);
-                } else {
-                    me.doQuery(me.getRawValue(), false, true);
+            }
+            else {
+                // Alt-Down arrow opens the picker but does not select items:
+                // http://www.w3.org/TR/wai-aria-practices/#combobox
+                if (e && e.type === 'keydown' && e.altKey) {
+                    oldAutoSelect = me.autoSelect;
+                    me.autoSelect = false;
+                    me.expand();
+                    me.autoSelect = oldAutoSelect;
+                }
+                else {
+                    if (me.triggerAction === 'all') {
+                        me.doQuery(me.allQuery, true);
+                    } else if (me.triggerAction === 'last') {
+                        me.doQuery(me.lastQuery, true);
+                    } else {
+                        me.doQuery(me.getRawValue(), false, true);
+                    }
                 }
             }
         }
@@ -1483,7 +1641,7 @@ Ext.define('Ext.form.field.ComboBox', {
         // Also, do not process TAB event which fires on arrival.
         if (!me.readOnly && (rawValue !== me.lastMutatedValue || isDelete) && key !== e.TAB) {
             me.lastMutatedValue = rawValue;
-            me.lastKey = key;
+            me.refreshEmptyText();
             if (len && (e.type !== 'keyup' || (!e.isSpecialKey() || isDelete))) {
                 me.doQueryTask.delay(me.queryDelay);
             } else {
@@ -1513,12 +1671,14 @@ Ext.define('Ext.form.field.ComboBox', {
                     // There may have been a local filter if we were querying locally.
                     // Clear the query filter and suppress the consequences (we do not want a list refresh).
                     if (me.queryFilter) {
-                        // Must set changingFilters flag for this.checkValueOnChange.
-                        // the suppressEvents flag does not affect the filterchange event
-                        me.changingFilters = true;
-                        me.store.removeFilter(me.queryFilter, true);
-                        me.changingFilters = false;
+                        me.clearLocalFilter();
                     }
+                    
+                    // When queryCaching if the user deletes the value and then starts typing
+                    // the same filter again, doQuery can erroneously expand the picker without
+                    // filtering first.
+                    me.lastQuery = null;
+                    
                     --me.suspendCheckChange;
                 }
                 me.callParent([e]);
@@ -1526,17 +1686,19 @@ Ext.define('Ext.form.field.ComboBox', {
         }
     },
 
-    onDestroy: function() {
+    doDestroy: function() {
         var me = this;
 
         me.doQueryTask.cancel();
+        
         if (me.typeAheadTask) {
             me.typeAheadTask.cancel();
             me.typeAheadTask = null;
         }
 
         me.bindStore(null);
-        me.valueCollection = Ext.destroy(me.valueCollection);
+        Ext.destroy(me.altArrowKeyNav, me.valueCollection);
+        
         me.callParent();
     },
 
@@ -1556,7 +1718,7 @@ Ext.define('Ext.form.field.ComboBox', {
             picker,
             pickerCfg = Ext.apply({
                 xtype: 'boundlist',
-                id: me.pickerId,
+                id: me.id + '-picker',
                 pickerField: me,
                 selectionModel: me.pickerSelectionModel,
                 floating: true,
@@ -1565,7 +1727,8 @@ Ext.define('Ext.form.field.ComboBox', {
                 displayField: me.displayField,
                 preserveScrollOnRefresh: true,
                 pageSize: me.pageSize,
-                tpl: me.tpl
+                tpl: me.tpl,
+                ariaSelectable: me.ariaSelectable
             }, me.listConfig, me.defaultListConfig);
 
         picker = me.picker = Ext.widget(pickerCfg);
@@ -1618,6 +1781,7 @@ Ext.define('Ext.form.field.ComboBox', {
     
     onFocusChange: function(selModel, prevRecord, newRecord) {
         var picker = this.picker,
+            inputEl = this.inputEl,
             el;
         
         if (newRecord) {
@@ -1625,7 +1789,10 @@ Ext.define('Ext.form.field.ComboBox', {
             el = Ext.get(picker.getNodeByRecord(newRecord));
             
             if (el) {
-                this.ariaEl.dom.setAttribute('aria-activedescendant', el.id);
+                inputEl.dom.setAttribute('aria-activedescendant', el.id);
+            }
+            else {
+                inputEl.dom.removeAttribute('aria-activedescendant');
             }
         }
     },
@@ -1709,7 +1876,7 @@ Ext.define('Ext.form.field.ComboBox', {
             me.updatingValue = false;
         }
         Ext.resumeLayouts(true);
-        if (selectionCount && !me.suspendCheckChange) {
+        if (!me.suspendCheckChange) {
             if (!me.multiSelect) {
                 selectedRecords = selectedRecord;
             }
@@ -1727,11 +1894,22 @@ Ext.define('Ext.form.field.ComboBox', {
      * Enables the key navs for the BoundList when it is expanded.
      */
     onExpand: function() {
-        var keyNav = this.getPicker().getNavigationModel();
+        var me = this,
+            picker = me.getPicker(),
+            keyNav = picker.getNavigationModel(),
+            node;
+        
         if (keyNav) {
             keyNav.enable();
         }
-        this.doAutoSelect();
+        
+        me.doAutoSelect();
+        
+        node = Ext.get(picker.highlightedItem);
+        
+        if (node) {
+            me.inputEl.dom.setAttribute('aria-activedescendant', node.id);
+        }
     },
 
     /**
@@ -1739,13 +1917,18 @@ Ext.define('Ext.form.field.ComboBox', {
      * Disables the key navs for the BoundList when it is collapsed.
      */
     onCollapse: function() {
-        var keyNav = this.getPicker().getNavigationModel();
+        var me = this,
+            keyNav = me.getPicker().getNavigationModel();
+        
         if (keyNav) {
             keyNav.disable();
         }
-        if (this.updatingValue) {
-            this.doQueryTask.cancel();
+        
+        if (me.updatingValue) {
+            me.doQueryTask.cancel();
         }
+        
+        me.inputEl.dom.removeAttribute('aria-activedescendant');
     },
 
     /**
@@ -1836,11 +2019,32 @@ Ext.define('Ext.form.field.ComboBox', {
      * @return {Ext.form.field.Field} this
      */
     setValue: function(value) {
-        var me = this;
+        var me = this,
+            bind, valueBind;
 
-        // Value needs matching and record(s) need selecting.
+        // Here we check if the setValue is being called by bind getting synced
+        // if this is the case while the field has focus. If this is the case, we
+        // don't want to change the field value.
+        if (me.hasFocus) {
+            bind = me.getBind();
+            valueBind = bind && bind.value;
+            if (valueBind && valueBind.syncing) {
+                if ((Ext.isEmpty(value) && Ext.isEmpty(me.value)) || value === me.value) {
+                    return me;
+                } else if (Ext.isArray(value) && Ext.isArray(me.value) && Ext.Array.equals(value, me.value)) {
+                    return me;
+                }
+            }
+        } else {
+            // This is the value used to forceSelection in assertValue if 
+            // an invalid value is left in the field at completeEdit. Must be cleared so 
+            // that the next usage of the field is not affected, but only if we are setting
+            // a new value.
+            me.lastSelectedRecords = null;
+        }
+
         if (value != null) {
-            return me.doSetValue(value);
+            me.doSetValue(value);
         }
         // Clearing is a special, simpler case.
         else {
@@ -1848,9 +2052,10 @@ Ext.define('Ext.form.field.ComboBox', {
             me.valueCollection.beginUpdate();
             me.pickerSelectionModel.deselectAll();
             me.valueCollection.endUpdate();
-            me.lastSelectedRecords = null;
             me.resumeEvent('select');
         }
+
+        return me;
     },
 
     setRawValue: function(rawValue) {
@@ -1910,6 +2115,10 @@ Ext.define('Ext.form.field.ComboBox', {
                 // If we know that the display value is the same as the value, then show it.
                 // A store load is still scheduled so that the matching record can be published.
                 me.setRawValue(displayIsValue ? value : '');
+                // if display is value, let's remove the empty text since the store might not be loaded yet
+                if (displayIsValue && !Ext.isEmpty(value) && me.inputEl && me.emptyText) {
+                    me.inputEl.removeCls(me.emptyUICls);
+                }
             }
 
             // Kick off a load. Doesn't matter whether proxy is remote - it needs loading
@@ -2010,13 +2219,6 @@ Ext.define('Ext.form.field.ComboBox', {
         } else {
             me.updateValue();
         }
-
-        if (me.inputEl && me.emptyText) {
-            me.inputEl.removeCls(me.emptyCls);
-            me.valueContainsPlaceholder = false;
-        }
-
-        me.applyEmptyText();
         
         return me;
     },
@@ -2033,7 +2235,7 @@ Ext.define('Ext.form.field.ComboBox', {
             valueArray = [],
             displayTplData = me.displayTplData || (me.displayTplData = []),
             inputEl = me.inputEl,
-            i, record;
+            i, record, displayValue;
 
         // Loop through values, matching each from the Store, and collecting matched records
         displayTplData.length = 0;
@@ -2055,15 +2257,16 @@ Ext.define('Ext.form.field.ComboBox', {
         }
         me.displayTplData = displayTplData; //store for getDisplayValue method
 
-        if (inputEl && me.emptyText && !Ext.isEmpty(me.value)) {
-            inputEl.removeCls(me.emptyCls);
-        }
-
+        displayValue = me.getDisplayValue();
         // Calculate raw value from the collection of Model data
-        me.setRawValue(me.getDisplayValue());
+        me.setRawValue(displayValue);
+        me.refreshEmptyText();
         me.checkChange();
-
-        me.applyEmptyText();
+        
+        if (inputEl && me.typeAhead && me.hasFocus) {
+            // if typeahead is configured, deselect any partials
+            me.selectText(displayValue.length);
+        }
     },
 
     /**
@@ -2098,11 +2301,11 @@ Ext.define('Ext.form.field.ComboBox', {
         }
         while (childrenCount > valueCount) {
             dom.removeChild(childNodes[0]);
-            -- childrenCount;
+            --childrenCount;
         }
         while (childrenCount < valueCount) {
             dom.appendChild(input.cloneNode(true));
-            ++ childrenCount;
+            ++childrenCount;
         }
         for (i = 0; i < valueCount; i++) {
             childNodes[i].value = values[i];
@@ -2115,7 +2318,11 @@ Ext.define('Ext.form.field.ComboBox', {
      */
     getDisplayValue: function(tplData) {
         tplData = tplData || this.displayTplData;
-        return this.getDisplayTpl().apply(tplData);
+        var s = this.getDisplayTpl().apply(tplData) || '';
+        // The display field may have newlines characters, but the raw value in
+        // the field will not because they will be automatically stripped, so do
+        // the same here for the sake of comparison.
+        return s.replace(this.newlineRe, '');
     },
 
     /**

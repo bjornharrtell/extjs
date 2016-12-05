@@ -45,13 +45,17 @@ Ext.define('Ext.panel.Header', {
          * for glyphs can be set globally using 
          * {@link Ext.app.Application#glyphFontFamily glyphFontFamily} application 
          * config or the {@link Ext#setGlyphFontFamily Ext.setGlyphFontFamily()} method.
+         * It is initially set to `'Pictos'`.
          * 
          * The following shows how to set the glyph using the font icons provided in the 
          * SDK (assuming the font-family has been configured globally):
-         * 
-         *     // assumes the glyphFontFamily is "FontAwesome"
-         *     glyph: 'xf005'     // the "home" icon
-         * 
+         *
+         *     // assumes the glyphFontFamily is "Pictos"
+         *     glyph: 'x48'       // the "home" icon (H character)
+         *
+         *     // assumes the glyphFontFamily is "Pictos"
+         *     glyph: 72          // The "home" icon (H character)
+         *
          *     // assumes the glyphFontFamily is "Pictos"
          *     glyph: 'H'         // the "home" icon
          * 
@@ -59,7 +63,7 @@ Ext.define('Ext.panel.Header', {
          * font-family separated by the `@` symbol.
          * 
          *     // using Font Awesome
-         *     glyph: 'xf005@FontAwesome'     // the "home" icon
+         *     glyph: 'xf015@FontAwesome'     // the "home" icon
          * 
          *     // using Pictos
          *     glyph: 'H@Pictos'              // the "home" icon
@@ -257,13 +261,7 @@ Ext.define('Ext.panel.Header', {
         me.addCls(cls);
 
         me.syncNoBorderCls();
-
-        me.enableFocusableContainer = !me.isAccordionHeader && me.tools.length > 0;
         
-        if (me.enableFocusableContainer) {
-            me.ariaRole = 'toolbar';
-        }
-
         // Add Tools
         Ext.Array.push(items, me.tools);
         // Clear the tools so we can have only the instances. Intentional mutation of passed in array
@@ -290,15 +288,7 @@ Ext.define('Ext.panel.Header', {
         // so let's be safe and forcibly specify tool
         me.add(Ext.ComponentManager.create(tool, 'tool'));
         
-        if (!me.isAccordionHeader && me.tools.length > 0 && !me.enableFocusableContainer) {
-            me.enableFocusableContainer = true;
-            me.ariaRole = 'toolbar';
-            
-            if (me.rendered) {
-                me.ariaEl.dom.setAttribute('role', 'toolbar');
-                me.initFocusableContainer(true);
-            }
-        }
+        me.checkFocusableTools();
     },
 
     afterLayout: function() {
@@ -328,10 +318,11 @@ Ext.define('Ext.panel.Header', {
 
         title = title || '';
 
-        isString = typeof title === 'string';
-        if (isString) {
+        isString = Ext.isString(title);
+
+        if (!Ext.isObject(title)) {
             title = {
-                text: title
+                text: title.toString()
             };
         }
 
@@ -392,6 +383,52 @@ Ext.define('Ext.panel.Header', {
 
         if (itemPosition !== undefined) {
             me.insert(itemPosition, me._userItems);
+        }
+        
+        me.checkFocusableTools();
+    },
+    
+    checkFocusableTools: function() {
+        var me = this,
+            tools = me.tools,
+            haveFocusableTool, i, len;
+
+        if (me.isAccordionHeader) {
+            me.enableFocusableContainer = false;
+            
+            return;
+        }
+        
+        // We only need to enable FocusableContainer behavior when there are focusable tools.
+        // For instance, Windows and Accordion panels can have Close tool that is not focusable,
+        // in which case there is no sense in making the header behave like focusable container.
+        for (i = 0, len = tools.length; i < len; i++) {
+            if (tools[i].focusable) {
+                haveFocusableTool = true;
+                break;
+            }
+        }
+        
+        if (haveFocusableTool) {
+            if (!me.initialConfig.hasOwnProperty('enableFocusableContainer') ||
+                me.enableFocusableContainer) {
+                me.ariaRole = 'toolbar';
+                me.enableFocusableContainer = true;
+                
+                if (me.rendered) {
+                    me.ariaEl.dom.setAttribute('role', 'toolbar');
+                    me.initFocusableContainer(true);
+                }
+            }
+        }
+        else {
+            me.ariaRole = 'presentation';
+            me.enableFocusableContainer = false;
+            
+            if (me.rendered) {
+                me.ariaEl.dom.setAttribute('role', 'presentation');
+                me.initFocusableContainer(true);
+            }
         }
     },
 
@@ -514,18 +551,6 @@ Ext.define('Ext.panel.Header', {
 
         onDblClick: function(e){
             this.fireClickEvent('dblclick', e);
-        },
-        
-        onFocusableContainerMousedown: function(e, target) {
-            var targetCmp = Ext.Component.fromElement(target);
-            
-            // We don't want to focus the header on mousedown
-            if (targetCmp === this) {
-                e.preventDefault();
-            }
-            else {
-                this.mixins.focusablecontainer.onFocusableContainerMousedown.apply(this, arguments);
-            }
         },
 
         syncBeforeAfterTitleClasses: function(force) {

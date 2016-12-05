@@ -126,58 +126,63 @@ Ext.define('KitchenSink.view.form.RadioGroupForm', {
             xtype: 'radiogroup',
             fieldLabel: 'Auto Layout',
             cls: 'x-check-group-alt',
+            name: 'rb-auto',
             items: [
-                {boxLabel: 'Item 1', name: 'rb-auto', inputValue: 1},
-                {boxLabel: 'Item 2', name: 'rb-auto', inputValue: 2, checked: true},
-                {boxLabel: 'Item 3', name: 'rb-auto', inputValue: 3},
-                {boxLabel: 'Item 4', name: 'rb-auto', inputValue: 4},
-                {boxLabel: 'Item 5', name: 'rb-auto', inputValue: 5}
+                {boxLabel: 'Item 1', inputValue: 1},
+                {boxLabel: 'Item 2', inputValue: 2, checked: true},
+                {boxLabel: 'Item 3', inputValue: 3},
+                {boxLabel: 'Item 4', inputValue: 4},
+                {boxLabel: 'Item 5', inputValue: 5}
             ]
         },{
             xtype: 'radiogroup',
             fieldLabel: 'Single Column',
             columns: 1,
+            name: 'rb-col',
             items: [
-                {boxLabel: 'Item 1', name: 'rb-col', inputValue: 1},
-                {boxLabel: 'Item 2', name: 'rb-col', inputValue: 2, checked: true},
-                {boxLabel: 'Item 3', name: 'rb-col', inputValue: 3}
+                {boxLabel: 'Item 1', inputValue: 1},
+                {boxLabel: 'Item 2', inputValue: 2, checked: true},
+                {boxLabel: 'Item 3', inputValue: 3}
             ]
         },{
             xtype: 'radiogroup',
             fieldLabel: 'Multi-Column (horizontal)',
             cls: 'x-check-group-alt',
+            name: 'rb-horiz-1',
             columns: 3,
             items: [
-                {boxLabel: 'Item 1', name: 'rb-horiz-1', inputValue: 1},
-                {boxLabel: 'Item 2', name: 'rb-horiz-1', inputValue: 2, checked: true},
-                {boxLabel: 'Item 3', name: 'rb-horiz-1', inputValue: 3},
-                {boxLabel: 'Item 4', name: 'rb-horiz-2', inputValue: 4},
-                {boxLabel: 'Item 5', name: 'rb-horiz-2', inputValue: 5}
+                {boxLabel: 'Item 1', inputValue: 1},
+                {boxLabel: 'Item 2', inputValue: 2, checked: true},
+                {boxLabel: 'Item 3', inputValue: 3},
+                {boxLabel: 'Item 4', inputValue: 4},
+                {boxLabel: 'Item 5', inputValue: 5}
             ]
         },{
             xtype: 'radiogroup',
             fieldLabel: 'Multi-Column (vertical)',
+            name: 'rb-vert',
             columns: 3,
             vertical: true,
             items: [
-                {boxLabel: 'Item 1', name: 'rb-vert', inputValue: 1},
-                {boxLabel: 'Item 2', name: 'rb-vert', inputValue: 2, checked: true},
-                {boxLabel: 'Item 3', name: 'rb-vert', inputValue: 3},
-                {boxLabel: 'Item 4', name: 'rb-vert', inputValue: 4},
-                {boxLabel: 'Item 5', name: 'rb-vert', inputValue: 5}
+                {boxLabel: 'Item 1', inputValue: 1},
+                {boxLabel: 'Item 2', inputValue: 2, checked: true},
+                {boxLabel: 'Item 3', inputValue: 3},
+                {boxLabel: 'Item 4', inputValue: 4},
+                {boxLabel: 'Item 5', inputValue: 5}
             ]
         },{
             xtype: 'radiogroup',
             fieldLabel: 'Multi-Column<br />(custom widths)',
             cls: 'x-check-group-alt',
             columns: [100, 100],
+            name: 'rb-custwidth',
             vertical: true,
             items: [
-                {boxLabel: 'Item 1', name: 'rb-custwidth', inputValue: 1},
-                {boxLabel: 'Item 2', name: 'rb-custwidth', inputValue: 2, checked: true},
-                {boxLabel: 'Item 3', name: 'rb-custwidth', inputValue: 3},
-                {boxLabel: 'Item 4', name: 'rb-custwidth', inputValue: 4},
-                {boxLabel: 'Item 5', name: 'rb-custwidth', inputValue: 5}
+                {boxLabel: 'Item 1', inputValue: 1},
+                {boxLabel: 'Item 2', inputValue: 2, checked: true},
+                {boxLabel: 'Item 3', inputValue: 3},
+                {boxLabel: 'Item 4', inputValue: 4},
+                {boxLabel: 'Item 5', inputValue: 5}
             ]
         },{
             xtype: 'radiogroup',

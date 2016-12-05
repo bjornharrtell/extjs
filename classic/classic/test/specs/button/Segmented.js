@@ -17,6 +17,9 @@ describe("Ext.button.Segmented", function() {
     });
 
     describe("value", function() {
+        
+        // TODO change event
+
         describe("allowMultiple:false", function() {
             function makeButton(cfg) {
                 button = Ext.create(Ext.apply({
@@ -443,6 +446,15 @@ describe("Ext.button.Segmented", function() {
                     button.setValue(['seg', 3, 'ted']);
                 }).toThrow("Invalid value '3' for segmented button: 'my-button'");
             });
+
+            it("should not mutate a passed value", function() {
+                var arr = ['seg'];
+                makeButton({
+                    value: arr
+                });
+                clickButton(2);
+                expect(arr).toEqual(['seg']);
+            });
             
             it("should fire a change event", function() {
                 var newValues = [],
@@ -457,6 +469,9 @@ describe("Ext.button.Segmented", function() {
                         }
                     }
                 });
+                
+                // Listener will fire when button is created
+                oldValues.length = newValues.length = 0;
 
                 button.setValue([1, 2]);
 

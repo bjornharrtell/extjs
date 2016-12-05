@@ -1,7 +1,23 @@
 // These variables may or may not have already been defined by the theme.
-$app-background-color: dynamic(#fff);
-$app-primary-text-color: dynamic(if($theme-name == 'theme-cupertino', #157efb, #000));
-$app-secondary-text-color: dynamic(if($theme-name == 'theme-neptune', gray, #000));
+$app-background-color: dynamic(if($theme-name == 'theme-material', $background-color, #fff));
+$app-primary-text-color: dynamic(if($theme-name == 'theme-cupertino', #157efb, $color));
+$app-secondary-text-color: dynamic(if($theme-name == 'theme-neptune', gray, $color));
+
+.menu {
+    @if($theme-name == 'theme-material') {
+        @include icon('menu');
+    } @else if($theme-name == 'theme-ios') {
+        @include icon($ios-menu);
+    } @else {
+        @include icon($fa-var-bars);
+    }
+}
+
+.palette {
+    @if($theme-name == 'theme-material') {
+        @include icon('palette');
+    }
+}
 
 .card {
     > .x-inner, .x-body > .x-inner, .x-inner:not(.x-toolbar-inner).x-scroll-scroller {
@@ -36,84 +52,6 @@ $app-secondary-text-color: dynamic(if($theme-name == 'theme-neptune', gray, #000
 
     code {
         color: #859900;
-    }
-}
-
-#launchscreen {
-    @include st-box;
-    @include st-box-orient(vertical);
-    @include st-box-align(center);
-    @include st-box-pack(center);
-
-    .x-innerhtml {
-        width: 90%;
-
-        .x-landscape & {
-            width: 90%;
-        }
-
-        > div {
-            text-align: left;
-            background-color: darken($app-background-color, 4);
-            color: $app-primary-text-color;
-            padding: 20px;
-            font-size: 12pt;
-            line-height: 18px;
-        }
-    }
-
-    h2, h3 {
-        font-weight: bold;
-    }
-
-    p {
-        color: $app-secondary-text-color;
-    }
-
-    h3 {
-        color: $app-primary-text-color;
-    }
-
-    .feature {
-        padding-left: 65px;
-        position: relative;
-        margin: 15px;
-        min-height: 60px;
-
-        > img {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-    }
-
-    .main {
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 20px;
-        margin-bottom: 20px;
-        min-height: 80px;
-    }
-
-    footer {
-        padding: 10px 0 0;
-        font-size: 10pt;
-        color: $app-secondary-text-color;
-    }
-
-    a {
-        font-weight: bold;
-        text-decoration: none;
-        color: $base-color;
-    }
-
-    h1 {
-        font-size: 18pt;
-        font-weight: bold;
-        color: $app-primary-text-color;
-    }
-
-    span {
-        color: $app-secondary-text-color;
     }
 }
 
@@ -330,19 +268,8 @@ $app-secondary-text-color: dynamic(if($theme-name == 'theme-neptune', gray, #000
 
     .charttoolbar {
         .x-button {
-            border: 1px solid $ios7-blue;
+            border: 1px solid #157efb;
             background-color: white;
-        }
-    }
-
-    .placeholderlabel-form {
-        .container-borders {
-            border-top: 1px solid #ccc;
-            border-bottom: 1px solid #ccc;
-
-            .x-field:first-child {
-                border-right: 1px solid #ccc;
-            }
         }
     }
 } @else if $theme-name == 'theme-mountainview' {
@@ -356,185 +283,5 @@ $app-secondary-text-color: dynamic(if($theme-name == 'theme-neptune', gray, #000
 
     .card .x-innerhtml {
         color: white;
-    }
-} @else if $theme-name == 'theme-tizen' {
-    .card {
-        .x-innerhtml {
-            color: $dark-primary-text-color;
-        }
-
-        .action {
-            color: $dark-primary-text-color;;
-        }
-
-        code {
-            color: $dark-primary-text-color;;
-        }
-    }
-
-    #launchscreen {
-        .x-innerhtml {
-            > div {
-                background-color: $winset-gray-blue;
-                color: $dark-primary-text-color;
-            }
-        }
-
-        p {
-            color: $dark-primary-text-color;
-        }
-
-        h3 {
-            color: $dark-primary-text-color;
-        }
-        .main {
-            border-bottom: 1px solid #ccc;
-        }
-
-        footer {
-            color: $dark-primary-text-color;
-        }
-
-        a {
-            color: $dark-primary-text-color;;
-        }
-
-        h1 {
-            color: $dark-primary-text-color;
-        }
-
-        span {
-            color: $dark-primary-text-color;
-        }
-    }
-
-    // Touch Pad Demo
-    #touchpad {
-        background-color: $winset-gray-blue;
-    }
-
-    #touchinfopanel {
-        background-color: $winset-gray-blue;
-    }
-
-    .x-carousel-item {
-        background-color: $winset-gray-blue;
-        border: 1px solid $winset-black;
-    }
-
-    .blog-post h3 a {
-        color: $dark-primary-text-color;
-        border-bottom-color: $dark-secondary-text-color;
-    }
-
-    .x-toolbar.charttoolbar {
-        .x-button {
-            background: $dark-gradient-down-gray;
-            border-color: transparent;
-            border-left: 0;
-            padding: 5px;
-
-            &.x-button-pressing {
-                background: $dark-gradient-down-blue;
-                .x-button-icon:before, .x-button-label {
-                    color: $dark-primary-text-color;
-                }
-            }
-        }
-    }
-
-
-    .x-theme-variation-light {
-        .card {
-            .x-innerhtml {
-                color: $light-primary-text-color;
-            }
-
-            .action {
-                color: $light-primary-text-color;
-            }
-
-            code {
-                color: $light-primary-text-color;
-            }
-        }
-
-        #launchscreen {
-            .x-innerhtml {
-                > div {
-                    background-color: $light-secondary-text-color;
-                    color: $light-primary-text-color;
-                }
-            }
-
-            p {
-                color: $light-primary-text-color;
-            }
-
-            h3 {
-                color: $light-primary-text-color;
-            }
-            .main {
-                border-bottom: 1px solid #ccc;
-            }
-
-            footer {
-                color: $light-primary-text-color;
-            }
-
-            a {
-                color: $light-primary-text-color;;
-            }
-
-            h1 {
-                color: $light-primary-text-color;
-            }
-
-            span {
-                color: $light-primary-text-color;
-            }
-        }
-
-        // Touch Pad Demo
-        #touchpad {
-            color: $light-primary-text-color;
-            background-color: $light-secondary-text-color;
-        }
-
-        #touchinfopanel {
-            color: $light-primary-text-color;
-            background-color: $light-secondary-text-color;
-        }
-
-        .x-carousel-item {
-            background-color: $light-primary-text-color;
-            border: 1px solid $light-secondary-text-color;
-        }
-
-        .blog-post h3 a {
-            color: $light-primary-text-color;
-            border-bottom-color: $light-secondary-text-color;
-        }
-
-        .x-toolbar.charttoolbar {
-            .x-button {
-                background: $light-secondary-text-color;
-                border-color: transparent;
-                border-left: 0;
-                padding: 5px;
-
-                &.x-button-pressing {
-                    .x-button-icon:before, .x-button-label {
-                        color: $light-primary-text-color;
-                    }
-                }
-            }
-        }
-
-
-        .x-carousel-item {
-            background-color: $light-primary-background-color;
-            border: 1px solid $light-secondary-text-color;
-        }
     }
 }

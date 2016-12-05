@@ -298,16 +298,32 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
         ]);
 
         Ext.applyIf(config, {
-            text: component.overflowText || component.text,
             hideOnClick: hideOnClick,
             destroyMenu: false,
             listeners: null
         });
+        
+        config.text = component.overflowText || component.text;
         config.masterComponent = component;
 
         // Clone must have same value, and must sync original's value on change
         if (component.isFormField) {
             config.value = component.getValue();
+            // If the component is a Checkbox/Radio field we replace the config with
+            // a menucheckitem so it will give the Menu a better look and feel.
+            // See additional information on the #addComponentToMenu method below.
+            if(component instanceof Ext.form.field.Checkbox) {
+                config = {
+                    xtype: 'menucheckitem',
+                    group : component.isRadio ? component.name + '_clone' : undefined,
+                    text : component.boxLabel || component.fieldLabel,
+                    name : component.name,
+                    masterComponent : component,
+                    checked : component.getValue(),
+                    hideOnClick : false,
+                    checkChangeDisabled : true
+                };
+            }
 
             // Sync the original component's value when the clone changes value.
             // This intentionally overwrites any developer-configured change listener on the clone.
@@ -347,6 +363,12 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
             component.changeListenersAdded = true;
         }
 
+        // Adding additional listeners
+        component.on({
+            enable: this.onComponentStatusChange,
+            disable: this.onComponentStatusChange
+        });
+
         // Typically margins are used to separate items in a toolbar
         // but don't really make a lot of sense in a menu, so we strip
         // them out here.
@@ -371,6 +393,14 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
         // Keep the clone in sync with the original if necessary
         if (btn.overflowClone.checked !== state) {
             btn.overflowClone.setChecked(state);
+        }
+    },
+
+    onComponentStatusChange: function(cmp) {
+        var clone = cmp.overflowClone;
+
+        if (clone) {
+            clone.setDisabled(cmp.disabled);
         }
     },
 
@@ -413,6 +443,27 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
                 for (i = 0; i < iLen; i++) {
                     me.addComponentToMenu(menu, items[i]);
                 }
+                // If the component is a CheckBox/Radio field, we are supposed to
+                // have a menucheckitem that will replace the original component.
+                // Because of that, we need to add a value getter/setter and an event listener that
+                // will fire the change event on click, making the menuitem behave as a 
+                // checkbox/radio field would have.
+            } else if (component instanceof Ext.form.field.Checkbox) {
+                component.overflowClone = menu.add(me.createMenuConfig(component));
+                
+                Ext.apply(component.overflowClone,{
+                    getValue : function() {
+                        return component.overflowClone.checked;
+                    },
+                    setValue : function() {
+                        component.overflowClone.setChecked(component.getValue());
+                    }
+                });
+                
+                component.overflowClone.on('click',function(item){
+                    item.setChecked(true);
+                    item.fireEvent('change', item, item.checked);
+                });
             } else {
                 component.overflowClone = menu.add(Ext.create(Ext.getClassName(component), me.createMenuConfig(component)));
             }
@@ -420,15 +471,8 @@ Ext.define('Ext.layout.container.boxOverflow.Menu', {
     },
 
     destroy: function() {
-        var me = this,
-            trigger = me.menuTrigger;
-            
-        if (trigger && !me.layout.owner.items.contains(trigger)) {
-            // Ensure we delete the ownerCt if it's not in the items
-            // so we don't get spurious container remove warnings.
-            delete trigger.ownerCt;
-        }
-        me.menu = me.menuTrigger = Ext.destroy(me.menu, trigger);
-        me.callParent();
+        Ext.destroy(this.menu, this.menuTrigger);
+        
+        this.callParent();
     }
 });

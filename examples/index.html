@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Sencha | Ext JS 6.2 Examples</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" >
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Ext JS 6.0 Examples</title>
-    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes">
+    <link rel="icon" href="resources/images/favicon.png" type="image/png">
     <link rel="stylesheet" type="text/css" href="main.css"/>
     <link rel="stylesheet" type="text/css" href="resources/Sencha-Examples/style.css"/>
     <script src="examples.js"></script>
@@ -13,29 +14,38 @@
 <body>
     <div id="title">
         <div class="wrap">
-            <a id="sencha-logo" href="http://sencha.com"></a>
-            <div id="title-text">EXAMPLES</div>
+            <a id="title-logo" href="http://sencha.com"></a>
+            <ul id="title-menu">
+                <li id="title-button"><a href="javascript:void(0);" onclick="toggleMenu()">&#9776;</a></li>
+                <li class="item"><a href="http://docs.sencha.com/ext">Documentation</a></li>
+                <li class="item"><a href="../release-notes.html">Releases Notes</a></li>
+                <li class="item"><a href="http://docs.sencha.com/extjs/6.2/whats_new/6.2.0/extjs_upgrade_guide.html">Upgrade Overview</a></li>
+            </ul>
         </div>
     </div>
     <div id="header">
         <div class="wrap">
-            <div id="header-title" class="header-item">
-                <div id="ext-logo"></div>
-            </div><div class="header-item header-link">
-                <a href="http://docs.sencha.com/ext">DOCUMENTATION</a>
-            </div><div class="header-item header-link">
-                <a href="../release-notes.html">RELEASE NOTES</a>
-            </div><div class="header-item header-link">
-                <a href="http://docs.sencha.com/extjs/6.0/whats_new/6.0.0/extjs_upgrade_guide.html">UPGRADE OVERVIEW</a>
+            <div id="header-title">
+                Ext JS Examples
+            </div>
+            <div id="header-image">
+                <img src="resources/images/examples.png"/>
+            </div>
+            <div id="header-text">
+                Ext JS provides the industry's most comprehensive collection of high-performance,
+                customizable UI widgets - including HTML5 grids, trees, lists, forms, menus, toolbars,
+                panels, windows, and much more. Ext JS leverages HTML5 features on modern browsers
+                while maintaining compatibility and functionality for legacy browsers. Use these
+                examples to build your cross-platform apps for desktop, tablets, and smartphones.
             </div>
         </div>
     </div>
-    
+
     <div id="body"></div>
-    
+
     <div id="footer">
         <div class="wrap">
-            &copy;2006-<span id="this-year"></span> Sencha Inc.
+            &copy;2006-<span id="this-year"></span> Sencha Inc. All rights reserved.
         </div>
     </div>
     <script>document.getElementById('this-year').innerHTML = (new Date()).getFullYear();</script>

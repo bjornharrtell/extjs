@@ -1,0 +1,124 @@
+$kitchensink-thumbnail-background-color: dynamic(
+        if($theme-name == 'theme-crisp' or $theme-name == 'theme-crisp-touch', #2a3f5d,
+            if($theme-name == 'theme-neptune' or $theme-name == 'theme-neptune-touch', #3892d3,
+                if($theme-name == 'theme-material', $base-color,
+                    if($theme-name == 'theme-classic', #275287,
+                        if($theme-name == 'theme-triton', darken($base-color, 5%), #3892d3)
+                    )
+                )
+            )
+        )
+);
+
+$kitchensink-thumbnail-color: dynamic(
+        if($theme-name == 'theme-crisp' or $theme-name == 'theme-crisp-touch', #fff,
+            if($theme-name == 'theme-neptune' or $theme-name == 'theme-neptune-touch', #fff,
+                if($theme-name == 'theme-material', $base-foreground-color,
+                    if($theme-name == 'theme-classic', #fff,
+                        if($theme-name == 'theme-triton', #fff, #fff)
+                    )
+                )
+            )
+        )
+);
+
+$kitchensink-accent-color: dynamic(if($theme-name == 'theme-material', $accent-color, orange));
+
+$kitchensink-thumbnail-size: 96px;
+
+.thumbnails {
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+    max-height: 100%; // for IE11
+    text-align: center;
+    @include st-box;
+    @include st-box-orient(vertical);
+
+    > .x-body {
+        @include st-box-flex;
+        @include st-box;
+        @include st-box-orient(vertical);
+        @include st-box-pack(center);
+
+        > .x-dataview-inner {
+            min-height: 0;
+        }
+    }
+}
+
+.thumbnail-item {
+    vertical-align: top;
+    width: $kitchensink-thumbnail-size + 20;
+    height: $kitchensink-thumbnail-size + 60;
+    margin-right: 20px;
+    cursor: pointer;
+    line-height: 18px;
+    display: inline-block;
+
+    .icon-rounded-square-bg {
+        border-radius: .2em;
+        background-color: $kitchensink-thumbnail-background-color;
+    }
+}
+
+.thumbnail-text {
+    text-align: center;
+}
+
+.thumbnail-icon-wrap {
+    width: $kitchensink-thumbnail-size;
+    height: $kitchensink-thumbnail-size;
+    text-align: center;
+    font-size: $kitchensink-thumbnail-size;
+    line-height: $kitchensink-thumbnail-size;
+    font-family: Sencha-Examples;
+    margin: 12px auto 8px;
+    position: relative;
+    //overflow: hidden;
+    color: $kitchensink-thumbnail-background-color;
+
+}
+
+.thumbnail-icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    font-size: $kitchensink-thumbnail-size / 2;
+    line-height: $kitchensink-thumbnail-size;
+    color: $kitchensink-thumbnail-color;
+}
+
+.thumbnail-new, .thumbnail-has-new {
+    position: absolute;
+    top: -12px;
+    right: -9px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    font-size: 18px;
+    color: $kitchensink-accent-color;
+}
+
+.thumbnail-has-new {
+    @include opacity(0.5);
+}
+
+.x-rtl.thumbnails {
+    .thumbnail-new {
+        left: -9px;
+        right: auto;
+    }
+    .thumbnail-item {
+        direction: ltr;
+        float: right;
+        margin-right: 0;
+        margin-left: 20px;
+    }
+    .thumbnail-text {
+        direction: rtl;
+    }
+}

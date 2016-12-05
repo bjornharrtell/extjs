@@ -1,12 +1,19 @@
 /**
  * Demonstrates a simple toolbar. Some of the buttons have menus attached.
+ *
+ * Also demonstrates use of the BoxReorderer plugin which is in the User Extensions
+ * package which allows drag/drop reordering of a box layout container.
  */
 Ext.define('KitchenSink.view.toolbar.BasicToolbar', {
     extend: 'Ext.panel.Panel',
     xtype: 'basic-toolbar',
-    id: 'basic-toolbar',
+    cls: 'basic-toolbar',
+
+    requires: [
+        'Ext.ux.BoxReorderer'
+    ],
+
     //<example>
-    exampleTitle: 'Basic Toolbar',
     profiles: {
         classic: {
             width: 380,
@@ -14,10 +21,20 @@ Ext.define('KitchenSink.view.toolbar.BasicToolbar', {
             cutIconCls: 'cut',
             copyIconCls: 'copy',
             formatIconCls: 'format',
-            listIconCls: 'list'
+            listIconCls: 'list',
+            pasteGlyph: null,
+            cutGlyph: null,
+            copyGlyph: null,
+            formatGlyph: null,
+            listGlyph: null
         },
         neptune: {
             width: 500,
+            pasteIconCls: null,
+            cutIconCls: null,
+            copyIconCls: null,
+            formatIconCls: null,
+            listIconCls: null,
             pasteGlyph: 70,
             cutGlyph: 67,
             copyGlyph: 102,
@@ -33,46 +50,45 @@ Ext.define('KitchenSink.view.toolbar.BasicToolbar', {
     },
     //</example>
 
+    width: '${width}',
     height: 400,
-
-    html: KitchenSink.DummyText.longText,
     bodyPadding: 20,
+    html: KitchenSink.DummyText.longText,
 
-    initComponent: function() {
-        this.width = this.profileInfo.width;
+    tbar: {
+        plugins: 'boxreorderer',
 
-        this.tbar = [{
+        items: [{
             xtype:'splitbutton',
             text:'Menu Button',
-            iconCls: this.profileInfo.listIconCls,
-            glyph: this.profileInfo.listGlyph,
+            iconCls: '${listIconCls}',
+            glyph: '${listGlyph}',
             menu:[{
                 text:'Menu Button 1'
             }]
-        }, '-', {
+        }, {
             xtype:'splitbutton',
             text:'Cut',
-            iconCls: this.profileInfo.cutIconCls,
-            glyph: this.profileInfo.cutGlyph,
+            iconCls: '${cutIconCls}',
+            glyph: '${cutGlyph}',
             menu: [{
                 text:'Cut Menu Item'
             }]
         }, {
-            iconCls: this.profileInfo.copyIconCls,
-            glyph: this.profileInfo.copyGlyph,
+            iconCls: '${copyIconCls}',
+            glyph: '${copyGlyph}',
             text:'Copy'
         }, {
             text:'Paste',
-            iconCls: this.profileInfo.pasteIconCls,
-            glyph: this.profileInfo.pasteGlyph,
+            iconCls: '${pasteIconCls}',
+            glyph: '${pasteGlyph}',
             menu:[{
                 text:'Paste Menu Item'
             }]
-        }, '-', {
-            iconCls: this.profileInfo.formatIconCls,
-            glyph: this.profileInfo.formatGlyph,
+        }, {
+            iconCls: '${formatIconCls}',
+            glyph: '${formatGlyph}',
             text:'Format'
-        }];
-        this.callParent();
+        }]
     }
 });

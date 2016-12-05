@@ -1,50 +1,49 @@
 /**
- * This type of association describes the case where one entity is referenced by zero or
- * more other entities typically using a "foreign key" field.
+ * **This class is never created directly. It should be constructed through associations in `Ext.data.Model`.**
+ *
+ * Declares a relationship between a single entity type and multiple related entities. The relationship can
+ * be declared as a keyed or keyless relationship.
+ *
+ *     // Keyed
+ *     Ext.define('Customer', {
+ *         extend: 'Ext.data.Model',
+ *         fields: ['id', 'name']
+ *     });
+ *
+ *     Ext.define('Ticket', {
+ *         extend: 'Ext.data.Model',
+ *         fields: ['id', 'title', {
+ *             name: 'customerId',
+ *             reference: 'Customer'
+ *         }]
+ *     });
+ *
+ *     // Keyless
+ *     Ext.define('Customer', {
+ *         extend: 'Ext.data.Model',
+ *         fields: ['id', 'name'],
+ *         hasMany: 'Ticket'
+ *     });
+ *
+ *     Ext.define('Ticket', {
+ *         extend: 'Ext.data.Model',
+ *         fields: ['id', 'title']
+ *     });
+ *
+ *     // Generated methods
+ *     var customer = new Customer();
+ *     customer.tickets();
+ *
+ *     var ticket = new Ticket();
+ *     ticket.getCustomer();
+ *     ticket.setCustomer();
+ *
+ * By declaring a keyed relationship, extra functionality is gained that maintains
+ * the key field in the model as changes are made to the association. 
  * 
- * The way this is defined is for one entity to have a field that holds the unique id (also
- * known as "Primary Key" or, more specifically, as the {@link Ext.data.Model#idProperty}
- * field) of the related entity. These fields have a {@link Ext.data.field.Field#reference}
- * in their definition. The value in the `reference` field of an entity instance holds the
- * value of the id of the related entity instance. Since many entities can hold the same
- * value in a `reference` field, this allows many entities to reference one entity.
- * OrderItem has a foreign key to Order.
- * 
- *      OrderItem -> Order
- * 
- * OrderItem is on the "left" and Order is on the "right". This is because the owner of
- * the foreign key is always on the "left". Many OrderItems refer to one Order. The
- * default name of this association would be "Order_OrderItems".
- * 
- *      var Order_OrderItems = {
- *          name: 'Order_OrderItems',
- *          owner: Order_OrderItems.right,
- *          left: {
- *              cls: OrderItem,
- *              type: 'OrderItem',
- *              association: Order_OrderItems,
- *              left: true,
- *              owner: false,
- *              autoLoad: true,
- *              isMany: true,
- *              inverse: Order_OrderItems.right,
- *              role: 'orderItems'
- *          },
- *          right: {
- *              cls: Order,
- *              type: 'Order',
- *              association: Order_OrderItems,
- *              left: false,
- *              owner: true,
- *              autoLoad: true,
- *              isMany: false,
- *              inverse: Order_OrderItems.left,
- *              role: 'order'
- *          }
- *      };
- *      
- *      OrderItem.associations.order = Order_OrderItems.left;
- *      Order.associations.orderItems = Order_OrderItems.right;
+ * For available configuration options, see {@link Ext.data.schema.Reference}.
+ * The "one" record type will have a generated {@link Ext.data.schema.Association#storeGetter}. The "many" record type
+ * will have a {@link Ext.data.schema.Association#recordGetter getter} and {@link Ext.data.schema.Association#recordSetter setter}.
  */
 Ext.define('Ext.data.schema.ManyToOne', {
     extend: 'Ext.data.schema.Association',
@@ -87,6 +86,27 @@ Ext.define('Ext.data.schema.ManyToOne', {
             }
         },
 
+        onIdChanged: function(rightRecord, oldId, newId) {
+            var fieldName = this.association.getFieldName(),
+                store = this.getAssociatedItem(rightRecord),
+                leftRecords, i, len, filter;
+
+            if (store) {
+                filter = store.getFilters().get(this.$roleFilterId);
+                if (filter) {
+                    filter.setValue(newId);
+                }
+                // A session will automatically handle this updating. If we don't have a field
+                // then there's nothing to do here.
+                if (!rightRecord.session && fieldName) {
+                    leftRecords = store.getDataSource().items;
+                    for (i = 0, len = leftRecords.length; i < len; ++i) {
+                        leftRecords[i].set(fieldName, newId);
+                    }
+                }
+            }
+        },
+
         processUpdate: function(session, associationData) {
             var me = this,
                 entityType = me.inverse.cls,
@@ -117,42 +137,42 @@ Ext.define('Ext.data.schema.ManyToOne', {
             var ret = leftRecords,
                 refs = session.getRefs(rightRecord, this, true),
                 field = this.association.field,
-                fieldName = field.name,
-                leftRecord, id, i, len, seen;
+                fieldName, leftRecord, id, i, len, seen;
 
-            if (!rightRecord.phantom) {
+            if (field && (refs || allowInfer)) {
+                fieldName = field.name;
                 ret = [];
-                if (refs || allowInfer) {
-                    if (leftRecords) {
-                        seen = {};
-                        // Loop over the records returned by the server and
-                        // check they all still belong. If the session doesn't have any prior knowledge
-                        // and we're allowed to infer the parent id (via nested loading), only do so if
-                        // we explicitly have an id specified
-                        for (i = 0, len = leftRecords.length; i < len; ++i) {
-                            leftRecord = leftRecords[i];
-                            id = leftRecord.id;
-                            if (refs && refs[id]) {
-                                ret.push(leftRecord);
-                            } else if (allowInfer && leftRecord.data[fieldName] === undefined) {
-                                ret.push(leftRecord);
-                                leftRecord.data[fieldName] = rightRecord.id;
-                                session.updateReference(leftRecord, field, rightRecord.id, undefined);
-                            }
-                            seen[id] = true;
-                        }
-                    }
 
-                    // Loop over the expected set and include any missing records.
-                    if (refs) {
-                        for (id in refs) {
-                            if (!seen || !seen[id]) {
-                                ret.push(refs[id]);
-                            }
+                if (leftRecords) {
+                    seen = {};
+                    // Loop over the records returned by the server and
+                    // check they all still belong. If the session doesn't have any prior knowledge
+                    // and we're allowed to infer the parent id (via nested loading), only do so if
+                    // we explicitly have an id specified
+                    for (i = 0, len = leftRecords.length; i < len; ++i) {
+                        leftRecord = leftRecords[i];
+                        id = leftRecord.id;
+                        if (refs && refs[id]) {
+                            ret.push(leftRecord);
+                        } else if (allowInfer && leftRecord.data[fieldName] === undefined) {
+                            ret.push(leftRecord);
+                            leftRecord.data[fieldName] = rightRecord.id;
+                            session.updateReference(leftRecord, field, rightRecord.id, undefined);
+                        }
+                        seen[id] = true;
+                    }
+                }
+
+                // Loop over the expected set and include any missing records.
+                if (refs) {
+                    for (id in refs) {
+                        if (!seen || !seen[id]) {
+                            ret.push(refs[id]);
                         }
                     }
                 }
             }
+
             return ret;
         },
 
@@ -183,7 +203,7 @@ Ext.define('Ext.data.schema.ManyToOne', {
             var me = this;
             return function (options, scope, leftRecords) {
                 // 'this' refers to the Model instance inside this function
-                return me.getAssociatedStore(this, options, scope, leftRecords, me, true);
+                return me.getAssociatedStore(this, options, scope, leftRecords, true);
             };
         },
 
@@ -325,10 +345,12 @@ Ext.define('Ext.data.schema.ManyToOne', {
             var field = this.association.field,
                 store;
 
-            store = this.getSessionStore(session, leftRecord.get(field.name));
-            // Check we're not in the middle of an add to the store.
-            if (store && !store.contains(leftRecord)) {
-                store.add(leftRecord);
+            if (field) {
+                store = this.getSessionStore(session, leftRecord.get(field.name));
+                // Check we're not in the middle of an add to the store.
+                if (store && !store.contains(leftRecord)) {
+                    store.add(leftRecord);
+                }
             }
         },
 
@@ -339,7 +361,7 @@ Ext.define('Ext.data.schema.ManyToOne', {
                 instanceName = me.getInstanceName(),
                 cls = me.cls,
                 hasNewValue,
-                joined, store, i, len, associated, rightRecord;
+                joined, store, i, associated, rightRecord;
 
             if (!leftRecord.changingKey) {
                 hasNewValue = newValue || newValue === 0;
@@ -367,7 +389,9 @@ Ext.define('Ext.data.schema.ManyToOne', {
                 } else {
                     joined = leftRecord.joined;
                     if (joined) {
-                        for (i = 0, len = joined.length; i < len; ++i) {
+                        // Loop backwards because the store remove may cause unjoining, which means 
+                        // removal from the joined array.
+                        for (i = joined.length - 1; i >= 0; i--) {
                             store = joined[i];
                             if (store.isStore) {
                                 associated = store.getAssociatedEntity();

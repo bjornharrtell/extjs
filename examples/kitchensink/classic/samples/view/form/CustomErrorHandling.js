@@ -207,7 +207,7 @@ Ext.define('KitchenSink.view.form.CustomErrorHandling', {
 
         // Custom validation logic - requires the checkbox to be checked
         getErrors: function() {
-            return this.getValue() ? [] : ['You must accept the Terms of Use']
+            return this.getValue() ? [] : ['You must accept the Terms of Use'];
         }
     }, {
         // The window is added to the form's children array to be handled
@@ -238,7 +238,7 @@ Ext.define('KitchenSink.view.form.CustomErrorHandling', {
         }]
     }],
 
-    beforeDestroy: function() {
+    doDestroy: function() {
         var error = this.lookupReference('formErrorState');
         if (error) {
             Ext.destroy(error.tip);

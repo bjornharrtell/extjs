@@ -34,15 +34,6 @@ Ext.define('Ext.chart.axis.Time3D', {
          */
         toDate: null,
 
-        /**
-         * @cfg {Array} [step=[Ext.Date.DAY, 1]] An array with two components:
-         *
-         * - The unit of the step (Ext.Date.DAY, Ext.Date.MONTH, etc).
-         * - The number of units for the step (1, 2, etc).
-         *
-         */
-        step: [Ext.Date.DAY, 1],
-
         layout: 'continuous',
 
         segmenter: 'time',

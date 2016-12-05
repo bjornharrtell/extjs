@@ -1,3 +1,6 @@
+/**
+ * @class Ext.dom.Helper
+ */
 Ext.define('Ext.overrides.dom.Helper', (function() {
     var tableRe = /^(?:table|thead|tbody|tr|td)$/i,
         tableElRe = /td|tr|tbody|thead/i,

@@ -47,6 +47,13 @@ Ext.define('KitchenSink.model.grid.Employee', {
     }, {
         name: 'ratingThisYear',
         type: 'int'
+    }, {
+        name: 'active',
+        type: 'bool',
+        persist: false,
+        calculate: function() {
+            return !!(Math.random() >= 0.5);
+        }
     }],
     idField: 'employeeNo',
 

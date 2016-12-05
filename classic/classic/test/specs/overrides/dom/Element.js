@@ -1798,7 +1798,7 @@ describe('Ext.overrides.dom.Element', function() {
                         props = props.join('');
                         
                         if (styleSheet.insertRule) {
-                            styleSheet.insertRule(selector + '{' + props + '}', 1);
+                            styleSheet.insertRule(selector + '{' + props + '}', styleSheet.cssRules.length);
                         } else {
                             // IE8
                             styleSheet.addRule(selector, props);

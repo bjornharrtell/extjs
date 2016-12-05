@@ -1,4 +1,6 @@
-describe('Ext.ZIndexManager', function() {
+/* global expect, Ext, jasmine */
+
+describe("Ext.ZIndexManager", function() {
     function cancelFocus() {
         var task = Ext.focusTask;
         if (task) {
@@ -6,8 +8,8 @@ describe('Ext.ZIndexManager', function() {
         }
     }
 
-    describe('z-index stacking', function() {
-        var c1, c2, c3;
+    describe("z-index stacking", function() {
+        var c1, c2, c3, c4;
 
         beforeEach(function() {
             c1 = new Ext.window.Window({
@@ -31,12 +33,20 @@ describe('Ext.ZIndexManager', function() {
                 width: 100,
                 focusOnToFront: false
             });
+            c4 = new Ext.window.Window({
+                title: 'c4',
+                id: 'c4',
+                height: 100,
+                width: 100,
+                modal: true
+            });
         });
+
         afterEach(function() {
-            Ext.destroy(c1, c2, c3);
+            Ext.destroy(c1, c2, c3, c4);
         });
         
-        it('should order the windows as they are rendered', function() {
+        it("should order the windows as they are rendered", function() {
             c1.show();
             c2.show();
             c3.show();
@@ -47,7 +57,8 @@ describe('Ext.ZIndexManager', function() {
             expect(c3.el.getZIndex()).toBeGreaterThan(c2.el.getZIndex());
             expect(c2.el.getZIndex()).toBeGreaterThan(c1.el.getZIndex());
         });
-        it('should re-order the windows on mousedown', function() {
+
+        it("should re-order the windows on mousedown", function() {
             c1.showAt(0, 0);
             c2.showAt(50, 0);
             c3.showAt(100, 0);
@@ -64,7 +75,8 @@ describe('Ext.ZIndexManager', function() {
             expect(c1.el.getZIndex()).toBeGreaterThan(c3.el.getZIndex());
             expect(c3.el.getZIndex()).toBeGreaterThan(c2.el.getZIndex());
         });
-        it('should honour alwaysOnTop', function() {
+
+        it("should honour alwaysOnTop", function() {
             c1.setAlwaysOnTop(true);
             c1.showAt(0, 0);
             c2.showAt(50, 0);
@@ -82,13 +94,14 @@ describe('Ext.ZIndexManager', function() {
                 target: c2.el.dom
             });
 
-            // Because there is a visible alwaysOnTop component, that mousedown should have changed nothing
-            // Order bottom up should still be c2, c3, c1
-            expect(c1.el.getZIndex()).toBeGreaterThan(c3.el.getZIndex());
-            expect(c3.el.getZIndex()).toBeGreaterThan(c2.el.getZIndex());
+            // c2 should have gone up as far as it can to just below the alwaysOnTop c1
+            // Order bottom up should now be c3, c2, c1
+            expect(c1.el.getZIndex()).toBeGreaterThan(c2.el.getZIndex());
+            expect(c2.el.getZIndex()).toBeGreaterThan(c3.el.getZIndex());
 
         });
-        it('should sort to the bottom of the ZIndexStack if alwaysOnTop === -1', function() {
+
+        it("should sort to the bottom of the ZIndexStack if alwaysOnTop === -1", function() {
             c3.setAlwaysOnTop(-1);
             c1.showAt(0, 0);
             c2.showAt(50, 0);
@@ -101,7 +114,29 @@ describe('Ext.ZIndexManager', function() {
             expect(c2.el.getZIndex()).toBeGreaterThan(c1.el.getZIndex());
             expect(c1.el.getZIndex()).toBeGreaterThan(c3.el.getZIndex());
         });
-        it('should order parents', function() {
+
+        it("should move to the front as far as possible while respecting other alwaysOnTop components", function() {
+            c4.setAlwaysOnTop(1); // This will always be second from top
+            c4.modal = false;
+            c3.setAlwaysOnTop(2); // This will always be topmost
+            c1.show();
+            c2.show();
+            c3.show();
+            c4.show();
+            // onMousedown quits if there is a pending focus task
+            cancelFocus();
+
+            // It cannot go all the way to front because there are two alwaysOnTop
+            // Windows which should be above it.
+            c1.toFront();
+
+            // Order bottom up should c2, c1, c4, c3
+            expect(c1.el.getZIndex()).toBeGreaterThan(c2.el.getZIndex());
+            expect(c4.el.getZIndex()).toBeGreaterThan(c1.el.getZIndex());
+            expect(c3.el.getZIndex()).toBeGreaterThan(c4.el.getZIndex());
+        });
+
+        it("should order parents", function() {
             // c2's ZIndexManager now manages C3's zIndex
             c2.add(c3);
 
@@ -143,6 +178,14 @@ describe('Ext.ZIndexManager', function() {
             c.show();
             expect(c.getEl().getZIndex()).toBe(Ext.WindowManager.zseed);
             c.destroy();
+        });
+
+        it("should always keep modal maks behind the window", function() {
+            c1.show();
+            c4.show();
+            c1.destroy();
+
+            expect(c4.zIndexManager.mask.getZIndex()).toBeLessThan(c4.el.getZIndex());
         });
     });
 
@@ -273,12 +316,11 @@ describe('Ext.ZIndexManager', function() {
                     
                     // 6 tababbles:
                     // - Top focus trap
-                    // - Window header (it's a FocusableContainer)
                     // - textfield 1
                     // - textfield 2
-                    // - Toolbar (FocusableContainer)
+                    // - Button
                     // - Bottom focus trap
-                    expect(tabbables.length).toBe(6);
+                    expect(tabbables.length).toBe(5);
                 });
             });
         });
@@ -345,6 +387,42 @@ describe('Ext.ZIndexManager', function() {
         });
     });
 
+    describe("hide/show", function() {
+        it("should restore just visible items", function() {
+            var a = new Ext.window.Window({
+                width: 100,
+                height: 100,
+                autoShow: true
+            });
+            var b = new Ext.window.Window({
+                width: 100,
+                height: 100,
+                autoShow: true
+            });
+            var c = new Ext.window.Window({
+                width: 100,
+                height: 100,
+                autoShow: true
+            });
+            a.hide();
+            expect(a.isVisible()).toBe(false);
+            expect(b.isVisible()).toBe(true);
+            expect(c.isVisible()).toBe(true);
+
+            Ext.WindowManager.hide();
+            expect(a.isVisible()).toBe(false);
+            expect(b.isVisible()).toBe(false);
+            expect(c.isVisible()).toBe(false);
+
+            Ext.WindowManager.show();
+            expect(a.isVisible()).toBe(false);
+            expect(b.isVisible()).toBe(true);
+            expect(c.isVisible()).toBe(true);
+
+            Ext.destroy(a, b, c);
+        });
+    });
+
     describe("hideAll", function() {
         it("should hide all visible items", function() {
             var a = new Ext.window.Window({
@@ -367,6 +445,31 @@ describe('Ext.ZIndexManager', function() {
             expect(a.isVisible()).toBe(false);
             expect(b.isVisible()).toBe(false);
             expect(c.isVisible()).toBe(false);
+
+            Ext.destroy(a, b, c);
+        });
+
+        it("should hide the mask", function() {
+            var a = new Ext.window.Window({
+                width: 100,
+                height: 100,
+                autoShow: true
+            });
+            var b = new Ext.window.Window({
+                width: 100,
+                height: 100,
+                autoShow: true
+            });
+            var c = new Ext.window.Window({
+                width: 100,
+                height: 100,
+                autoShow: true,
+                modal: true
+            });
+
+            expect(Ext.WindowManager.mask.isVisible()).toBe(true);
+            Ext.WindowManager.hideAll();
+            expect(Ext.WindowManager.mask.isVisible()).toBe(false);
 
             Ext.destroy(a, b, c);
         });
@@ -411,9 +514,74 @@ describe('Ext.ZIndexManager', function() {
         });
     });
 
+    // testcase for grid in a modal windows showing MessageBox on edit
+    describe("Grid with modal windows and MessageBox", function() {
+        var win, grid, cell, plugin;
+        beforeEach(function() {
+            win = new Ext.window.Window({
+                items : [{
+                    xtype   : 'grid',
+                    columns : [{
+                        dataIndex : 'f1',
+                        editor    : {}
+                    }],
+                    store   : {
+                        data   : [{ 
+                            f1 : 'edit me' 
+                        }]
+                    },
+                    plugins : {
+                        ptype : 'cellediting'
+                    }
+                }],
+                width  : 400,
+                height : 130,
+                modal  : true
+            }).show();
+
+            grid = win.down('grid');
+            plugin = grid.findPlugin('cellediting');
+        });
+
+        afterEach(function() {
+            win.close();
+            Ext.MessageBox.hide();
+            win.destroy();
+            win = grid = cell = null;
+        });
+
+        it("should display the MessageBox on top", function() {
+            grid.on('edit', function() {
+                Ext.Msg.confirm('Foo', 'Bar');
+            });
+            cell = grid.getView().getCellInclusive({
+                row: 0,
+                column: 0
+            }, true);
+
+            jasmine.fireMouseEvent(cell, 'dblclick');
+
+            waitsFor(function() {
+                return plugin.editing;
+            }, 'plugin to edit');
+
+            runs(function(){
+                jasmine.fireKeyEvent(Ext.Element.getActiveElement(), 'keydown', Ext.event.Event.ENTER);
+            });
+
+            waitsFor(function() {
+                return Ext.MessageBox.isVisible();
+            }, 'become visible');
+
+            runs(function() {
+                expect(Ext.MessageBox.el.getZIndex()).toBeGreaterThan(win.el.getZIndex());
+            });
+        });
+    });
+
     // testcase for https://sencha.jira.com/browse/EXTJS-14046
     describe("picker field's pickers should stick to back if alwaysOnTop is set to -1", function() {
-        it('should keep pickers below all other floating components', function() {
+        it("should keep pickers below all other floating components", function() {
             var windowCombo,
                 combo = new Ext.form.ComboBox({
                     store: ['A', 'b', 'C'],
@@ -478,11 +646,26 @@ describe('Ext.ZIndexManager', function() {
                 title: 'Win',
                 id: 'theWin',
                 width: 100,
-                height: 100
+                height: 100,
+                autoShow: true
             });
             expect(Ext.WindowManager.bringToFront('theWin')).toBe(false);
             win.destroy();
-        });   
+        });
+
+        it("should return false when bringing to front a componwnt we do not own", function() {
+            var win = new Ext.window.Window({
+                title: 'Win',
+                id: 'theWin',
+                width: 100,
+                height: 100
+            });
+
+            // It is not rendered, so will not have regsitered with the default ZIndexManager.
+            // So asking for it to be moved to front should return false.
+            expect(Ext.WindowManager.bringToFront(win)).toBe(false);
+            win.destroy();
+        });
     });
     
     // This test would better fit a Floating test suite but it's not clear
@@ -633,8 +816,9 @@ describe('Ext.ZIndexManager', function() {
                 win.close();
                 
                 expect(events).toEqual(['sort', 'hide']);
-                
-                Ext.WindowManager.onCollectionSort = oldOnCollectionSort;
+
+                // Fall back to the prototype
+                delete Ext.WindowManager.onCollectionSort;
                 
                 win.destroy();
                 
@@ -643,7 +827,7 @@ describe('Ext.ZIndexManager', function() {
         });
     });
 
-    describe('focus restoration after window drag', function() {
+    describe("focus restoration after window drag", function() {
         var win;
         
         afterEach(function() {
@@ -651,7 +835,7 @@ describe('Ext.ZIndexManager', function() {
             win = null;
         });
         
-        it('should restore focus after showing', function() {
+        it("should restore focus after showing", function() {
             var xy, x, child, text;
             
             win = new Ext.window.Window({

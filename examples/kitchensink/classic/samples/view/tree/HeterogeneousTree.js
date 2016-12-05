@@ -6,6 +6,9 @@
  * but different data types in your trees. The key to this is the `typeProperty` config on
  * the Proxy's Reader.
  *
+ * A custom renderer is used to set the `glyph` property in the cell `metaData` to change
+ * the icon depending upon the node type.
+ *
  * The toolbar is aware of the type of the selected node and knows what kind of new entity
  * to add.
  */
@@ -46,15 +49,14 @@ Ext.define('KitchenSink.view.tree.HeterogeneousTree', {
         text: 'Name',
         dataIndex: 'name',
         flex: 1,
-        sortable: true
-    }, {
-        text: 'Type',
-        renderer: function(v, cellValues, record) {
-            return record.entityName;
+        sortable: true,
+        renderer: function(v, metaData, record) {
+            metaData.glyph = record.glyph;
+            return v;
         }
     }, {
         xtype: 'actioncolumn',
-        iconCls: 'heterogeneous-tree-area-info',
+        glyph: 'xf05a@FontAwesome',
         width: 25,
         getTip: function(value, meta, rec, rowIdx, colIdx, store, view) {
             // Go up from the view to the owning TreePanel

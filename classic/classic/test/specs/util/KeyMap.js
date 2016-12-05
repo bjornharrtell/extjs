@@ -1,3 +1,5 @@
+/* global expect, spyOn, jasmine, Ext */
+
 describe("Ext.util.KeyMap", function(){
     var el, map, createMap, defaultFn, fireKey, origProcessEvent, KEYS = {
         A: 65,
@@ -26,7 +28,7 @@ describe("Ext.util.KeyMap", function(){
     });
     
     afterEach(function(){
-        if (map) {
+        if (map && !map.destroyed) {
             map.disable();
         }
         
@@ -611,6 +613,46 @@ describe("Ext.util.KeyMap", function(){
                 
                 expect(result).toBe(false);
             });
+        });
+    });
+
+    describe('removing bindings', function() {
+        it('should remove a binding whem re,oveBinding is called', function() {
+            var bindings = [{
+                key: 'A',
+                handler: Ext.emptyFn
+            }, {
+                key: 'A',
+                ctrl: true,
+                handler: Ext.emptyFn
+            }, {
+                key: 'A',
+                shift: true,
+                handler: Ext.emptyFn
+            }, {
+                key: 'A',
+                alt: true,
+                handler: Ext.emptyFn
+            }];
+
+            createMap(bindings);
+            
+            expect(map.bindings.length).toBe(4);
+            map.removeBinding(bindings[0]);
+            expect(map.bindings.length).toBe(3);
+
+            // Attempt to remove the same handler.
+            // It should not match any, and the bindings should not change.
+            // There must be an exact match with the key modifiers.
+            map.removeBinding(bindings[0]);
+            expect(map.bindings.length).toBe(3);
+
+            map.removeBinding(bindings[1]);
+            expect(map.bindings.length).toBe(2);
+            map.removeBinding(bindings[2]);
+            expect(map.bindings.length).toBe(1);
+            map.removeBinding(bindings[3]);
+            expect(map.bindings.length).toBe(0);
         });
     });
     

@@ -8,7 +8,8 @@ Ext.define('KitchenSink.Application', {
         'Ext.window.MessageBox',
         'Ext.tip.QuickTipManager',
         'KitchenSink.*',
-        'Ext.chart.*'
+        'Ext.chart.*',
+        'Ext.d3.*'
     ],
 
     controllers: [
@@ -39,10 +40,28 @@ Ext.define('KitchenSink.Application', {
     },
 
     launch: function () {
+        var view = 'KitchenSink.view.main.Main';
         if (/[?&]solo\b/.test(location.search)) {
-            Ext.create('KitchenSink.view.main.Solo');
-        } else {
-            Ext.create('KitchenSink.view.main.Main');
+            view = 'KitchenSink.view.main.Solo'
         }
+        this.setMainView({
+            xclass: view
+        });
     }
+}, function() {
+    KitchenSink.toast = function (title) {
+        var html = Ext.String.format.apply(String, Array.prototype.slice.call(arguments, 1));
+
+        if (!html) {
+            html = title;
+            title = null;
+        }
+
+        new Ext.window.Toast({
+            title: title,
+            html: html,
+            width: 400,
+            align: 't'
+        }).show();
+    };
 });

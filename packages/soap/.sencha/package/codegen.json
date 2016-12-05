@@ -40,7 +40,7 @@
         "pkgName": "soap",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     ".sencha/package/build.properties": {
@@ -51,7 +51,7 @@
         "pkgName": "soap",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "package.json": {
@@ -73,7 +73,7 @@
         "pkgName": "soap",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/example/custom.js": {
@@ -84,7 +84,7 @@
         "pkgName": "soap",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/etc/all.scss": {
@@ -95,7 +95,7 @@
         "pkgName": "soap",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/config.rb": {
@@ -106,7 +106,7 @@
         "pkgName": "soap",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     ".sencha/package/sencha.cfg": {
@@ -117,7 +117,7 @@
         "pkgName": "soap",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/example/sass-page.html": {
@@ -139,7 +139,7 @@
         "pkgName": "soap",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     }
   }

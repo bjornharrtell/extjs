@@ -352,6 +352,7 @@ Ext.define('Ext.mixin.Inheritable', {
          */
         onInheritedAdd: function(parent, instanced) {
             var me = this;
+
             // The container constructed us, so it's not possible for our 
             // inheritedState to be invalid, so we only need to clear it
             // if we've been added as an instance 

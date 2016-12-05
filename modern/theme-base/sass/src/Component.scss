@@ -1,70 +1,75 @@
+// Used for feature detection of CSS Variables
+:root {
+    --x-supports-variables: true;
+}
+
 html, body {
-    -webkit-text-size-adjust: none;
-    margin: 0;
-    cursor: default;
+-webkit-text-size-adjust: none;
+margin: 0;
+cursor: default;
 }
 
 // Reset
 body, div, dl, dt, dd, ul, ol, li, h1, h2, h3,
 h4, h5, h6, pre, code, form, fieldset, legend,
 input, textarea, p, blockquote, th, td {
-    margin: 0;
-    padding: 0;
+margin: 0;
+padding: 0;
 }
 
 table {
-    border-collapse: collapse;
-    border-spacing: 0;
+border-collapse: collapse;
+border-spacing: 0;
 }
 
 fieldset, img {
-    border: 0;
+border: 0;
 }
 
 address, caption, cite, code, dfn, em, strong, th, var {
-    font-style: normal;
-    font-weight: normal;
+font-style: normal;
+font-weight: normal;
 }
 
 li {
-    list-style: none;
+list-style-type: none;
 }
 
 caption, th {
-    text-align: left;
+text-align: left;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-size: 100%;
-    font-weight: normal;
+font-size: 100%;
+font-weight: normal;
 }
 
 q:before,
 q:after {
-    content: '';
+content: '';
 }
 
 abbr, acronym {
-    border: 0;
-    font-variant: normal;
+border: 0;
+font-variant: normal;
 }
 
 sup {
-    vertical-align: text-top;
+vertical-align: text-top;
 }
 
 sub {
-    vertical-align: text-bottom;
+vertical-align: text-bottom;
 }
 
 input, textarea, select {
-    font-family: inherit;
-    font-size: inherit;
-    font-weight: inherit;
+font-family: inherit;
+font-size: inherit;
+font-weight: inherit;
 }
 
 *:focus {
-    outline: none;
+outline: none;
 }
 
 body.#{$prefix}desktop {
@@ -82,8 +87,6 @@ body.#{$prefix}desktop {
     -webkit-user-drag: none;
     -webkit-user-select: none;
     -ms-user-select: none;
-    -ms-touch-action: none;
-    touch-action: none;
     -moz-user-select: -moz-none;
 }
 
@@ -108,25 +111,36 @@ input, textarea {
     visibility: hidden;
 }
 
-.#{$prefix}no-touch-scroll {
-    // prevents overflowing elements from being scrolled using touch input.  Needed
-    // in browsers that use native scrolling on touch-screen devices (e.g. IE10+ win8)
-    // Without this styling, gesture recognition inside overflowing containers is not
-    // possible.
-    touch-action: none;
-    -ms-touch-action: none; // IE10
-}
-
 .#{$prefix}html {
     -webkit-user-select: auto;
     -webkit-touch-callout: inherit;
     -ms-user-select: auto;
 
-    ul li {
-        list-style-type: circle;
+    ul {
+        list-style-position: inside; 
+
+        li {
+            list-style-type: disc;
+        }
     }
-    ol li {
-        list-style-type: decimal;
+
+    ol { 
+        list-style-position: inside; 
+
+        li {
+            list-style-type: decimal; 
+        }
+    }
+
+    ul ul, ol ul { 
+        list-style-type: circle; 
+        list-style-position: inside; 
+        margin-left: 15px; 
+    }
+    ol ol, ul ol { 
+        list-style-type: lower-latin; 
+        list-style-position: inside; 
+        margin-left: 15px; 
     }
 }
 
@@ -169,41 +183,41 @@ input, textarea {
 }
 
 @keyframes x-loading-spinner-rotate {
-    0%{     -ms-transform: rotate(0deg);   }
-    8.32%{  -ms-transform: rotate(0deg);   }
+    0%{     transform: rotate(0deg);   }
+    8.32%{  transform: rotate(0deg);   }
 
-    8.33%{  -ms-transform: rotate(30deg);  }
-    16.65%{ -ms-transform: rotate(30deg);  }
+    8.33%{  transform: rotate(30deg);  }
+    16.65%{ transform: rotate(30deg);  }
 
-    16.66%{ -ms-transform: rotate(60deg);  }
-    24.99%{ -ms-transform: rotate(60deg);  }
+    16.66%{ transform: rotate(60deg);  }
+    24.99%{ transform: rotate(60deg);  }
 
-    25%{    -ms-transform: rotate(90deg);  }
-    33.32%{ -ms-transform: rotate(90deg);  }
+    25%{    transform: rotate(90deg);  }
+    33.32%{ transform: rotate(90deg);  }
 
-    33.33%{ -ms-transform: rotate(120deg); }
-    41.65%{ -ms-transform: rotate(120deg); }
+    33.33%{ transform: rotate(120deg); }
+    41.65%{ transform: rotate(120deg); }
 
-    41.66%{ -ms-transform: rotate(150deg); }
-    49.99%{ -ms-transform: rotate(150deg); }
+    41.66%{ transform: rotate(150deg); }
+    49.99%{ transform: rotate(150deg); }
 
-    50%{    -ms-transform: rotate(180deg); }
-    58.32%{ -ms-transform: rotate(180deg); }
+    50%{    transform: rotate(180deg); }
+    58.32%{ transform: rotate(180deg); }
 
-    58.33%{ -ms-transform: rotate(210deg); }
-    66.65%{ -ms-transform: rotate(210deg); }
+    58.33%{ transform: rotate(210deg); }
+    66.65%{ transform: rotate(210deg); }
 
-    66.66%{ -ms-transform: rotate(240deg); }
-    74.99%{ -ms-transform: rotate(240deg); }
+    66.66%{ transform: rotate(240deg); }
+    74.99%{ transform: rotate(240deg); }
 
-    75%{    -ms-transform: rotate(270deg); }
-    83.32%{ -ms-transform: rotate(270deg); }
+    75%{    transform: rotate(270deg); }
+    83.32%{ transform: rotate(270deg); }
 
-    83.33%{ -ms-transform: rotate(300deg); }
-    91.65%{ -ms-transform: rotate(300deg); }
+    83.33%{ transform: rotate(300deg); }
+    91.65%{ transform: rotate(300deg); }
 
-    91.66%{ -ms-transform: rotate(330deg); }
-    100%{   -ms-transform: rotate(330deg); }
+    91.66%{ transform: rotate(330deg); }
+    100%{   transform: rotate(330deg); }
 }
 
 .#{$prefix}shim {
@@ -217,4 +231,155 @@ input, textarea {
 .#{$prefix}css-shadow {
     position: absolute;
     @include border-radius($css-shadow-border-radius);
+}
+
+.#{$prefix}shadow {
+    -webkit-box-shadow: $shadow-x-offset $shadow-y-offset $shadow-blur-radius $shadow-width $shadow-color;
+    box-shadow: $shadow-x-offset $shadow-y-offset $shadow-blur-radius $shadow-width $shadow-color;
+}
+
+@if ($enable-floated-shadows) {
+    .#{$prefix}floated {
+        @extend .#{$prefix}shadow;
+    }
+}
+
+.#{$prefix}no-shadow {
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+}
+
+.#{$prefix}floating {
+    position: absolute !important;
+}
+
+.#{$prefix}center {
+    @include absolute-position();
+    @include st-box();
+    @include st-box-align(center);
+    @include st-box-pack(center);
+
+    > * {
+        position: relative;
+    }
+
+    > .#{$prefix}floating {
+        position: relative !important;
+	}
+}
+
+@if ($enable-status-bar-padding) {
+    // Must a native iOS app (not standalone)
+    // Must not be phone AND landscape (status bar disappears in landscape for phones)
+    .#{$prefix}ios-native:not(.#{$prefix}phone.#{$prefix}landscape) {
+        padding-top: 20px;
+    }
+}
+
+.#{$prefix}font-icon {
+    font-weight: normal;
+    // Flexbox layout is used to vertically center the icon inside the element.
+    // The pseudo el below may or may not be the same size as the icon element's font-size
+    // therefore we cannot rely on line-height: 1 to vertically center the icon.
+    // If block behavior is needed, use flex instead of inline-flex.
+    @include st-inline-box;
+    @include st-box-align(center);
+    @include st-box-pack(center);
+
+    &:before {
+        @include st-box();
+        line-height: 1;
+        font-style: normal;
+        text-transform: none;
+        letter-spacing: normal;
+        word-wrap: normal;
+        white-space: nowrap;
+        direction: ltr;
+
+        /* Support for all WebKit browsers. */
+        -webkit-font-smoothing: antialiased;
+
+        /* Support for Firefox. */
+        -moz-osx-font-smoothing: grayscale;
+
+        /* Roboto uses ligatures.  Android and IE seem to need this */
+        font-feature-settings: 'liga';
+
+        /* Support for Safari and Chrome. */
+        text-rendering: optimizeLegibility;
+    }
+}
+
+.#{$prefix}noborder-l {
+    border-left-width: 0 !important;
+}
+
+.#{$prefix}noborder-b {
+    border-bottom-width: 0 !important;
+}
+
+.#{$prefix}noborder-bl {
+    border-bottom-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.#{$prefix}noborder-r {
+    border-right-width: 0 !important;
+}
+
+.#{$prefix}noborder-rl {
+    border-right-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.#{$prefix}noborder-rb {
+    border-right-width: 0 !important;
+    border-bottom-width: 0 !important;
+}
+
+.#{$prefix}noborder-rbl {
+    border-right-width: 0 !important;
+    border-bottom-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.#{$prefix}noborder-t {
+    border-top-width: 0 !important;
+}
+
+.#{$prefix}noborder-tl {
+    border-top-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.#{$prefix}noborder-tb {
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+}
+
+.#{$prefix}noborder-tbl {
+    border-top-width: 0 !important;
+    border-bottom-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.#{$prefix}noborder-tr {
+    border-top-width: 0 !important;
+    border-right-width: 0 !important;
+}
+
+.#{$prefix}noborder-trl {
+    border-top-width: 0 !important;
+    border-right-width: 0 !important;
+    border-left-width: 0 !important;
+}
+
+.#{$prefix}noborder-trb {
+    border-top-width: 0 !important;
+    border-right-width: 0 !important;
+    border-bottom-width: 0 !important;
+}
+
+.#{$prefix}noborder-trbl {
+    border-width: 0 !important;
 }

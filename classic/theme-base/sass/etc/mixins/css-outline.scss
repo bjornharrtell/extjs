@@ -27,6 +27,7 @@
  * @member Global_CSS
  * @private
  */
+
 @mixin css-outline(
     $width: 1px,
     $style: solid,
@@ -39,27 +40,32 @@
         &:after {
             position: absolute;
             content: ' ';
-            top: -$offset - $width - top($border-width) ;
+            top: -$offset - $width - top($border-width);
             right: -$offset - $width - right($border-width);
             bottom: -$offset - $width - bottom($border-width);
             left: -$offset - $width - left($border-width);
-
             border: $width $style $color;
             pointer-events: none;
         }
     }
-
     @if $pseudo {
         @include css-outline-pseudo;
     } @else {
         outline: $width $style $color;
         outline-offset: $offset;
 
-        @if $include-ie {
+        @if $include-ie and ($offset == 0) {
             .#{$prefix}ie8 & {
                 outline: none;
                 @include css-outline-pseudo;
-
+            }
+        }
+        @if $offset != 0 {
+            .#{$prefix}ie &,
+            .#{$prefix}ie10p &,
+            .#{$prefix}edge & {
+                outline: none;
+                @include css-outline-pseudo;
             }
         }
     }

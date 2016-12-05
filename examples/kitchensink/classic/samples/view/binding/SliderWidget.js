@@ -3,39 +3,21 @@
  */
 Ext.define('KitchenSink.view.binding.SliderWidget', {
     extend: 'Ext.panel.Panel',
-    
+    xtype: 'binding-slider-form',
+
     requires: [
         'Ext.slider.Widget'
     ],
-    xtype: 'binding-slider-form',
-    
-    //<example>
-    exampleTitle: 'Slider and Form Fields',
-    profiles: {
-        classic: {
-            height: 150,
-            labelWidth: 125
-        },
-        neptune: {
-            height: 165,
-            labelWidth: 125
-        },
-        'neptune-touch': {
-            height: 220,
-            labelWidth: 150
-        }
-    },
-    //</example>
-    
-    width: 400,
+
     title: 'Color Components',
+    width: 400,
     bodyPadding: 10,
 
     viewModel: {
         data: {
-            red: 255,
-            green: 100,
-            blue: 150
+            red: 64,
+            green: 110,
+            blue: 220
         }
     },
 

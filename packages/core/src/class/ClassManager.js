@@ -780,11 +780,11 @@ var makeCtor = Ext.Class.makeCtor,
                 mixins = data.mixins,
                 mixinsIsArray,
                 compat = 1, // default if 'compatibility' is not specified
-                depedenciesLoaded,
+                dependenciesLoaded,
                 classReady = function () {
                     var cls, dependencies, i, key, temp;
 
-                    if (!depedenciesLoaded) {
+                    if (!dependenciesLoaded) {
                         dependencies = requires ? requires.slice(0) : [];
 
                         if (mixins) {
@@ -803,7 +803,7 @@ var makeCtor = Ext.Class.makeCtor,
                             }
                         }
 
-                        depedenciesLoaded = true;
+                        dependenciesLoaded = true;
                         if (dependencies.length) {
                             // Since the override is going to be used (its target class is
                             // now created), we need to fetch the required classes for the
@@ -833,7 +833,7 @@ var makeCtor = Ext.Class.makeCtor,
 
                     // The target class and the required classes for this override are
                     // ready, so we can apply the override now:
-                    cls = me.get(overriddenClassName);
+                    cls = overriddenClassName.$isClass ? overriddenClassName : me.get(overriddenClassName);
 
                     // We don't want to apply these:
                     delete data.override;
@@ -859,18 +859,33 @@ var makeCtor = Ext.Class.makeCtor,
                     }
                 };
 
-            Manager.overrideMap[className] = true;
+            if (className) {
+                Manager.overrideMap[className] = true;
+            }
 
             // If specified, parse strings as versions, but otherwise treat as a
             // boolean (maybe "compatibility: Ext.isIE8" or something).
             //
-            if ('compatibility' in data && Ext.isString(compat = data.compatibility)) {
-                compat = Ext.checkVersion(compat);
+            if ('compatibility' in data) {
+                compat = data.compatibility;
+                if (!compat) {
+                    // Cast '', null, undefined, 0 to false.
+                    compat = false;
+                } else if (typeof compat === 'number') {
+                    // By virtue of the condition above we must be a nonzero number.
+                    compat = true;
+                } else if (typeof compat !== 'boolean') {
+                    compat = Ext.checkVersion(compat);
+                }
             }
 
             if (compat) {
-                // Override the target class right after it's created
-                me.onCreated(classReady, me, overriddenClassName);
+                // override the target class right after it's created
+                if (overriddenClassName.$isClass) {
+                    classReady();
+                } else {
+                    me.onCreated(classReady, me, overriddenClassName);
+                }
             }
 
             me.triggerCreated(className, 2);
@@ -2026,14 +2041,17 @@ var makeCtor = Ext.Class.makeCtor,
         data.xtypesChain = xtypesChain;
         data.xtypesMap = xtypesMap;
 
-        Ext.Function.interceptAfter(data, 'onClassCreated', function() {
+        // Class is already extended at this point
+        Ext.Function.interceptAfterOnce(cls, 'onClassCreated', function() {
+            var cls = this,
+                prototype = cls.prototype,
+                mixins = prototype.mixins,
+                key, mixin;
+            
             //<debug>
             Ext.classSystemMonitor && Ext.classSystemMonitor(cls, 'Ext.ClassManager#aliasPreprocessor#afterClassCreated', arguments);
             //</debug>
         
-            var mixins = prototype.mixins,
-                key, mixin;
-
             for (key in mixins) {
                 if (mixins.hasOwnProperty(key)) {
                     mixin = mixins[key];

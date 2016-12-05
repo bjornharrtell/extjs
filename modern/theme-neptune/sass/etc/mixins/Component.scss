@@ -8,7 +8,7 @@
  * @param {string} $type Either shadow or highlight, decides whether to apply a light shadow or dark.
  */
 @mixin bevel-text($type: 'shadow') {
-    @if $include-highlights {
+    @if $enable-highlights {
         @if $type == shadow {
             text-shadow: rgba(0,0,0,.5) 0 -.08em 0;
         } @else {
@@ -23,7 +23,7 @@
  * @param {string} $type Either shadow or highlight, decides whether to apply a light shadow or dark.
  */
 @mixin bevel-box($type: 'light') {
-    @if $include-highlights {
+    @if $enable-highlights {
         @if $type == shadow {
             @include st-box-shadow(rgba(#000, .5) 0 -.06em 0);
         } @else {

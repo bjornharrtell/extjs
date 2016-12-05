@@ -142,15 +142,16 @@ Ext.define('Ext.slider.Multi', {
     useTips : true,
 
     /**
-     * @cfg {Function} [tipText=undefined]
-     * A function used to display custom text for the slider tip.
+     * @cfg {Function/String} [tipText]
+     * A function used to display custom text for the slider tip or the name of the
+     * method on the corresponding `{@link Ext.app.ViewController controller}`.
      *
      * Defaults to null, which will use the default on the plugin.
      *
      * @cfg {Ext.slider.Thumb} tipText.thumb The Thumb that the Tip is attached to
      * @cfg {String} tipText.return The text to display in the tip
      */
-    tipText : null,
+    tipText: null,
     
     /**
      * @inheritdoc
@@ -208,6 +209,7 @@ Ext.define('Ext.slider.Multi', {
     focusable: true,
     needArrowKeys: true,
     tabIndex: 0,
+    skipLabelForAttribute: true,
     
     focusCls: 'slider-focus',
 
@@ -221,6 +223,7 @@ Ext.define('Ext.slider.Multi', {
             ' class="', Ext.baseCSSPrefix, 'slider {fieldCls} {vertical}',
             '{childElCls}"',
             '<tpl if="tabIdx != null"> tabindex="{tabIdx}"</tpl>',
+            '<tpl foreach="ariaElAttributes"> {$}="{.}"</tpl>',
             '<tpl foreach="inputElAriaAttributes"> {$}="{.}"</tpl>',
             '>',
             '<div id="{cmpId}-endEl" data-ref="endEl" class="' + Ext.baseCSSPrefix + 'slider-end" role="presentation">',
@@ -270,9 +273,8 @@ Ext.define('Ext.slider.Multi', {
 
     initComponent: function() {
         var me = this,
-            tipPlug,
-            hasTip,
-            p, pLen, plugins;
+            tipText = me.tipText,
+            tipPlug, hasTip, p, pLen, plugins;
 
         /**
          * @property {Array} thumbs
@@ -288,10 +290,18 @@ Ext.define('Ext.slider.Multi', {
 
         // only can use it if it exists.
         if (me.useTips) {
+            tipPlug = {};
+
             if (Ext.isObject(me.useTips)) {
-                tipPlug = Ext.apply({}, me.useTips);
-            } else {
-                tipPlug = me.tipText ? {getText: me.tipText} : {};
+                Ext.apply(tipPlug, me.useTips);
+            } else if (tipText) {
+                tipPlug.getText = tipText;
+            }
+
+            if (typeof(tipText = tipPlug.getText) === 'string') {
+                tipPlug.getText = function (thumb) {
+                    return Ext.callback(tipText, null, [thumb], 0, me, me);
+                };
             }
 
             plugins = me.plugins = me.plugins || [];
@@ -379,6 +389,10 @@ Ext.define('Ext.slider.Multi', {
         ariaAttr = data.inputElAriaAttributes;
         
         if (ariaAttr) {
+            if (!ariaAttr['aria-labelledby']) {
+                ariaAttr['aria-labelledby'] = me.id + '-labelEl';
+            }
+            
             ariaAttr['aria-orientation'] = me.vertical ? 'vertical' : 'horizontal';
             ariaAttr['aria-valuemin'] = me.minValue;
             ariaAttr['aria-valuemax'] = me.maxValue;
@@ -971,21 +985,11 @@ Ext.define('Ext.slider.Multi', {
 
     },
 
-    beforeDestroy: function() {
-        var me     = this,
-            thumbs = me.thumbs,
-            t      = 0,
-            tLen   = thumbs.length,
-            thumb;
-
-        if (me.rendered) {
-            for (; t < tLen; t++) {
-                thumb = thumbs[t];
-
-                Ext.destroy(thumb);
-            }
+    doDestroy: function() {
+        if (this.rendered) {
+            Ext.destroy(this.thumbs);
         }
 
-        me.callParent();
+        this.callParent();
     }
 });

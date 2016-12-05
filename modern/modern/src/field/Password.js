@@ -43,6 +43,10 @@ Ext.define('Ext.field.Password', {
     xtype: 'passwordfield',
     alternateClassName: 'Ext.form.Password',
 
+    requires: [
+        'Ext.field.trigger.Reveal'
+    ],
+
     config: {
         /**
          * @cfg autoCapitalize
@@ -52,7 +56,7 @@ Ext.define('Ext.field.Password', {
 
         /**
          * @cfg revealable {Boolean}
-         * Enables the reveal toggle button that will show the password in clear text. This is currently only implemented in the Blackberry theme
+         * Enables the reveal toggle button that will show the password in clear text.
          */
         revealable: false,
 
@@ -67,43 +71,37 @@ Ext.define('Ext.field.Password', {
          * @inheritdoc
          */
         component: {
-	        type: 'password'
+	        xtype: 'passwordinput'
 	    }
     },
 
+    classCls: Ext.baseCSSPrefix + 'passwordfield',
+    revealedCls: Ext.baseCSSPrefix + 'revealed',
+
     isPassword: true,
 
-    initialize: function() {
-        this.callParent(arguments);
-        this.addCls(Ext.baseCSSPrefix + 'field-password');
-    },
-
-    updateRevealable: function(newValue, oldValue) {
-        if (this.$revealIcon) {
-            this.getComponent().element.removeChild(this.$revealIcon);
-            this.$revealIcon = null;
+    applyTriggers: function(triggers, oldTriggers) {
+        if (triggers && this.getRevealable() && !triggers.reveal) {
+            triggers = Ext.apply({
+                reveal: {
+                    type: 'reveal'
+                }
+            }, triggers);
         }
 
-        if(newValue === true) {
-            this.$revealIcon = new Ext.Element(Ext.Element.create({cls:'x-reveal-icon'}, true));
-            this.$revealIcon.on({
-                tap: 'onRevealIconTap',
-                touchstart: 'onRevealIconPress',
-                touchend: 'onRevealIconRelease',
-                scope: this
-            });
-            this.getComponent().element.appendChild(this.$revealIcon);
-        }
+        return this.callParent([triggers, oldTriggers]);
     },
 
     updateRevealed: function(newValue, oldValue) {
-        var component = this.getComponent();
+        var me = this,
+            component = me.getComponent(),
+            revealedCls = me.revealedCls;
 
         if(newValue) {
-            this.element.addCls(Ext.baseCSSPrefix + 'revealed');
+            me.element.addCls(revealedCls);
             component.setType("text");
         } else {
-            this.element.removeCls(Ext.baseCSSPrefix + 'revealed');
+            me.element.removeCls(revealedCls);
             component.setType("password");
         }
     },
@@ -112,34 +110,39 @@ Ext.define('Ext.field.Password', {
      * @private
      */
     updateValue: function(value, oldValue) {
-        this.toggleRevealIcon(this.isValidTextValue(value));
+        this.toggleRevealTrigger(this.isValidTextValue(value));
         this.callParent([value, oldValue]);
     },
 
     doKeyUp: function(me, e) {
-        var value = me.getValue(),
-            valid = me.isValidTextValue(me.getValue());
+        var valid = me.isValidTextValue(me.getValue());
 
-        me.toggleClearIcon(valid);
+        me.toggleClearTrigger(valid);
 
         if (e.browserEvent.keyCode === 13) {
             me.fireAction('action', [me, e], 'doAction');
         }
 
-        me.toggleRevealIcon(valid);
+        me.toggleRevealTrigger(valid);
     },
 
     /**
      * @private
      */
-    showRevealIcon: function() {
-        var me         = this,
-            value      = me.getValue(),
-        // allows value to be zero but not undefined or null (other falsey values)
-            valueValid = value !== undefined && value !== null && value !== "";
+    showRevealTrigger: function() {
+        var me = this,
+            value = me.getValue(),
+            // allows value to be zero but not undefined or null (other falsey values)
+            valueValid = value !== undefined && value !== null && value !== "",
+            triggers, revealTrigger;
 
         if (me.getRevealable() && !me.getDisabled() && valueValid) {
-            me.element.addCls(Ext.baseCSSPrefix + 'field-revealable');
+            triggers = me.getTriggers();
+            revealTrigger = triggers && triggers.reveal;
+
+            if (revealTrigger) {
+                revealTrigger.show();
+            }
         }
 
         return me;
@@ -148,29 +151,24 @@ Ext.define('Ext.field.Password', {
     /**
      * @private
      */
-    hideRevealIcon: function() {
-        if (this.getRevealable()) {
-            this.element.removeCls(Ext.baseCSSPrefix + 'field-revealable');
+    hideRevealTrigger: function() {
+        var triggers = this.getTriggers(),
+            revealTrigger = triggers && triggers.reveal;
+
+        if (revealTrigger) {
+            revealTrigger.hide();
         }
     },
 
-    onRevealIconTap: function(e) {
-        this.fireAction('revealicontap', [this, e], 'doRevealIconTap');
+    onRevealTap: function(e) {
+        this.fireAction('revealicontap', [this, e], 'doRevealTap');
     },
 
     /**
      * @private
      */
-    doRevealIconTap: function(me, e) {
-        me.setRevealed(!this.getRevealed());
-    },
-
-    onRevealIconPress: function() {
-        this.$revealIcon.addCls(Ext.baseCSSPrefix + 'pressing');
-    },
-
-    onRevealIconRelease: function() {
-        this.$revealIcon.removeCls(Ext.baseCSSPrefix + 'pressing');
+    doRevealTap: function(me, e) {
+        this.setRevealed(!this.getRevealed());
     },
 
     privates: {
@@ -179,11 +177,11 @@ Ext.define('Ext.field.Password', {
             return (value !== undefined && value !== null && value !== '');
         },
 
-        toggleRevealIcon: function(state) {
+        toggleRevealTrigger: function(state) {
             if (state) {
-                this.showRevealIcon();
+                this.showRevealTrigger();
             } else {
-                this.hideRevealIcon();
+                this.hideRevealTrigger();
             }
         }
     }

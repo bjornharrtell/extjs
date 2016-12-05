@@ -87,13 +87,7 @@ Ext.define('Ext.field.Number', {
          */
         component: {
             type: 'number'
-        },
-
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        ui: 'number'
+        }
     },
 
     proxyConfig: {
@@ -117,6 +111,8 @@ Ext.define('Ext.field.Number', {
         stepValue: null
     },
 
+    classCls: Ext.baseCSSPrefix + 'numberfield',
+
     applyPlaceHolder: function(value) {
         // Android 4.1 & lower require a hack for placeholder text in number fields when using the Stock Browser
         // details here https://code.google.com/p/android/issues/detail?id=24626
@@ -126,14 +122,14 @@ Ext.define('Ext.field.Number', {
 
     onFocus: function(e) {
         if (this._enableNumericPlaceHolderHack) {
-            this.getComponent().input.dom.setAttribute("type", "number");
+            this.getComponent().inputElement.dom.setAttribute("type", "number");
         }
         this.callParent(arguments);
     },
 
     onBlur: function(e) {
         if (this._enableNumericPlaceHolderHack) {
-            this.getComponent().input.dom.setAttribute("type", "text");
+            this.getComponent().inputElement.dom.setAttribute("type", "text");
         }
         this.callParent(arguments);
     },
@@ -171,7 +167,7 @@ Ext.define('Ext.field.Number', {
 
     doClearIconTap: function(me, e) {
         me.getComponent().setValue('');
-        me.getValue();
-        me.hideClearIcon();
+        me.hideClearTrigger();
+        me.callParent([me, e]);
     }
 });

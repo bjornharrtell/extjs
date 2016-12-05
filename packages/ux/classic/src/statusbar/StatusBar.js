@@ -244,7 +244,7 @@ Ext.define('Ext.ux.statusbar.StatusBar', {
      *
      * @return {Ext.ux.statusbar.StatusBar} this
      */
-    setStatus : function(o) {
+    setStatus: function(o) {
         var me = this;
 
         o = o || {};
@@ -301,7 +301,7 @@ Ext.define('Ext.ux.statusbar.StatusBar', {
         var me = this,
             statusEl = me.statusEl;
 
-        if (o.threadId && o.threadId !== me.activeThreadId) {
+        if (me.destroyed || o.threadId && o.threadId !== me.activeThreadId) {
             // this means the current call was made internally, but a newer
             // thread has set a message since this call was deferred.  Since
             // we don't want to overwrite a newer message just ignore.

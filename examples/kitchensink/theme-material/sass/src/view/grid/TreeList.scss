@@ -1,0 +1,57 @@
+@include treelist-ui(
+    $ui: 'nav',
+
+    // Extra padding left/right
+    $padding: 0 $content-padding,
+
+    // Black-ish background color
+    $background-color: $base-dark-color,
+    $toolstrip-background-color: $base-dark-color,
+
+    $tool-selected-color: $reverse-color,
+    $tool-selected-background-color: $base-color,
+
+    $tool-float-indicator-width: 4px,
+    $tool-float-indicator-color: $reverse-color,
+
+    // Darker background for expanded subtrees
+    $item-expanded-background-color: $base-dark-color,
+
+    // Taller line height
+    $item-line-height : 36px,
+
+    // Off-white text
+    $item-icon-color: $reverse-color,
+    $item-expander-color: $reverse-color,
+    $item-text-color: $reverse-color,
+
+    // Brighter when hovered
+    $row-over-background-color: $base-dark-color,
+    $item-icon-over-color: $reverse-color,
+    $item-expander-over-color: $reverse-color,
+    $item-text-over-color: $reverse-color,
+
+    $row-indicator-width: 6px,
+    $row-indicator-selected-color: $accent-color,
+    $row-indicator-selected-over-color: $accent-dark-color,
+    $row-indicator-over-color: $accent-light-color,
+
+    // Various sizes for the pieces:
+    $item-icon-font-size: 18px,
+    $item-icon-width: 24px,
+    $item-expander-font-size: 16px,
+    $item-expander-width: 24px,
+
+    $item-icon-over-transition: none,
+    $item-text-over-transition: none,
+    $item-expander-over-transition: none,
+
+    $item-expander-glyph: 'keyboard_arrow_up',
+    $item-expander-expanded-glyph: 'keyboard_arrow_down',
+
+    $row-selected-background-color: $base-color
+);
+
+.treelist-log {
+    border-top: 1px solid #ccc;
+}

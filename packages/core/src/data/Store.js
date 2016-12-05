@@ -5,7 +5,7 @@
  *
  * Creating a Store is easy - we just tell it the Model and the Proxy to use for loading and saving its data:
  *
- *      // Set up a {@link Ext.data.Model model} to use in our Store
+ *      // Set up a model to use in our Store
  *      Ext.define('User', {
  *          extend: 'Ext.data.Model',
  *          fields: [
@@ -116,7 +116,7 @@
  * ## Filtering and Sorting
  *
  * Stores can be sorted and filtered - in both cases either remotely or locally. The {@link #cfg-sorters} and
- * {@link #cfg-filters} are held inside {@link Ext.util.MixedCollection MixedCollection} instances to make them easy to manage.
+ * {@link #cfg-filters} are held inside {@link Ext.util.Collection Collection} instances to make them easy to manage.
  * Usually it is sufficient to either just specify sorters and filters in the Store configuration or call {@link #method-sort}
  * or {@link #filter}:
  *
@@ -136,7 +136,7 @@
  *          }]
  *      });
  *
- * The new Store will keep the configured sorters and filters in the MixedCollection instances mentioned above. By
+ * The new Store will keep the configured sorters and filters in the Collection instances mentioned above. By
  * default, sorting and filtering are both performed locally by the Store - see {@link #remoteSort} and
  * {@link #remoteFilter} to allow the server to perform these operations instead.
  *
@@ -152,7 +152,7 @@
  *
  * Note that all existing sorters will be removed in favor of the new sorter data (if {@link #method-sort} is called with no
  * arguments, the existing sorters are just reapplied instead of being removed). To keep existing sorters and add new
- * ones, just add them to the MixedCollection:
+ * ones, just add them to the Collection:
  *
  *     store.sorters.add(new Ext.util.Sorter({
  *         property : 'shoeSize',
@@ -357,8 +357,6 @@ Ext.define('Ext.data.Store', {
 
         me.callParent([config]);
 
-        me.getData().addObserver(me);
-
         // See applyData for the details.
         data = me.inlineData;
         if (data) {
@@ -394,14 +392,6 @@ Ext.define('Ext.data.Store', {
      * @param {Ext.data.Model[]/Object[]} data Array of data to load. Any non-model instances will be cast
      * into model instances first.
      */
-
-    onCollectionBeginUpdate: function() {
-        this.beginUpdate();
-    },
-    
-    onCollectionEndUpdate: function() {
-        this.endUpdate();
-    },
 
     applyData: function (data, dataCollection) {
         // We bring up the Collection for records which forms the bottom of the config
@@ -557,6 +547,15 @@ Ext.define('Ext.data.Store', {
         me.needsSync = me.needsSync || sync;
     },
 
+    onCollectionBeforeItemChange: function(collection, info) {
+        var record = info.item,
+            modifiedFieldNames = info.modified || null,
+            type = info.meta;
+
+        // This is currently intended to be private
+        this.fireEvent('beforeupdate', this, record, type, modifiedFieldNames, info);
+    },
+
     // If our source collection informs us that a filtered out item has changed, we must still fire the events...
     onCollectionFilteredItemChange: function() {
         this.onCollectionItemChange.apply(this, arguments);
@@ -576,10 +575,6 @@ Ext.define('Ext.data.Store', {
             me.fireEvent('update', me, record, type, modifiedFieldNames, info);
         }
     },
-
-    fireChangeEvent: function(record) {
-        return this.getDataSource().contains(record);
-     },
 
     afterChange: function(record, modifiedFieldNames, type) {
         this.getData().itemChanged(record, modifiedFieldNames || null, undefined, type);
@@ -642,8 +637,10 @@ Ext.define('Ext.data.Store', {
      *
      * @param {Ext.data.Model/Ext.data.Model[]/Number/Number[]} records Model instance or
      * array of instances to remove or an array of indices from which to remove records.
+     * @param isMove (private)
+     * @param silent (private)
      */
-    remove: function(records, /* private */ isMove, silent) {
+    remove: function(records, isMove, silent) {
         var me = this,
             data = me.getDataSource(),
             len, i, toRemove, record;
@@ -764,8 +761,14 @@ Ext.define('Ext.data.Store', {
     },
 
     onFilterEndUpdate: function() {
-        this.callParent(arguments);
-        this.callObservers('Filter');
+        var me = this;
+        
+        if (me.destroying || me.destroyed) {
+            return;
+        }
+        
+        me.callParent(arguments);
+        me.callObservers('Filter');
     },
 
     /**
@@ -858,7 +861,7 @@ Ext.define('Ext.data.Store', {
     },
 
     /**
-     * @private
+     * @protected
      * Called internally when a Proxy has completed a load request
      */
     onProxyLoad: function(operation) {
@@ -1022,8 +1025,15 @@ Ext.define('Ext.data.Store', {
 
         ++me.loadCount;
         me.complete = true;
-        me.fireEvent('datachanged', me);
-        me.fireEvent('refresh', me);
+        
+        if (me.hasListeners.datachanged) {
+            me.fireEvent('datachanged', me);
+        }
+        
+        if (me.hasListeners.refresh) {
+            me.fireEvent('refresh', me);
+        }
+        
         me.callObservers('AfterPopulate');
     },
 
@@ -1208,7 +1218,7 @@ Ext.define('Ext.data.Store', {
         Ext.resumeLayouts(true);
     },
 
-    onDestroy: function() {
+    doDestroy: function() {
         var me = this,
             task = me.loadTask,
             data = me.getData(),
@@ -1216,16 +1226,19 @@ Ext.define('Ext.data.Store', {
         
         // clearData ensures everything is unjoined
         me.clearData();
-        me.callParent();
         me.setSession(null);
         me.observers = null;
+        
         if (task) {
             task.cancel();
             me.loadTask = null;
         }
+        
         if (source) {
             source.destroy();
         }
+
+        me.callParent();
     },
 
     privates: {
@@ -1242,6 +1255,10 @@ Ext.define('Ext.data.Store', {
             this.setLoadOptions(options);
             var operation = this.createOperation('read', options);
             operation.execute();
+        },
+
+        fireChangeEvent: function(record) {
+            return this.getDataSource().contains(record);
         },
 
         onBeforeLoad: function(operation) {

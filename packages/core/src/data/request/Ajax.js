@@ -16,14 +16,26 @@ Ext.define('Ext.data.request.Ajax', {
         /**
          * Checks if the response status was successful
          * @param {Number} status The status code
+         * @param {Object} response The Response object
          * @return {Object} An object containing success/status state
          * @private
          */
-        parseStatus: function(status) {
+        parseStatus: function(status, response) {
+            var len;
+
+            if (response) {
+                //We have to account for binary response type
+                if (response.responseType === 'arraybuffer') {
+                    len = response.byteLength;
+                } else if (response.responseText) {
+                    len = response.responseText.length;
+                }
+            }
+
             // see: https://prototype.lighthouseapp.com/projects/8886/tickets/129-ie-mangles-http-response-status-code-204-to-1223
             status = status == 1223 ? 204 : status;
 
-            var success = (status >= 200 && status < 300) || status == 304,
+            var success = (status >= 200 && status < 300) || status == 304 || (status == 0 && Ext.isNumber(len)),
                 isException = false;
 
             if (!success) {
@@ -396,7 +408,7 @@ Ext.define('Ext.data.request.Ajax', {
         }
         
         try {
-            result = Ext.data.request.Ajax.parseStatus(xhr.status);
+            result = Ext.data.request.Ajax.parseStatus(xhr.status, xhr);
             
             if (result.success) {
                 // This is quite difficult to reproduce, however if we abort a request
@@ -416,8 +428,13 @@ Ext.define('Ext.data.request.Ajax', {
         if (success) {
             response = me.createResponse(xhr);
             
-            owner.fireEvent('requestcomplete', owner, response, options);
-            Ext.callback(options.success, options.scope, [response, options]);
+            if (owner.hasListeners.requestcomplete) {
+                owner.fireEvent('requestcomplete', owner, response, options);
+            }
+            
+            if (options.success) {
+                Ext.callback(options.success, options.scope, [response, options]);
+            }
         }
         else {
             if (result.isException || me.aborted || me.timedout) {
@@ -427,13 +444,20 @@ Ext.define('Ext.data.request.Ajax', {
                 response = me.createResponse(xhr);
             }
             
-            owner.fireEvent('requestexception', owner, response, options);
-            Ext.callback(options.failure, options.scope, [response, options]);
+            if (owner.hasListeners.requestexception) {
+                owner.fireEvent('requestexception', owner, response, options);
+            }
+            
+            if (options.failure) {
+                Ext.callback(options.failure, options.scope, [response, options]);
+            }
         }
         
         me.result = response;
         
-        Ext.callback(options.callback, options.scope, [options, success, response]);
+        if (options.callback) {
+            Ext.callback(options.callback, options.scope, [options, success, response]);
+        }
         
         owner.onRequestComplete(me);
         

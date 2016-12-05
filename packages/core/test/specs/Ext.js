@@ -2279,4 +2279,62 @@ describe("Ext", function() {
             });
         });
     });
+    
+    describe("Ext.ariaWarn", function() {
+        var logSpy, logMsgs;
+        
+        beforeEach(function() {
+            logMsgs = [];
+            logSpy = spyOn(Ext.log, 'warn').andCallFake(function() {
+                logMsgs = [].concat(logMsgs, Array.prototype.slice.apply(arguments));
+            });
+            
+            // Ext.ariaWarn will be set to Ext.emptyFn before running the tests, to avoid
+            // massive console fallout; we need to save the original fn for testing.
+            Ext.ariaWarn = Ext._ariaWarn;
+            Ext.ariaWarn.first = false;
+        });
+        
+        afterEach(function() {
+            logSpy = logMsgs = null;
+            Ext.ariaWarn = Ext.emptyFn;
+        });
+        
+        it("should provide additional instructions the first time", function() {
+            Ext.ariaWarn('foo');
+            
+            expect(logMsgs.join(' ')).toMatch(/can be suppressed/);
+        });
+        
+        it("should only provide additional instructions the first time", function() {
+            Ext.ariaWarn('foo');
+            Ext.ariaWarn('bar');
+            
+            var match = logMsgs.join(' ').match(/can be suppressed/g);
+            
+            expect(match.length).toBe(1);
+        });
+        
+        it("should not warn when Ext.enableAria = false", function () {
+            var orig = Ext.enableAria;
+            
+            Ext.enableAria = false;
+            Ext.ariaWarn('blerg');
+            
+            expect(logSpy).not.toHaveBeenCalled();
+            
+            Ext.enableAria = orig;
+        });
+        
+        it("should not warn when Ext.slicer = true", function() {
+            var orig = Ext.slicer;
+            
+            Ext.slicer = true;
+            Ext.ariaWarn('throbbe');
+            
+            expect(logSpy).not.toHaveBeenCalled();
+            
+            Ext.slicer = orig;
+        });
+    });
 });

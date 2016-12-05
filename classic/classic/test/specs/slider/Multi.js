@@ -1,7 +1,5 @@
 describe("Ext.slider.Multi", function() {
-    var expectAria = jasmine.expectAriaAttr,
-        slider,
-        createSlider;
+    var slider, createSlider;
 
     beforeEach(function() {
         createSlider = function(config) {
@@ -57,7 +55,7 @@ describe("Ext.slider.Multi", function() {
             });
             
             it("should set aria-orientation attribute", function() {
-                expectAria(slider, 'aria-orientation', 'horizontal');
+                expect(slider).toHaveAttr('aria-orientation', 'horizontal');
             });
         });
         
@@ -76,7 +74,7 @@ describe("Ext.slider.Multi", function() {
             });
             
             it("should set aria-orientation attribute", function() {
-                expectAria(slider, 'aria-orientation', 'vertical');
+                expect(slider).toHaveAttr('aria-orientation', 'vertical');
             });
         });
 
@@ -122,15 +120,15 @@ describe("Ext.slider.Multi", function() {
             });
             
             it("should set aria-valuemin", function() {
-                expectAria(slider, 'aria-valuemin', '0');
+                expect(slider).toHaveAttr('aria-valuemin', '0');
             });
             
             it("should set aria-valuemax", function() {
-                expectAria(slider, 'aria-valuemax', '100');
+                expect(slider).toHaveAttr('aria-valuemax', '100');
             });
             
             it("should set aria-valuenow", function() {
-                expectAria(slider, 'aria-valuenow', '42');
+                expect(slider).toHaveAttr('aria-valuenow', '42');
             });
         });
     });
@@ -812,7 +810,7 @@ describe("Ext.slider.Multi", function() {
                 createSlider();
                 slider.setMinValue(42);
                 
-                expectAria(slider, 'aria-valuemin', '42');
+                expect(slider).toHaveAttr('aria-valuemin', '42');
             });
         });
         
@@ -879,7 +877,7 @@ describe("Ext.slider.Multi", function() {
                 createSlider();
                 slider.setMaxValue(42);
                 
-                expectAria(slider, 'aria-valuemax', '42');
+                expect(slider).toHaveAttr('aria-valuemax', '42');
             });
         });
     });

@@ -403,7 +403,7 @@ describe("Ext.tab.Panel", function() {
             it("should not overwrite closeText with undefined", function() {
                 var tab = addChild().tab;
                 
-                expect(tab.closeText).toBe('Close Tab');
+                expect(tab.closeText).toBe('removable');
             });
             
             it("should overwrite closeText when specified in tab config", function() {
@@ -1504,7 +1504,7 @@ describe("Ext.tab.Panel", function() {
                     tabPanel.loader.load();
                     mockComplete("[{title: 'Tab 3'}, {title: 'Tab 4'}]");
 
-                    expect(tabPanel.setActiveTab).wasNotCalled();
+                    expect(tabPanel.setActiveTab).not.toHaveBeenCalled();
                 });
 
                 it('should not call setActiveTab when activeItem is null', function () {
@@ -1516,7 +1516,7 @@ describe("Ext.tab.Panel", function() {
                     tabPanel.loader.load();
                     mockComplete("[{title: 'Tab 3'}, {title: 'Tab 4'}]");
 
-                    expect(tabPanel.setActiveTab).wasNotCalled();
+                    expect(tabPanel.setActiveTab).not.toHaveBeenCalled();
                 });
             });
 
@@ -1545,7 +1545,7 @@ describe("Ext.tab.Panel", function() {
                     tabPanel.loader.load();
                     mockComplete("[{title: 'Tab 3'}, {title: 'Tab 4'}]");
 
-                    expect(tabPanel.setActiveTab).wasNotCalled();
+                    expect(tabPanel.setActiveTab).not.toHaveBeenCalled();
                 });
             });
 
@@ -1917,14 +1917,25 @@ describe("Ext.tab.Panel", function() {
             tabPanel.setTabPosition('left');
             expect(tabPanel.tabBar.dock).toBe('bottom');
         });
-
-
+    });
+    
+    describe("enable/disable", function() {
+        beforeEach(function() {
+            createTabPanelWithTabs(2, {
+                activeTab: 1,
+                disabled: true
+            });
+        });
+        
+        it("should activate tab when enabled", function() {
+            tabPanel.enable();
+            
+            expect(tabPanel.tabBar.activeTab.card.itemId).toBe('item2');
+        });
     });
     
     describe("ARIA", function() {
-        var expectAria = jasmine.expectAriaAttr,
-            expectNoAria = jasmine.expectNoAriaAttr,
-            tab1, tab2, card1, card2;
+        var tab1, tab2, card1, card2;
         
         beforeEach(function() {
             createTabPanelWithTabs(2);
@@ -1942,35 +1953,35 @@ describe("Ext.tab.Panel", function() {
         
         describe("attributes", function() {
             it("should have tab role on the tab", function() {
-                expectAria(tab1, 'role', 'tab');
+                expect(tab1).toHaveAttr('role', 'tab');
             });
             
             it("should have tabpanel role on the card", function() {
-                expectAria(card1, 'role', 'tabpanel');
+                expect(card1).toHaveAttr('role', 'tabpanel');
             });
             
             it("should have aria-selected='true' on tab1", function() {
-                expectAria(tab1, 'aria-selected', 'true');
+                expect(tab1).toHaveAttr('aria-selected', 'true');
             });
             
             it("should have aria-selected='false' on tab2", function() {
-                expectAria(tab2, 'aria-selected', 'false');
+                expect(tab2).toHaveAttr('aria-selected', 'false');
             });
             
             it("should have aria-labelledby on card1", function() {
-                expectAria(card1, 'aria-labelledby', tab1.id);
+                expect(card1).toHaveAttr('aria-labelledby', tab1.id);
             });
             
             it("should not have aria-label on card1", function() {
-                expectNoAria(card1, 'aria-label');
+                expect(card1).not.toHaveAttr('aria-label');
             });
             
             it("should have aria-expanded='true' on card1", function() {
-                expectAria(card1, 'aria-expanded', 'true');
+                expect(card1).toHaveAttr('aria-expanded', 'true');
             });
             
             it("should have aria-hidden='false' on card1", function() {
-                expectAria(card1, 'aria-hidden', 'false');
+                expect(card1).toHaveAttr('aria-hidden', 'false');
             });
             
             describe("dynamically added panel", function() {
@@ -1993,11 +2004,11 @@ describe("Ext.tab.Panel", function() {
                 });
                 
                 it("should have correct aria-labelledby on card1", function() {
-                    expectAria(card3, 'aria-labelledby', tab3.id);
+                    expect(card3).toHaveAttr('aria-labelledby', tab3.id);
                 });
                 
                 it("should not have aria-label on card1", function() {
-                    expectNoAria(card3, 'aria-label');
+                    expect(card3).not.toHaveAttr('aria-label');
                 });
             });
             
@@ -2027,11 +2038,11 @@ describe("Ext.tab.Panel", function() {
                 });
                 
                 it("should have correct aria-labelledby on card1", function() {
-                    expectAria(card1, 'aria-labelledby', tab1.id);
+                    expect(card1).toHaveAttr('aria-labelledby', tab1.id);
                 });
                 
                 it("should not have aria-label on card1", function() {
-                    expectNoAria(card1, 'aria-label');
+                    expect(card1).not.toHaveAttr('aria-label');
                 });
             });
         });
@@ -2043,31 +2054,31 @@ describe("Ext.tab.Panel", function() {
             
             describe("aria-selected", function() {
                 it("should be true on tab2", function() {
-                    expectAria(tab2, 'aria-selected', 'true');
+                    expect(tab2).toHaveAttr('aria-selected', 'true');
                 });
                 
                 it("should be false on tab1", function() {
-                    expectAria(tab1, 'aria-selected', 'false');
+                    expect(tab1).toHaveAttr('aria-selected', 'false');
                 });
             });
             
             describe("aria-expanded", function() {
                 it("should be true on card2", function() {
-                    expectAria(card2, 'aria-expanded', 'true');
+                    expect(card2).toHaveAttr('aria-expanded', 'true');
                 });
                 
                 it("should be false on card1", function() {
-                    expectAria(card1, 'aria-expanded', 'false');
+                    expect(card1).toHaveAttr('aria-expanded', 'false');
                 });
             });
             
             describe("aria-hidden", function() {
                 it("should be true on card1", function() {
-                    expectAria(card1, 'aria-hidden', 'true');
+                    expect(card1).toHaveAttr('aria-hidden', 'true');
                 });
                 
                 it("should be false on card2", function() {
-                    expectAria(card2, 'aria-hidden', 'false');
+                    expect(card2).toHaveAttr('aria-hidden', 'false');
                 });
             });
         });

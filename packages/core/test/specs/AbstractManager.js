@@ -68,7 +68,7 @@ describe("AbstractManager", function(){
         it("should thrown an exception when trying to create a type that doesn't exist", function(){
             expect(function(){
                 manager.create('filter');
-            }).toRaiseExtError();    
+            }).toThrow();    
         });
         
         it("should return an instance of the type", function(){

@@ -2,11 +2,10 @@
  * This is the base class for {@link Ext.tip.QuickTip} and {@link Ext.tip.ToolTip} that provides the basic layout and
  * positioning that all tip-based classes require. This class can be used directly for simple, statically-positioned
  * tips that are displayed programmatically, or it can be extended to provide custom tip implementations.
- * @xtype tip
  */
 Ext.define('Ext.tip.Tip', {
     extend: 'Ext.panel.Panel',
-    alias: 'widget.tip',
+    xtype: 'tip',
 
     alternateClassName: 'Ext.Tip',
 
@@ -38,12 +37,6 @@ Ext.define('Ext.tip.Tip', {
      */
     shadow : "sides",
 
-    /**
-     * @cfg {String} defaultAlign
-     * **Experimental**. The default {@link Ext.util.Positionable#alignTo} anchor position value
-     * for this tip relative to its element of origin.
-     */
-    defaultAlign : "tl-bl?",
     /**
      * @cfg {Boolean} constrainPosition
      * If `true`, then the tooltip will be automatically constrained to stay within
@@ -83,8 +76,7 @@ Ext.define('Ext.tip.Tip', {
         var me = this;
 
         me.floating = Ext.apply( {}, {
-            shadow: me.shadow,
-            constrain: me.constrainPosition
+            shadow: me.shadow
         }, me.self.prototype.floating);
         me.callParent(arguments);
 
@@ -100,16 +92,49 @@ Ext.define('Ext.tip.Tip', {
      *
      * @param {Number[]} xy An array containing the x and y coordinates
      */
-    showAt : function(xy){
+    showAt : function(xy) {
         var me = this;
-        this.callParent(arguments);
+        me.calledFromShowAt = true;
+
+        me.callParent(arguments);
+
         // Show may have been vetoed.
         if (me.isVisible()) {
-            me.setPagePosition(xy[0], xy[1]);
-            if (me.constrainPosition || me.constrain) {
-                me.doConstrain();
+            me.doAlignment(me.getRegion().alignTo({
+                target: new Ext.util.Point(xy[0], xy[1]),
+                inside: me.constrainPosition ? Ext.getBody().getRegion().adjust(5, -5, -5, 5) : null,
+                align: 'tl-tl',
+                overlap: true                
+            }));
+        }
+        me.calledFromShowAt = 0;
+    },
+
+    doAlignment: function(newRegion) {
+        var me = this,
+            anchorEl = me.anchorEl,
+            anchorRegion = newRegion.anchor;
+
+        me.setPagePosition([newRegion.x, newRegion.y]);
+
+        if (anchorEl) {
+            anchorEl.removeCls(me.anchorCls);
+            if (anchorRegion) {
+                me.anchorCls = Ext.baseCSSPrefix + 'tip-anchor-' + anchorRegion.position;
+                anchorEl.addCls(me.anchorCls);
+                anchorEl.show();
+
+                // The result is to the left or right of the target
+                if (anchorRegion.align & 1) {
+                    anchorEl.setTop(newRegion.anchor.y - newRegion.y);
+                    anchorEl.dom.style.left = '';
+                } else {
+                    anchorEl.setLeft(newRegion.anchor.x - newRegion.x);
+                    anchorEl.dom.style.top = '';
+                }
+            } else {
+                anchorEl.hide();
             }
-            me.toFront(true);
         }
     },
 

@@ -39,7 +39,7 @@
  *
  *     Ext.create('Ext.field.TextArea', {
  *         label: 'About You',
- *         {@link #placeHolder}: 'Tell us about yourself...'
+ *         placeHolder: 'Tell us about yourself...'
  *     });
  */
 Ext.define('Ext.field.TextArea', {
@@ -49,12 +49,6 @@ Ext.define('Ext.field.TextArea', {
     alternateClassName: 'Ext.form.TextArea',
 
     config: {
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        ui: 'textarea',
-
         /**
          * @cfg
          * @inheritdoc
@@ -73,8 +67,12 @@ Ext.define('Ext.field.TextArea', {
          * @cfg {Number} maxRows The maximum number of lines made visible by the input.
          * @accessor
          */
-        maxRows: null
+        maxRows: null,
+
+        clearIcon: false
     },
+
+    classCls: Ext.baseCSSPrefix + 'textareafield',
 
     /**
      * @private
@@ -85,12 +83,12 @@ Ext.define('Ext.field.TextArea', {
 
     updateHeight: function(height, oldHeight) {
         this.callParent([height, oldHeight]);
-        this.getComponent().input.setHeight(height);
+        this.getComponent().inputElement.setHeight(height);
     },
 
     updateWidth: function(width, oldWidth) {
         this.callParent([width, oldWidth]);
-        this.getComponent().input.setWidth(width);
+        this.getComponent().inputElement.setWidth(width);
     },
 
     /**
@@ -99,6 +97,6 @@ Ext.define('Ext.field.TextArea', {
      */
     doKeyUp: function(me) {
         // getValue to ensure that we are in sync with the dom
-        this.toggleClearIcon(this.getValue());
+        this.toggleClearTrigger(this.getValue());
     }
 });

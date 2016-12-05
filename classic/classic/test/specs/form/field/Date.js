@@ -1,14 +1,20 @@
 describe("Ext.form.field.Date", function() {
     var component, makeComponent;
     
+    function spyOnEvent(object, eventName, fn) {
+        var obj = {
+            fn: fn || Ext.emptyFn
+        },
+        spy = spyOn(obj, 'fn');
+
+        object.addListener(eventName, obj.fn);
+        return spy;
+    }
+
     function clickTrigger() {
         var trigger = component.getTrigger('picker').getEl(),
             xy = trigger.getXY();
         jasmine.fireMouseEvent(trigger.dom, 'click', xy[0], xy[1]);
-    }
-    
-    function expectAria(attr, value) {
-        jasmine.expectAriaAttr(component, attr, value);
     }
 
     beforeEach(function() {
@@ -38,16 +44,25 @@ describe("Ext.form.field.Date", function() {
     describe("keyboard interaction", function() {
         // Get today's timestamp and reset the hours, minutes, seconds and milliseconds
         // because datepicker dates don't have time values.
-        var today = (new Date()).setHours(0, 0, 0, 0),
+        var eDate = Ext.Date,
+            today = eDate.clearTime(new Date()),
             picker;
         
         function expectValue(cmp, want) {
             var value = cmp.getValue();
             
+            if (Ext.isDate(want)) {
+                want = want.toString();
+            }
+            else if (typeof want === 'number') {
+                want = new Date(want).toString();
+            }
+            
             if (want) {
-                expect(value.getTime()).toBe(want);
+                expect(value.toString()).toBe(want);
             }
             else {
+                // If null we want to fail gracefully
                 expect(value).toBe(want);
             }
         }
@@ -63,28 +78,80 @@ describe("Ext.form.field.Date", function() {
         });
         
         describe("focus remains in picker", function() {
+            var spy, event;
+            
+            function pressKey(key, options) {
+                picker.eventEl.on('keydown', spy);
+                jasmine.syncPressKey(picker, key, options);
+                picker.eventEl.un('keydown', spy);
+                
+                event = spy.mostRecentCall.args[0];
+            }
+            
             beforeEach(function() {
+                spy = jasmine.createSpy('keydown');
+                
                 clickTrigger();
                 
                 picker = component.picker;
             });
             
+            afterEach(function() {
+                spy = event = null;
+            });
+            
             describe("Space key", function() {
+                beforeEach(function() {
+                    pressKey('space');
+                });
+                
+                it("should not collapse the picker", function() {
+                    expect(picker.hidden).toBe(false);
+                });
+                
                 it("should set the current date in the field", function() {
-                    // Fire the key event through the target of the keyNav
-                    jasmine.fireKeyEvent(component.picker.keyNav.map.target, 'keydown', Ext.event.Event.SPACE);
-                    
                     expectValue(component, today);
+                });
+                
+                it("should prevent default on the event", function() {
+                    expect(event.defaultPrevented).toBe(true);
+                });
+            });
+            
+            describe("Enter key", function() {
+                beforeEach(function() {
+                    // 8 days before today
+                    pressKey('up');
+                    pressKey('left');
+                    pressKey('enter');
+                });
+                
+                it("should collapse the picker", function() {
+                    expect(picker.hidden).toBe(true);
+                });
+                
+                it("should confirm currently selected date", function() {
+                    expectValue(component, eDate.add(today, eDate.DAY, -8));
+                });
+                
+                it("should stop the event", function() {
+                    expect(event.stopped).toBe(true);
                 });
             });
 
             describe("Escape key", function() {
-                it("should close the picker", function() {
-                    expect(picker.hidden).toBe(false);
-
-                    jasmine.fireKeyEvent(component.inputEl, 'keydown', Ext.event.Event.ESC);
-
+                beforeEach(function() {
+                    component.setValue(eDate.add(today, eDate.DAY, 3));
+                    
+                    pressKey('esc');
+                });
+                
+                it("should collapse the picker", function() {
                     expect(picker.hidden).toBe(true);
+                });
+                
+                it("should not change the value", function() {
+                    expectValue(component, eDate.add(today, eDate.DAY, 3));
                 });
             });
         });
@@ -213,11 +280,17 @@ describe("Ext.form.field.Date", function() {
         });
         
         it("should have combobox role", function() {
-            expectAria('role', 'combobox');
+            expect(component).toHaveAttr('role', 'combobox');
         });
         
-        it("should have title", function() {
-            expectAria('title', 'Expected date format: m/d/Y');
+        it("should have aria-autocomplete", function() {
+            expect(component).toHaveAttr('aria-autocomplete', 'none');
+        });
+        
+        it("should have aria-owns", function() {
+            var id = component.id;
+            
+            expect(component).toHaveAttr('aria-owns', id + '-inputEl ' + id + '-picker-eventEl');
         });
     });
 
@@ -285,6 +358,27 @@ describe("Ext.form.field.Date", function() {
                 expect(component.getValue()).toBeNull();    
             });
             
+            it("should fire the change event", function() {
+                makeComponent();
+                var spy = spyOnEvent(component, 'change').andCallThrough();
+                component.setValue(new Date(2010, 10, 6)); // 5th nov 2010
+                expect(spy.callCount).toBe(1);
+                expect(spy.mostRecentCall.args[1]).toEqual(new Date(2010, 10, 6));
+            });
+
+            it("should work after setRawValue", function(){
+                var date = new Date('01/01/1999');
+                date = Ext.Date.clearTime(date);
+
+                makeComponent({
+                    format: 'm/d/y'
+                });
+                component.setRawValue('01/01/99');
+                expect(component.getValue()).toEqual(date);
+                date.setYear('2099');
+                component.setValue(date);
+                expect(component.getValue()).toEqual(date);
+            });
         });
     });
 
@@ -301,15 +395,23 @@ describe("Ext.form.field.Date", function() {
             expect(component.picker).toBeDefined();
             expect(component.picker instanceof Ext.picker.Date).toBe(true);
         });
+        
         it("should set the date picker's value to the current field value", function() {
             clickTrigger();
             expect(component.picker.value.getFullYear()).toEqual(2011);
             expect(component.picker.value.getMonth()).toEqual(0);
             expect(component.picker.value.getDate()).toEqual(11);
         });
+        
         it("should show the picker", function() {
             clickTrigger();
             expect(component.picker.hidden).toBe(false);
+        });
+        
+        it("should set proper picker id", function() {
+            clickTrigger();
+            
+            expect(component.picker.id).toBe(component.id + '-picker');
         });
     });
 
@@ -608,7 +710,7 @@ describe("Ext.form.field.Date", function() {
                         renderTo: Ext.getBody()
                     });
                     clickTrigger(); //inits the picker
-                    var spy = spyOn(component.picker, 'setDisabledDays');
+                    spyOn(component.picker, 'setDisabledDays');
                     component.setDisabledDays([3, 6]);
                     expect(component.picker.setDisabledDays).toHaveBeenCalledWith([3, 6]);
                 });
@@ -662,45 +764,151 @@ describe("Ext.form.field.Date", function() {
                         renderTo: Ext.getBody()
                     });
                     clickTrigger(); //inits the picker
-                    var spy = spyOn(component.picker, 'setDisabledDates');
+                    spyOn(component.picker, 'setDisabledDates');
                     component.setDisabledDates(['1978/02/04']);
                     expect(component.picker.setDisabledDates).toHaveBeenCalledWith(component.disabledDatesRE);
                 });
             });
         });
     });
-    
+   
+    describe("maintain proper year", function() {
+        it("should allow 1999", function() {
+            makeComponent({
+                renderTo: Ext.getBody(),
+                format: 'm-d-y'
+            });
+            component.setValue(new Date(1999, 1, 1));
+            expect(component.getValue()).toEqual(new Date(1999, 1, 1));
+        });
+        it("should allow 2099", function() {
+            makeComponent({
+                renderTo: Ext.getBody(),
+                format: 'm-d-y'
+            });
+            component.setValue(new Date(2099, 1, 1));
+            expect(component.getValue()).toEqual(new Date(2099, 1, 1));
+        });
+        it("should not break on blur", function() {
+            makeComponent({
+                renderTo: Ext.getBody(),
+                format: 'm-d-y'
+            });
+            component.setValue(new Date(2099, 1, 1));
+            jasmine.focusAndWait(component);
+            jasmine.blurAndWait(component);
+            runs(function() {
+                expect(component.getValue()).toEqual(new Date(2099, 1, 1));
+            });
+        });
+        
+        it("should fire change event on blur if text changed", function() {
+            var spy;
+
+            makeComponent({
+                renderTo: Ext.getBody(),
+                format: 'm-d-y'
+            });
+            
+            component.setValue(new Date(2016, 5, 1));
+            expect(component.getValue()).toEqual(new Date(2016, 5, 1));
+            jasmine.focusAndWait(component);
+            waitsFor(function() {
+                return component.hasFocus; 
+            });
+            runs(function() {
+                spy = spyOnEvent(component, 'change').andCallThrough();
+                component.inputEl.dom.value = '';
+                jasmine.fireKeyEvent(component.inputEl.dom, 'keyup', 66);
+            });
+            jasmine.blurAndWait(component);
+            waitsFor(function() {
+                return spy.callCount === 1;
+            });
+            runs(function() {
+                expect(component.hasFocus).toBe(false);
+                expect(component.getValue()).toBeNull();
+            });
+        });
+    });
+
+    describe("rawValue", function() {
+        var newDate, rawString;
+        beforeEach(function() {
+            newDate = new Date();
+            newDate = Ext.Date.clearTime(newDate);
+            rawString = Ext.Date.format(newDate, 'm/d/Y');
+
+            makeComponent({
+                renderTo: Ext.getBody()
+            });
+        });
+
+        it("should set the value when there is no value", function() {
+            component.setRawValue(rawString);
+            expect(component.getValue()).toEqual(newDate);
+        });
+
+        it("should replace the current value", function() {
+            component.setRawValue(rawString);
+            component.setValue('05/31/1985');
+            component.setRawValue(rawString);
+            expect(component.getValue()).toEqual(newDate);
+        });
+    });
+
     describe("blur", function() {
-        var webkitIt = Ext.isWebKit ? it : xit;
-        webkitIt("should call rawToValue inside blur", function() {
+        it("should call rawToValue inside blur", function() {
+            var rawToValueCount = 0;
+
             makeComponent({
                 renderTo: Ext.getBody(),
                 format: 'Y-m-d',
-                rawToValue: function(rawValue) {
-                    var date = this.parseDate(rawValue) || rawValue || null;
-                    return (Ext.isDate(date) ? Ext.Date.add(date, Ext.Date.DAY, 1) : date);
-                },
-                valueToRaw: function(value) {
-                    var date = this.parseDate(value);
-                    return (Ext.isDate(date) ? this.formatDate(Ext.Date.add(date, Ext.Date.DAY, -1)) : '');
+                rawToValue: function() {
+                    rawToValueCount++;
                 }
             });
+
             component.setValue('2010-04-15');
-            component.focus();
-            component.blur();
-            var d = Ext.Date.format(component.getValue(), 'Y-m-d');
-            expect(d).toBe('2010-04-15');
+            rawToValueCount = 0;
+
+            jasmine.focusAndWait(component);
+
+            waitsFor(function(){
+                return component.hasFocus;
+            });
+
+            jasmine.blurAndWait(component);
+            
+            waitsFor(function() {
+                return !component.hasFocus;
+            });
+
+            runs(function() {
+                expect(rawToValueCount).toBeGreaterThan(0);
+            });
         });
 
-        webkitIt("should not blank the textfield for an invalid date", function() {
+        it("should not blank the textfield for an invalid date", function() {
             makeComponent({
                 renderTo: Ext.getBody(),
                 format: 'Y-m-d'
             });
             component.inputEl.dom.value = 'foo';
-            component.focus();
-            component.blur();
-            expect(component.inputEl.getValue()).toBe('foo');
+            jasmine.focusAndWait(component);
+
+            waitsFor(function(){
+                return component.hasFocus;
+            });
+
+            jasmine.blurAndWait(component);
+            
+            waitsFor(function() {
+                return !component.hasFocus;
+            });
+            runs(function() {
+                expect(component.inputEl.getValue()).toBe('foo');
+            });
         });
     });
 });

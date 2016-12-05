@@ -2,7 +2,7 @@ Ext.require([
     'Ext.grid.*',
     'Ext.data.*',
     'Ext.util.*',
-    'Ext.ux.form.SearchField'
+    'Ext.grid.filters.Filters'
 ]);
 
 Ext.onReady(function(){
@@ -68,6 +68,13 @@ Ext.onReady(function(){
         autoLoad: true
     });
     
+    // Don't JSON encode the filter parameter:
+    Ext.override(store.getProxy(), {
+        applyEncoding: function(a) {
+            return a;
+        }
+    });
+
     function onStoreSizeChange() {
         grid.down('#status').update({count: store.getTotalCount()});
     }
@@ -90,13 +97,7 @@ Ext.onReady(function(){
         dockedItems: [{
             dock: 'top',
             xtype: 'toolbar',
-            items: [{
-                width: 400,
-                fieldLabel: 'Search',
-                labelWidth: 50,
-                xtype: 'searchfield',
-                store: store
-            }, '->', {
+            items: ['->', {
                 xtype: 'component',
                 itemId: 'status',
                 tpl: 'Matching threads: {count}',
@@ -111,7 +112,7 @@ Ext.onReady(function(){
             trackOver: false,
             emptyText: '<h1 style="margin:20px">No matching results</h1>'
         },
-        // grid columns
+        plugins: 'gridfilters',
         columns:[{
             xtype: 'rownumberer',
             width: 50,
@@ -122,7 +123,13 @@ Ext.onReady(function(){
             dataIndex: 'title',
             flex: 1,
             renderer: renderTopic,
-            sortable: false
+            sortable: false,
+            filter: {
+                type: 'string',
+                serializer: function(filter) {
+                    return filter.value;
+                }
+            }
         },{
             text: "Author",
             dataIndex: 'username',

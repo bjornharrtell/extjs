@@ -20,17 +20,16 @@
         @include border-bottom-radius(5px);
     }
 
-    .x-field-input {
+    .x-input {
         padding: 0 10px 5px;
 
-        .x-clear-icon {
+        .x-cleartrigger .x-icon-el {
             top: 6px;
             right: 14px;
         }
     }
 }
 
-.x-form.x-floating,
 .x-panel.x-floating {
     background: #fff;
     padding: 0;

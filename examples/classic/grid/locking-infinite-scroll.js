@@ -32,7 +32,7 @@ Ext.onReady(function(){
             // load using script tags for cross domain, if the data in on the same domain as
             // this page, an HttpProxy would be better
             type: 'jsonp',
-            url: 'http://www.sencha.com/forum/remote_topics/index.php',
+            url: 'https://www.sencha.com/forum/remote_topics/index.php',
             reader: {
                 rootProperty: 'topics',
                 totalProperty: 'totalCount'

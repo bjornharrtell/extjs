@@ -22,7 +22,7 @@
  *     // Wait 500ms before calling our function. If the user presses another key
  *     // during that 500ms, it will be cancelled and we'll wait another 500ms.
  *     Ext.get('myInputField').on('keypress', function() {
- *         task.{@link #delay}(500);
+ *         task.delay(500);
  *     });
  * 
  * Note that we are using a DelayedTask here to illustrate a point. The configuration
@@ -64,6 +64,7 @@ Ext.util.DelayedTask = function(fn, scope, args, cancelOnDelay, fireIdleEvent) {
     me.id = null;
 
     /**
+     * @method delay
      * By default, cancels any pending timeout and queues a new one.
      *
      * If the `cancelOnDelay` parameter was specified as `false` in the constructor, this does not cancel and

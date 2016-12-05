@@ -24,7 +24,7 @@ $kitchensink-thumbnail-size: 96px;
     height: $kitchensink-thumbnail-size + 60;
     margin-right: 20px;
     cursor: pointer;
-    overflow: hidden;
+    //overflow: hidden;
 }
 
 .thumbnail-text {
@@ -40,7 +40,7 @@ $kitchensink-thumbnail-size: 96px;
     font-family: Sencha-Examples;
     margin: 0 auto 8px;
     position: relative;
-    overflow: hidden;
+    //overflow: hidden;
     color: $kitchensink-thumbnail-background-color;
 }
 
@@ -57,7 +57,26 @@ $kitchensink-thumbnail-size: 96px;
     overflow: hidden;
 }
 
+.thumbnail-new, .thumbnail-has-new {
+    position: absolute;
+    top: -12px;
+    right: -9px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    font-size: 18px;
+    color: orange;
+}
+
+.thumbnail-has-new {
+    @include opacity(0.5);
+}
+
 .x-rtl.thumbnails {
+    .thumbnail-new {
+        left: -9px;
+        right: auto;
+    }
     .thumbnail-item {
         direction: ltr;
         float: right;

@@ -106,7 +106,7 @@ Ext.define('Ext.carousel.Indicator', {
         }
     },
 
-    destroy: function() {
+    doDestroy: function() {
         var indicators = this.indicators,
             i, ln, indicator;
 

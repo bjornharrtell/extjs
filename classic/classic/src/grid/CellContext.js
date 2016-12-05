@@ -11,7 +11,7 @@
  * Be careful not to make `CellContext` objects *too* persistent. If the owning record is removed, or the owning column
  * is removed, the reference will be stale.
  *
- * Freshly created context objects, such as those exposed by events from the {Ext.grid.selection.SpreadsheetModel spreadsheet selection model}
+ * Freshly created context objects, such as those exposed by events from the {@link Ext.grid.selection.SpreadsheetModel spreadsheet selection model}
  * are safe to use until your application mutates the store, or changes the column set.
  */
 Ext.define('Ext.grid.CellContext', {
@@ -50,6 +50,8 @@ Ext.define('Ext.grid.CellContext', {
      *
      * *Be aware that after the initial call to {@link #setPosition}, this value may become stale due to subsequent column mutation.*
      */
+    
+    generation: 0,
 
      /**
       * Creates a new CellContext which references a {@link Ext.view.Table GridView}
@@ -86,7 +88,7 @@ Ext.define('Ext.grid.CellContext', {
                 row = row[1];
             }
             else if (row.isCellContext) {
-                return me.setAll(row.view, row.rowIdx, row.colIdx, row.record, row.columnHeader);
+                return me.setAll(row.view, row.rowIdx, row.colIdx, row.record, row.column);
             }
             // An object containing {row: r, column: c}
             else {
@@ -111,17 +113,23 @@ Ext.define('Ext.grid.CellContext', {
         me.colIdx = columnIndex;
         me.record = record;
         me.column = columnHeader;
+        me.generation++;
         return me;
     },
 
     setRow: function(row) {
         var me = this,
-            dataSource = me.view.dataSource;
+            dataSource = me.view.dataSource,
+            oldRecord = me.record,
+            count;
         
         if (row !== undefined) {
-            // Row index passed
+            // Row index passed, < 0 meaning count from the tail (-1 is the last, etc)
             if (typeof row === 'number') {
-                me.rowIdx = Math.max(Math.min(row, dataSource.getCount() - 1), 0);
+                count = dataSource.getCount();
+                row = row < 0 ? Math.max(count + row, 0) : Math.max(Math.min(row, count - 1), 0);
+                
+                me.rowIdx = row;
                 me.record = dataSource.getAt(row);
             }
             // row is a Record
@@ -135,12 +143,16 @@ Ext.define('Ext.grid.CellContext', {
                 me.rowIdx = dataSource.indexOf(me.record);
             }
         }
+        if (me.record !== oldRecord) {
+            me.generation++;
+        }
         return me;
     },
     
     setColumn: function(col) {
         var me = this,
-                colMgr = me.view.getVisibleColumnManager();
+            colMgr = me.view.getVisibleColumnManager(),
+            oldColumn = me.column;
 
         // Maintainer:
         // We MUST NOT update the context view with the column's view because this context
@@ -156,6 +168,9 @@ Ext.define('Ext.grid.CellContext', {
                 // And Column#getVisibleIndex returns the index of the column within its own header.
                 me.colIdx = colMgr.indexOf(col);
             }
+        }
+        if (me.column !== oldColumn) {
+            me.generation++;
         }
         return me;
     },
@@ -238,6 +253,10 @@ Ext.define('Ext.grid.CellContext', {
                 return !cell.nextSibling;
             }
         },
+        
+        isLastRenderedRow: function() {
+            return this.view.all.endIndex === this.rowIdx;
+        },
 
         getLastColumnIndex: function() {
             var row = this.getRow(true);
@@ -246,6 +265,15 @@ Ext.define('Ext.grid.CellContext', {
                 return row.lastChild.cellIndex;
             }
             return -1;
+        },
+
+        refresh: function() {
+            var me = this,
+                newRowIdx = me.view.dataSource.indexOf(me.record),
+                newColIdx = me.view.getVisibleColumnManager().indexOf(me.column);
+
+            me.setRow(newRowIdx === -1 ? me.rowIdx : me.record);
+            me.setColumn(newColIdx === -1 ? me.colIdx : me.column);
         },
 
         /**

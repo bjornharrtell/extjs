@@ -10,26 +10,32 @@ Ext.define('KitchenSink.view.binding.Selection', {
     height: 270,
 
     //<example>
+    requires: ['KitchenSink.view.binding.SelectionController'],
     otherContent: [{
+        type: 'ViewController',
+        path: 'classic/samples/view/binding/SelectionController.js'
+    }, {
         type: 'Model',
-        path: 'classic/samples/model/Customer.js'
-    },{
+        path: 'classic/samples/model/Company.js'
+    }, {
         type: 'Model',
         path: 'classic/samples/model/field/PhoneNumber.js'
-    },{
+    }, {
         type: 'Data',
-        path: 'classic/samples/data/Customer.js'
+        path: 'classic/samples/data/Company.js'
     }],
     //</example>
 
     viewModel: {
         stores: {
-            customers: {
-                model: 'Customer',
+            companies: {
+                model: 'Company',
                 autoLoad: true
             }
         }
     },
+
+    controller: 'binding.selection',
 
     layout: 'vbox',
 
@@ -44,10 +50,10 @@ Ext.define('KitchenSink.view.binding.Selection', {
         queryMode: 'local',
         labelWidth: 160,
         bind: {
-            store: '{customers}',
-            selection: '{selectedCustomer}'
+            store: '{companies}',
+            selection: '{selectedCompany}'
         },
-        fieldLabel: 'Customer Combo'
+        fieldLabel: 'Company Combo'
     }, {
         xtype: 'container',
         width: 600,
@@ -59,12 +65,13 @@ Ext.define('KitchenSink.view.binding.Selection', {
         },
         padding: 15,
         items: [{
-            title: 'Customers Grid',
+            title: 'Companies Grid',
             flex: 1,
             xtype: 'grid',
+            reference: 'grid',
             bind: {
-                store: '{customers}',
-                selection: '{selectedCustomer}'
+                store: '{companies}',
+                selection: '{selectedCompany}'
             },
             columns: [{
                 text: 'Name', dataIndex: 'name', flex: 1
@@ -75,11 +82,13 @@ Ext.define('KitchenSink.view.binding.Selection', {
             flex: 1,
             cls: 'binding-selection-view',
             itemSelector: '.customer',
+            scrollable: 'y',
             xtype: 'dataview',
-            tpl: '<h1>Customer View</h1><tpl for="."><div class="customer"><div class="indicator"></div>{name}<div class="indicator rtl"></div></div></tpl>',
+            reference: 'dataview',
+            tpl: '<h1>Company View</h1><tpl for="."><div class="customer"><div class="indicator"></div>{name}<div class="indicator rtl"></div></div></tpl>',
             bind: {
-                store: '{customers}',
-                selection: '{selectedCustomer}'
+                store: '{companies}',
+                selection: '{selectedCompany}'
             }
         }]
     }]

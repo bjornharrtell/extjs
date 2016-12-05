@@ -9,12 +9,13 @@
 Ext.define('KitchenSink.view.grid.GroupedHeaderGrid', {
     extend: 'Ext.grid.Panel',
     xtype: 'grouped-header-grid',
-    store: 'Companies',
-    columnLines: true,
-    height: 350,
-    title: 'Grouped Header Grid',
+    controller: 'basicgrid',
+
     //<example>
     otherContent: [{
+        type: 'Controller',
+        path: 'classic/samples/view/grid/BasicGridController.js'
+    }, {
         type: 'Store',
         path: 'classic/samples/store/Companies.js'
     },{
@@ -26,13 +27,17 @@ Ext.define('KitchenSink.view.grid.GroupedHeaderGrid', {
             width: 600,
             changeColumnWidth: 80,
             lastUpdatedColumnWidth: 85,
-            percentChangeColumnWidth: 75
+            percentChangeColumnWidth: 75,
+            green: 'green',
+            red: 'red'
         },
         neptune: {
             width: 675,
             changeColumnWidth: 80,
             lastUpdatedColumnWidth: 115,
-            percentChangeColumnWidth: 100
+            percentChangeColumnWidth: 100,
+            green: '#73b51e',
+            red: '#cf4c35'
         },
         'neptune-touch': {
             width: 720,
@@ -43,59 +48,60 @@ Ext.define('KitchenSink.view.grid.GroupedHeaderGrid', {
     },
     //</example>
 
-    initComponent: function () {
-        this.width = this.profileInfo.width;
-        this.columns = [{
-                text     : 'Company',
-                flex     : 1,
-                sortable : true,
-                dataIndex: 'name'
-            }, {
-                text: 'Stock Price',
-                columns: [{
-                    text     : 'Price',
-                    width    : 75,
-                    sortable : true,
-                    formatter: 'usMoney',
-                    dataIndex: 'price'
-                }, {
-                    text     : 'Change',
-                    width    : this.profileInfo.changeColumnWidth,
-                    sortable : true,
-                    renderer :  function(val) {
-                        if (val > 0) {
-                            return '<span style="color:green;">' + val + '</span>';
-                        } else if (val < 0) {
-                            return '<span style="color:red;">' + val + '</span>';
-                        }
-                        return val;
-                    },
-                    dataIndex: 'change'
-                }, {
-                    text     : '% Change',
-                    width    : this.profileInfo.percentChangeColumnWidth,
-                    sortable : true,
-                    renderer : function(val) {
-                        if (val > 0) {
-                            return '<span style="color:green;">' + val + '</span>';
-                        } else if (val < 0) {
-                            return '<span style="color:red;">' + val + '</span>';
-                        }
-                        return val;
-                    },
-                    dataIndex: 'pctChange'
-                }]
-            }, {
-                text     : 'Last Updated',
-                width    : this.profileInfo.lastUpdatedColumnWidth,
-                sortable : true,
-                formatter: 'date("m/d/Y")',
-                dataIndex: 'lastChange'
-            }];
+    title: 'Grouped Header Grid',
+    width: '${width}',
+    height: 350,
 
-        //Sorting store
-        Ext.getStore('Companies').sort({property:'name', direction:'ASC'});
+    columnLines: true,
+    signTpl: '<span style="' +
+            'color:{value:sign(\'${red}\',\'${green}\')}"' +
+        '>{text}</span>',
 
-        this.callParent();
-    }
+    store: {
+        type: 'companies',
+        sorters: {
+            property:'name',
+            direction: 'DESC'
+        }
+    },
+
+    columns: [{
+        text: 'Company',
+        dataIndex: 'name',
+
+        flex: 1,
+        sortable: true
+    }, {
+        text: 'Stock Price',
+
+        columns: [{
+            text: 'Price',
+            dataIndex: 'price',
+
+            width: 75,
+            sortable: true,
+            formatter: 'usMoney'
+        }, {
+            text: 'Change',
+            dataIndex: 'change',
+
+            width: '${changeColumnWidth}',
+            sortable: true,
+            renderer: 'renderChange'
+        }, {
+            text: '% Change',
+            dataIndex: 'pctChange',
+
+            width: '${percentChangeColumnWidth}',
+            sortable: true,
+            renderer: 'renderPercent'
+        }]
+    }, {
+        text: 'Last Updated',
+        dataIndex: 'lastChange',
+
+        width: '${lastUpdatedColumnWidth}',
+        sortable: true,
+        formatter: 'date("m/d/Y")'
+    }]
 });

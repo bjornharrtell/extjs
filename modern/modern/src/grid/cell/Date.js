@@ -21,10 +21,12 @@ Ext.define('Ext.grid.cell.Date', {
     },
 
     updateColumn: function (column, oldColumn) {
+        var format;
+
         this.callParent([column, oldColumn]);
 
         if (column) {
-            var format = column.getFormat();
+            format = column.getFormat();
 
             if (format !== null) {
                 this.setFormat(format);

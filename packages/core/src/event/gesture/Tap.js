@@ -18,22 +18,26 @@ Ext.define('Ext.event.gesture.Tap', {
     },
 
     onTouchStart: function(e) {
-        if (this.callParent([e]) === false) {
-            return false;
+        var me = this,
+            ret = me.callParent([e]);
+
+        if (ret !== false) {
+            me.isStarted = true;
+            me.startPoint = e.changedTouches[0].point;
         }
 
-        this.startPoint = e.changedTouches[0].point;
+        return ret;
     },
 
     onTouchMove: function(e) {
-        var touch = e.changedTouches[0],
-            point = touch.point;
+        var me = this,
+            point = e.changedTouches[0].point,
+            scale = Ext.Element.getViewportScale(),
+            // account for scale so that move distance is actual screen pixels, not page pixels
+            distance = Math.round(Math.abs(point.getDistanceTo(me.startPoint) * scale));
 
-        if (Math.abs(point.getDistanceTo(this.startPoint)) >= this.getMoveDistance()) {
-            this.fire('tapcancel', e, {
-                touch: touch
-            });
-            return this.fail(this.self.TOUCH_MOVED);
+        if (distance >= me.getMoveDistance()) {
+            return me.cancel(e);
         }
     },
 
@@ -41,17 +45,19 @@ Ext.define('Ext.event.gesture.Tap', {
         this.fire('tap', e, {
             touch: e.changedTouches[0]
         });
+
+        return this.callParent([e]);
     },
 
-    onTouchCancel: function(e) {
+    onCancel: function(e) {
         this.fire('tapcancel', e, {
             touch: e.changedTouches[0]
-        });
-        return false;
+        }, true);
     },
 
     reset: function() {
         this.startPoint = null;
+        return this.callParent();
     }
 }, function(Tap) {
     var gestures = Ext.manifest.gestures;

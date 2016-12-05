@@ -13,16 +13,15 @@
 
     "framework": "ext",
     "toolkit": "modern",
-    "requires": [
-        "font-awesome",
-        "font-ext"
-    ],
+    //"requires": [
+    //    ...
+    //],
 
     "creator": "Sencha",
     "summary": "Ext JS Modern Triton Theme",
     "detailedDescription": "The Triton theme provides a flat simple look and feel, and uses font icons in place of background images.",
 
-    "version": "6.0.1.250",
+    "version": "6.2.0.981",
     "compatVersion": "6.0.0",
     "format": "1",
 

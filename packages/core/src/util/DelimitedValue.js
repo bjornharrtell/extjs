@@ -69,6 +69,8 @@ Ext.define('Ext.util.DelimitedValue', {
     quoteREs: {},
 
     lineBreakRe: /\r?\n/g,
+    // match line break at end of input
+    lastLineBreakRe: /(\r?\n|\r)$/,
 
     constructor: function (config) {
         if (config) {
@@ -102,15 +104,20 @@ Ext.define('Ext.util.DelimitedValue', {
      * @return {String[][]} An array of rows where each row is an array of Strings.
      */
     decode: function (input, delimiter) {
+        if (!input) {
+            return [];
+        }
+        
         var me = this,
             // Check to see if the column delimiter is defined. If not,
             // then default to comma.
-            delim = (delimiter || me.delimiter),
+            delim = delimiter || me.delimiter,
             row = [],
             result = [row],
             quote = me.quote,
             quoteREs = me.quoteREs,
             parseREs = me.parseREs,
+            input = input.replace(me.lastLineBreakRe, ''),
 
             // Create a regular expression to parse the CSV values unless we already have
             // one for this delimiter.

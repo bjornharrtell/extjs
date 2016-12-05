@@ -7,3 +7,11 @@
 .#{$prefix}grid-row-expander:focus {
     outline: $grid-row-cell-focus-border-width $grid-row-cell-focus-border-style $grid-row-cell-focus-border-color;
 }
+
+.#{$prefix}grid-hide-row-expander-spacer .#{$prefix}grid-row-expander-spacer {
+    display: none;
+}
+
+.#{$prefix}grid-row-expander-spacer {
+    border: 0 none;
+}

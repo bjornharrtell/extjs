@@ -198,7 +198,7 @@ describe("Ext.JSON", function() {
         it("should raise an Ext.Error with invalid data", function() {
             expect(function(){
                 Ext.decode('{foo:"bar", x}');
-            }).toRaiseExtError();
+            }).toThrow();
         });
             
         describe("with safe param", function(){

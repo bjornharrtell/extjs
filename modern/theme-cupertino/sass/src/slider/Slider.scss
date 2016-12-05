@@ -6,11 +6,11 @@
 $form-thumb-space: ($form-thumb-size - $form-toggle-size) / 2;
 
 .x-slider,
-.x-toggle {
+.x-toggleslider {
 	height: $form-thumb-size;
 }
 
-.x-slider.x-item-disabled {
+.x-slider.x-disabled {
 	opacity: .6;
 }
 

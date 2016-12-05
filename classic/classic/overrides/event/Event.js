@@ -1,5 +1,5 @@
 /**
- *
+ * @class Ext.event.Event
  */
 Ext.define('Ext.overrides.event.Event', {
     override: 'Ext.event.Event',
@@ -238,7 +238,7 @@ Ext.define('Ext.overrides.event.Event', {
         };
     }()), // call to produce method
 
-    preventDefault: function() {
+    preventDefault: function(browserOnly) {
         var me = this,
             event = me.browserEvent,
             parentEvent = me.parentEvent,
@@ -249,7 +249,13 @@ Ext.define('Ext.overrides.event.Event', {
         // invalidated, so we can't delve into the details of it. If so,
         // just fall out gracefully and don't attempt to do anything.
         if (typeof event.type !== 'unknown') {
-            me.defaultPrevented = true;
+            // In some cases we want to prevent default on the browser event
+            // but keep propagating it through our event system. For example,
+            // in Checkbox selection where the cells with checkboxes should
+            // prevent focusing on mousedown but still fire the click event.
+            if (!browserOnly) {
+                me.defaultPrevented = true;
+            }
 
             // if the event was created by prototype-chaining a new object to an existing event
             // instance, we need to make sure the parent event is defaultPrevented as well.

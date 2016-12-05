@@ -505,7 +505,7 @@ describe('Ext.toolbar.Breadcrumb', function() {
 
         function getById(id) {
             var found = null;
-            store.getRoot().cascadeBy(function(rec) {
+            store.getRoot().cascade(function(rec) {
                 if (rec.id === id) {
                     found = rec;
                     return false;

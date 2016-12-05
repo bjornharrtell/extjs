@@ -10,7 +10,7 @@ Ext.define('KitchenSink.view.binding.FieldValidation', {
     //<example>
     otherContent: [{
         type: 'Model',
-        path: 'classic/samples/model/Customer.js'
+        path: 'classic/samples/model/Company.js'
     },{
         type: 'Field',
         path: 'classic/samples/model/field/PhoneNumber.js'
@@ -32,7 +32,7 @@ Ext.define('KitchenSink.view.binding.FieldValidation', {
     viewModel: {
         links: {
             theCustomer: {
-                type: 'Customer',
+                type: 'Company',
                 id: 1
             }
         }

@@ -26,6 +26,15 @@
  * @param {number} [$ui-line-height=$form-display-field-line-height]
  * The line-height of the display field
  *
+ * @param {color} [$ui-focus-border-color=$form-display-field-focus-border-color]
+ * The outline color of the focused display field
+ *
+ * @param {string} [$ui-focus-border-style=$form-display-field-focus-border-style]
+ * The outline style of the focused display field
+ *
+ * @param {number} [$ui-focus-border-width=$form-display-field-focus-border-width]
+ * The outline width of the focused display field
+ *
  * @member Ext.form.field.Display
  */
 @mixin extjs-display-field-ui(
@@ -35,12 +44,31 @@
     $ui-font-size: $form-display-field-font-size,
     $ui-font-family: $form-display-field-font-family,
     $ui-font-weight: $form-display-field-font-weight,
-    $ui-line-height: $form-display-field-line-height
+    $ui-line-height: $form-display-field-line-height,
+    $ui-focus-border-color: $form-display-field-focus-border-color,
+    $ui-focus-border-style: $form-display-field-focus-border-style,
+    $ui-focus-border-width: $form-display-field-focus-border-width
 ) {
     .#{$prefix}form-display-field-#{$ui} {
         min-height: $ui-field-height;
         font: $ui-font-weight #{$ui-font-size}/#{$ui-line-height} $ui-font-family;
         color: $ui-color;
         margin-top: round(($ui-field-height - $ui-line-height) / 2);
+    }
+    
+    .#{$prefix}form-display-field-#{$ui}.#{$prefix}field-form-focus {
+        @include css-outline(
+            $width: $ui-focus-border-width,
+            $style: $ui-focus-border-style,
+            $color: $ui-focus-border-color,
+            $offset: -$ui-focus-border-width
+        );
+        
+        // IE8 needs displayEl to be positioned for the pseudo-outline to work
+        @if $include-ie {
+            .#{$prefix}ie8 & {
+                position: relative;
+            }
+        }
     }
 }

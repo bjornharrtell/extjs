@@ -1,19 +1,19 @@
-.x-grid-row {
+.x-gridrow {
 	border-color: #d7d7d7;
 
     &.x-grid-item-odd {
         background-color: #222222;
     }
 
-    &.x-item-selected {
+    &.x-selected {
         background-color: #910091;
     }
 }
 
-.x-grid-viewoptions {
+.x-gridviewoptions {
     background-color: #000;
 
-	.x-list-item.x-list-item-tpl {
+	.x-listitem.x-simplelistitem {
 		color: #aaa;
 	}
 
@@ -26,7 +26,7 @@
 		border-color: #000 !important;
     }
 
-    .x-list-item.x-item-selected.x-list-item-tpl  {
+    .x-listitem.x-selected.x-simplelistitem  {
         .x-column-options-text {
             color: #fff;
         }
@@ -46,13 +46,13 @@
     }
 }
 
-.x-grid-multiselection-column {
+.x-selectioncolumn {
     &.x-grid-multiselection-allselected:after {
         color: #910091 !important;
     }
 }
 
-.x-grid-pagingtoolbar {
+.x-pagingtoolbar {
     > .x-body {
         padding: 0 50px;
     }
@@ -62,29 +62,15 @@
     }
 }
 
-.x-grid-pagingtoolbar-currentpage {
-    position: relative;
-    height: 22px;
-
-    span {
-        position: absolute;
-        right: 0;
-        top: 0;
-        line-height: 22px;
-        height: 22px;
-    }
-}
-
-.x-grid-summaryrow {
+.x-summaryrow {
     background-color: #505050;
 
-    .x-grid-cell {
+    .x-gridcell {
         border-color: #C0C0C0;
     }
 }
 
-.x-grid-header {
-    background-color: $background-color;
+.x-rowheader {
     background-color: $base-color;
     color: $foreground-color;
     border: 0;

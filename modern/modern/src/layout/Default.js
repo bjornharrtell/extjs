@@ -35,9 +35,13 @@ Ext.define('Ext.layout.Default', {
         animation: null
     },
 
-    centerWrapperClass: 'x-center',
+    centerWrapperClass: Ext.baseCSSPrefix + 'center',
 
-    dockWrapperClass: 'x-dock',
+    dockWrapperClass: Ext.baseCSSPrefix + 'dock',
+
+    cls: Ext.baseCSSPrefix + 'layout-auto',
+
+    itemCls: Ext.baseCSSPrefix + 'layout-auto-item',
 
     positionMap: {
         top: 'start',
@@ -61,6 +65,8 @@ Ext.define('Ext.layout.Default', {
 
         me.callParent([container]);
 
+        container.innerElement.addCls(me.cls);
+
         if (container.initialized) {
             me.onContainerInitialized();
         } else {
@@ -77,7 +83,7 @@ Ext.define('Ext.layout.Default', {
             delegate: '> component',
 
             beforecenteredchange: 'onItemCenteredChange',
-            beforefloatingchange: 'onItemFloatingChange',
+            positionedchange: 'onItemPositionedChange',
             afterdockedchange: 'onAfterItemDockedChange', // see Component#updateDocked
 
             scope: me
@@ -95,14 +101,14 @@ Ext.define('Ext.layout.Default', {
     },
 
     onItemAdd: function(item) {
-        var docked = item.getDocked();
-
-        if (docked != null) {
+        if (item.getDocked() != null) {
             this.dockItem(item);
         } else if (item.isCentered()) {
             this.onItemCenteredChange(item, true);
-        } else if (item.isFloating()) {
-            this.onItemFloatingChange(item, true);
+        } else if (item.isPositioned()) {
+            this.onItemPositionedChange(item, true);
+        } else if (item.isFloated()) {
+            this.onItemFloatedChange(item, true);
         } else {
             this.onItemInnerStateChange(item, true);
         }
@@ -114,11 +120,14 @@ Ext.define('Ext.layout.Default', {
      * @param {Boolean} [destroying]
      */
     onItemInnerStateChange: function(item, isInner, destroying) {
+        var itemCls = this.itemCls;
+
         if (isInner) {
             this.insertInnerItem(item, this.container.innerIndexOf(item));
-        }
-        else {
+            item.addCls(itemCls);
+        } else {
             this.removeInnerItem(item);
+            item.removeCls(itemCls);
         }
     },
 
@@ -168,16 +177,17 @@ Ext.define('Ext.layout.Default', {
     },
 
     onItemRemove: function(item, index, destroying) {
-        var docked = item.getDocked();
-
-        if (docked) {
+        if (item.getDocked()) {
             this.undockItem(item);
         }
         else if (item.isCentered()) {
             this.onItemCenteredChange(item, false);
         }
-        else if (item.isFloating()) {
-            this.onItemFloatingChange(item, false);
+        else if (item.isPositioned()) {
+            this.onItemPositionedChange(item, false);
+        }
+        else if (item.isFloated()) {
+            this.unfloatItem(item, destroying);
         }
         else {
             this.onItemInnerStateChange(item, false, destroying);
@@ -185,7 +195,7 @@ Ext.define('Ext.layout.Default', {
     },
 
     onItemMove: function(item, toIndex, fromIndex) {
-        if (item.isCentered() || item.isFloating()) {
+        if (item.isCentered() || item.isPositioned()) {
             item.setZIndex((toIndex + 1) * 2);
         }
         else if (item.isInnerItem()) {
@@ -200,24 +210,39 @@ Ext.define('Ext.layout.Default', {
     onItemCenteredChange: function(item, centered) {
         var wrapperName = '$centerWrapper';
 
-        if (centered) {
+        if (item.isFloated()) {
+            item.center();
+        } else {
+            if (centered) {
+                this.insertBodyItem(item);
+                item.link(wrapperName, new Ext.util.Wrapper({
+                    className: this.centerWrapperClass
+                }, item.element));
+            }
+            else {
+                item.unlink([wrapperName]);
+                this.removeBodyItem(item);
+            }
+        }
+    },
+
+    onItemPositionedChange: function(item, positioned) {
+        if (positioned) {
             this.insertBodyItem(item);
-            item.link(wrapperName, new Ext.util.Wrapper({
-                className: this.centerWrapperClass
-            }, item.element));
         }
         else {
-            item.unlink([wrapperName]);
             this.removeBodyItem(item);
         }
     },
 
-    onItemFloatingChange: function(item, floating) {
-        if (floating) {
-            this.insertBodyItem(item);
-        }
-        else {
-            this.removeBodyItem(item);
+    onItemFloatedChange: function(item, floated) {
+        if (item.isFloated() !== floated) {
+            if (floated) {
+                this.floatItem(item);
+            }
+            else {
+                this.unfloatItem(item);
+            }
         }
     },
 
@@ -226,7 +251,7 @@ Ext.define('Ext.layout.Default', {
         // setting of docked on the component will occur before add to the container
         if (item.initialized) {
             if (oldDocked) {
-                this.undockItem(item);
+                this.undockItem(item, oldDocked);
             }
             if (docked) {
                 this.dockItem(item);
@@ -259,6 +284,18 @@ Ext.define('Ext.layout.Default', {
             flags = (container.getSizeFlags() & binaryMask);
 
         item.setLayoutSizeFlags(flags);
+    },
+
+    floatItem: function(item) {
+        // Remove from being an inner component
+        this.onItemInnerStateChange(item, false);
+    },
+
+    unfloatItem: function(item, destroying) {
+        if (!destroying) {
+            // Return to being an inner component
+            this.onItemInnerStateChange(item, true);
+        }
     },
 
     dockItem: function(item) {
@@ -376,13 +413,14 @@ Ext.define('Ext.layout.Default', {
         return null;
     },
 
-    undockItem: function(item) {
+    undockItem: function(item, oldDocked) {
         var me = this,
             dockedItems = me.dockedItems,
-            lastBorderMask, lastBorderCollapse;
+            lastBorderMask, lastBorderCollapse,
+            dockWrapper = item.$dockWrapper;
 
-        if (item.$dockWrapper) {
-            item.$dockWrapper.removeItem(item);
+        if (dockWrapper) {
+            dockWrapper.removeItem(item, oldDocked);
         }
 
         if (me.container.initialized) {
@@ -488,6 +526,10 @@ Ext.define('Ext.layout.Default', {
 
         for (i = 0, ln = docked.length; i < ln; i++) {
             item = docked[i];
+
+            if (item.getHidden()) {
+                continue;
+            }
 
             dock = item.getDocked();
             mask = edgesTouched = 0;
@@ -691,7 +733,7 @@ Ext.define('Ext.layout.Default', {
             map = me.borderCollapseMap,
             container = me.container,
             baseCls = container.getBaseCls(),
-            ui = container.ui,
+            ui = container.getUi(),
             uiCls = (ui ? ('-' + ui) : ''),
             table;
 

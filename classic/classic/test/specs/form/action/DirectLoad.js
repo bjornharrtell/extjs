@@ -1,81 +1,98 @@
 describe("Ext.form.action.DirectLoad", function() {
+    var provider, action, loadSpy, loadSpy2, submitSpy;
+    
+    function makeApi(cfg) {
+        cfg = Ext.apply({
+            "namespace": "spec",
+            type: "remoting",
+            url: "fake"
+        }, cfg);
+        
+        provider = Ext.direct.Manager.addProvider(cfg);
+    }
 
-    var action;
+    function makeSpy(name) {
+        var directCfg = spec.TestDirect[name].directCfg,
+            spy = spyOn(spec.TestDirect, name);
 
-    function createAction(config, loadConfig, submitConfig) {
+        spy.directCfg = directCfg;
+        
+        return spy;
+    }
+    
+    function createAction(config) {
         config = config || {};
+        
         if (!config.form) {
             config.form = {};
         }
         
-        var loadFn = function(){
-            
-        }, submitFn = function(){
-            
-        }, cfg;
-        
-        loadConfig = Ext.apply({}, loadConfig);
-        submitConfig = Ext.apply({}, submitConfig);
-        
-        cfg = Ext.applyIf(loadConfig, {
-            ordered: true,
-            len: 0
-        });
-        
-        loadFn.directCfg = {
-            method: new Ext.direct.RemotingMethod(cfg)
-        };
-        
-        cfg = Ext.applyIf(submitConfig, {
-            ordered: true,
-            len: 0
-        });
-        
-        submitFn.directCfg = {
-            method: new Ext.direct.RemotingMethod(cfg)
-        };
-        
-        TestDirect = {
-            load: loadFn,
-            submit: submitFn
-        };
-        
         Ext.applyIf(config.form, {
             clearInvalid: Ext.emptyFn,
+            markInvalid: Ext.emptyFn,
+            getValues: Ext.emptyFn,
             setValues: Ext.emptyFn,
+            getFields: function() {
+                return Ext.create('Ext.util.MixedCollection');
+            },
             afterAction: Ext.emptyFn,
+            isValid: function() { return true; },
+            timeout: Ext.form.Basic.prototype.timeout,
             api: {
-                load: config.stringMethods ? 'TestDirect.load' : loadFn,
-                submit: config.stringMethods ? 'TestDirect.submit' : submitFn
+                load: 'spec.TestDirect.load',
+                submit: 'spec.TestDirect.submit'
             }
         });
+        
         action = new Ext.form.action.DirectLoad(config);
+        
         return action;
     }
 
     function createActionWithCallbackArgs(config, result, trans) {
         createAction(config);
-        var load = action.form.api.load;
-        spyOn(action.form.api, 'load').andCallFake(function() {
-            var cb = arguments[arguments.length - 2],
-                scope = arguments[arguments.length - 1];
+        
+        loadSpy.andCallFake(function() {
+            var cb = arguments[1],
+                scope = arguments[2];
             cb.call(scope, result, trans);
         });
-        action.form.api.load.directCfg = load.directCfg;
     }
 
+    beforeEach(function() {
+        makeApi({
+            actions: {
+                TestDirect: [{
+                    name: 'load',
+                    len: 1
+                }, {
+                    name: 'load2',
+                    len: 2
+                }, {
+                    name: 'submit',
+                    formHandler: true
+                }]
+            }
+        });
+        
+        loadSpy = makeSpy('load');
+        loadSpy2 = makeSpy('load2');
+        submitSpy = makeSpy('submit');
+    });
+    
     afterEach(function() {
+        if (provider) {
+            Ext.direct.Manager.removeProvider(provider);
+            provider.destroy();
+        }
+        
         Ext.direct.Manager.clearAllMethods();
         
-        try {
-            delete window.TestDirect;
-        } catch(e) {
-            window.TestDirect = undefined;
+        if (action) {
+            action.destroy();
         }
         
-        if (action) {
-            Ext.destroy(action);
-        }
+        loadSpy = loadSpy2 = submitSpy = action = provider = window.spec = null;
     });
 
     it("should be registered in the action manager under the alias 'formaction.directload'", function() {
@@ -85,108 +102,141 @@ describe("Ext.form.action.DirectLoad", function() {
 
     describe("run", function() {
         it("should not resolve 'load' method before first invocation", function() {
-            createAction({ stringMethods: true });
+            createAction();
             
-            expect(action.form.api.load).toBe('TestDirect.load');
+            expect(action.form.api.load).toBe('spec.TestDirect.load');
         });
         
         it("should resolve 'load' method on first invocation", function() {
-            createAction({ stringMethods: true });
+            createAction();
             action.run();
             
             expect(Ext.isFunction(action.form.api.load)).toBeTruthy();
         });
         
+        it("should resolve prefixed 'load' method", function() {
+            createAction({
+                form: {
+                    api: {
+                        prefix: 'spec.TestDirect',
+                        load: 'load',
+                        submit: 'submit'
+                    }
+                }
+            });
+            
+            action.run();
+            
+            expect(loadSpy).toHaveBeenCalled();
+        });
+        
         it("should raise an error if it cannot resolve 'load' method", function() {
-            createAction({ stringMethods: true });
-            TestDirect = null;
+            createAction();
+            window.spec = null;
             
-            var ex = 'Cannot resolve Ext Direct API method TestDirect.load';
+            var ex = "Cannot resolve Direct API method 'spec.TestDirect.load' for " +
+                     "load action in Ext.form.action.DirectLoad instance with id: unknown";
             
-            expect(function() { action.run(); }).toThrow(ex);
+            expect(function() {
+                action.run();
+            }).toThrow(ex);
         });
         
         it("should invoke the 'load' function in the BasicForm's 'api' config", function() {
             createAction();
-            var load = action.form.api.load;
-            spyOn(action.form.api, 'load');
-            action.form.api.load.directCfg = load.directCfg;
             action.run();
             expect(action.form.api.load).toHaveBeenCalled();
         });
 
         it("should pass the params as a single object argument if 'paramsAsHash' is true", function() {
-            createAction({form: {paramsAsHash: true}, params: {foo: 'bar'}}, {
-                len: 1
+            createAction({
+                form: {
+                    paramsAsHash: true
+                },
+                params: {
+                    foo: 'bar'
+                }
             });
-            var load = action.form.api.load;
-            spyOn(action.form.api, 'load');
-            action.form.api.load.directCfg = load.directCfg;
+            
             action.run();
             expect(action.form.api.load.mostRecentCall.args[0]).toEqual({foo: 'bar'});
         });
 
         it("should pass the param values as separate arguments in the 'paramOrder' order if specified", function() {
-            createAction({form: {paramOrder: ['one', 'two']}, params: {one: 'foo', two: 'bar'}}, {
-                len: 2
+            createAction({
+                form: {
+                    api: {
+                        load: 'spec.TestDirect.load2'
+                    },
+                    paramOrder: ['one', 'two']
+                },
+                params: {
+                    one: 'foo',
+                    two: 'bar'
+                }
             });
-            var load = action.form.api.load;
-            spyOn(action.form.api, 'load');
-            action.form.api.load.directCfg = load.directCfg;
+            
             action.run();
+            
             var args = action.form.api.load.mostRecentCall.args;
             expect(args[0]).toEqual('foo');
             expect(args[1]).toEqual('bar');
         });
 
         it("should grab params from the action's 'params' config and the BasicForm's 'baseParams' config", function() {
-            createAction({form: {paramsAsHash: true, baseParams: {baseOne: '1', baseTwo: '2'}}, params: {one: '1', two: '2'}}, {
-                len: 1
+            createAction({
+                form: {
+                    paramsAsHash: true,
+                    baseParams: {
+                        baseOne: '1',
+                        baseTwo: '2'
+                    }
+                },
+                params: {
+                    one: '1',
+                    two: '2'
+                }
             });
-            var load = action.form.api.load;
-            spyOn(action.form.api, 'load');
-            action.form.api.load.directCfg = load.directCfg;
+            
             action.run();
-            expect(action.form.api.load.mostRecentCall.args[0]).toEqual({baseOne: '1', baseTwo: '2', one: '1', two: '2'});
+            
+            expect(action.form.api.load.mostRecentCall.args[0]).toEqual({
+                baseOne: '1',
+                baseTwo: '2',
+                one: '1',
+                two: '2'
+            });
         });
 
         it("should pass the onSuccess callback function and the callback scope as the final 2 arguments", function() {
-            createAction({form: {paramsAsHash: true}, params: {foo: 'bar'}}, {
-                len: 1
+            createAction({
+                form: {
+                    paramsAsHash: true
+                },
+                params: {
+                    foo: 'bar'
+                }
             });
-            var load = action.form.api.load;
-            spyOn(action.form.api, 'load');
-            action.form.api.load.directCfg = load.directCfg;
+            
             action.run();
+            
             var args = action.form.api.load.mostRecentCall.args;
-            expect(typeof args[args.length - 2]).toEqual('function');
-            expect(args[args.length - 1]).toBe(action);
+            expect(typeof args[args.length - 3]).toEqual('function');
+            expect(args[args.length - 2]).toBe(action);
         });
         
         describe("metadata", function() {
-            var loadSpy;
-            
             beforeEach(function() {
-                createAction(
-                    // action
-                    {
-                        form: {
-                            metadata: { foo: 42, bar: false }
-                        }
-                    },
-                    // load fn direct config
-                    {
-                        metadata: {
-                            params: ['foo', 'bar']
-                        }
+                // Grr, this is a kludge :(
+                loadSpy.directCfg.metadata = {
+                    params: ['foo', 'bar']
+                };
+                
+                createAction({
+                    form: {
+                        metadata: { foo: 42, bar: false }
                     }
-                );
-                
-                // TODO Replace this cruft with makeSpy a la Direct proxy tests
-                var load = action.form.api.load;
-                
-                loadSpy = spyOn(action.form.api, 'load');
-                loadSpy.directCfg = load.directCfg;
+                });
             });
             
             it("should override form metadata with options values", function() {
@@ -195,21 +245,22 @@ describe("Ext.form.action.DirectLoad", function() {
                 
                 action.run();
                 
-                expect(loadSpy.mostRecentCall.args[2]).toEqual({
-                    metadata: { foo: -1, bar: true }
+                expect(loadSpy.mostRecentCall.args[3]).toEqual({
+                    metadata: { foo: -1, bar: true },
+                    timeout: 30000
                 });
             });
             
             it("should default to form metadata", function() {
                 action.run();
         
-                expect(loadSpy.mostRecentCall.args[2]).toEqual({
-                    metadata: { foo: 42, bar: false }
+                expect(loadSpy.mostRecentCall.args[3]).toEqual({
+                    metadata: { foo: 42, bar: false },
+                    timeout: 30000
                 });
             });
         });
     });
-
 
     describe("load failure", function() {
         // effects
@@ -246,7 +297,6 @@ describe("Ext.form.action.DirectLoad", function() {
         });
     });
 
-
     describe("load success", function() {
         beforeEach(function() {
             createActionWithCallbackArgs({}, {success: true, data: {foo: 'bar'}}, {});
@@ -270,5 +320,4 @@ describe("Ext.form.action.DirectLoad", function() {
             expect(action.form.afterAction).toHaveBeenCalledWith(action, true);
         });
     });
-
 });

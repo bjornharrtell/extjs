@@ -1,12 +1,16 @@
-.under25 {
-    color: red;
+.under4 {
+    color: #c83c3c;
 }
-.under30 {
-    color: blue;
+.under5 {
+    color: #ffa532;
 }
-.under35 {
-    font-style: italic !important;
+.under6 {
+    color: #1e3285;
 }
-.over35 {
-    font-weight: bold !important;
+.over6 {
+    color: #2d802d;
+}
+
+.big-data-ratings-cell .x-grid-cell-inner {
+    font-weight: bold;
 }

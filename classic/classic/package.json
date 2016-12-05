@@ -19,7 +19,7 @@
     "summary": "The Classic UI Toolkit",
     "detailedDescription": "UI components for desktops and legacy browsers",
 
-    "version": "6.0.1.250",
+    "version": "6.2.0.981",
     "compatVersion": "6.0.0",
     "format": "1",
 
@@ -41,5 +41,9 @@
 
     "classpath": "${package.dir}/src",
 
-    "overrides": "${package.dir}/overrides"
+    "overrides": "${package.dir}/overrides",
+
+    "buildOptions": {
+        "classic": true
+    }
 }

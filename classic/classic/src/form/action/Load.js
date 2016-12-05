@@ -34,7 +34,7 @@
  *             name: 'portOfDischarge'
  *         }]
  *     });
- *     myFormPanel.{@link Ext.form.Panel#getForm getForm}().{@link Ext.form.Basic#load load}({
+ *     myFormPanel.getForm().load({
  *         url: '/getRoutingInfo.php',
  *         params: {
  *             consignmentRef: myConsignmentRef

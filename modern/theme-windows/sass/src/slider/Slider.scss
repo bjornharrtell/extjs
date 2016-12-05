@@ -14,7 +14,7 @@
     overflow: hidden;
 }
 
-.x-slider.x-item-disabled {
+.x-slider.x-disabled {
     &:before {
         background-color: $form-slider-disabled-background-color;
     }

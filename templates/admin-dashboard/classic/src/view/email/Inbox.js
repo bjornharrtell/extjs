@@ -25,6 +25,7 @@ Ext.define('Admin.view.email.Inbox', {
 
     headerBorders: false,
     rowLines: false,
+    scrollable: false,
 
     columns: [
         {

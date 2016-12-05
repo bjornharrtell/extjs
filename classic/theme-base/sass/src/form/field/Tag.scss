@@ -24,17 +24,12 @@
     position: relative;
 }
 
-.#{$prefix}tagfield-empty-input,
 .#{$prefix}tagfield-input-field {
     font: inherit;
     border: 0;
     margin: 0;
     background: none;
     width: 100%;
-}
-
-.#{$prefix}tagfield-emptyinput {
-    display: none;
 }
 
 .#{$prefix}tagfield-stacked .#{$prefix}tagfield-item {
@@ -48,4 +43,14 @@
 .#{$prefix}tagfield-item-close {
     cursor: pointer;
     position: absolute;
+}
+
+.#{$prefix}tagfield-arialist {
+    list-style-type: none;
+    position: absolute;
+    clip: rect(0, 0, 0, 0);
+}
+
+.#{$prefix}tagfield-arialist-item {
+    list-style-type: none;
 }

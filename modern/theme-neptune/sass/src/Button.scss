@@ -2,6 +2,9 @@
     $background-color: $button-background-color,
     $pressed-background-color: $button-pressed-background-color,
 
+    $shadow: $button-shadow,
+    $pressed-shadow: $button-pressed-shadow,
+
     $background-gradient: $button-background-gradient,
     $pressed-background-gradient: $button-pressed-background-gradient,
 
@@ -30,6 +33,7 @@
 
     $icon-color: $button-icon-color,
     $pressed-icon-color: $button-pressed-icon-color,
+    $disabled-icon-color: $button-disabled-icon-color,
     $icon-size: $button-icon-size,
     $icon-size-big: $button-icon-size-big,
     $icon-font-size: $button-icon-font-size,
@@ -39,6 +43,7 @@
     $icon-vertical-spacing: $button-icon-vertical-spacing,
     $icon-vertical-spacing-big: $button-icon-vertical-spacing-big,
 
+    $disabled-color: $button-disabled-color,
     $disabled-opacity: $button-disabled-opacity,
 
     $badge-background-color: $button-badge-background-color,
@@ -63,6 +68,10 @@
     @include button-action-ui;
 }
 
+@if $button-alt-ui {
+    @include button-alt-ui;
+}
+
 @if $button-confirm-ui {
     @include button-confirm-ui;
 }
@@ -75,74 +84,14 @@
     @include button-round-ui;
 }
 
-// TODO: refactor toolbar, plain, and segmented
-// Toolbar button styling
-//.x-toolbar .x-button {
-//    margin: 6px .2em;
-//    padding: 0 .6em;
-//
-//    .x-button-label {
-//        font-size: .7em;
-//    }
-//
-//    .x-button-label, .x-hasbadge .x-badge {
-//        line-height: 1.6em;
-//    }
-//
-//    .x-button-icon {
-//        &:before {
-//            font-size: 1.3em;
-//            line-height: 1.3em;
-//        }
-//    }
-//}
-
-// Plain buttons automatically use a margin trick to have a
-// wide gradial glow for pressed state.
-.x-button.x-button-plain,
-.x-toolbar .x-button.x-button-plain {
-    background: none;
-    border: 0 none;
-    min-height: 0;
-    text-shadow: none;
-    line-height: auto;
-    height: 1.9em;
-    padding: 0 0.5em;
-
-    @if $include-border-radius {
-        @include border-radius(none);
-    }
-
-    & > * {
-        overflow: visible;
-    }
-
-    &.x-button-pressing, &.x-button-pressed {
-        background: none;
-
-        $mask-radial-glow: lighten($active-color, 50%);
-        @include background-image(radial-gradient(fade-out($mask-radial-glow, .3), fade-out($mask-radial-glow, 1) 24px));
-    }
+@if $button-flat-ui {
+    @include button-flat-ui;
 }
 
+@if $button-flat-ui {
+    @include button-plain-ui;
+}
 
-// SegmentedButtons
-.x-segmentedbutton .x-button {
-    margin: 0;
-
-    @if $include-border-radius {
-        @include border-radius(0);
-
-        &.x-first {
-            @include border-left-radius($button-border-radius);
-        }
-
-        &.x-last {
-            @include border-right-radius($button-border-radius);
-        }
-    }
-
-    &:not(.x-first) {
-        border-left: 0;
-    }
+@if $button-segmented-ui {
+    @include button-segmented-ui;
 }

@@ -1,5 +1,6 @@
 Ext.define('KitchenSink.store.Restaurants', {
     extend: 'Ext.data.Store',
+    alias: 'store.restaurants',
     storeId: 'restaurants',
     model: 'KitchenSink.model.Restaurant',
     groupField: 'cuisine',

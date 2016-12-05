@@ -1,3 +1,5 @@
+/* global expect, Ext, jasmine */
+
 describe("Ext.util.Collection", function() {
     var collection, fakeScope = {};
 
@@ -31,6 +33,115 @@ describe("Ext.util.Collection", function() {
             }
         });
     }
+
+    describe('Moving items in a filtered Collection with sorters, but autoSort: false', function() {
+        var item1, item2, item3, item4, item5, collection;
+
+        beforeEach(function() {
+            collection = new Ext.util.Collection();
+            item1 = {id: 1};
+            item2 = {id: 2};
+            item3 = {id: 3};
+            item4 = {id: 4};
+            item5 = {id: 5};
+
+            collection.add([item4, item3, item2, item1]);
+        });
+        afterEach(function() {
+            collection.destroy();
+        });
+
+        it('should honour the new insertion point', function() {
+            collection.sort({property: 'id'});
+
+            expect(collection.getAt(0)).toBe(item1);
+            expect(collection.getAt(1)).toBe(item2);
+            expect(collection.getAt(2)).toBe(item3);
+            expect(collection.getAt(3)).toBe(item4);
+
+            // A filter which filters in all items
+            collection.filterBy(function() {
+                return true;
+            });
+
+            // Because of autoSort, this should sort back to sorted order
+            collection.insert(0, item4);
+            
+            expect(collection.getAt(0)).toBe(item1);
+            expect(collection.getAt(1)).toBe(item2);
+            expect(collection.getAt(2)).toBe(item3);
+            expect(collection.getAt(3)).toBe(item4);
+
+            // From now on, we should NOT always be in sorted order
+            collection.setAutoSort(false);
+
+            // Should not sort, item 4 should be first
+            collection.insert(0, item4);
+
+            expect(collection.getAt(0)).toBe(item4);
+            expect(collection.getAt(1)).toBe(item1);
+            expect(collection.getAt(2)).toBe(item2);
+            expect(collection.getAt(3)).toBe(item3);
+
+        });
+
+        it('should honour the new insertion point if we have a source collection', function() {
+            var downstreamCollection = new Ext.util.Collection({
+                source: collection
+            });
+            downstreamCollection.sort({property: 'id'});
+
+            expect(downstreamCollection.getAt(0)).toBe(item1);
+            expect(downstreamCollection.getAt(1)).toBe(item2);
+            expect(downstreamCollection.getAt(2)).toBe(item3);
+            expect(downstreamCollection.getAt(3)).toBe(item4);
+
+            // A filter which filters in all items
+            downstreamCollection.filterBy(function() {
+                return true;
+            });
+
+            // Because of autoSort, this should sort back to sorted order
+            collection.insert(0, item4);
+            
+            expect(downstreamCollection.getAt(0)).toBe(item1);
+            expect(downstreamCollection.getAt(1)).toBe(item2);
+            expect(downstreamCollection.getAt(2)).toBe(item3);
+            expect(downstreamCollection.getAt(3)).toBe(item4);
+
+            // From now on, we should NOT always be in sorted order
+            downstreamCollection.setAutoSort(false);
+
+            // Will still be sorted in the downstream Collection.
+            // autoSort only applies to immediate mutations
+            collection.add(item1);
+
+            expect(downstreamCollection.getAt(0)).toBe(item1);
+            expect(downstreamCollection.getAt(1)).toBe(item2);
+            expect(downstreamCollection.getAt(2)).toBe(item3);
+            expect(downstreamCollection.getAt(3)).toBe(item4);
+
+            // The refresh of upstream should still cause a sort.
+            collection.filterBy(function() {
+                return true;
+            });
+
+            expect(downstreamCollection.getAt(0)).toBe(item1);
+            expect(downstreamCollection.getAt(1)).toBe(item2);
+            expect(downstreamCollection.getAt(2)).toBe(item3);
+            expect(downstreamCollection.getAt(3)).toBe(item4);
+
+            // Inserted into a specific position in upstream Collection.
+            // Should just get appended into our collection
+            collection.insert(0, item5);
+
+            expect(downstreamCollection.getAt(0)).toBe(item5);
+            expect(downstreamCollection.getAt(1)).toBe(item1);
+            expect(downstreamCollection.getAt(2)).toBe(item2);
+            expect(downstreamCollection.getAt(3)).toBe(item3);
+            expect(downstreamCollection.getAt(4)).toBe(item4);
+        });
+    });
 
     describe("constructor", function() {
         it("should provide a default getKey implementation", function() {
@@ -70,7 +181,7 @@ describe("Ext.util.Collection", function() {
                 source: source
             });
             expect(collection.getCount()).toBe(3);
-        })
+        });
     });
 
     describe("iterators", function() {
@@ -151,6 +262,16 @@ describe("Ext.util.Collection", function() {
             item1 = item2 = item3 = item4 = null;
         });
 
+        it('should move an item down by one index successfully', function() {
+            collection.add([item1, item2, item3, item4]);
+            
+            collection.insert(1, item1);
+            expect(collection.getAt(0)).toBe(item2);
+            expect(collection.getAt(1)).toBe(item1);
+            expect(collection.getAt(2)).toBe(item3);
+            expect(collection.getAt(3)).toBe(item4);
+        });
+
         it("should get the correct count when adding an array", function() {
             collection.add([item1, item2]);
 
@@ -218,9 +339,7 @@ describe("Ext.util.Collection", function() {
             var spy, expectPos;
 
             beforeEach(function() {
-                collection.getSorters().add('id');
                 spy = jasmine.createSpy();
-                collection.on('sort', spy);
             });
 
             afterEach(function() {
@@ -230,6 +349,10 @@ describe("Ext.util.Collection", function() {
 
             describe("a single item", function() {
                 describe("with no items", function() {
+                    beforeEach(function() {
+                        collection.getSorters().add('id');
+                        collection.on('sort', spy);
+                    });
                     it("should add the item", function() {
                         expectPos = function() {
                             expect(collection.length).toBe(1);
@@ -241,25 +364,97 @@ describe("Ext.util.Collection", function() {
                         expectPos();
                     });
 
-                    describe("with items", function() {
-                        it("should put the item in the correct position", function() {
-                            collection.add(item1, item3);
-                            expectPos = function() {
-                                expect(collection.length).toBe(3);
-                                expect(collection.getAt(1)).toBe(item2);
-                                expect(collection.indexOfKey(1)).toBe(0);
-                                expect(collection.indexOfKey(2)).toBe(1);
-                                expect(collection.indexOfKey(3)).toBe(2);
-                            };
-                            collection.on('add', expectPos);
-                            collection.add(item2);
-                            expectPos();
+                    it("should be able to insert at index 0", function() {
+                        collection.insert(0, item1);
+                        expect(collection.getAt(0)).toBe(item1);
+                    });
+
+                    it("should truncate the position if it goes past range", function() {
+                        collection.insert(10, item1);
+                        expect(collection.getAt(0)).toBe(item1);
+                        expect(collection.length).toBe(1);
+                    });
+                });
+
+                describe("with items", function() {
+                    var items = (function() {
+                            var records = [];
+                        for (var i = 0; i < 30; i++) {
+                            records.push({
+                                id: i,
+                                order: i < 10 ? 'mac' : i < 20 ? 'and' : 'cheese'
+                            });
+                        }
+
+                        return records;
+
+                    })(), item1 = {id: 30, order: 'mac'}, item2 = {id: 31, order: 'and'}, item3 = {id: 32, order: 'cheese'};
+                    
+                    beforeEach(function() {
+                        collection.getSorters().add('order');
+                        collection.add(items);
+                        collection.on('sort', spy);
+                    });
+
+                    it("should put the item in the correct position", function() {
+                        collection.add(item1, item2);
+                        expectPos = function() {
+                            expect(collection.length).toBe(33);
+                            expect(collection.getAt(32)).toBe(item1);
+                            expect(collection.getAt(10)).toBe(item2);
+                            expect(collection.indexOfKey(30)).toBe(32);
+                            expect(collection.indexOfKey(31)).toBe(10);
+                            expect(collection.indexOfKey(32)).toBe(21);
+                        };
+                        collection.on('add', expectPos);
+                        collection.add(item3);
+                        expectPos();
+                    });
+
+                    describe("inserting at index", function() {
+                        it("should be able to insert as the first item", function() {
+                            collection.insert(0, item2);
+                            expect(collection.getAt(0)).toBe(item2);
+                        });
+
+                        it("should be able to insert as the last item", function() {
+                            collection.insert(30, item1);
+                            expect(collection.getAt(30)).toBe(item1);
+                        });
+
+                        it("should be able to insert directly after the first item", function() {
+                            collection.insert(1, item2);
+                            expect(collection.getAt(1)).toBe(item2);
+                        });
+
+                        it("should be able to insert directly before the last item", function() {
+                            collection.insert(29, item1);
+                            expect(collection.getAt(29)).toBe(item1);
+                            expect(collection.length).toBe(31);
+                        });
+
+                        it("should be able to insert in the middle of the collection", function() {
+                            collection.insert(14, item3);
+                            expect(collection.getAt(14)).toBe(item3);
+                        });
+
+                        it("should insert at last index of the appropriate sorting if index is out of range", function() {
+                            collection.insert(0, item1);
+                            collection.insert(14, item2);
+                            collection.insert(25, item3);
+                            expect(collection.getAt(10)).toBe(item2);
+                            expect(collection.getAt(21)).toBe(item3);
+                            expect(collection.getAt(32)).toBe(item1);
                         });
                     });
-                })
+                });
             });
 
             describe("multiple items", function() {
+                beforeEach(function() {
+                    collection.getSorters().add('id');
+                    collection.on('sort', spy);
+                });
                 describe("with no items", function() {
                     it("should insert the items", function() {
                         expectPos = function() {
@@ -283,7 +478,7 @@ describe("Ext.util.Collection", function() {
                             expect(collection.getAt(1)).toBe(item2);
                             expect(collection.getAt(2)).toBe(item3);
                         };
-                        collection.on('add', expectPos)
+                        collection.on('add', expectPos);
                         collection.add([item3, item1, item2]);
                         expectPos();
                     });
@@ -705,7 +900,7 @@ describe("Ext.util.Collection", function() {
                 item8,  // 7    -2
                 item9   // 8    -1
             ]);
-        };
+        }
 
         var generation;
 
@@ -873,7 +1068,7 @@ describe("Ext.util.Collection", function() {
                     });
 
                     describe("with the child filtered", function() {
-                        it("hould have the correct position when inserting at the start", function() {
+                        it("should have the correct position when inserting at the start", function() {
                             child.getFilters().add(function(item) {
                                 return item.name === 'third' || item.name === 'seventh' || item.name === 'Foo';
                             });
@@ -2102,6 +2297,61 @@ describe("Ext.util.Collection", function() {
                     expect(collection.indexOf(new1)).toBe(11);
                     expect(collection.indexOf(new2)).toBe(9);
                 });
+
+                describe("inserting at index", function() {
+                    var new1, new2, new3, groupRef = function(name) {
+                        return collection.getGroups().getByKey(name);
+                    };
+                    beforeEach(function() {
+                        new1 = { id: 'new1', group: 'A' }; 
+                        new2 = { id: 'new2', group: 'B' };
+                        new3 = { id: 'new3', group: 'D' };
+                        groupBy();
+                    });
+
+                    it("should be able to insert as the first item", function() {
+                        collection.insert(0, new1);
+                        expect(collection.getAt(0)).toBe(new1);
+                        expect(groupRef('A').first()).toBe(new1);
+                    });
+
+                    it("should be able to insert as the last item", function() {
+                        collection.insert(10, new3);
+                        expect(collection.getAt(10)).toBe(new3);
+                        expect(groupRef('D').last()).toBe(new3);
+                    });
+
+                    it("should be able to insert directly after the first item", function() {
+                        collection.insert(1, new1);
+                        expect(collection.getAt(1)).toBe(new1);
+                        expect(groupRef('A').getAt(1)).toBe(new1);
+                    });
+
+                    it("should be able to insert directly before the last item", function() {
+                        collection.insert(9, new3);
+                        expect(collection.getAt(9)).toBe(new3);
+                        expect(collection.length).toBe(11);
+                        expect(groupRef('D').first()).toBe(new3);
+                    });
+
+                    it("should be able to insert in the middle of the collection", function() {
+                        collection.insert(4, new2);
+                        expect(collection.getAt(4)).toBe(new2);
+                        expect(groupRef('B').getAt(1)).toBe(new2);
+                    });
+
+                    it("should insert at last index of the appropriate sorting if index is out of range", function() {
+                        collection.insert(4, new1);
+                        collection.insert(9, new2);
+                        collection.insert(0, new3);
+                        expect(collection.getAt(3)).toBe(new1);
+                        expect(collection.getAt(7)).toBe(new2);
+                        expect(collection.getAt(12)).toBe(new3);
+                        expect(groupRef('A').last()).toBe(new1);
+                        expect(groupRef('B').last()).toBe(new2);
+                        expect(groupRef('D').last()).toBe(new3);
+                    });
+                });
             });
             
             describe("removing", function() {
@@ -2150,6 +2400,17 @@ describe("Ext.util.Collection", function() {
                     item2.id = 100;
                     collection.updateKey(item2, 2);
                     expect(collection.getGroups().get('B').indexOf(item2)).toBe(0);
+                });
+
+                it("should not re-add the item to the group when the id changes", function() {
+                    groupBy();
+                    var group = collection.getGroups().get('A');
+                    expect(group.getCount()).toBe(3);
+                    expect(group.indexOf(item1)).toBe(1);
+                    item1.id = 1000;
+                    collection.updateKey(item1, 1);
+                    expect(group.getCount()).toBe(3);
+                    expect(group.indexOf(item1)).toBe(1);
                 });
 
                 it("should not exist in the group during a remove if the record is changing position", function() {
@@ -2615,6 +2876,50 @@ describe("Ext.util.Collection", function() {
                     collection.aggregateByGroup('age', fn, fakeScope);
                     expect(scope).toBe(fakeScope);
                 });
+            });
+        });
+
+        describe("cleanup", function() {
+            it("should not destroy the sorters collection when removing a group", function() {
+                var sorters = collection.getSorters();
+                sorters.add({
+                    property: 'sortKey'
+                });
+                groupBy();
+                collection.remove(item9);
+                expect(sorters.destroyed).toBe(false);
+            });
+
+            it("should not destroy the sorters collection when clearing grouping", function() {
+                var sorters = collection.getSorters();
+                sorters.add({
+                    property: 'sortKey'
+                });
+                groupBy();
+                clearGroup();
+                expect(sorters.destroyed).toBe(false);
+            });
+
+            it("should clear endupdate listeners on the sorters as groups are removed", function() {
+                var sorters = collection.getSorters();
+                sorters.add({
+                    property: 'sortKey'
+                });
+                groupBy();
+                var count = sorters.events.endupdate.listeners.length;
+                collection.remove(item9);
+                expect(sorters.events.endupdate.listeners.length).toBe(count - 1);
+            });
+
+            it("should clear endupdate listeners on the sorters when groups are cleared", function() {
+                var sorters = collection.getSorters();
+                sorters.add({
+                    property: 'sortKey'
+                });
+                var count = sorters.events.endupdate.listeners.length;
+                groupBy();
+                clearGroup();
+                expect(sorters.events.endupdate.listeners.length).toBe(count);
             });
         });
     });

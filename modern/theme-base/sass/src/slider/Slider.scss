@@ -2,43 +2,40 @@
  * @class Ext.slider.Slider
  */
 
-.x-slider,
-.x-toggle {
-    position: relative;
-    height: 16px;
-    min-height: 0;
-    min-width: 0;
+.#{$prefix}slider {
+    @include st-box();
+    @include st-box-align(center);
 
-    > * {
-        position: absolute;
+    .#{$prefix}track-el {
         width: 100%;
-        height: 100%;
+        position: relative;
+        @include st-box();
+        @include st-box-align(center);
+    }
+
+    .#{$prefix}thumb-wrap-el {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+    }
+
+    .#{$prefix}fill-el {
+        position: absolute;
+        top: 0;
+        left: 0;
+        // important is needed here to override more specific styles applied by the slider-ui mixin
+        border-right-width: 0 !important;
+
+        &:not(:first-child) {
+            border-left-width: 0 !important;
+        }
     }
 }
 
-.x-thumb {
-    position: absolute;
-    height: 16px;
-    width: 10px;
-    border: 1px solid #ccc;
-    background-color: #ddd;
+.#{$prefix}slider:not(.#{$prefix}toggleslider) .#{$prefix}fill-el {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
 }
 
-// Create the slider track
-.x-slider:before {
-    @include insertion(auto, 8px, 4px, 0);
-    right: 0;
-    margin: 0 5px;
-    background-color: #eee;
-}
-
-.x-toggle {
-    border: 1px solid #ccc;
-    width: 30px;
-    overflow: hidden;
-    @include st-box-flex(0);
-}
-
-.x-toggle-on {
-    background-color: #eee;
-}

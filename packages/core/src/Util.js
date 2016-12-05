@@ -124,18 +124,18 @@ Ext.apply(Ext, {
      * Numbers and numeric strings are coerced to Dates using the value as the millisecond era value.
      *
      * Strings are coerced to Dates by parsing using the {@link Ext.Date#defaultFormat defaultFormat}.
-     * 
+     *
      * For example
      *
      *     Ext.coerce('false', true);
-     *     
+     *
      * returns the boolean value `false` because the second parameter is of type `Boolean`.
-     * 
+     *
      * @param {Mixed} from The value to coerce
      * @param {Mixed} to The value it must be compared against
      * @return The coerced value.
      */
-    coerce: function(from, to) {
+    coerce: function (from, to) {
         var fromType = Ext.typeOf(from),
             toType = Ext.typeOf(to),
             isString = typeof from === 'string';
@@ -147,11 +147,13 @@ Ext.apply(Ext, {
                 case 'number':
                     return Number(from);
                 case 'boolean':
-                    return isString && (!from || from === 'false') ? false : Boolean(from);
+                    // See http://ecma262-5.com/ELS5_HTML.htm#Section_11.9.3 as to why '0'.
+                    // TL;DR => ('0' == 0), so if given string '0', we must return boolean false.
+                    return isString && (!from || from === 'false' || from === '0') ? false : Boolean(from);
                 case 'null':
-                    return isString && (!from || from === 'null') ? null : from;
+                    return isString && (!from || from === 'null') ? null : false;
                 case 'undefined':
-                    return isString && (!from || from === 'undefined') ? undefined : from;
+                    return isString && (!from || from === 'undefined') ? undefined : false;
                 case 'date':
                     return isString && isNaN(from) ? Ext.Date.parse(from, Ext.Date.defaultFormat) : Date(Number(from));
             }
@@ -325,17 +327,19 @@ Ext.apply(Ext, {
      * @return {Function} The subclass constructor from the <tt>overrides</tt> parameter, or a generated one if not provided.
      * @deprecated 4.0.0 Use {@link Ext#define Ext.define} instead
      */
-    extend: (function() {
+    extend: (function () {
         // inline overrides
         var objectConstructor = Object.prototype.constructor,
-            inlineOverrides = function(o) {
-            for (var m in o) {
-                if (!o.hasOwnProperty(m)) {
-                    continue;
+            inlineOverrides = function (o) {
+                var m;
+
+                for (m in o) {
+                    if (!o.hasOwnProperty(m)) {
+                        continue;
+                    }
+                    this[m] = o[m];
                 }
-                this[m] = o[m];
-            }
-        };
+            };
 
         return function(subclass, superclass, overrides) {
             // First we check if the user passed in just the superClass with overrides
@@ -442,7 +446,7 @@ Ext.apply(Ext, {
      *
      * In the above example, "shared" is the name of a Sencha Cmd resource pool and
      * "package" is the name of a Sencha Cmd package.
-     *
+     * @member Ext
      * @param {String} url The URL that may contain a resource pool token at the front.
      * @return {String}
      * @since 6.0.1
@@ -942,3 +946,4 @@ Ext.apply(Ext, {
             return nullLog;
         }())
 });
+

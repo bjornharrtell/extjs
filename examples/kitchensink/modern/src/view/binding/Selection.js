@@ -1,15 +1,15 @@
 Ext.define('KitchenSink.view.binding.Selection', {
     extend: 'Ext.Container',
 
-    //<example>
+    // <example>
     otherContent: [{
         type: 'ViewModel',
         path: 'modern/src/view/binding/SelectionModel.js'
     }, {
-        type: 'ViewModel',
+        type: 'Model',
         path: 'modern/src/model/Person.js'
     }],
-    //</example>
+    // </example>
 
     referenceHolder: true,
 
@@ -19,6 +19,9 @@ Ext.define('KitchenSink.view.binding.Selection', {
         type: 'hbox',
         align: 'stretch'
     },
+
+    shadow: true,
+    cls: 'demo-solid-background',
 
     items: [{
         xtype: 'list',

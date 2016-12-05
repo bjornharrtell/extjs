@@ -10,19 +10,14 @@ Ext.define('Ext.layout.Float', {
         direction: 'left'
     },
 
-    layoutClass: 'layout-float',
+    cls: Ext.baseCSSPrefix + 'layout-float',
 
-    itemClass: 'layout-float-item',
+    itemCls: Ext.baseCSSPrefix + 'layout-float-item',
 
     setContainer: function(container) {
         this.callParent(arguments);
 
         container.innerElement.addCls(this.layoutClass);
-    },
-
-    onItemInnerStateChange: function(item, isInner) {
-        this.callParent(arguments);
-        item.toggleCls(this.itemClass, isInner);
     },
 
     updateDirection: function(direction, oldDirection) {

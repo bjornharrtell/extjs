@@ -11,6 +11,19 @@ Ext.define('KitchenSink.view.TouchEvents', {
         'KitchenSink.view.touchevent.Pad'
     ],
 
+    // <example>
+    otherContent: [{
+        type: 'Info',
+        path: 'modern/src/view/touchevent/Info.js'
+    }, {
+        type: 'Logger',
+        path: 'modern/src/view/touchevent/Logger.js'
+    }, {
+        type: 'Pad',
+        path: 'modern/src/view/touchevent/Pad.js'
+    }],
+    // </example>
+
     initialize: function() {
         this.callParent(arguments);
 

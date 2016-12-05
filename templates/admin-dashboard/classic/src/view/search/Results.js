@@ -66,6 +66,7 @@ Ext.define('Admin.view.search.Results', {
             title: 'User Results',
             routeId: 'user',
             bind: '{usersResults}',
+            scrollable: false,
             columns: [
                 {
                     xtype: 'gridcolumn',
@@ -152,6 +153,7 @@ Ext.define('Admin.view.search.Results', {
             title: 'Messages',
             routeId: 'messages',
             bind: '{inboxResults}',
+            scrollable: false,
             columns: [
                 {
                     xtype: 'gridcolumn',

@@ -11,11 +11,16 @@ Ext.define('Ext.draw.sprite.Instancing', {
     isInstancing: true,
 
     config: {
-        
         /**
-         * @cfg {Object} [template=null] The sprite template used by all instances.
+         * @cfg {Object} [template] The sprite template used by all instances.
          */
-        template: null
+        template: null,
+
+        /**
+         * @cfg {Array} [instances]
+         * The instances of the {@link #template} sprite as configs of attributes.
+         */
+        instances: null
     },
 
     instances: null,
@@ -38,6 +43,10 @@ Ext.define('Ext.draw.sprite.Instancing', {
             }
             template = Ext.create(template.xclass || 'sprite.' + template.type, template);
         }
+        var surface = template.getSurface();
+        if (surface) {
+            surface.remove(template);
+        }
         template.setParent(this);
         return template;
     },
@@ -55,10 +64,20 @@ Ext.define('Ext.draw.sprite.Instancing', {
         this.clearAll();
     },
 
+    updateInstances: function (instances) {
+        this.clearAll();
+
+        if (Ext.isArray(instances)) {
+            for (var i = 0, ln = instances.length; i < ln; i++) {
+                this.add(instances[i]);
+            }
+        }
+    },
+
     updateSurface: function (surface) {
         var template = this.getTemplate();
 
-        if (template) {
+        if (template && !template.destroyed) {
             template.setSurface(surface);
         }
     },
@@ -79,14 +98,22 @@ Ext.define('Ext.draw.sprite.Instancing', {
     },
 
     /**
+     * @deprecated 6.2.0
+     * Deprecated, use the {@link #add} method instead.
+     */
+    createInstance: function (config, bypassNormalization, avoidCopy) {
+        return this.add(config, bypassNormalization, avoidCopy);
+    },
+
+    /**
      * Creates a new sprite instance.
-     * 
+     *
      * @param {Object} config The configuration of the instance.
      * @param {Boolean} [bypassNormalization] 'true' to bypass attribute normalization.
      * @param {Boolean} [avoidCopy] 'true' to avoid copying the `config` object.
      * @return {Object} The attributes of the instance.
      */
-    createInstance: function (config, bypassNormalization, avoidCopy) {
+    add: function (config, bypassNormalization, avoidCopy) {
         var template = this.getTemplate(),
             originalAttr = template.attr,
             attr = Ext.Object.chain(originalAttr);
@@ -164,7 +191,7 @@ Ext.define('Ext.draw.sprite.Instancing', {
         return result;
     },
 
-    render: function (surface, ctx, clipRect, rect) {
+    render: function (surface, ctx, rect) {
         //<debug>
         if (!this.getTemplate()) {
             Ext.raise('An instancing sprite must have a template.');
@@ -172,29 +199,28 @@ Ext.define('Ext.draw.sprite.Instancing', {
         //</debug>
         var me = this,
             template = me.getTemplate(),
+            surfaceRect = surface.getRect(),
             mat = me.attr.matrix,
             originalAttr = template.attr,
             instances = me.instances,
-            i, ln = me.position;
+            ln = me.position,
+            i;
 
         mat.toContext(ctx);
-        template.preRender(surface, ctx, clipRect, rect);
-        template.useAttributes(ctx, rect);
-        for (i = 0; i < ln; i++) {
-            if (instances[i].dirtyZIndex) {
-                break;
-            }
-        }
+        template.preRender(surface, ctx, rect);
+        template.useAttributes(ctx, surfaceRect);
+
         for (i = 0; i < ln; i++) {
             if (instances[i].hidden) {
                 continue;
             }
             ctx.save();
             template.attr = instances[i];
-            template.useAttributes(ctx, rect);
-            template.render(surface, ctx, clipRect, rect);
+            template.useAttributes(ctx, surfaceRect);
+            template.render(surface, ctx, rect);
             ctx.restore();
         }
+
         template.attr = originalAttr;
     },
 

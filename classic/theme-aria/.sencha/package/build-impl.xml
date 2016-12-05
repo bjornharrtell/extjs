@@ -77,8 +77,7 @@ this file in most cases.
                      -before-init-defaults,
                      -init-defaults,
                      -after-init-defaults,
-                     -init-compiler,
-                     -init-web-server"/>
+                     -init-compiler"/>
 
     <!--
     ===============================================================
@@ -308,6 +307,34 @@ this file in most cases.
             <target name="-pkg"/>
             <target name="-after-pkg"/>
         </x-ant-call>
+    </target>
+
+    <!--
+    ===============================================================
+    Build Dependencies
+    uses the compiler to build metadata files for all detected
+    file-to-file dependencies
+    ===============================================================
+    -->
+    <target name="build-dependencies" depends="init,-init-compile-js">
+        <x-compile refid="${compiler.ref.id}">
+            <![CDATA[
+            include
+                -all
+            and
+            meta
+                -infoType=Dependencies
+                -basePath=${build.dir}
+                -tpl={0}
+                -out=${build.dir}/dependencies.json
+            and
+            meta
+                -infoType=AppManifest
+                -basePath=${build.dir}
+                -tpl={0}
+                -out=${build.dir}/bootsequence.json
+            ]]>
+        </x-compile>
     </target>
 
     <!--

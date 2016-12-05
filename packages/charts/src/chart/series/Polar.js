@@ -87,7 +87,7 @@ Ext.define('Ext.chart.series.Polar', {
 
     constructor: function (config) {
         var me = this,
-            configurator = me.getConfigurator(),
+            configurator = me.self.getConfigurator(),
             configs = configurator.configs,
             p;
 

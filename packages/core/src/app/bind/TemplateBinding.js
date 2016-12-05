@@ -31,7 +31,7 @@ Ext.define('Ext.app.bind.TemplateBinding', {
         tokens.$literal = true;
 
         // If we don't have any tokens, then we've just got a static string.
-        if (tokens.length) {
+        if (!tpl.isStatic()) {
             me.multiBinding = new Ext.app.bind.Multi(tokens, owner, me.onBindData, me);
         } else {
             me.isStatic = true;

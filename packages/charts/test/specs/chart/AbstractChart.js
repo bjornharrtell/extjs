@@ -25,6 +25,8 @@ describe('Ext.chart.AbstractChart', function() {
 
     afterEach(function() {
         store = chart = Ext.destroy(chart, store);
+        // cleanup gradients
+        Ext.draw.gradient.GradientDefinition.gradients = {};
     });
 
     it('is defined', function() {
@@ -457,4 +459,80 @@ describe('Ext.chart.AbstractChart', function() {
         });
     });
 
+    describe("update gradients", function () {
+        beforeEach(function () {
+            makeStore(3);
+            chart = new Ext.chart.CartesianChart({
+                store: store,
+                axes: [{
+                    type: 'numeric',
+                    position: 'left'
+                }, {
+                    type: 'category',
+                    position: 'bottom'
+                }],
+                series: {
+                    type: 'bar',
+                    xField: 'label',
+                    yField: 'value',
+                    style: {
+                        fillStyle: 'url(#foo)'
+                    }
+                },
+                gradients: [{
+                    id: 'foo',
+                    type: 'linear',
+                    degrees: 270,
+                    stops: [{
+                        offset: 0,
+                        color: '#78C5D6'
+                    }, {
+                        offset: 0.56,
+                        color: '#F5D63D'
+                    }, {
+                        offset: 1,
+                        color: '#BF62A6'
+                    }]
+                }]
+            });
+        });
+
+        it("should create sprites with the correct gradient applied", function () {
+            var seriesSprite = chart.getSeries()[0].sprites[0],
+                fillStyle = seriesSprite.attr.fillStyle;
+
+            expect(typeof fillStyle).toBe('object');
+            expect(fillStyle.isGradient).toBe(true);
+        });
+
+        it("should update sprites when gradient has been updated", function () {
+            var seriesSprite = chart.getSeries()[0].sprites[0],
+                fillStyle = seriesSprite.attr.fillStyle,
+                newGradient = [{
+                    id: 'foo',
+                    type: 'linear',
+                    degrees: 270,
+                    stops: [{
+                        offset: 0,
+                        color: '#000000'
+                    }, {
+                        offset: 0.56,
+                        color: '#F5D63D'
+                    }, {
+                        offset: 1,
+                        color: '#000000'
+                    }]
+                }];
+
+            // first, make sure correct color is applied on initial construction
+            expect(fillStyle.getStops()[0].color).toBe('#78c5d6');
+            // now let's update the draw container with a slightly different gradient with the same id
+            chart.setGradients(newGradient);
+            // theme should get updated; check sprite again
+            seriesSprite = chart.getSeries()[0].sprites[0];
+            fillStyle = seriesSprite.attr.fillStyle;
+            // should have different colors for updated gradient
+            expect(fillStyle.getStops()[0].color).toBe('#000000');
+        });
+    });
 });

@@ -105,7 +105,7 @@ describe("Ext.LoadMask", function(){
                 createMask({
                     useMsg: false
                 }).show();
-                expect(mask.msgEl.isVisible()).toBe(false);
+                expect(mask.msgWrapEl.isVisible()).toBe(false);
             }); 
             
             it("should should still show the mask even when useMsg: false", function(){
@@ -852,6 +852,58 @@ describe("Ext.LoadMask", function(){
             mask.show();
 
             expect(mask.el.shim.el).toBeNull();
+        });
+    });
+    
+    describe("detached owner", function() {
+        it("should not show", function() {
+            createMask();
+            
+            target.detachFromBody();
+            
+            mask.loading = true;
+            mask.maybeShow();
+            
+            expect(mask.isVisible()).toBe(false);
+        });
+    });
+    
+    describe("ARIA", function() {
+        beforeEach(function() {
+            createMask();
+        });
+        
+        it("should have progressbar role", function() {
+            expect(mask).toHaveAttr('role', 'progressbar');
+        });
+        
+        it("should not have aria-valuemin attribute", function() {
+            expect(mask).not.toHaveAttr('aria-valuemin');
+        });
+        
+        it("should not have aria-valuemax attribute", function() {
+            expect(mask).not.toHaveAttr('aria-valuemax');
+        });
+        
+        it("should not have aria-valuenow attribute", function() {
+            expect(mask).not.toHaveAttr('aria-valuenow');
+        });
+        
+        it("should not have aria-valuetext by default", function() {
+            expect(mask).not.toHaveAttr('aria-valuetext');
+        });
+        
+        it("should have aria-valuetext after show", function() {
+            mask.show();
+            
+            expect(mask).toHaveAttr('aria-valuetext', 'Loading...');
+        });
+        
+        it("should remove aria-valuetext if useMsg is false", function() {
+            mask.useMsg = false;
+            mask.show();
+            
+            expect(mask).not.toHaveAttr('aria-valuetext');
         });
     });
 });

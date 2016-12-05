@@ -91,11 +91,5 @@ Ext.define('ExecDashboard.view.profitloss.ProfitLoss', {
         resizable: false,
         sortable: false,
         summaryType: 'sum'
-    },
-
-    viewConfig: {
-        listeners: {
-            refresh: 'onViewRefresh'
-        }
     }
 });

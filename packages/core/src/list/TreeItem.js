@@ -10,7 +10,7 @@ Ext.define('Ext.list.TreeItem', {
 
     collapsedCls: Ext.baseCSSPrefix + 'treelist-item-collapsed',
     expandedCls: Ext.baseCSSPrefix + 'treelist-item-expanded',
-    floatedCls: Ext.baseCSSPrefix + 'treelist-item-floated',
+    floatedCls: [Ext.Widget.prototype.floatedCls, Ext.baseCSSPrefix + 'treelist-item-floated'],
     floatedToolCls: Ext.baseCSSPrefix + 'treelist-item-tool-floated',
     leafCls: Ext.baseCSSPrefix + 'treelist-item-leaf',
     expandableCls: Ext.baseCSSPrefix + 'treelist-item-expandable',
@@ -213,15 +213,6 @@ Ext.define('Ext.list.TreeItem', {
 
     updateExpanded: function () {
         this.updateExpandCls();
-    },
-
-    updateFloated: function (floated, wasFloated) {
-        var me = this;
-
-        me.callParent([floated, wasFloated]);
-
-        me.element.toggleCls(me.floatedCls, floated);
-        me.toolElement.toggleCls(me.floatedToolCls, floated);
     },
 
     updateIconCls: function (iconCls, oldIconCls) {

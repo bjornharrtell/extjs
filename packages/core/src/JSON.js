@@ -175,7 +175,7 @@ var me = this,
      *
      * @param {String} s The String to encode
      * @return {String} The string literal to use in a JSON string.
-     * @method
+     * @method encodeString
      */
     me.encodeString = encodeString;
 
@@ -187,7 +187,7 @@ var me = this,
      *
      * @param {Object} o Any javascript value to be converted to its JSON representation
      * @return {String} The JSON representation of the passed value.
-     * @method
+     * @method encodeValue
      */
     me.encodeValue = doEncode;
 

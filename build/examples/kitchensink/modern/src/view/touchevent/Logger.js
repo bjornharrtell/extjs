@@ -2,23 +2,22 @@ Ext.define('KitchenSink.view.touchevent.Logger', {
     extend: 'Ext.Container',
     xtype: 'toucheventlogger',
     
-    config: {
-        layout: 'fit',
-        items: [
-            {
-                xtype : 'toolbar',
-                docked: 'top',
-                ui    : 'light',
-                title : 'Event Log'
-            },
-            {
-                id: 'logger',
-                html: '<span>Try using gestures on the area to the right to see how events are fired.</span>',
-                scrollable: true,
-                styleHtmlContent: true
-            }
-        ]
-    },
+    layout: 'fit',
+    items: [
+        {
+            xtype : 'toolbar',
+            docked: 'top',
+            ui    : 'light',
+            title : 'Event Log'
+        },
+        {
+            id: 'logger',
+            padding: 5,
+            html: '<span>Try using gestures on the area to the right to see how events are fired.</span>',
+            scrollable: true,
+            styleHtmlContent: true
+        }
+    ],
     
     /**
      * Adds a log message to the scrollable logging area, scrolls down to ensure the message is visible

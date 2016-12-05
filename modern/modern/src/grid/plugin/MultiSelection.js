@@ -8,13 +8,13 @@
  *
  * Once shown, you may select and delete rows, or cancel the {@link #selectionColumn}.
  *
- * To include the MultiSelection plugin, simply set plugins to 'gridmultiselection'
+ * To include the MultiSelection plugin, simply set plugins to 'multiselection'
  * as seen below:
  *
  *     Ext.define('MyApp.view.SelectableGrid', {
  *        extend: 'Ext.grid.Grid',
  *
- *        plugins: 'gridmultiselection',
+ *        plugins: 'multiselection',
  *
  *        title: 'My Title',
  *
@@ -31,7 +31,7 @@
  *        extend: 'Ext.grid.Grid',
  *
  *        plugins: {
- *            type: 'gridmultiselection',
+ *            type: 'multiselection',
  *            triggerText: 'My Select Button',
  *            cancelText: 'Forget about it',
  *            deleteText: 'Get outta here'
@@ -46,7 +46,7 @@
  *     );
  *
  * You can also modify the default settings for the selectionColumn by including your own
- * {@link #selectionColumn} config within your gridmultiselection definition. You might modify
+ * {@link #selectionColumn} config within your multiselection definition. You might modify
  * the {@link #selectionColumn} in order to:
  *
  * + Change column width
@@ -60,7 +60,7 @@
  *        extend: 'Ext.grid.Grid',
  *
  *        plugins: {
- *            type: 'gridmultiselection',
+ *            type: 'multiselection',
  *
  *            selectionColumn: {
  *                width:100  // Change column width from the default of 60px
@@ -77,7 +77,7 @@
  */
 Ext.define('Ext.grid.plugin.MultiSelection', {
     extend: 'Ext.Component',
-    alias: 'plugin.gridmultiselection',
+    alias: ['plugin.multiselection', 'plugin.gridmultiselection'],
 
     config: {
         /**
@@ -96,10 +96,10 @@ Ext.define('Ext.grid.plugin.MultiSelection', {
          */
         selectionColumn: {
             width: 60,
-            xtype: 'column',
-            cls: Ext.baseCSSPrefix + 'grid-multiselection-column',
+            xtype: 'selectioncolumn',
+            align: 'center',
             cell: {
-                cls: Ext.baseCSSPrefix + 'grid-multiselection-cell'
+                xtype: 'checkcell'
             },
             ignore: true,
             hidden: true
@@ -129,11 +129,16 @@ Ext.define('Ext.grid.plugin.MultiSelection', {
         deleteText: 'Delete'
     },
 
+    checkedCls: Ext.baseCSSPrefix + 'checked',
+
     init: function(grid) {
+        var selectionColumn = this.getSelectionColumn();
+
         this.setGrid(grid);
 
         var titleBar = grid.getTitleBar();
-        if (this.getUseTriggerButton() && titleBar) {
+
+        if (this.getUseTriggerButton() && titleBar && titleBar.getTitle()) {
             this.triggerButton = titleBar.add({
                 align: 'right',
                 xtype: 'button',
@@ -144,12 +149,11 @@ Ext.define('Ext.grid.plugin.MultiSelection', {
                 tap: 'onTriggerButtonTap',
                 scope: this
             });
+        } else {
+            grid.setMode('MULTI');
         }
 
-        grid.getHeaderContainer().on({
-            columntap: 'onColumnTap',
-            scope: this
-        });
+        grid.config.columns.unshift(selectionColumn);
     },
 
     onTriggerButtonTap: function() {
@@ -159,17 +163,6 @@ Ext.define('Ext.grid.plugin.MultiSelection', {
         else {
             this.deleteSelectedRecords();
             this.getGrid().deselectAll();
-        }
-    },
-
-    onColumnTap: function(container, column) {
-        var grid = this.getGrid();
-        if (column === this.getSelectionColumn()) {
-            if (grid.getSelectionCount() === grid.getStore().getCount()) {
-                grid.deselectAll();
-            } else {
-                grid.selectAll();
-            }
         }
     },
 
@@ -210,11 +203,13 @@ Ext.define('Ext.grid.plugin.MultiSelection', {
         if (column && !column.isComponent) {
             column = Ext.factory(column, Ext.grid.Column);
         }
+
         return column;
     },
 
     updateSelectionColumn: function(column, oldColumn) {
         var grid = this.getGrid();
+
         if (grid) {
             if (oldColumn) {
                 grid.removeColumn(oldColumn);
@@ -226,34 +221,15 @@ Ext.define('Ext.grid.plugin.MultiSelection', {
         }
     },
 
-    onGridSelectionChange: function() {
-        var grid = this.getGrid(),
-            column = this.getSelectionColumn();
-
-        if (grid.getSelectionCount() === grid.getStore().getCount()) {
-            column.addCls(Ext.baseCSSPrefix + 'grid-multiselection-allselected');
-        } else {
-            column.removeCls(Ext.baseCSSPrefix + 'grid-multiselection-allselected');
-        }
-    },
-
     updateGrid: function(grid, oldGrid) {
-        var delegateCls = '.' + Ext.baseCSSPrefix + 'grid-multiselectioncell';
-
         if (oldGrid) {
             oldGrid.removeColumn(this.getSelectionColumn());
-            oldGrid.un({
-                selectionchange: 'onGridSelectionChange',
-                scope: this
-            });
         }
 
         if (grid) {
-            grid.insertColumn(0, this.getSelectionColumn());
-            grid.on({
-                selectionchange: 'onGridSelectionChange',
-                scope: this
-            });
+            if (!grid.isConfiguring) {
+                grid.insertColumn(0, this.getSelectionColumn());
+            }
         }
     }
 });

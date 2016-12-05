@@ -234,7 +234,7 @@ describe('Ext.draw.sprite.Sprite', function () {
                 identityMatrixElements = [1, 0, 0, 1, 0, 0];
 
             sprite.applyTransformations(true);
-            expect(sprite.attr.matrix.elements).toNotEqual(identityMatrixElements);
+            expect(sprite.attr.matrix.elements).not.toEqual(identityMatrixElements);
             sprite.resetTransform();
 
             expect(sprite.attr.matrix.elements).toEqual(identityMatrixElements);

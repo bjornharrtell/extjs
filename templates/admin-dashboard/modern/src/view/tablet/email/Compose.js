@@ -13,6 +13,7 @@ Ext.define('Admin.view.tablet.email.Compose', {
     padding: 20,
 
     title: 'Compose',
+    scrollable: false,
 
     tools: [{
         iconCls: 'x-fa fa-close',
@@ -35,7 +36,6 @@ Ext.define('Admin.view.tablet.email.Compose', {
         placeHolder: 'Content',
         name: 'message',
         flex: 1,
-        height: '100%',
         margin: '0 0 10 0'
     }, {
         xtype: 'container',

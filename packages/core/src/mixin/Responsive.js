@@ -225,7 +225,8 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
      */
     destroy: function () {
         Responsive.unregister(this);
-        this.callParent();
+        
+        // No callParent() here, it's a mixin
     },
 
     privates: {
@@ -307,7 +308,7 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
 
                 if (timer) {
                     Responsive.timer = null;
-                    Ext.Function.cancelAnimationFrame(timer);
+                    Ext.asapCancel(timer);
                 }
 
                 Responsive.updateContext();
@@ -338,7 +339,7 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
              */
             onResize: function () {
                 if (!Responsive.timer) {
-                    Responsive.timer = Ext.Function.requestAnimationFrame(Responsive.onTimer);
+                    Responsive.timer = Ext.asap(Responsive.onTimer);
                 }
             },
 
@@ -370,7 +371,7 @@ Ext.define('Ext.mixin.Responsive', function (Responsive) { return {
                 // Good news is that both configs we have to handle have custom merges
                 // so we just need to get the Ext.Config instance and call it.
                 if (value) {
-                    configurator = instance.getConfigurator();
+                    configurator = instance.self.getConfigurator();
                     cfg = configurator.configs[name]; // the Ext.Config instance
 
                     // Update "this.config" which is the storage for this instance.

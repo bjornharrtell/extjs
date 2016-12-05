@@ -60,6 +60,12 @@ Ext.define('Ext.util.ComponentDragger', {
         var me = this,
             comp = me.comp;
 
+        // ComponentDragger is always dragging the component.
+        // The superclass uses the delegated handle as the
+        // drag target and the target's start region.
+        me.dragTarget = me.el;
+        me.startRegion = me.el.getRegion();
+
         // Cache the start [X, Y] array
         me.startPosition = comp.getXY();
 
@@ -67,7 +73,6 @@ Ext.define('Ext.util.ComponentDragger', {
         // then use that as a drag proxy unless configured to liveDrag.
         if (comp.ghost && !comp.liveDrag) {
              me.proxy = comp.ghost();
-             me.dragTarget = me.proxy.header.el;
         }
 
         // Set the constrainTo Region before we start dragging.
@@ -80,14 +85,14 @@ Ext.define('Ext.util.ComponentDragger', {
         }
         // Logic to drag components on top of iframes
         if (comp.el.shim) {
-            comp.el.maskIframes();
+            Ext.dom.Element.maskIframes();
         }
     },
 
     calculateConstrainRegion: function() {
         var me = this,
             comp = me.comp,
-            constrainTo = me.initialConstrainTo,
+            constrainTo = me.initialConstrainTo || me.comp.el.dom.parentNode,
             constraintInsets = comp.constraintInsets,
             constrainEl,
             delegateRegion,
@@ -121,15 +126,15 @@ Ext.define('Ext.util.ComponentDragger', {
         // If they only want to constrain the *delegate* to within the constrain region,
         // adjust the region to be larger based on the insets of the delegate from the outer
         // edges of the Component.
-        if (!me.constrainDelegate) {
-            delegateRegion = Ext.fly(me.dragTarget).getRegion();
+        if (me.constrainDelegate) {
+            delegateRegion = Ext.fly(me.handle).getRegion();
             elRegion = dragEl.getRegion();
 
             constrainTo.adjust(
-                delegateRegion.top - elRegion.top,
-                delegateRegion.right - elRegion.right,
-                delegateRegion.bottom - elRegion.bottom,
-                delegateRegion.left - elRegion.left
+                elRegion.top - delegateRegion.top,
+                elRegion.right - delegateRegion.right,
+                elRegion.bottom - delegateRegion.bottom,
+                elRegion.left - delegateRegion.left
             );
         }
         return constrainTo;
@@ -158,7 +163,7 @@ Ext.define('Ext.util.ComponentDragger', {
         }
         // Logic to drag components on top of iframes
         if (comp.el.shim) {
-            comp.el.unmaskIframes();
+            Ext.dom.Element.unmaskIframes();
         }
     }
 });

@@ -215,7 +215,7 @@
         <local name="base.path"/>
         <property name="base.path" value="${framework.dir}"/>
 
-        <delete file="${base.dir}/bootstrap-modern-manifest.js"/>
+        <delete file="${base.path}/bootstrap-modern-manifest.js"/>
 
         <x-compile refid="${compiler.ref.id}">
             <![CDATA[
@@ -283,6 +283,6 @@ Ext.Boot.loadSyncBasePrefix([
 
     <target name="bootstrap"
             description="*** Regenerate files needed by standalone examples and unit tests ***"
-            depends="charts,ux,exporter,core-bootstrap,test-bootstrap"/>
+            depends="charts,ux,pivot,exporter,core-bootstrap,test-bootstrap"/>
 
 </project>

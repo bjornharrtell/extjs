@@ -27,18 +27,18 @@ Ext.define('Ext.chart.grid.VerticalGrid', {
         }
     },
 
-    render: function (surface, ctx, clipRect) {
+    render: function (surface, ctx, rect) {
         var attr = this.attr,
             x = surface.roundPixel(attr.x),
             halfLineWidth = ctx.lineWidth * 0.5;
 
         ctx.beginPath();
-        ctx.rect(x - halfLineWidth, clipRect[1] - surface.matrix.getDY(), attr.width, clipRect[3]);
+        ctx.rect(x - halfLineWidth, rect[1] - surface.matrix.getDY(), attr.width, rect[3]);
         ctx.fill();
 
         ctx.beginPath();
-        ctx.moveTo(x - halfLineWidth, clipRect[1] - surface.matrix.getDY());
-        ctx.lineTo(x - halfLineWidth, clipRect[1] + clipRect[3] - surface.matrix.getDY());
+        ctx.moveTo(x - halfLineWidth, rect[1] - surface.matrix.getDY());
+        ctx.lineTo(x - halfLineWidth, rect[1] + rect[3] - surface.matrix.getDY());
         ctx.stroke();
     }
 });

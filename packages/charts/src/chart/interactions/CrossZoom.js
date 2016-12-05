@@ -246,6 +246,8 @@ Ext.define('Ext.chart.interactions.CrossZoom', {
             x = xy[0],
             y = xy[1];
 
+        e.claimGesture();
+
         if (me.zoomAnimationInProgress) {
             return;
         }
@@ -457,7 +459,7 @@ Ext.define('Ext.chart.interactions.CrossZoom', {
 
     destroy: function () {
         this.setUndoButton(null);
-        this.callParent(arguments);
+        this.callParent();
     }
 
 });

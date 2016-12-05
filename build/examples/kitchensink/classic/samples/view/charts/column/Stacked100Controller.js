@@ -5,6 +5,10 @@ Ext.define('KitchenSink.view.charts.column.Stacked100Controller', {
     yearTotal: {},
 
     onPreview: function() {
+        if (Ext.isIE8) {
+            Ext.Msg.alert('Unsupported Operation', 'This operation requires a newer version of Internet Explorer.');
+            return;
+        }
         var chart = this.lookupReference('chart');
 
         chart.preview();

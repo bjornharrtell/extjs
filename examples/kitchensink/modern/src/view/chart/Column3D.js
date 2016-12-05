@@ -22,7 +22,19 @@ Ext.define('KitchenSink.view.chart.Column3D', {
         }
     },
 
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/OrderItems.js' 
+    }],
+    // </example>
+    
     layout: 'fit',
+    shadow: true,
+
     items: [{
         xtype: 'toolbar',
         docked: 'top',
@@ -36,16 +48,14 @@ Ext.define('KitchenSink.view.chart.Column3D', {
         }, {
             iconCls: 'x-fa fa-refresh',
             text: 'Refresh',
-            handler: function () {
-                Ext.getStore('OrderItems').generateData(25);
-            }
-        }, {
-            text: 'Reset',
-            handler: 'onReset'
+            handler: 'onRefresh'
         }]
     }, {
         xtype: 'cartesian',
-        store: 'OrderItems',
+        store: {
+            type: 'orderitems',
+            numRecords: 25
+        },
         theme: 'Muted',
         interactions: [{
             type: 'panzoom',
@@ -85,10 +95,11 @@ Ext.define('KitchenSink.view.chart.Column3D', {
 
     initialize: function() {
         this.callParent();
-        Ext.getStore('OrderItems').generateData(25);
+        
         var toolbar = Ext.ComponentQuery.query('toolbar', this)[0],
             interaction = Ext.ComponentQuery.query('interaction', this)[0];
-        if (toolbar && interaction && !interaction.isMultiTouch()) {
+        
+        if (toolbar && interaction) {
             toolbar.add(interaction.getModeToggleButton());
         }
     }

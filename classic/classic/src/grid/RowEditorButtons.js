@@ -9,6 +9,8 @@ Ext.define('Ext.grid.RowEditorButtons', {
     frame: true,
     shrinkWrap: true,
     position: 'bottom',
+    
+    ariaRole: 'toolbar',
 
     constructor: function(config) {
         var me = this,

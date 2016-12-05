@@ -108,16 +108,18 @@ Ext.define('Ext.selection.DataViewModel', {
 
         if ((suppressEvent || me.fireEvent('before' + eventName, me, record, recordIndex)) !== false &&
                 commitFn() !== false) {
-
-            if (view) {
+            
+            // Event handler could have destroyed the view...
+            if (view && !view.destroyed) {
                 if (isSelected) {
                     view.onItemSelect(record);
                 } else {
                     view.onItemDeselect(record);
                 }
             }
-
-            if (!suppressEvent) {
+            
+            // ... and the selection model to go with it
+            if (!suppressEvent && !me.destroyed) {
                 me.fireEvent(eventName, me, record, recordIndex);
             }
         }

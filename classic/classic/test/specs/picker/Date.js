@@ -5,12 +5,12 @@ describe("Ext.picker.Date", function() {
     
     beforeEach(function() {
         makeComponent = function(config) {
-            component = new Ext.picker.Date(Ext.applyIf({
+            component = new Ext.picker.Date(Ext.apply({
                 renderTo: Ext.getBody()
             }, config));
         };
         
-        makeRange = function(min, max){
+        makeRange = function(min, max) {
             var out = [],
                 i = min;
             for(; i <= max; ++i) {
@@ -50,10 +50,69 @@ describe("Ext.picker.Date", function() {
                 });
             }).not.toThrow();
         });
+
+        // https://sencha.jira.com/browse/EXTJS-15718
+        describe("when rendered within a td element", function () {
+            function setupTable () {
+                Ext.DomHelper.append(Ext.getBody(), {
+                    tag: 'table',
+                    id: 'ownerTable',
+                    children: [{
+                        tag: 'tr',
+                        children: [{
+                            tag: 'td',
+                            children: [{
+                                tag: 'div',
+                                id: 'nestedDiv'
+                            }]
+                        }]
+                    }]
+                });
+            }
+
+            afterEach(function () {
+                component = Ext.destroy(component);
+                Ext.get('ownerTable').destroy();
+            });
+
+            it("should display the day header", function () {
+                var node;
+
+                setupTable();
+                makeComponent({
+                    renderTo: Ext.get('nestedDiv')
+                });
+
+                node = component.el.down('.x-datepicker-column-header');
+                // should have 42 text nodes (6 weeks x 7 days)
+                expect(component.textNodes.length).toBe(42);
+                // check first and last node in first row
+                expect(node.first().getHtml()).toBe('S');
+            });
+
+            it("should select the correct item", function () {
+                var node, value, pickerValue;
+
+                setupTable();
+                makeComponent({
+                    renderTo: Ext.get('nestedDiv')
+                });
+
+                node = Ext.fly(component.textNodes[17]);
+                // this is the raw value in the cell
+                value = node.getHtml();
+                // fire click to select
+                jasmine.fireMouseEvent(node.dom, 'click');
+                // get the value from the picker now that selection has occurred
+                pickerValue = component.getValue();
+
+                // pickerValue date should be the same as the raw value date
+                expect(pickerValue.getDate()).toBe(parseInt(value));
+            });
+        });
     });
     
     describe("restrictions", function(){
-        
         var isDisabled;
         
         beforeEach(function(){
@@ -123,8 +182,8 @@ describe("Ext.picker.Date", function() {
                     i = 0;
                     
                 for(; i < len; ++i) {
-                    expect(cells.item(i).dom.title).toNotEqual(component.maxText);
-                    expect(cells.item(i).dom.className).toNotEqual(component.disabledCellCls);
+                    expect(cells.item(i).dom.title).not.toEqual(component.maxText);
+                    expect(cells.item(i).dom.className).not.toEqual(component.disabledCellCls);
                 }
             });
             
@@ -138,8 +197,6 @@ describe("Ext.picker.Date", function() {
                 expect(isDisabled(makeRange(20, 41), component.maxText)).toBeTruthy();
             });
         });  
-        
-        
         
         describe("min date", function(){
             it("should not have any min date set if not specified", function(){
@@ -185,8 +242,8 @@ describe("Ext.picker.Date", function() {
                     i = 0;
                     
                 for(; i < len; ++i) {
-                    expect(cells.item(i).dom.title).toNotEqual(component.minText);
-                    expect(cells.item(i).dom.className).toNotEqual(component.disabledCellCls);
+                    expect(cells.item(i).dom.title).not.toEqual(component.minText);
+                    expect(cells.item(i).dom.className).not.toEqual(component.disabledCellCls);
                 }
             });
             
@@ -283,6 +340,140 @@ describe("Ext.picker.Date", function() {
                 expect(isDisabled(makeRange(14, 23), null)).toBeTruthy();
             });
         });
+
+        describe("today button", function() {
+            var D = Ext.Date,
+                now = new Date(),
+                earlier = D.subtract(now, D.DAY, 7),
+                later = D.add(now, D.DAY, 7);
+
+            function expectDisabled() {
+                expect(component.todayBtn.disabled).toBe(true);
+            }
+
+            function expectEnabled() {
+                expect(component.todayBtn.disabled).toBe(false);
+            }
+
+            describe("initial", function() {
+                it("should disable the button if today is greater than the max value", function() {
+                    makeComponent({
+                        maxDate: earlier
+                    });
+                    expectDisabled();
+                });
+
+                it("should disable the button if today is less than the min value", function() {
+                    makeComponent({
+                        minDate: later
+                    });
+                    expectDisabled();
+                });
+
+                it("should not disable the button if it's within the min/max bounds", function() {
+                    makeComponent({
+                        minDate: earlier,
+                        maxDate: later
+                    });
+                    expectEnabled();
+                });
+
+                it("should be disabled if the picker is disabled", function() {
+                    makeComponent({
+                        disabled: true
+                    });
+                    expectDisabled();
+                })
+            });
+
+            describe("setting min/max after configuring", function() {
+                describe("setting min", function() {
+                    it("should enable after clearing the min", function() {
+                        makeComponent({
+                            minDate: later
+                        });
+                        expectDisabled();
+                        component.setMinDate(null);
+                        expectEnabled();
+                    });
+
+                    it("should enable after setting a minimum before today", function() {
+                        makeComponent({
+                            minDate: later
+                        });
+                        expectDisabled();
+                        component.setMinDate(earlier);
+                        expectEnabled();
+                    });
+
+                    it("should disable after setting a minimum after today", function() {
+                        makeComponent();
+                        expectEnabled();
+                        component.setMinDate(later);
+                        expectDisabled();
+                    });
+                });
+
+                describe("setting max", function() {
+                    it("should enable after clearing the max", function() {
+                        makeComponent({
+                            maxDate: earlier
+                        });
+                        expectDisabled();
+                        component.setMaxDate(null);
+                        expectEnabled();
+                    });
+
+                    it("should enable after setting a maximum after today", function() {
+                        makeComponent({
+                            maxDate: earlier
+                        });
+                        expectDisabled();
+                        component.setMaxDate(later);
+                        expectEnabled();
+                    });
+
+                    it("should disable after setting a maximum before today", function() {
+                        makeComponent();
+                        expectEnabled();
+                        component.setMaxDate(earlier);
+                        expectDisabled();
+                    });
+                });
+            });
+
+            describe("setting disabled after configuring", function() {
+                describe("enabling", function() {
+                    it("should enable the button", function() {
+                        makeComponent({
+                            disabled: true
+                        });
+                        expectDisabled();
+                        component.enable();
+                        expectEnabled();
+                    });
+
+                    it("should not enable the button if today does not fall in a valid date range", function() {
+                        makeComponent({
+                            disabled: true,
+                            minDate: later
+                        });
+                        expectDisabled();
+                        component.enable();
+                        expectDisabled();
+                    });
+                });
+
+                describe("disabling", function() {
+                    it("should disable the button", function() {
+                        makeComponent();
+                        expectEnabled();
+                        component.disable();
+                        expectDisabled();
+                    });
+                });
+            });
+        });
         
     });
     
@@ -324,6 +515,238 @@ describe("Ext.picker.Date", function() {
             runs(function() {
                 expect(picker.isVisible()).toBe(true);
                 expect(picker.monthPicker.isVisible()).toBe(true);
+            });
+        });
+    });
+    
+    // Space, Enter, Escape, and Tab keys are tested in Date field suite
+    describe("keyboard interaction", function() {
+        var eDate = Ext.Date,
+            focusAndWait = jasmine.focusAndWait,
+            today = eDate.clearTime(new Date()),
+            spy, event;
+        
+        function expectDate(date) {
+            var activeDate = Ext.Date.clearTime(new Date(component.activeCell.firstChild.dateValue));
+            
+            expect(activeDate.toString()).toBe(date.toString());
+        }
+        
+        function pressKey(key, options) {
+            component.eventEl.on('keydown', spy);
+            jasmine.syncPressKey(component, key, options);
+            component.eventEl.un('keydown', spy);
+            
+            event = spy.mostRecentCall.args[0];
+        }
+        
+        beforeEach(function() {
+            spy = jasmine.createSpy('keydown');
+            
+            makeComponent();
+            
+            focusAndWait(component);
+        });
+        
+        afterEach(function() {
+            spy = event = null;
+        });
+        
+        describe("left arrow", function() {
+            beforeEach(function() {
+                pressKey('left');
+            });
+            
+            it("should select the day before", function() {
+                expectDate(eDate.add(today, eDate.DAY, -1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("ctrl-left arrow", function() {
+            beforeEach(function() {
+                pressKey('left', { ctrlKey: true });
+            });
+            
+            it("should select same day of the previous month", function() {
+                expectDate(eDate.add(today, eDate.MONTH, -1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("right arrow", function() {
+            beforeEach(function() {
+                pressKey('right');
+            });
+            
+            it("should select the next day", function() {
+                expectDate(eDate.add(today, eDate.DAY, 1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("ctrl-right arrow", function() {
+            beforeEach(function() {
+                pressKey('right', { ctrlKey: true });
+            });
+            
+            it("should select same day of the next month", function() {
+                expectDate(eDate.add(today, eDate.MONTH, 1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("up arrow", function() {
+            beforeEach(function() {
+                pressKey('up');
+            });
+            
+            it("should select the day a week ago", function() {
+                expectDate(eDate.add(today, eDate.DAY, -7));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        // This is non-standard historical behavior
+        describe("ctrl-up arrow", function() {
+            beforeEach(function() {
+                pressKey('up', { ctrlKey: true });
+            });
+            
+            it("should select the same day of the next year", function() {
+                expectDate(eDate.add(today, eDate.YEAR, 1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("down arrow", function() {
+            beforeEach(function() {
+                pressKey('down');
+            });
+            
+            it("should select the day a week ahead", function() {
+                expectDate(eDate.add(today, eDate.DAY, 7));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        // This is non-standard historical behavior
+        describe("ctrl-down arrow", function() {
+            beforeEach(function() {
+                pressKey('down', { ctrlKey: true });
+            });
+            
+            it("should select the same day a year before", function() {
+                expectDate(eDate.add(today, eDate.YEAR, -1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("pageUp", function() {
+            beforeEach(function() {
+                pressKey('page_up');
+            });
+            
+            it("should select the same day of the previous month", function() {
+                expectDate(eDate.add(today, eDate.MONTH, -1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("ctrl-pageUp", function() {
+            beforeEach(function() {
+                pressKey('page_up', { ctrlKey: true });
+            });
+            
+            it("should select the same day of the previous year", function() {
+                expectDate(eDate.add(today, eDate.YEAR, -1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("pageDown", function() {
+            beforeEach(function() {
+                pressKey('page_down');
+            });
+            
+            it("should select the same day of the next month", function() {
+                expectDate(eDate.add(today, eDate.MONTH, 1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("ctrl-pageDown", function() {
+            beforeEach(function() {
+                pressKey('page_down', { ctrlKey: true });
+            });
+            
+            it("should select the same day of the next year", function() {
+                expectDate(eDate.add(today, eDate.YEAR, 1));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("home key", function() {
+            beforeEach(function() {
+                pressKey('home');
+            });
+            
+            it("should select the first day of the current month", function() {
+                expectDate(eDate.getFirstDateOfMonth(today));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
+            });
+        });
+        
+        describe("end key", function() {
+            beforeEach(function() {
+                pressKey('end');
+            });
+            
+            it("should select the last day of the current month", function() {
+                expectDate(eDate.getLastDateOfMonth(today));
+            });
+            
+            it("should prevent default on the event", function() {
+                expect(event.defaultPrevented).toBe(true);
             });
         });
     });

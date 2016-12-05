@@ -44,12 +44,12 @@ Ext.define('Ext.layout.container.Fit', {
    
     manageMargins: true,
 
-    sizePolicies: {
-        0: { readsWidth: 1, readsHeight: 1, setsWidth: 0, setsHeight: 0 },
-        1: { readsWidth: 0, readsHeight: 1, setsWidth: 1, setsHeight: 0 },
-        2: { readsWidth: 1, readsHeight: 0, setsWidth: 0, setsHeight: 1 },
-        3: { readsWidth: 0, readsHeight: 0, setsWidth: 1, setsHeight: 1 }
-    },
+    sizePolicies: [
+        { readsWidth: 1, readsHeight: 1, setsWidth: 0, setsHeight: 0 },
+        { readsWidth: 0, readsHeight: 1, setsWidth: 1, setsHeight: 0 },
+        { readsWidth: 1, readsHeight: 0, setsWidth: 0, setsHeight: 1 },
+        { readsWidth: 0, readsHeight: 0, setsWidth: 1, setsHeight: 1 }
+    ],
 
     getItemSizePolicy: function (item, ownerSizeModel) {
         // this layout's sizePolicy is derived from its owner's sizeModel:

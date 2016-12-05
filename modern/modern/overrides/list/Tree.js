@@ -1,3 +1,6 @@
+/**
+ * @class Ext.list.Tree
+ */
 Ext.define('Ext.overrides.list.Tree', {
     override: 'Ext.list.Tree',
 
@@ -14,7 +17,7 @@ Ext.define('Ext.overrides.list.Tree', {
                 scope: me,
                 painted: me.syncIconSize,
                 single: true
-            })
+            });
         }
     }
 });

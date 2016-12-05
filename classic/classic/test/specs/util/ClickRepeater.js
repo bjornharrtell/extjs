@@ -72,7 +72,7 @@ describe("Ext.util.ClickRepeater", function() {
             });
             
             it("should not stop event", function() {
-                expect(event.isStopped).toBeFalsy();
+                expect(event.stopped).toBeFalsy();
             });
         });
         
@@ -91,7 +91,7 @@ describe("Ext.util.ClickRepeater", function() {
             });
             
             it("should not stop event", function() {
-                expect(event.isStopped).toBeFalsy();
+                expect(event.stopped).toBeFalsy();
             });
         });
         
@@ -110,7 +110,7 @@ describe("Ext.util.ClickRepeater", function() {
             });
             
             it("should stop event", function() {
-                expect(event.isStopped).toBe(true);
+                expect(event.stopped).toBe(true);
             });
         });
     });

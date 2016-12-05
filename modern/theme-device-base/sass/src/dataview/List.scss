@@ -1,34 +1,41 @@
 .x-list {
-    .x-list-item {
-        &.x-item-selected .x-dock-horizontal,
-        &.x-item-selected.x-list-item-tpl {
+    .x-listitem {
+        > .x-dock {
+            height: auto;
+        }
+
+        .x-dock-horizontal {
+            border-top: 1px solid #ccc;
+        }
+
+        &.x-selected .x-dock-horizontal,
+        &.x-selected.x-simplelistitem {
             background-color: #ccc;
         }
 
-        &.x-item-pressed {
-            &.x-list-item-tpl,
+        &.x-pressed {
+            &.x-simplelistitem,
             .x-dock-horizontal {
                 background-color: #ddd;
             }
         }
 
-        .x-list-item-body,
-        &.x-list-item-tpl .x-innerhtml {
+        .x-listitem-body {
             padding: 5px;
         }
     }
-    .x-item-selected .x-list-disclosure {
+    .x-list-item.x-selected .x-listitem-disclosure {
         background-color: #fff;
     }
 
-    .x-list-header {
+    .x-itemheader {
         background-color: #eee;
         border-top: 1px solid #ccc;
         border-bottom: 1px solid #ccc;
         font-weight: bold;
     }
 
-    .x-list-disclosure {
+    .x-listitem-disclosure {
         margin: 5px 15px 5px 0;
         overflow: visible;
         width: 20px;
@@ -37,14 +44,18 @@
         background-color: #eee;
     }
 
-    .x-list-item-tpl .x-list-disclosure {
+    .x-simplelistitem .x-listitem-disclosure {
         position: absolute;
         right: 0px;
         top: 0px;
     }
 
 
-    &.x-list-indexed .x-list-disclosure {
+    &.x-indexed-vertical .x-listitem-disclosure {
         margin-right: 35px;
     }
+}
+
+.x-list.x-grouped .x-itemheader .x-dock-horizontal {
+    border-top: 0;
 }

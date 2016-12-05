@@ -1,8 +1,16 @@
+/* global Ext, MockAjaxManager, expect, jasmine */
+
 describe("Ext.view.View", function() {
     var view, store, TestModel, navModel,
         synchronousLoad = true,
         proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
-        loadStore;
+        loadStore = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
     
     TestModel = Ext.define(null, {
         extend : 'Ext.data.Model',
@@ -19,6 +27,7 @@ describe("Ext.view.View", function() {
 
         view = new Ext.view.View(cfg);
         navModel = view.getNavigationModel();
+        return view;
     }
 
     function makeStore(data) {
@@ -85,13 +94,7 @@ describe("Ext.view.View", function() {
 
     beforeEach(function() {
         // Override so that we can control asynchronous loading
-        loadStore = Ext.data.ProxyStore.prototype.load = function() {
-            proxyStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        };
+        Ext.data.ProxyStore.prototype.load = loadStore;
 
         MockAjaxManager.addMethods();
     });
@@ -129,7 +132,7 @@ describe("Ext.view.View", function() {
         });
 
         it("should render the entire tpl", function() {
-            expectClasses(['header', 'foo', 'foo', 'foo', 'footer']);
+            expectClasses(['header', 'foo', 'foo', 'foo', 'footer', 'x-tab-guard x-tab-guard-after']);
         });
 
         it("should not repeat nodes outside data on refresh", function() {
@@ -142,7 +145,7 @@ describe("Ext.view.View", function() {
         });
     });
 
-    describe("selection", function() {
+    describe("selection:single", function() {
         var sm;
 
         describe("classes", function() {
@@ -203,7 +206,7 @@ describe("Ext.view.View", function() {
                 sm = view.getSelectionModel();
 
                 view.destroy();
-                expect(sm.getStore()).toBeNull();
+                expect(sm.store).toBeNull();
             });
         });
 
@@ -566,7 +569,7 @@ describe("Ext.view.View", function() {
             });
             expect(view.getStore()).toBe(store);
             view.destroy();
-            expect(view.getStore()).toBeNull();
+            expect(view.store).toBeNull();
         });
 
         it("should destroy a load mask", function() {
@@ -667,7 +670,7 @@ describe("Ext.view.View", function() {
                         var nodes = view.getNodes();
                         expect(nodes.length).toBe(1);
                         expect(nodes[0]).hasHTML('Item1');
-                        expect(nodes[0].parentNode).toBe(getUL())
+                        expect(nodes[0].parentNode).toBe(getUL());
                     });
             
                     it("should be able to add to the end of a view", function() {
@@ -1060,7 +1063,7 @@ describe("Ext.view.View", function() {
                         ]);
                         var node = view.getNode(1),
                             rec = store.getAt(1);
-                            
+
                         view.on('itemremove', spy);
                         store.removeAt(1);
                         expect(spy.callCount).toBe(1);
@@ -1074,6 +1077,13 @@ describe("Ext.view.View", function() {
                         createSimpleView([createModel('foo')]);
                         view.on('itemremove', spy);
                         store.removeAt(0);
+                        expect(spy.callCount).toBe(1);
+                    });
+                    
+                    it("should fire the itemremove event when rereshing", function() {
+                        createSimpleView([createModel('foo')]);
+                        view.on('itemremove', spy);
+                        store.fireEvent('refresh', store);
                         expect(spy.callCount).toBe(1);
                     });
                 });
@@ -1206,6 +1216,119 @@ describe("Ext.view.View", function() {
                         });
                     });
                 });
+            });
+        });
+
+        describe("with a pending refresh, while in a hidden container after being visible", function() {
+            var ct;
+
+            beforeEach(function() {
+                ct = new Ext.container.Container({
+                    renderTo: Ext.getBody(),
+                    width: 300,
+                    height: 300,
+                    items: createView({
+                        itemTpl: '{name}'
+                    }, 5)
+                });
+                ct.hide();
+                view.refresh();
+            });
+
+            afterEach(function() {
+                ct = Ext.destroy(ct);
+            });
+
+            it("should update after an add", function() {
+                store.add([{
+                    name: 'a'
+                }]);
+                ct.show();
+                var nodes = view.getNodes();
+                expect(nodes.length).toBe(6);
+                expect(nodes[0]).hasHTML('Item 1');
+                expect(nodes[1]).hasHTML('Item 2');
+                expect(nodes[2]).hasHTML('Item 3');
+                expect(nodes[3]).hasHTML('Item 4');
+                expect(nodes[4]).hasHTML('Item 5');
+                expect(nodes[5]).hasHTML('a');
+            });
+
+            it("should update after an edit", function() {
+                store.first().set('name', 'foo');
+                ct.show();
+                var nodes = view.getNodes();
+                expect(nodes.length).toBe(5);
+                expect(nodes[0]).hasHTML('foo');
+                expect(nodes[1]).hasHTML('Item 2');
+                expect(nodes[2]).hasHTML('Item 3');
+                expect(nodes[3]).hasHTML('Item 4');
+                expect(nodes[4]).hasHTML('Item 5');
+            });
+
+            it("should update after a remove", function() {
+                store.removeAt(0);
+                ct.show();
+                var nodes = view.getNodes();
+                expect(nodes.length).toBe(4);
+                expect(nodes[0]).hasHTML('Item 2');
+                expect(nodes[1]).hasHTML('Item 3');
+                expect(nodes[2]).hasHTML('Item 4');
+                expect(nodes[3]).hasHTML('Item 5');
+            });
+
+            it("should update after a removeAll", function() {
+                store.removeAll();
+                ct.show();
+                expect(view.getNodes().length).toBe(0);
+            });
+
+            it("should update after a sort", function() {
+                store.sort('name', 'DESC');
+                ct.show();
+                var nodes = view.getNodes();
+                expect(nodes.length).toBe(5);
+                expect(nodes[0]).hasHTML('Item 5');
+                expect(nodes[1]).hasHTML('Item 4');
+                expect(nodes[2]).hasHTML('Item 3');
+                expect(nodes[3]).hasHTML('Item 2');
+                expect(nodes[4]).hasHTML('Item 1');
+            });
+
+            it("should update after a filter", function() {
+                store.filter({
+                    filterFn: function(rec) {
+                        var n = parseInt(rec.get('name').replace('Item ', ''), 10);
+                        return n % 2 === 0;
+                    }
+                });
+                ct.show();
+                var nodes = view.getNodes();
+                expect(nodes.length).toBe(2);
+                expect(nodes[0]).hasHTML('Item 2');
+                expect(nodes[1]).hasHTML('Item 4');
+            });
+
+            it("should update to a series of actions", function() {
+                var rec = store.add({
+                    name: 'X'
+                })[0];
+                rec.set('name', 'Foo');
+                store.removeAt(0);
+                store.removeAt(1);
+                store.removeAll();
+                store.add({
+                    name: 'A'
+                });
+                store.add(['Z'], ['Q']);
+                store.sort('name');
+                ct.show();
+
+                var nodes = view.getNodes();
+                expect(nodes.length).toBe(3);
+                expect(nodes[0]).hasHTML('A');
+                expect(nodes[1]).hasHTML('Q');
+                expect(nodes[2]).hasHTML('Z');
             });
         });
     });
@@ -1411,30 +1534,38 @@ describe("Ext.view.View", function() {
         describe("with deferEmptyText: false", function() {
             it("should show the empty text immediately when the store is empty", function() {
                 createSimpleView(false, null);
-                expect(view.getEl().dom).hasHTML('Foo');
+                expect(view.getEl().dom.childNodes.length).toBe(2);
+                expect(view.getEl().dom.childNodes[0].data).toBe('Foo');
+                expect(view.getEl().dom.childNodes[1] === view.tabGuardEl).toBe(true);
             });
             
             it("should not contain the empty text if there are nodes", function() {
                 createSimpleView(false);
-                expect(view.getEl().dom).not.hasHTML('Foo');
+                expect(view.getEl().dom.childNodes.length).toBe(store.getCount() + 1);
+                expect(view.getEl().dom.childNodes[store.getCount()] === view.tabGuardEl).toBe(true);
             });
         });
         
         describe("with deferEmptyText: true", function() {
             it("should not show the empty text immediately when the store is empty", function() {
                 createSimpleView(true, null);
-                expect(view.getEl().dom).hasHTML('');
+                expect(view.getEl().dom.childNodes.length).toBe(1);
+                expect(view.getEl().dom.childNodes[0] === view.tabGuardEl).toBe(true);
             });
             
             it("should show the empty text after a second refresh if the store is empty", function() {
                 createSimpleView(true, null);
                 view.refresh();
+
+                // Simple test for HTML content here. Subsequent refreshes wipe out the tabGuardEl.
+                // It is only necessary one time.
                 expect(view.getEl().dom).hasHTML('Foo');
             });
             
             it("should not contain the empty text if there are nodes", function() {
                 createSimpleView(true);
-                expect(view.getEl().dom).not.hasHTML('Foo');
+                expect(view.getEl().dom.childNodes.length).toBe(store.getCount() + 1);
+                expect(view.getEl().dom.childNodes[store.getCount()] === view.tabGuardEl).toBe(true);
             });
 
             it("should show the empty text if the store had loaded before render", function() {
@@ -1455,7 +1586,9 @@ describe("Ext.view.View", function() {
                 store.load();
                 completeRequest([]);
                 view.render(Ext.getBody());
-                expect(view.getEl().dom).hasHTML('Foo');
+                expect(view.getEl().dom.childNodes.length).toBe(2);
+                expect(view.getEl().dom.childNodes[0].data).toBe('Foo');
+                expect(view.getEl().dom.childNodes[1] === view.tabGuardEl).toBe(true);
             });
         });
         
@@ -1596,7 +1729,7 @@ describe("Ext.view.View", function() {
         });
     });
 
-    describe("selection", function() {
+    describe("selection:multi", function() {
         var sm, a, b, c, d, e, f, g;
 
         function makeSelectionView(render) {

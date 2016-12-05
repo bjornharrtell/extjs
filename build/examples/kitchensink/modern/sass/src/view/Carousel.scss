@@ -1,0 +1,7 @@
+.card.dark {
+    background-color: if($theme-name == 'theme-material', $reverse-background-color, #222);
+
+    & .#{$prefix}innerhtml {
+        color: if($theme-name == 'theme-material', $reverse-color, #93a1a1);
+    }
+}

@@ -68,6 +68,14 @@ Ext.define('Ext.data.field.Date', {
      */
     dateWriteFormat: null,
 
+    /**
+     * @cfg {Boolean} useStrict
+     * @since 6.2.0
+     * Used to manually set strict date parsing on a per-field basis. If no `useStrict`
+     * is specified, will use value of {@link Ext.Date.useStrict} to determine how to
+     * process dates.
+     */
+
     compare: function (lhs, rhs) {
         var lhsIsDate = lhs instanceof Date,
             rhsIsDate = rhs instanceof Date,
@@ -103,7 +111,7 @@ Ext.define('Ext.data.field.Date', {
             parsed;
 
         if (dateFormat) {
-            return Ext.Date.parse(v, dateFormat);
+            return Ext.Date.parse(v, dateFormat, this.useStrict);
         }
 
         parsed = Date.parse(v);

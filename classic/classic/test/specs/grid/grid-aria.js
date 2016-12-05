@@ -1,7 +1,5 @@
 describe("grid-aria", function() {
-    var expectAria = jasmine.expectAriaAttr,
-        expectNoAria = jasmine.expectNoAriaAttr,
-        stdStore = {
+    var stdStore = {
             type: 'array',
             fields: ['field1', 'field2', 'field3', 'field4', 'field5'],
             data: [
@@ -28,7 +26,13 @@ describe("grid-aria", function() {
         grid,
         synchronousLoad = true,
         proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
-        loadStore;
+        loadStore = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
     
     function makeGrid(cfg) {
         cfg = Ext.apply({
@@ -45,13 +49,7 @@ describe("grid-aria", function() {
 
     beforeEach(function() {
         // Override so that we can control asynchronous loading
-        loadStore = Ext.data.ProxyStore.prototype.load = function() {
-            proxyStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        };
+        Ext.data.ProxyStore.prototype.load = loadStore;
     });
 
     afterEach(function() {
@@ -81,56 +79,56 @@ describe("grid-aria", function() {
             });
             
             it("should have grid role on the main el", function() {
-                expectAria(grid, 'role', 'grid');
+                expect(grid).toHaveAttr('role', 'grid');
             });
             
             it("should have rowgroup role on the column header main el", function() {
-                expectAria(hdr, 'role', 'rowgroup');
+                expect(hdr).toHaveAttr('role', 'rowgroup');
             });
             
             it("should have row role on the column header innerCt el", function() {
-                expectAria(hdr.layout.innerCt, 'role', 'row');
+                expect(hdr.layout.innerCt).toHaveAttr('role', 'row');
             });
             
             it("should have columnheader role on first column header", function() {
-                expectAria(col, 'role', 'columnheader');
+                expect(col).toHaveAttr('role', 'columnheader');
             });
             
             it("should have rowgroup role on the view", function() {
-                expectAria(view, 'role', 'rowgroup');
+                expect(view).toHaveAttr('role', 'rowgroup');
             });
             
             it("should not have aria-hidden on the view", function() {
-                expectNoAria(view, 'aria-hidden');
+                expect(view).not.toHaveAttr('aria-hidden');
             });
             
             it("should not have aria-disabled on the view", function() {
-                expectNoAria(view, 'aria-disabled');
+                expect(view).not.toHaveAttr('aria-disabled');
             });
             
             it("should have presentation role on the row table node", function() {
                 var node = view.getNode(0);
                 
-                expectAria(node, 'role', 'presentation');
+                expect(node).toHaveAttr('role', 'presentation');
             });
             
             it("should have row role on the row tr node", function() {
                 var row = view.getRow(0);
                 
-                expectAria(row, 'role', 'row');
+                expect(row).toHaveAttr('role', 'row');
             });
             
             it("should have gridcell role on cell td nodes", function() {
                 var cell = view.getCell(0, col);
                 
-                expectAria(cell, 'role', 'gridcell');
+                expect(cell).toHaveAttr('role', 'gridcell');
             });
             
             it("should have no role on the cell inner div", function() {
                 var cell = view.getCell(0, col),
                     innerDiv = cell.dom.firstChild;
                 
-                expectNoAria(innerDiv, 'role');
+                expect(innerDiv).not.toHaveAttr('role');
             });
         });
         
@@ -145,44 +143,44 @@ describe("grid-aria", function() {
             });
 
             it("should have grid role on the main el", function() {
-                expectAria(grid, 'role', 'grid');
+                expect(grid).toHaveAttr('role', 'grid');
             });
             
             it("should have rowgroup role on the view", function() {
-                expectAria(view, 'role', 'rowgroup');
+                expect(view).toHaveAttr('role', 'rowgroup');
             });
             
             it("should not have aria-hidden on the view", function() {
-                expectNoAria(view, 'aria-hidden');
+                expect(view).not.toHaveAttr('aria-hidden');
             });
             
             it("should not have aria-disabled on the view", function() {
-                expectNoAria(view, 'aria-disabled');
+                expect(view).not.toHaveAttr('aria-disabled');
             });
             
             it("should have presentation role on the row table node", function() {
                 var node = view.getNode(0);
                 
-                expectAria(node, 'role', 'presentation');
+                expect(node).toHaveAttr('role', 'presentation');
             });
             
             it("should have row role on the row tr node", function() {
                 var row = view.getRow(0);
                 
-                expectAria(row, 'role', 'row');
+                expect(row).toHaveAttr('role', 'row');
             });
             
             it("should have gridcell role on cell td nodes", function() {
                 var cell = view.getCell(0, col);
                 
-                expectAria(cell, 'role', 'gridcell');
+                expect(cell).toHaveAttr('role', 'gridcell');
             });
             
             it("should have no role on the cell inner div", function() {
                 var cell = view.getCell(0, col),
                     innerDiv = cell.dom.firstChild;
                 
-                expectNoAria(innerDiv, 'role');
+                expect(innerDiv).not.toHaveAttr('role');
             });
         });
     });
@@ -207,13 +205,13 @@ describe("grid-aria", function() {
             it("should have aria-label on first column header", function() {
                 var col = grid.getColumns()[0];
                 
-                expectAria(col, 'aria-label', 'group column 1');
+                expect(col).toHaveAttr('aria-label', 'group column 1');
             });
             
             it("should have aria-label on second column header", function() {
                 var col = grid.getColumns()[1];
                 
-                expectAria(col, 'aria-label', 'group column 2');
+                expect(col).toHaveAttr('aria-label', 'group column 2');
             });
         });
         
@@ -233,7 +231,7 @@ describe("grid-aria", function() {
             it("should strip HTML tags from group and column text", function() {
                 var col = grid.getColumns()[0];
                 
-                expectAria(col, 'aria-label', 'group column 1');
+                expect(col).toHaveAttr('aria-label', 'group column 1');
             });
         });
     });
@@ -263,26 +261,26 @@ describe("grid-aria", function() {
         });
         
         it("should have no aria-sort when not sorted by default", function() {
-            expectNoAria(col1, 'aria-sort');
+            expect(col1).not.toHaveAttr('aria-sort');
         });
         
         it("should have aria-sort when sorted ascending", function() {
             col1.sort('ASC');
             
-            expectAria(col1, 'aria-sort', 'ascending');
+            expect(col1).toHaveAttr('aria-sort', 'ascending');
         });
         
         it("should have aria-sort when sorted descending", function() {
             col1.sort('DESC');
             
-            expectAria(col1, 'aria-sort', 'descending');
+            expect(col1).toHaveAttr('aria-sort', 'descending');
         });
         
         it("should have aria-sort removed when sort state is reset", function() {
             col1.sort('ASC');
             col2.sort('DESC');
             
-            expectNoAria(col1, 'aria-sort');
+            expect(col1).not.toHaveAttr('aria-sort');
         });
     });
     
@@ -290,7 +288,7 @@ describe("grid-aria", function() {
         it("should be true when not editable", function() {
             makeGrid();
             
-            expectAria(grid, 'aria-readonly', 'true');
+            expect(grid).toHaveAttr('aria-readonly', 'true');
         });
         
         it("should be false with cellediting plugin", function() {
@@ -298,7 +296,7 @@ describe("grid-aria", function() {
                 plugins: [{ ptype: 'cellediting' }]
             });
             
-            expectAria(grid, 'aria-readonly', 'false');
+            expect(grid).toHaveAttr('aria-readonly', 'false');
         });
         
         it("should be false with rowediting plugin", function() {
@@ -306,7 +304,7 @@ describe("grid-aria", function() {
                 plugins: [{ ptype: 'rowediting' }]
             });
             
-            expectAria(grid, 'aria-readonly', 'false');
+            expect(grid).toHaveAttr('aria-readonly', 'false');
         });
         
         it("should have aria-readonly on the column headers", function() {
@@ -316,7 +314,7 @@ describe("grid-aria", function() {
             
             var col = grid.getColumns()[0];
             
-            expectAria(col, 'aria-readonly', 'true');
+            expect(col).toHaveAttr('aria-readonly', 'true');
         });
     });
     
@@ -324,7 +322,7 @@ describe("grid-aria", function() {
         it("should be false with SINGLE", function() {
             makeGrid();
             
-            expectAria(grid, 'aria-multiselectable', 'false');
+            expect(grid).toHaveAttr('aria-multiselectable', 'false');
         });
         
         it("should be true with SIMPLE", function() {
@@ -334,7 +332,7 @@ describe("grid-aria", function() {
                 }
             });
             
-            expectAria(grid, 'aria-multiselectable', 'true');
+            expect(grid).toHaveAttr('aria-multiselectable', 'true');
         });
         
         it("should be true with MULTI", function() {
@@ -344,7 +342,7 @@ describe("grid-aria", function() {
                 }
             });
             
-            expectAria(grid, 'aria-multiselectable', 'true');
+            expect(grid).toHaveAttr('aria-multiselectable', 'true');
         });
     });
     
@@ -374,20 +372,20 @@ describe("grid-aria", function() {
             });
             
             it("should not be set when not selected", function() {
-                expectNoAria(row, 'aria-selected');
+                expect(row).not.toHaveAttr('aria-selected');
             });
             
             it("should be set when selected", function() {
                 selModel.select(0);
                 
-                expectAria(row, 'aria-selected', 'true');
+                expect(row).toHaveAttr('aria-selected', 'true');
             });
             
             it("should be removed when deselected", function() {
                 selModel.select(0);
                 selModel.deselect(0);
                 
-                expectNoAria(row, 'aria-selected');
+                expect(row).not.toHaveAttr('aria-selected');
             });
         });
         
@@ -399,20 +397,20 @@ describe("grid-aria", function() {
             });
             
             it("should not be set when not selected", function() {
-                expectNoAria(cell, 'aria-selected');
+                expect(cell).not.toHaveAttr('aria-selected');
             });
             
             it("should be set when selected", function() {
                 selModel.selectCells([0, 0], [1, 5]);
                 
-                expectAria(cell, 'aria-selected', 'true');
+                expect(cell).toHaveAttr('aria-selected', 'true');
             });
             
             it("should be removed when deselected", function() {
                 selModel.selectCells([0, 0], [1, 5]);
                 selModel.resetSelection(true);
                 
-                expectNoAria(cell, 'aria-selected');
+                expect(cell).not.toHaveAttr('aria-selected');
             });
         });
     });

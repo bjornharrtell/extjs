@@ -443,95 +443,516 @@ describe('Ext.layout.component.Dock', function(){
     });
     
     describe("DOM element order", function() {
-        describe("framed", function() {
-            var oldCSS3Support, tabbables;
-            
-            beforeEach(function() {
-                oldCSS3Support = Ext.supports.CSS3BorderRadius;
-                Ext.supports.CSS3BorderRadius = false;
-                
-                makeCt({
-                    frame: true,
-                    title: 'foo',
-                    
-                    closable: true,
-                    
-                    items: [{
-                        xtype: 'textfield'
-                    }],
-                    
-                    buttons: [{
-                        text: 'OK'
-                    }]
-                });
-                
-                // We're using findTabbableElements here because
-                // it's easier than analyzing individual elements
-                tabbables = ct.el.findTabbableElements();
-            });
-            
-            afterEach(function() {
-                tabbables = null;
-                Ext.supports.CSS3BorderRadius = oldCSS3Support;
-            });
-            
-            it("should place header above body", function() {
-                expect(tabbables[0]).toBe(ct.header.el.dom);
-            });
-            
-            it("should place the body in the middle", function() {
-                var input = ct.down('textfield');
-                
-                expect(tabbables[1]).toBe(input.inputEl.dom);
-            });
-            
-            it("should place toolbar below the body", function() {
-                var buttons = ct.down('toolbar');
-                
-                expect(tabbables[2]).toBe(buttons.el.dom);
-            });
-        });
+        var defaultDockedItems = [{
+            dock: 'top',
+            weight: 0,
+            xtype: 'toolbar',
+            items: [{
+                xtype: 'component',
+                html: 'top outer'
+            }]
+        }, {
+            dock: 'left',
+            weight: 0,
+            xtype: 'toolbar',
+            vertical: true,
+            items: [{
+                xtype: 'component',
+                html: 'left outer'
+            }]
+        }, {
+            dock: 'bottom',
+            weight: 0,
+            xtype: 'toolbar',
+            items: [{
+                xtype: 'component',
+                html: 'bottom outer'
+            }]
+        }, {
+            dock: 'right',
+            weight: 0,
+            xtype: 'toolbar',
+            vertical: true,
+            items: [{
+                xtype: 'component',
+                html: 'right outer'
+            }]
+        }, {
+            xtype: 'toolbar',
+            dock: 'top',
+            weight: 10,
+            items: [{
+                xtype: 'component',
+                html: 'top inner'
+            }]
+        }, {
+            dock: 'bottom',
+            weight: 10,
+            xtype: 'toolbar',
+            items: [{
+                xtype: 'component',
+                html: 'bottom inner'
+            }]
+        }, {
+            dock: 'right',
+            weight: 10,
+            xtype: 'toolbar',
+            vertical: true,
+            items: [{
+                xtype: 'component',
+                html: 'right inner'
+            }]
+        }, {
+            dock: 'left',
+            weight: 10,
+            xtype: 'toolbar',
+            vertical: true,
+            items: [{
+                xtype: 'component',
+                html: 'left inner'
+            }]
+        }];
         
-        describe('not framed', function() {
-            var panel;
-
-            beforeEach(function() {
-                panel = new Ext.panel.Panel({
-                    title: 'Test',
-                    tbar: {
-                        itemId: 'top-toolbar',
-                        items: [{
-                            text: 'Top Button'
-                        }]
-                    },
-                    bbar: {
-                        itemId: 'bottom-toolbar',
-                        items: [{
-                            text: 'Bottom Button'
-                        }]
-                    },
-                    height: 100,
-                    width: 100,
-                    renderTo: document.body
-                });
-            });
-            afterEach(function() {
-                panel.destroy();
-            });
+        function makeSuite(config, elOrder, wrapOrder, changeFn, desc) {
+            config = config || {};
+            elOrder = elOrder || [];
+            wrapOrder = wrapOrder || [];
+            desc = desc ? desc + ',' : 'panel w/';
             
-            it('should not find that isValidParent returns false during a layout when docked items use itemId', function() {
-                spyOn(panel.componentLayout, 'isValidParent').andCallThrough();
+            var hasHeader = config.title === null ? false : true;
+            var numElChildren = elOrder.length;
+            var numWrapChildren = wrapOrder.length;
+            
+            var suiteDesc = desc + (config.title === null ? ' no header' : ' header position: ' + 
+                                (config.headerPosition || 'left')) + 
+                            (config.dockedItems === null ? ' no dockedItems' : ' w/ dockedItems') +
+                            ', frame: ' + !!config.frame + 
+                            ', tab guards: ' + (config.tabGuard ? 'on' : 'off');
+            
+            function countChicks(panel, property, expected) {
+                var numExpected = expected.length,
+                    children = panel[property].dom.childNodes,
+                    child, want, i;
                 
-                panel.updateLayout();
-                var calls = panel.componentLayout.isValidParent.calls,
-                    len = calls.length,
-                    i;
-
-                // All the DockLayout's isValidParent calls during the layout must have returned true
-                for (i = 0; i < len; i++) {
-                    expect(calls[i].result).toBe(true);
+                for (i = 0; i < numExpected; i++) {
+                    child = children[i];
+                    
+                    if (child) {
+                        want = expected[i];
+                        
+                        // Number is docked.getAt(x), string is element property name
+                        if (typeof want === 'number') {
+                            want = panel.dockedItems.getAt(want);
+                        }
+                        else {
+                            want = panel[want];
+                        }
+                        
+                        expect(child.id).toBe(want.id);
+                    }
+                    else {
+                        fail("DOM child not found at index " + i);
+                    }
+                }
+            }
+            
+            describe(suiteDesc, function() {
+                beforeEach(function() {
+                    var cfg = Ext.apply({
+                        margin: 20,
+                        width: 400,
+                        height: 300,
+                        collapsible: hasHeader ? true : false,
+                        animCollapse: false,
+                        
+                        title: 'blerg',
+                        
+                        dockedItems: defaultDockedItems,
+                        html: 'zingbong'
+                    }, config);
+                    
+                    makeCt(cfg);
+                    
+                    if (changeFn) {
+                        changeFn(ct);
+                    }
+                });
+                
+                it("should have " + numElChildren + " children in main el", function() {
+                    expect(ct.el.dom.childNodes.length).toBe(numElChildren);
+                });
+                
+                it("should have main el children in right order", function() {
+                    countChicks(ct, 'el', elOrder);
+                });
+                
+                it("should have " + numWrapChildren + " children in bodyWrap el", function() {
+                    expect(ct.bodyWrap.dom.childNodes.length).toBe(numWrapChildren);
+                });
+                
+                it("should have bodyWrap el children in right order", function() {
+                    countChicks(ct, 'bodyWrap', wrapOrder);
+                });
+                
+                if (hasHeader) {
+                    describe("collapsed", function() {
+                        beforeEach(function() {
+                            ct.collapse();
+                        });
+    
+                        it("should have " + numElChildren + " children in main el", function() {
+                            expect(ct.el.dom.childNodes.length).toBe(numElChildren);
+                        });
+                        
+                        it("should have main el children in right order", function() {
+                            countChicks(ct, 'el', elOrder);
+                        });
+                        
+                        it("should have " + numWrapChildren + " children in bodyWrap el", function() {
+                            expect(ct.bodyWrap.dom.childNodes.length).toBe(numWrapChildren);
+                        });
+                        
+                        it("should have bodyWrap el children in right order", function() {
+                            countChicks(ct, 'bodyWrap', wrapOrder);
+                        });
+                        
+                        describe("expanded", function() {
+                            beforeEach(function() {
+                                ct.expand();
+                            });
+    
+                            it("should have " + numElChildren + " children in main el", function() {
+                                expect(ct.el.dom.childNodes.length).toBe(numElChildren);
+                            });
+                            
+                            it("should have main el children in right order", function() {
+                                countChicks(ct, 'el', elOrder);
+                            });
+                            
+                            it("should have " + numWrapChildren + " children in bodyWrap el", function() {
+                                expect(ct.bodyWrap.dom.childNodes.length).toBe(numWrapChildren);
+                            });
+                            
+                            it("should have bodyWrap el children in right order", function() {
+                                countChicks(ct, 'bodyWrap', wrapOrder);
+                            });
+                        });
+                    });
                 }
             });
+        }
+        
+        // Com-pre-hen-sive is the code word for today
+        
+        function addHeader(panel, title) {
+            panel.setTitle(title || 'foobork');
+        }
+        
+        function addItems(panel, items) {
+            items = items || defaultDockedItems;
+            
+            for (var i = 0, len = items.length; i < len; i++) {
+                panel.addDocked(items[i]);
+            }
+        }
+        
+        function addHeaderAndItems(panel) {
+            addItems(panel);
+            addHeader(panel);
+        }
+        
+        // No header
+        makeSuite({ title: null, dockedItems: null }, ['bodyWrap'], ['body']);
+        makeSuite({ title: null, dockedItems: null, tabGuard: true },
+            ['tabGuardBeforeEl', 'bodyWrap', 'tabGuardAfterEl'], ['body']);
+        
+        // No header but massive eruption of dockedItems
+        makeSuite({ title: null }, ['bodyWrap'], [0, 1, 4, 7, 'body', 3, 2, 5, 6]);
+        
+        // No header, dockedItems plus tabGuards
+        makeSuite({ title: null, tabGuard: true },
+            ['tabGuardBeforeEl', 'bodyWrap', 'tabGuardAfterEl'],
+            [0, 1, 4, 7, 'body', 3, 2, 5, 6]);
+        
+        // Header position
+        makeSuite({ dockedItems: null, headerPosition: 'top' }, [0, 'bodyWrap'], ['body']);
+        makeSuite({ dockedItems: null, headerPosition: 'left' }, [0, 'bodyWrap'], ['body']);
+        makeSuite({ dockedItems: null, headerPosition: 'right' }, ['bodyWrap', 0], ['body']);
+        makeSuite({ dockedItems: null, headerPosition: 'bottom' }, ['bodyWrap', 0], ['body']);
+        
+        // Header position *and* dockedItems
+        makeSuite({ headerPosition: 'top' }, [0, 'bodyWrap'], [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+        makeSuite({ headerPosition: 'left' }, [0, 'bodyWrap'], [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+        makeSuite({ headerPosition: 'right' }, ['bodyWrap', 0], [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+        makeSuite({ headerPosition: 'bottom' }, ['bodyWrap', 0], [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+        
+        // Header position with tab guards
+        makeSuite({ dockedItems: null, tabGuard: true, headerPosition: 'top' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'], ['body']);
+        makeSuite({ dockedItems: null, tabGuard: true, headerPosition: 'left' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'], ['body']);
+        makeSuite({ dockedItems: null, tabGuard: true, headerPosition: 'right' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'], ['body']);
+        makeSuite({ dockedItems: null, tabGuard: true, headerPosition: 'bottom' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'], ['body']);
+        
+        // Header position with tab guards and dockedItems
+        makeSuite({ tabGuard: true, headerPosition: 'top' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+        makeSuite({ tabGuard: true, headerPosition: 'left' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+        makeSuite({ tabGuard: true, headerPosition: 'right' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+        makeSuite({ tabGuard: true, headerPosition: 'bottom' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+        
+        // Header added after rendering
+        makeSuite({ dockedItems: null, title: null, headerPosition: 'top' },
+            [0, 'bodyWrap'], ['body'], addHeader, 'dynamic header 1');
+        makeSuite({ dockedItems: null, title: null, headerPosition: 'left' },
+            [0, 'bodyWrap'], ['body'], addHeader, 'dynamic header 2');
+        makeSuite({ dockedItems: null, title: null, headerPosition: 'right' },
+            ['bodyWrap', 0], ['body'], addHeader, 'dynamic header 3');
+        makeSuite({ dockedItems: null, title: null, headerPosition: 'bottom' },
+            ['bodyWrap', 0], ['body'], addHeader, 'dynamic header 4');
+        
+        // Header added after rendering onto existing tab guards
+        makeSuite({ dockedItems: null, title: null, tabGuard: true, headerPosition: 'top' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'], ['body'], addHeader,
+            'dynamic header 5');
+        makeSuite({ dockedItems: null, title: null, tabGuard: true, headerPosition: 'left' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'], ['body'], addHeader,
+            'dynamic header 6');
+        makeSuite({ dockedItems: null, title: null, tabGuard: true, headerPosition: 'right' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'], ['body'], addHeader,
+            'dynamic header 7');
+        makeSuite({ dockedItems: null, title: null, tabGuard: true, headerPosition: 'bottom' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'], ['body'], addHeader,
+            'dynamic header 8');
+        
+        // Header added after rendering onto existing tab guards and dockedItems
+        makeSuite({ title: null, tabGuard: true, headerPosition: 'top' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeader, 'dynamic header 9');
+        makeSuite({ title: null, tabGuard: true, headerPosition: 'left' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeader, 'dynamic header 10');
+        makeSuite({ title: null, tabGuard: true, headerPosition: 'right' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeader, 'dynamic header 11');
+        makeSuite({ title: null, tabGuard: true, headerPosition: 'bottom' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'], 
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeader, 'dynamic header 12');
+        
+        // Finally, dynamically added dockedItems. One by one. Ha!
+        makeSuite({ dockedItems: null, tabGuard: true, headerPosition: 'top' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addItems, 'dynamic items 1');
+        makeSuite({ dockedItems: null, tabGuard: true, headerPosition: 'left' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addItems, 'dynamic items 2');
+        makeSuite({ dockedItems: null, tabGuard: true, headerPosition: 'right' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addItems, 'dynamic items 3');
+        makeSuite({ dockedItems: null, tabGuard: true, headerPosition: 'bottom' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addItems, 'dynamic items 4');
+        
+        // All together now.
+        makeSuite({ title: null, dockedItems: null, tabGuard: true, headerPosition: 'top' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeaderAndItems, 'dynamic items 5');
+        makeSuite({ title: null, dockedItems: null, tabGuard: true, headerPosition: 'left' },
+            ['tabGuardBeforeEl', 0, 'bodyWrap', 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeaderAndItems, 'dynamic items 6');
+        makeSuite({ title: null, dockedItems: null, tabGuard: true, headerPosition: 'right' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeaderAndItems, 'dynamic items 7');
+        makeSuite({ title: null, dockedItems: null, tabGuard: true, headerPosition: 'bottom' },
+            ['tabGuardBeforeEl', 'bodyWrap', 0, 'tabGuardAfterEl'],
+            [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeaderAndItems, 'dynamic items 8');
+        
+        // IE8 gets framed
+        if (!Ext.supports.CSS3BorderRadius) {
+            // No header
+            makeSuite({ frame: true, title: null, dockedItems: null },
+                ['frameTL', 'frameML', 'frameBL'], ['body']);
+            makeSuite({ frame: true, title: null, dockedItems: null, tabGuard: true },
+                ['tabGuardBeforeEl', 'frameTL', 'frameML', 'frameBL', 'tabGuardAfterEl'],
+                ['body']);
+
+            // No header but massive eruption of dockedItems
+            makeSuite({ frame: true, title: null }, ['frameTL', 'frameML', 'frameBL'],
+                [0, 1, 4, 7, 'body', 3, 2, 5, 6]);
+            
+            // No header, dockedItems plus tabGuards
+            makeSuite({ frame: true, title: null, tabGuard: true },
+                ['tabGuardBeforeEl', 'frameTL', 'frameML', 'frameBL', 'tabGuardAfterEl'],
+                [0, 1, 4, 7, 'body', 3, 2, 5, 6]);
+            
+            // bodyContainer === frameML after first layout with docked items present
+            
+            // Header position
+            makeSuite({ frame: true, dockedItems: null, headerPosition: 'top' },
+                [0, 'frameTL', 'bodyContainer', 'frameBL'], ['body']);
+            makeSuite({ frame: true, dockedItems: null, headerPosition: 'left' },
+                [0, 'frameTL', 'bodyContainer', 'frameBL'], ['body']);
+            makeSuite({ frame: true, dockedItems: null, headerPosition: 'right' },
+                ['frameTL', 'bodyContainer', 'frameBL', 0], ['body']);
+            makeSuite({ frame: true, dockedItems: null, headerPosition: 'bottom' },
+                ['frameTL', 'bodyContainer', 'frameBL', 0], ['body']);
+            
+            // Header position *and* dockedItems
+            makeSuite({ frame: true, headerPosition: 'top' },
+                [0, 'frameTL', 'bodyContainer', 'frameBL'], [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+            makeSuite({ frame: true, headerPosition: 'left' },
+                [0, 'frameTL', 'bodyContainer', 'frameBL'], [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+            makeSuite({ frame: true, headerPosition: 'right' },
+                ['frameTL', 'bodyContainer', 'frameBL', 0], [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+            makeSuite({ frame: true, headerPosition: 'bottom' },
+                ['frameTL', 'bodyContainer', 'frameBL', 0], [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+            
+            // Header position with tab guards
+            makeSuite({ frame: true, dockedItems: null, tabGuard: true, headerPosition: 'top' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                ['body']);
+            makeSuite({ frame: true, dockedItems: null, tabGuard: true, headerPosition: 'left' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                ['body']);
+            makeSuite({ frame: true, dockedItems: null, tabGuard: true, headerPosition: 'right' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                ['body']);
+            makeSuite({ frame: true, dockedItems: null, tabGuard: true, headerPosition: 'bottom' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                ['body']);
+            
+            // Header position with tab guards and dockedItems
+            makeSuite({ frame: true, tabGuard: true, headerPosition: 'top' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+            makeSuite({ frame: true, tabGuard: true, headerPosition: 'left' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+            makeSuite({ frame: true, tabGuard: true, headerPosition: 'right' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+            makeSuite({ frame: true, tabGuard: true, headerPosition: 'bottom' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7]);
+            
+            // Header added after rendering
+            makeSuite({ frame: true, dockedItems: null, title: null, headerPosition: 'top' },
+                [0, 'frameTL', 'bodyContainer', 'frameBL'], ['body'], addHeader, 'dynamic header 1');
+            makeSuite({ frame: true, dockedItems: null, title: null, headerPosition: 'left' },
+                [0, 'frameTL', 'bodyContainer', 'frameBL'], ['body'], addHeader, 'dynamic header 2');
+            makeSuite({ frame: true, dockedItems: null, title: null, headerPosition: 'right' },
+                ['frameTL', 'bodyContainer', 'frameBL', 0], ['body'], addHeader, 'dynamic header 3');
+            makeSuite({ frame: true, dockedItems: null, title: null, headerPosition: 'bottom' },
+                ['frameTL', 'bodyContainer', 'frameBL', 0], ['body'], addHeader, 'dynamic header 4');
+            
+            // Header added after rendering onto existing tab guards
+            makeSuite({ frame: true, dockedItems: null, title: null, tabGuard: true, 
+                        headerPosition: 'top' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                ['body'], addHeader, 'dynamic header 5');
+            makeSuite({ frame: true, dockedItems: null, title: null, tabGuard: true,
+                headerPosition: 'left' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                ['body'], addHeader, 'dynamic header 6');
+            makeSuite({ frame: true, dockedItems: null, title: null, tabGuard: true, headerPosition: 'right' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                ['body'], addHeader, 'dynamic header 7');
+            makeSuite({ frame: true, dockedItems: null, title: null, tabGuard: true, headerPosition: 'bottom' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                ['body'], addHeader, 'dynamic header 8');
+            
+            // Header added after rendering onto existing tab guards and dockedItems
+            makeSuite({ frame: true, title: null, tabGuard: true, headerPosition: 'top' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeader, 'dynamic header 9');
+            makeSuite({ frame: true, title: null, tabGuard: true, headerPosition: 'left' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeader, 'dynamic header 10');
+            makeSuite({ frame: true, title: null, tabGuard: true, headerPosition: 'right' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeader, 'dynamic header 11');
+            makeSuite({ frame: true, title: null, tabGuard: true, headerPosition: 'bottom' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'], 
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeader, 'dynamic header 12');
+            
+            // Finally, dynamically added dockedItems. One by one. Ha!
+            makeSuite({ frame: true, dockedItems: null, tabGuard: true, headerPosition: 'top' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addItems, 'dynamic items 1');
+            makeSuite({ frame: true, dockedItems: null, tabGuard: true, headerPosition: 'left' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addItems, 'dynamic items 2');
+            makeSuite({ frame: true, dockedItems: null, tabGuard: true, headerPosition: 'right' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addItems, 'dynamic items 3');
+            makeSuite({ frame: true, dockedItems: null, tabGuard: true, headerPosition: 'bottom' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addItems, 'dynamic items 4');
+            
+            // All together now.
+            makeSuite({ frame: true, title: null, dockedItems: null, tabGuard: true, headerPosition: 'top' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeaderAndItems, 'dynamic items 5');
+            makeSuite({ frame: true, title: null, dockedItems: null, tabGuard: true, headerPosition: 'left' },
+                ['tabGuardBeforeEl', 0, 'frameTL', 'bodyContainer', 'frameBL', 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeaderAndItems, 'dynamic items 6');
+            makeSuite({ frame: true, title: null, dockedItems: null, tabGuard: true, headerPosition: 'right' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeaderAndItems, 'dynamic items 7');
+            makeSuite({ frame: true, title: null, dockedItems: null, tabGuard: true, headerPosition: 'bottom' },
+                ['tabGuardBeforeEl', 'frameTL', 'bodyContainer', 'frameBL', 0, 'tabGuardAfterEl'],
+                [1, 2, 5, 8, 'body', 4, 3, 6, 7], addHeaderAndItems, 'dynamic items 8');
+        }
+    });
+        
+    describe('isValidParent', function() {
+        var panel;
+
+        beforeEach(function() {
+            panel = new Ext.panel.Panel({
+                title: 'Test',
+                tbar: {
+                    itemId: 'top-toolbar',
+                    items: [{
+                        text: 'Top Button'
+                    }]
+                },
+                bbar: {
+                    itemId: 'bottom-toolbar',
+                    items: [{
+                        text: 'Bottom Button'
+                    }]
+                },
+                height: 100,
+                width: 100,
+                renderTo: document.body
+            });
+        });
+        afterEach(function() {
+            panel.destroy();
+        });
+        
+        it('should not find that isValidParent returns false during a layout when docked items use itemId', function() {
+            spyOn(panel.componentLayout, 'isValidParent').andCallThrough();
+            
+            panel.updateLayout();
+            var calls = panel.componentLayout.isValidParent.calls,
+                len = calls.length,
+                i;
+
+            // All the DockLayout's isValidParent calls during the layout must have returned true
+            for (i = 0; i < len; i++) {
+                expect(calls[i].result).toBe(true);
+            }
         });
     });
 });

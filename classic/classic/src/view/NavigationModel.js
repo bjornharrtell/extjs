@@ -137,9 +137,11 @@ Ext.define('Ext.view.NavigationModel', {
         // If they have scrolled to the bottom, then onFocusEnter will
         // try to focus the lastFocused or first item. This is undesirable.
         // So on mousedown outside of view client area, prevent the default focus behaviour.
-        if (mousedownEvent.pointerType === 'mouse' && Ext.getScrollbarSize().width) {
+        // See Ext.view.Table#onFocusEnter for this being acted upon.
+        if (Ext.getScrollbarSize().width) {
             if (!view.el.getClientRegion().contains(mousedownEvent.getPoint())) {
                 mousedownEvent.preventDefault();
+                view.lastFocused = 'scrollbar';
             }
         }
     },
@@ -160,7 +162,7 @@ Ext.define('Ext.view.NavigationModel', {
         }
     },
 
-    setPosition: function(recordIndex, keyEvent, suppressEvent, preventNavigation) {
+    setPosition: function(recordIndex, keyEvent, suppressEvent, preventNavigation, preventFocus) {
         var me = this,
             view = me.view,
             selModel = view.getSelectionModel(),
@@ -226,7 +228,7 @@ Ext.define('Ext.view.NavigationModel', {
         // Maintain lastFocused, so that on non-specific focus of the View, we can focus the correct descendant.
         if (newRecord) {
             me.focusPosition(me.recordIndex);
-        } else {
+        } else if (!preventFocus) {
             me.item = null;
         }
 
@@ -381,12 +383,9 @@ Ext.define('Ext.view.NavigationModel', {
     },
 
     destroy: function() {
-        var me = this;
+        this.setStore(null);
+        Ext.destroy(this.viewListeners, this.keyNav);
         
-        me.setStore(null);
-        Ext.destroy(me.viewListeners, me.keyNav);
-        me.keyNav = me.viewListeners = me.dataSource = me.lastFocused = null;
-        
-        me.callParent();
+        this.callParent();
     }
 });

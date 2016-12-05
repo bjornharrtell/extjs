@@ -15,6 +15,13 @@ Ext.define('Ext.util.StoreHolder', {
     mixinId: 'storeholder',
 
     /**
+     * @property {Boolean} [autoDestroyBoundStore] This property allows the object
+     * to destroy bound stores that have {@link #Ext.data.AbstractStore#autoDestroy}
+     * option set to `true`. 
+     */
+    autoDestroyBoundStore: false,
+
+    /**
      * Binds a store to this instance.
      * @param {Ext.data.AbstractStore/String} [store] The store to bind or ID of the store.
      * When no store given (or when `null` or `undefined` passed), unbinds the existing store.
@@ -30,23 +37,38 @@ Ext.define('Ext.util.StoreHolder', {
 
         if (store !== oldStore) {
             if (oldStore) {
-                // Perform implementation-specific unbinding operations *before* possible Store destruction.
-                me.onUnbindStore(oldStore, initial, propertyName);
+                // Perform implementation-specific unbinding operations *before*
+                // possible Store destruction.
+                if (!me.onUnbindStore.$emptyFn) {
+                    me.onUnbindStore(oldStore, initial, propertyName);
+                }
 
-                // autoDestroy is only intended for when it is unbound from a component
-                if (me.isComponent && propertyName === 'store' && oldStore.autoDestroy) {
-                    oldStore.destroy();
-                } else {
-                    me.unbindStoreListeners(oldStore);
+                // autoDestroy is only intended for when it is unbound from a component,
+                // and the store could have been already destroyed upstream
+                if (!oldStore.destroyed) {
+                    if (me.autoDestroyBoundStore && propertyName === 'store' && oldStore.autoDestroy) {
+                        oldStore.destroy();
+                    }
+                    else {
+                        me.unbindStoreListeners(oldStore);
+                    }
                 }
             }
 
             if (store) {
                 me[propertyName] = store = Ext.data.StoreManager.lookup(store);
                 me.bindStoreListeners(store);
-                me.onBindStore(store, oldStore);
-            } else {
+                
+                if (!me.onBindStore.$emptyFn) {
+                    me.onBindStore(store, oldStore, initial);
+                }
+            }
+            else {
                 me[propertyName] = null;
+            }
+
+            if (me.fireEvent) {
+                me.fireEvent('storechange', me, store, oldStore);
             }
         }
 

@@ -208,11 +208,13 @@ Ext.define('Ext.draw.Animator', {
     },
 
     handleFrame: function() {
-        this.step(this.animationTime());
-        this.fireFrameCallbacks();
-        if (!this.scheduled && this.empty()) {
-            Ext.AnimationQueue.stop(this.handleFrame, this);
-            this.running = false;
+        var me = this;
+
+        me.step(me.animationTime());
+        me.fireFrameCallbacks();
+        if (!me.scheduled && me.empty()) {
+            Ext.AnimationQueue.stop(me.handleFrame, me);
+            me.running = false;
             Ext.draw.Draw.endUpdateIOS();
         }
     },

@@ -4,6 +4,10 @@
  */
 Ext.define('Ext.event.publisher.Publisher', {
 
+    isEventPublisher: true,
+    
+    $vetoClearingPrototypeOnDestroy: true,
+
     /**
      * @property {Array} handledEvents
      * An array of events that this publisher handles.

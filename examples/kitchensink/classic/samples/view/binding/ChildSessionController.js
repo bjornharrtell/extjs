@@ -38,13 +38,13 @@ Ext.define('KitchenSink.view.binding.ChildSessionController', {
             xtype: 'binding-child-session-form',
             viewModel: {
                 data: {
-                    title: record ? 'Edit: ' + record.get('name') : 'Add Customer'
+                    title: record ? 'Edit: ' + record.get('name') : 'Add Company'
                 },
                 // If we are passed a record, a copy of it will be created in the newly spawned session.
-                // Otherwise, create a new phantom customer in the child.
+                // Otherwise, create a new phantom company in the child.
                 links: {
-                    theCustomer: record || {
-                        type: 'Customer',
+                    theCompany: record || {
+                        type: 'Company',
                         create: true
                     }
                 }
@@ -58,17 +58,17 @@ Ext.define('KitchenSink.view.binding.ChildSessionController', {
         this.dialog.show();
     },
 
-    onAddCustomerClick: function() {
+    onAddCompanyClick: function() {
         this.createDialog(null);
     },
 
-    onEditCustomerClick: function (button) {
+    onEditCompanyClick: function (button) {
         this.createDialog(button.getWidgetRecord());
     },
 
-    onRemoveCustomerClick: function(button) {
-        var customerGrid = this.lookupReference('customerGrid'),
-            selection = customerGrid.getSelectionModel().getSelection()[0];
+    onRemoveCompanyClick: function(button) {
+        var companyGrid = this.lookupReference('companyGrid'),
+            selection = companyGrid.getSelectionModel().getSelection()[0];
 
         selection.drop();
     },
@@ -78,7 +78,7 @@ Ext.define('KitchenSink.view.binding.ChildSessionController', {
         orders.insert(0, {
             date: new Date(),
             shipped: false
-        })
+        });
     },
 
     onRemoveOrderClick: function (button) {
@@ -98,13 +98,13 @@ Ext.define('KitchenSink.view.binding.ChildSessionController', {
             if (!isEdit) {
                 // Since we're not editing, we have a newly inserted record. Grab the id of
                 // that record that exists in the child session
-                id = dialog.getViewModel().get('theCustomer').id;
+                id = dialog.getViewModel().get('theCompany').id;
             }
             dialog.getSession().save();
             if (!isEdit) {
                 // Use the id of that child record to find the phantom in the parent session, 
                 // we can then use it to insert the record into our store
-                this.getStore('customers').add(this.getSession().getRecord('Customer', id));
+                this.getStore('companies').insert(0, this.getSession().getRecord('Company', id));
             }
             this.onCancelClick();
         }

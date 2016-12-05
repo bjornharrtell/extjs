@@ -32,7 +32,7 @@
 	border-radius: 10px;
 }
 
-.x-progressindicator:not(.x-item-hidden) .x-progressindicator-bar .x-progressindicator-bar-fill {
+.x-progressindicator:not(.x-hidden) .x-progressindicator-bar .x-progressindicator-bar-fill {
 	height: 100%;
 	width: 100%;
 	background-color: gray;

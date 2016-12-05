@@ -1,5 +1,5 @@
 /**
- *
+ * @class Ext.Widget
  */
 Ext.define('Ext.overrides.Widget', {
     override: 'Ext.Widget',
@@ -21,10 +21,6 @@ Ext.define('Ext.overrides.Widget', {
 
     config: {
         renderTo: null
-    },
-
-    cachedConfig: {
-        baseCls: Ext.baseCSSPrefix + 'widget'
     },
 
     constructor: function(config) {
@@ -123,8 +119,7 @@ Ext.define('Ext.overrides.Widget', {
     },
 
     onAdded: function (container, pos, instanced) {
-        var me = this,
-            inheritedState = me.inheritedState;
+        var me = this;
 
         me.ownerCt = container;
 
@@ -198,6 +193,24 @@ Ext.define('Ext.overrides.Widget', {
     isLayoutChild: function(candidate) {
         var ownerCt = this.ownerCt;
         return ownerCt ? (ownerCt === candidate || ownerCt.isLayoutChild(candidate)) : false;
+    },
+
+    privates: {
+        doAddListener: function(name, fn, scope, options, order, caller, manager) {
+            if (name == 'painted' || name == 'resize') {
+                this.element.doAddListener(name, fn, scope || this, options, order);
+            }
+
+            this.callParent([name, fn, scope, options, order, caller, manager]);
+        },
+
+        doRemoveListener: function(name, fn, scope) {
+            if (name == 'painted' || name == 'resize') {
+                this.element.doRemoveListener(name, fn, scope);
+            }
+
+            this.callParent([name, fn, scope]);
+        }
     }
 
 }, function(Cls) {

@@ -52,7 +52,6 @@
  * @singleton
  * @alternateClassName Ext.Direct
  */
-
 Ext.define('Ext.direct.Manager', {
     singleton: true,
 
@@ -457,6 +456,47 @@ Ext.define('Ext.direct.Manager', {
         }
         
         return resolved || null;
+    },
+        
+    /**
+     * @private
+     * Iterate over an API object containing function names and resolve Direct functions.
+     *
+     * @param {Object} api API object
+     * @param {Ext.Base} caller The object calling
+     *
+     * @return {Object} The API object with each property resolved to a Direct function.
+     */
+    resolveApi: function(api, caller) {
+        var prefix, action, method, fullName, fn;
+        
+        prefix = api && api.prefix;
+        
+        if (prefix && prefix.substr(prefix.length - 1) !== '.') {
+            prefix += '.';
+        }
+        
+        for (action in api) {
+            method = api[action];
+            
+            if (action !== 'prefix' && typeof method !== 'function') {
+                fullName = (prefix || '') + method;
+                fn = this.parseMethod(fullName);
+                
+                if (typeof fn === 'function') {
+                    api[action] = fn;
+                }
+                //<debug>
+                else {
+                    Ext.raise("Cannot resolve Direct API method '" + fullName + "' for " + action +
+                              " action in " + caller.$className + " instance with id: " +
+                              (caller.id != null ? caller.id : 'unknown'));
+                }
+                //</debug>
+            }
+        }
+        
+        return api;
     },
     
     privates: {

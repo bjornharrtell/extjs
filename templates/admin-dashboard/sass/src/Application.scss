@@ -1,0 +1,5 @@
+// iOS native app status bar does not take up space, so we need to pad out the application by 20px
+// in order to bring the app below it.
+body.x-ios.x-webview.x-portrait {
+  margin-top: 20px;
+}

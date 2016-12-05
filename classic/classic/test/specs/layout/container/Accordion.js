@@ -105,20 +105,6 @@ describe("Ext.layout.container.Accordion", function() {
                 expectExpanded(1);
             });
 
-            it("should be able to expand items that were added dynamically", function() {
-                makeCt([{
-                    title: 'Default'
-                }]);
-                var c = new Ext.panel.Panel({
-                    title: 'Dynamic'
-                });
-                ct.add(c);
-                c.expand();
-                c.collapse();
-                expectExpanded(0);
-                expectCollapsed(1);
-            });
-
             it("should not expand other items when adding", function() {
                 makeCt([{
                     title: 'Expanded'
@@ -847,9 +833,6 @@ describe("Ext.layout.container.Accordion", function() {
     });
     
     describe("ARIA attributes", function() {
-        var expectAria = jasmine.expectAriaAttr,
-            expectNoAria = jasmine.expectNoAriaAttr;
-        
         function makeSuite(name, animate, options) {
             describe(name + ", animate: " + !!animate, function() {
                 var ct, foo, bar, pinTool, closeTool,
@@ -870,7 +853,7 @@ describe("Ext.layout.container.Accordion", function() {
                         
                         layout: {
                             type: 'accordion',
-                            animate: animate
+                            animate: !!animate
                         },
                         items: [{
                             title: 'foo',
@@ -922,148 +905,148 @@ describe("Ext.layout.container.Accordion", function() {
                 
                 describe("container", function() {
                     it("should have presentation role", function() {
-                        expectAria(ct, 'role', 'presentation');
+                        expect(ct).toHaveAttr('role', 'presentation');
                     });
-            
+                    
                     describe("innerCt", function() {
                         it("should have tablist role", function() {
-                            expectAria(ct.layout.innerCt, 'role', 'tablist');
+                            expect(ct.layout.innerCt).toHaveAttr('role', 'tablist');
                         });
-                
+                        
                         it("should have aria-multiselectable", function() {
-                            expectAria(ct.layout.innerCt, 'aria-multiselectable', 'true');
+                            expect(ct.layout.innerCt).toHaveAttr('aria-multiselectable', 'true');
                         });
                     });
                 });
-        
+                
                 describe("foo panel", function() {
                     it("should have presentation role on main el", function() {
-                        expectAria(foo.el, 'role', 'presentation');
+                        expect(foo.el).toHaveAttr('role', 'presentation');
                     });
-            
+                    
                     describe("header", function() {
                         describe("title", function() {
                             it("should have tab role", function() {
-                                expectAria(foo.header.titleCmp, 'role', 'tab');
+                                expect(foo.header.titleCmp).toHaveAttr('role', 'tab');
                             });
-                
+                            
                             it("should have tabindex", function() {
                                 expect(foo.header.titleCmp.ariaEl.isTabbable()).toBe(true);
                             });
-                    
+                            
                             it("should have aria-expanded", function() {
-                                expectAria(foo.header.titleCmp, 'aria-expanded', !foo.collapsed + '');
+                                expect(foo.header.titleCmp).toHaveAttr('aria-expanded', !foo.collapsed + '');
                             });
                         });
-                
+                        
                         describe("collapse tool", function() {
                             it("should have presentation role", function() {
-                                expectAria(foo.collapseTool, 'role', 'presentation');
+                                expect(foo.collapseTool).toHaveAttr('role', 'presentation');
                             });
-                    
+                            
                             it("should not be tabbable", function() {
                                 expect(foo.collapseTool.el.isTabbable()).toBe(false);
                             });
-                    
+                            
                             it("should not be focusable, either", function() {
                                 expect(foo.collapseTool.isFocusable()).toBe(false);
                             });
                         });
-                
+                        
                         describe("pin tool", function() {
                             it("should have button role", function() {
-                                expectAria(pinTool, 'role', 'button');
+                                expect(pinTool).toHaveAttr('role', 'button');
                             });
-                    
+                            
                             it("should be tabbable", function() {
                                 expect(pinTool.el.isTabbable()).toBe(true);
                             })
                         });
                     });
-            
+                    
                     describe("body", function() {
                         it("should have tabpanel role", function() {
-                            expectAria(foo.body, 'role', 'tabpanel');
+                            expect(foo.body).toHaveAttr('role', 'tabpanel');
                         });
-                
+                        
                         it("should be aria-labelledby the header title", function() {
-                            expectAria(foo.body, 'aria-labelledby', foo.header.titleCmp.id);
+                            expect(foo.body).toHaveAttr('aria-labelledby', foo.header.titleCmp.id);
                         });
-                
+                        
                         it("should have aria-hidden", function() {
-                            expectAria(foo.body, 'aria-hidden', !!foo.collapsed + '');
+                            expect(foo.body).toHaveAttr('aria-hidden', !!foo.collapsed + '');
                         });
-                
+                        
                         it("should not have tabindex", function() {
-                            expectNoAria(foo.body, 'tabIndex');
+                            expect(foo.body).not.toHaveAttr('tabIndex');
                         });
                     });
                 });
-        
+                
                 describe("bar panel", function() {
                     it("should have presentation role on main el", function() {
-                        expectAria(bar.el, 'role', 'presentation');
+                        expect(bar.el).toHaveAttr('role', 'presentation');
                     });
-            
+                    
                     describe("header", function() {
                         describe("title", function() {
                             it("should have tab role", function() {
-                                expectAria(bar.header.titleCmp, 'role', 'tab');
+                                expect(bar.header.titleCmp).toHaveAttr('role', 'tab');
                             });
-                
+                            
                             it("should have tabindex", function() {
                                 expect(bar.header.titleCmp.ariaEl.isTabbable()).toBe(true);
                             });
-                    
+                            
                             it("should have aria-expanded", function() {
-                                expectAria(bar.header.titleCmp, 'aria-expanded', !bar.collapsed + '');
+                                expect(bar.header.titleCmp).toHaveAttr('aria-expanded', !bar.collapsed + '');
                             });
                         });
-                
+                        
                         describe("collapse tool", function() {
                             it("should have presentation role", function() {
-                                expectAria(bar.collapseTool, 'role', 'presentation');
+                                expect(bar.collapseTool).toHaveAttr('role', 'presentation');
                             });
-                    
+                            
                             it("should not be tabbable", function() {
                                 expect(bar.collapseTool.el.isTabbable()).toBe(false);
                             });
-                    
+                            
                             it("should not be focusable, either", function() {
                                 expect(bar.collapseTool.isFocusable()).toBe(false);
                             });
                         });
-                
+                        
                         describe("close tool", function() {
                             it("should have presentation role", function() {
-                                expectAria(closeTool, 'role', 'presentation');
+                                expect(closeTool).toHaveAttr('role', 'presentation');
                             });
-                    
+                            
                             it("should not be tabbable", function() {
                                 expect(closeTool.ariaEl.isTabbable()).toBe(false);
                             });
-                    
+                            
                             it("should not be focusable, either", function() {
                                 expect(closeTool.ariaEl.isFocusable()).toBe(false);
                             });
                         });
                     });
-            
+                    
                     describe("body", function() {
                         it("should have tabpanel role", function() {
-                            expectAria(bar.body, 'role', 'tabpanel');
+                            expect(bar.body).toHaveAttr('role', 'tabpanel');
                         });
-                
+                        
                         it("should be aria-labelledby the header title", function() {
-                            expectAria(bar.body, 'aria-labelledby', bar.header.titleCmp.id);
+                            expect(bar.body).toHaveAttr('aria-labelledby', bar.header.titleCmp.id);
                         });
-                
-                        it("should have aria-hidden", function() {
-                            expectAria(bar.body, 'aria-hidden', !!bar.collapsed + '');
+                        
+                        it("should have aria-hidden attribute", function() {
+                            expect(bar.body).toHaveAttr('aria-hidden', !!bar.collapsed + '');
                         });
-                
+                        
                         it("should not have tabindex", function() {
-                            expectNoAria(bar.body, 'tabIndex');
+                            expect(bar.body).not.toHaveAttr('tabIndex');
                         });
                     });
                 });
@@ -1163,7 +1146,7 @@ describe("Ext.layout.container.Accordion", function() {
                     collapseSpy = expandSpy = null;
                 });
                 
-                describe("pointer interaction", function() {
+                describe("pointer", function() {
                     describe("title collapse", function() {
                         beforeEach(function() {
                             runs(function() {
@@ -1227,7 +1210,7 @@ describe("Ext.layout.container.Accordion", function() {
                     });
                 });
                 
-                describe("keyboard interaction", function() {
+                describe("keyboard", function() {
                     var fooTitle, barTitle;
                     
                     beforeEach(function() {
@@ -1252,6 +1235,14 @@ describe("Ext.layout.container.Accordion", function() {
                                 
                                 expectFocused(fooTitle);
                             });
+                            
+                            it("should not wrap over when accordionWrapOver == false", function() {
+                                bar.accordionWrapOver = false;
+                                
+                                asyncPressKey(barTitle, 'down');
+                                
+                                expectFocused(barTitle);
+                            });
                         });
 
                         describe("right arrow", function() {
@@ -1265,6 +1256,14 @@ describe("Ext.layout.container.Accordion", function() {
                                 asyncPressKey(barTitle, "right");
                                 
                                 expectFocused(fooTitle);
+                            });
+                            
+                            it("should not wrap over when accordionWrapOver == false", function() {
+                                bar.accordionWrapOver = false;
+                                
+                                asyncPressKey(barTitle, 'right');
+                                
+                                expectFocused(barTitle);
                             });
                         });
                         
@@ -1280,6 +1279,14 @@ describe("Ext.layout.container.Accordion", function() {
                                 
                                 expectFocused(barTitle);
                             });
+                            
+                            it("should not wrap over when accordionWrapOver == false", function() {
+                                foo.accordionWrapOver = false;
+                                
+                                asyncPressKey(fooTitle, 'up');
+                                
+                                expectFocused(fooTitle);
+                            });
                         });
 
                         describe("left arrow", function() {
@@ -1293,6 +1300,14 @@ describe("Ext.layout.container.Accordion", function() {
                                 asyncPressKey(fooTitle, 'left');
                                 
                                 expectFocused(barTitle);
+                            });
+                            
+                            it("should not wrap over when accordionWrapOver == false", function() {
+                                foo.accordionWrapOver = false;
+                                
+                                asyncPressKey(fooTitle, 'up');
+                                
+                                expectFocused(fooTitle);
                             });
                         });
                     });
@@ -1363,6 +1378,28 @@ describe("Ext.layout.container.Accordion", function() {
                                     expect(ct.items.length).toBe(1);
                                     expect(bar.destroyed).toBe(true);
                                 });
+                            });
+                        });
+                    });
+                    
+                    describe("within panel body", function() {
+                        describe("Ctrl-Up", function() {
+                            it("should go to foo title from foo input", function() {
+                                asyncPressKey(fooInnerInput, 'up', { ctrl: true });
+                                
+                                expectFocused(fooTitle);
+                            });
+                            
+                            it("should go to bar title from bar input", function() {
+                                runs(function() {
+                                    foo.collapse();
+                                });
+                                
+                                waitForSpy(collapseSpy);
+                                
+                                asyncPressKey(barInnerInput, 'up', { ctrl: true });
+                                
+                                expectFocused(barTitle);
                             });
                         });
                     });

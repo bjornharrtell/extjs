@@ -157,8 +157,8 @@ Ext.define('Ext.data.proxy.JsonP', {
      * Performs the read request to the remote domain. JsonP proxy does not actually create an Ajax request,
      * instead we write out a `<script>` tag based on the configuration of the internal Ext.data.Request object
      * @param {Ext.data.operation.Operation} operation The {@link Ext.data.operation.Operation Operation} object to execute
-     * @param {Function} callback A callback function to execute when the Operation has been completed
-     * @param {Object} scope The scope to execute the callback in
+     * @param {Function} operation.callback A callback function to execute when the Operation has been completed
+     * @param {Object} operation.scope The scope to execute the callback in
      */
     doRequest: function(operation) {
         //generate the unique IDs for this request
@@ -201,9 +201,9 @@ Ext.define('Ext.data.proxy.JsonP', {
      * See {@link #doRequest} for details.
      * @param {Ext.data.Request} request The Request object
      * @param {Ext.data.operation.Operation} operation The Operation being executed
-     * @param {Function} callback The callback function to be called when the request completes. This is usually the callback
+     * @param {Function} operation.callback The callback function to be called when the request completes. This is usually the callback
      * passed to doRequest
-     * @param {Object} scope The scope in which to execute the callback function
+     * @param {Object} operation.scope The scope in which to execute the callback function
      * @return {Function} The callback function
      */
     createRequestCallback: function(request, operation) {

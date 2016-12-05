@@ -1,74 +1,123 @@
 /**
- * An Action is a piece of reusable functionality that can be abstracted out of any particular component so that it
- * can be usefully shared among multiple components.  Actions let you share handlers, configuration options and UI
- * updates across any components that support the Action interface (primarily {@link Ext.toolbar.Toolbar},
- * {@link Ext.button.Button} and {@link Ext.menu.Menu} components).
+ * An Action encapsulates a shareable, reusable set of properties which define a "clickable"
+ * UI component such as a {@link Ext.button.Button button} or {@link Ext.menu.Item menu item},
+ * or {@link Ext.panel.Panel#tools panel header tool}, or an {@link Ext.grid.column.Action ActionColumn item}
+ * 
+ * Actions let you share handlers, configuration options and UI updates across any components
+ * which were created using the Action.
  *
- * Use a single Action instance as the config object for any number of UI Components which share the same configuration. The
+ * You do not have to create Action instances. They can be configured into Views
+ * using the {@link Ext.container.Container#actions actions} config.
+ *
+ * Use a reference to an Action as the config object for any number of UI Components which share the same configuration. The
  * Action not only supplies the configuration, but allows all Components based upon it to have a common set of methods
  * called at once through a single call to the Action.
  *
- * Any Component that is to be configured with an Action must also support
+ * Any Component that is to be configured with an Action may support
  * the following methods:
  *
- * - setText(string)
- * - setIconCls(string)
- * - setDisabled(boolean)
- * - setVisible(boolean)
- * - setHandler(function)
+ * - setText(String)
+ * - setIconCls(String)
+ * - setGlyph(String)
+ * - setDisabled(Boolean)
+ * - setVisible(Boolean)
+ * - setHandler(String)
  *
- * This allows the Action to control its associated Components.
+ * This allows the Action to control its associated Components. Use a
+ * {@link Ext.container.Container#getAction reference to an Action} to control
+ * all components created from that action.
  *
  * Example usage:
  *
- *     // Define the shared Action.  Each Component below will have the same
- *     // display text and icon, and will display the same message on click.
- *     var action = new Ext.Action({
- *         {@link #text}: 'Do something',
- *         {@link #handler}: function(){
- *             Ext.Msg.alert('Click', 'You did something.');
+ *     @example
+ *     Ext.define('ActionsExampleController', {
+ *         extend: 'Ext.app.ViewController',
+ *         alias: 'controller.actionsexample',
+ *
+ *         onOperationClick: function() {
+ *             Ext.Msg.alert('Click', 'Perform the operation');
  *         },
- *         {@link #iconCls}: 'do-something',
- *         {@link #itemId}: 'myAction'
+ *
+ *         onOperationToggle: function(btn, pressed) {
+ *             // The action controls all UI components created from it.
+ *             this.view.getAction('operation').setDisabled(pressed);
+ *         }
  *     });
  *
- *     var panel = new Ext.panel.Panel({
+ *     Ext.define('ActionsPanel', {
+ *         extend: 'Ext.panel.Panel',
+ *         controller: 'actionsexample',
+ *
  *         title: 'Actions',
  *         width: 500,
  *         height: 300,
+ *
+ *         // Define the shared Action.  Each Component created from these will
+ *         // have the same display text, icon and tooltip, and will invoke the
+ *         // same controller method on click.
+ *         actions: {
+ *             operation: {
+ *                 text: 'Do operation',
+ *                  handler: 'onOperationClick',
+ *                 glyph: 'xf005@FontAwesome',
+ *                 tooltip: 'Perform the operation'
+ *             },
+ *             disableOperation: {
+ *                 text: 'Disable operation',
+ *                 enableToggle: true,
+ *                 toggleHandler: 'onOperationToggle',
+ *                 tooltip: 'Disable the operation'
+ *             }
+ *         },
+ *
+ *         // Actions are interpreted as Buttons by this view.
+ *         // Other descendants such as Menus and Toolbars have
+ *         // their own defaults.
+ *         defaultActionType: 'button',
+ *
+ *         tools: [
+ *             '@operation'
+ *         ],
+ *
  *         tbar: [
  *             // Add the Action directly to a toolbar as a menu button
- *             action,
+ *             '@operation',
  *             {
  *                 text: 'Action Menu',
- *                 // Add the Action to a menu as a text item
- *                 menu: [action]
- *             }
+ *                 menu: [
+ *                     // Add the Action to a menu as a text item
+ *                     '@operation'
+ *                 ]
+ *             }, '@disableOperation'
  *         ],
+ *
+ *         bodyPadding: 10,
+ *         layout: {
+ *             type: 'vbox',
+ *             align: 'stretch'
+ *         },
  *         items: [
- *             // Add the Action to the panel body as a standard button
- *             new Ext.button.Button(action)
- *         ],
- *         renderTo: Ext.getBody()
+ *             // Add the Action to the panel body.
+ *             // defaultActionType will ensure it is converted to a Button.
+ *             '@operation'
+ *         ]
  *     });
  *
- *     // Change the text for all components using the Action
- *     action.setText('Something else');
- *
- *     // Reference an Action through a container using the itemId
- *     var btn = panel.getComponent('myAction');
- *     var aRef = btn.baseAction;
- *     aRef.setText('New text');
+ *     Ext.QuickTips.init();
+ *     new ActionsPanel({
+ *         renderTo: Ext.getBody()
+ *     });
  */
 Ext.define('Ext.Action', {
-
-    /* Begin Definitions */
-
-    /* End Definitions */
 
     /**
      * @cfg {String} [text='']
      * The text to set for all components configured by this Action.
+     */
+    /**
+     * @cfg {Number/String} glyph
+     * @inheritdoc Ext.panel.Header#glyph
+     * @since 6.2.0
      */
     /**
      * @cfg {String} [iconCls='']
@@ -85,7 +134,7 @@ Ext.define('Ext.Action', {
      * True to hide all components configured by this Action, false to show them.
      */
     /**
-     * @cfg {Function} handler
+     * @cfg {String/Function} handler
      * The function that will be invoked by each component tied to this Action
      * when the component's primary event is triggered.
      */
@@ -94,8 +143,9 @@ Ext.define('Ext.Action', {
      * See {@link Ext.Component}.{@link Ext.Component#itemId itemId}.
      */
     /**
-     * @cfg {Object} scope
-     * The scope (this reference) in which the {@link #handler} is executed.
+     * @cfg {Object} [scope]
+     * The scope (this reference) in which the {@link #handler} is executed
+     * if specified as a function instead of a named Controller method.
      * Defaults to the browser window.
      */
 
@@ -143,6 +193,16 @@ Ext.define('Ext.Action', {
     },
 
     /**
+     * Sets the {@link #Glyph glyph} for all components configured by this 
+     * Action.
+     * @param {String} glyph The CSS class supplying the icon image
+     */
+    setGlyph : function(glyph){
+        this.initialConfig.glyph = glyph;
+        this.callEach('setGlyph', [glyph]);
+    },
+
+    /**
      * Gets the icon CSS class currently used by all components configured by this Action.
      */
     getIconCls : function(){
@@ -154,9 +214,9 @@ Ext.define('Ext.Action', {
      * for {@link #enable} and {@link #disable}.
      * @param {Boolean} disabled True to disable the component, false to enable it
      */
-    setDisabled : function(v){
-        this.initialConfig.disabled = v;
-        this.callEach('setDisabled', [v]);
+    setDisabled : function(disabled){
+        this.initialConfig.disabled = disabled;
+        this.callEach('setDisabled', [disabled]);
     },
 
     /**
@@ -185,9 +245,9 @@ Ext.define('Ext.Action', {
      * for `{@link #hide}` and `{@link #show}`.
      * @param {Boolean} hidden True to hide the component, false to show it.
      */
-    setHidden : function(v){
-        this.initialConfig.hidden = v;
-        this.callEach('setVisible', [!v]);
+    setHidden : function(hidden){
+        this.initialConfig.hidden = hidden;
+        this.callEach('setVisible', [!hidden]);
     },
 
     /**
@@ -212,16 +272,17 @@ Ext.define('Ext.Action', {
     },
 
     /**
-     * Sets the function that will be called by each Component using this action when its primary event is triggered.
-     * @param {Function} fn The function that will be invoked by the action's components.  The function
-     * will be called with no arguments.
-     * @param {Object} scope The scope (this reference) in which the function is executed. Defaults to the Component
-     * firing the event.
+     * Sets the function that will be called by each Component using this action when its
+     * primary event (usually a click or tap) is triggered.
+     * @param {String/Function} handler The function that will be invoked by the action's components when clicked.
+     * See the `handler` config of the target component for the arguments passed.
+     * @param {Object} [scope] The scope (this reference) in which the function is executed. Defaults to an
+     * encapsulating {@link Ext.app.Controller Controller}, or the Component.
      */
-    setHandler : function(fn, scope){
-        this.initialConfig.handler = fn;
+    setHandler : function(handler, scope){
+        this.initialConfig.handler = handler;
         this.initialConfig.scope = scope;
-        this.callEach('setHandler', [fn, scope]);
+        this.callEach('setHandler', [handler, scope]);
     },
 
     /**

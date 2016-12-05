@@ -31,7 +31,5 @@ Ext.define('KitchenSink.util.Proxy', {
 Ext.define('KitchenSink.store.Speakers', {
     extend: 'Ext.data.Store',
 
-    config: {
-        model: 'KitchenSink.model.Speaker'
-    }
+    model: 'KitchenSink.model.Speaker'
 });

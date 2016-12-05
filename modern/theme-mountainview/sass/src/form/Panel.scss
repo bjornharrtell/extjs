@@ -2,17 +2,15 @@
  * @class Ext.form.Panel
  */
 
-// .x-form {
-//     .x-scroll-container {
-//         background-color: #d5dbe0;
-//     }
-// }
+.x-field {
+    .x-label-el {
+        @include label();
+        padding: $form-spacing;
+    }
 
-.x-form-label {
-    @include label();
-    padding: $form-spacing;
+    &.x-label-align-top .x-label-el {
+        border-bottom: 1px solid $base-color;
+    }
 }
 
-.x-label-align-top .x-form-label {
-	border-bottom: 1px solid $base-color;
-}
+

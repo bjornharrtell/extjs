@@ -11,9 +11,26 @@ describe('Ext.draw.Surface', function () {
             expect(surface.getItems().length).toEqual(1);
             surface.removeAll(true);
 
+            expect(surface.getItems().length).toEqual(0);
+
             surface.add([sprite, sprite]);
-            expect(surface.getItems().length).toEqual(1);
+            expect(surface.getItems().length).toEqual(0);
             surface.destroy();
+        });
+
+        it("should remove the sprite from the old surface", function () {
+            var surface1 = new Ext.draw.Surface({}),
+                surface2 = new Ext.draw.Surface({}),
+                sprite = new Ext.draw.sprite.Rect({});
+
+            surface1.add(sprite);
+            surface2.add(sprite);
+
+            expect(surface1.getItems().length).toEqual(0);
+            expect(surface2.getItems().length).toEqual(1);
+            expect(surface2.get(0)).toBe(sprite);
+
+            Ext.destroy(sprite, surface1, surface2);
         });
 
         it("should set the sprite's 'parent' and 'surface' configs to itself", function () {
@@ -151,10 +168,10 @@ describe('Ext.draw.Surface', function () {
             deadSprite.destroy();
 
             result = surface.remove(deadSprite);
-            expect(result).toEqual(deadSprite);
+            expect(result).toBe(deadSprite);
 
             result = surface.remove(deadSprite, true);
-            expect(result).toEqual(deadSprite);
+            expect(result).toBe(deadSprite);
 
             surface.destroy();
         });
@@ -174,7 +191,7 @@ describe('Ext.draw.Surface', function () {
 
             result = surface2.remove(sprite1, true);
             expect(result).toEqual(sprite1);
-            expect(result.isDestroyed).toBe(true);
+            expect(result.destroyed).toBe(true);
             expect(surface1.getItems().length).toBe(0);
 
             result = surface2.remove(sprite);
@@ -257,6 +274,27 @@ describe('Ext.draw.Surface', function () {
 
         it("should not be dirty upon construction", function () {
             expect(s1.getDirty()).toBe(false);
+        });
+
+        it("should be dirty when items are removed but surface is not destroyed", function () {
+            var sprite = new Ext.draw.sprite.Rect({});
+
+            s1.add(sprite);
+            s1.removeAll();
+
+            expect(s1.getDirty()).toBe(true);
+
+            s1.destroy();
+        });
+
+        it("should not be dirty when surface is destroyed", function () {
+            var sprite = new Ext.draw.sprite.Rect({});
+
+            s1.add(sprite);
+            s1.setDirty(false);
+            s1.destroy();
+            
+            expect(s1._dirty).toBe(false);           
         });
 
         it("should increment dirtyPredecessorCount of all successors (not just immediate) when set to true", function () {

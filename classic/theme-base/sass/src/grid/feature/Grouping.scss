@@ -18,6 +18,14 @@
     }
 }
 
+@if $include-rtl and $enable-font-icons {
+    .#{$prefix}rtl.#{$prefix}grid-view .#{$prefix}grid-group-title{
+        &:before {
+            right: 0;
+        }
+    }
+}
+
 .#{$prefix}grid-row-body-hidden, .#{$prefix}grid-group-collapsed {
     display: none;
 }

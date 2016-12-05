@@ -144,6 +144,8 @@
         <property name="app.sass.fashion" value="false"/>
         <property name="app.sass.rhino" value="false"/>
         <property name="app.sass.dynamic" value="false"/>
+        <property name="app.sass.generated.var" value="${app.sass.save}"/>
+
     </target>
     <target name="-after-init"/>
 
@@ -204,6 +206,7 @@
         <dirname property="build.bootstrap.metadata.dir" file="${build.bootstrap.metadata.path}"/>
 
         <x-get-relative-path from="${build.out.base.path}" to="${build.out.js.path}" property="build.classes.name"/>
+        <x-get-relative-path from="${build.out.base.path}" to="${build.out.framework.path}" property="build.framework.name"/>
         <x-get-relative-path from="${build.out.page.dir}" to="${build.out.microloader.path}" property="build.microloader.name"/>
         <x-get-relative-path from="${build.out.page.dir}" to="${build.out.manifest.path}" property="app.manifest.name"/>
         <x-get-relative-path from="${build.out.page.dir}" to="${build.out.appCache.path}" property="build.out.appCache.name"/>
@@ -331,6 +334,15 @@
 
         <property name="exclude.boot" value="#skip"/>
 
+        <condition property="enable.split.framework" value="true">
+            <x-is-true value="${enable.split.mode}"/>
+        </condition>
+        <condition property="enable.split.framework" value="true">
+            <x-is-true value="${app.output.framework.enable}"/>
+        </condition>
+        <property name="enable.split.framework" value="false"/>
+
+
         <x-compile refid="${compiler.ref.id}"
                    dir="${app.dir}"
                    initOnly="true"
@@ -341,7 +353,7 @@
                 -keepTempDir=${build.compile.temp.dir.keep}
                 -options=${build.options}
                 load-app
-                    -splitFramework=${enable.split.mode}
+                    -splitFramework=${enable.split.framework}
                     -frameworkFile=${build.framework.name}
                     -jsBundleFile=${build.classes.name}
                     -cssBundleFile=${internal.app.css.rel}
@@ -387,13 +399,16 @@
         </x-compile>
     </target>
     
-    <target name="-init-web-server">
+    <target name="-init-web-server" unless="skip.web.start">
         <x-server port="${build.web.port}" 
                   portPropertyName="build.web.port"
                   defaultSassFile="${app.out.scss}"
                   defaultCssFile="${app.out.css}"
                   refid="app.web.server"
-                  saveVariablesProp="app.sass.save">
+                  saveVariablesProp="app.sass.generated.var"
+                  uiDirProp="app.sass.generated.src"
+                  sassNamespaceProp="app.sass.namespace"
+                  j2eeMode="${use.webxml}">
             <mapping name="~cmd" path="${cmd.dir}"/>
             <mapping name="" path="${build.web.root}"/>
         </x-server>

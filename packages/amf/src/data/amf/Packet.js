@@ -806,12 +806,14 @@ Ext.define('Ext.data.amf.Packet', function() {
         },
 
         /**
+         * @method
          * Returns undefined.  Used for reading the undefined type
          * @private
          */
         readUndefined: Ext.emptyFn,
 
         /**
+         * @method
          * Returns undefined.  Used for reading the unsupported type
          * @private
          */
@@ -967,7 +969,6 @@ Ext.define('Ext.data.amf.Packet', function() {
          * Converters used in converting specific typed Flex classes to JavaScript usable form.
          * @private
          */
-
         converters: {
             'flex.messaging.io.ArrayCollection': function(obj) {
                 return obj.source || []; // array collections have a source var that contains the actual data

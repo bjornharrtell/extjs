@@ -1,4 +1,4 @@
-.x-toggle {
+.x-toggleslider {
     height: 2.15em;
     @include border-radius(1.05em);
     width: 65px;
@@ -12,7 +12,7 @@
         line-height: 32px;
     }
 
-    &.x-item-disabled {
+    &.x-disabled {
         &:before {
             opacity: .8;
         }
@@ -28,14 +28,14 @@
     }
 }
 
-.x-toggle-on {
+.x-toggleslider.x-on {
     background-color: $base-color;
     .x-thumb:after {
         content: "|";
     }
 }
 
-.x-toggle-off {
+.x-toggleslider.x-off {
     .x-thumb:after {
         content: "O";
         line-height: 1.9em;

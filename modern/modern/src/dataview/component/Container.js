@@ -80,6 +80,28 @@ Ext.define('Ext.dataview.component.Container', {
      * @param {Ext.event.Event} e The event object
      */
 
+    /**
+     * @event mouseover
+     * Fires whenever the a mouseover event is received on an item
+     * @param {Ext.dataview.component.Container} this
+     * @param {Ext.dataview.component.DataItem} item The item
+     * @param {Number} index The index of the item
+     * @param {Ext.event.Event} e The event object
+     */
+
+    /**
+     * @event mouseout
+     * Fires whenever a mouseout event is received on an item
+     * @param {Ext.dataview.component.Container} this
+     * @param {Ext.dataview.component.DataItem} item The item
+     * @param {Number} index The index of the item
+     * @param {Ext.event.Event} e The event object
+     */
+
+    classCls: Ext.baseCSSPrefix + 'dataview-container',
+
+    itemSelector: '.' + Ext.baseCSSPrefix + 'dataview-container > .' +  Ext.baseCSSPrefix + 'dataitem',
+
     constructor: function() {
         this.itemCache = [];
         this.callParent(arguments);
@@ -98,7 +120,9 @@ Ext.define('Ext.dataview.component.Container', {
             singletap: 'onItemSingleTap',
             doubletap: 'onItemDoubleTap',
             swipe: 'onItemSwipe',
-            delegate: '> .' + Ext.baseCSSPrefix + 'data-item',
+            mouseover: 'onItemMouseOver',
+            mouseout: 'onItemMouseOut',
+            delegate: '> .' + Ext.baseCSSPrefix + 'dataitem',
             scope: this
         });
     },
@@ -180,6 +204,22 @@ Ext.define('Ext.dataview.component.Container', {
         me.fireEvent('itemswipe', me, item, me.indexOf(item), e);
     },
 
+    onItemMouseOver: function(e) {
+        var me = this,
+            target = e.currentTarget,
+            item = Ext.getCmp(target.id);
+
+        me.fireEvent('itemmouseover', me, item, me.indexOf(item), e);
+    },
+
+    onItemMouseOut: function(e) {
+        var me = this,
+            target = e.currentTarget,
+            item = Ext.getCmp(target.id);
+
+        me.fireEvent('itemmouseout', me, item, me.indexOf(item), e);
+    },
+
     moveItemsToCache: function(from, to) {
         var me = this,
             dataview = me.dataview,
@@ -187,8 +227,8 @@ Ext.define('Ext.dataview.component.Container', {
             items = me.getViewItems(),
             itemCache = me.itemCache,
             cacheLn = itemCache.length,
-            pressedCls = dataview.getPressedCls(),
-            selectedCls = dataview.getSelectedCls(),
+            pressedCls = dataview.pressedCls,
+            selectedCls = dataview.selectedCls,
             i = to - from,
             item;
 
@@ -301,7 +341,7 @@ Ext.define('Ext.dataview.component.Container', {
         this.moveItemsFromCache([record]);
     },
 
-    destroy: function() {
+    doDestroy: function() {
         var me = this,
             itemCache = me.itemCache,
             ln = itemCache.length,

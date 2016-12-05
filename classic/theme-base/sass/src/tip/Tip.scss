@@ -10,7 +10,7 @@
 
 .#{$prefix}tip-anchor {
     position: absolute;
-    overflow: hidden;
     border-style: solid;
+    height: 0;
+    width: 0;
 }
-

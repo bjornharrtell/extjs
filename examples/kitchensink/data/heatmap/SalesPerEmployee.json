@@ -1,0 +1,252 @@
+[
+  {
+    "employee": 0,
+    "day": 0,
+    "sales": 30
+  },
+  {
+    "employee": 0,
+    "day": 1,
+    "sales": 2
+  },
+  {
+    "employee": 0,
+    "day": 2,
+    "sales": 47
+  },
+  {
+    "employee": 0,
+    "day": 3,
+    "sales": 19
+  },
+  {
+    "employee": 0,
+    "day": 4,
+    "sales": 38
+  },
+  {
+    "employee": 1,
+    "day": 0,
+    "sales": 36
+  },
+  {
+    "employee": 1,
+    "day": 1,
+    "sales": 23
+  },
+  {
+    "employee": 1,
+    "day": 2,
+    "sales": 36
+  },
+  {
+    "employee": 1,
+    "day": 3,
+    "sales": 26
+  },
+  {
+    "employee": 1,
+    "day": 4,
+    "sales": 44
+  },
+  {
+    "employee": 2,
+    "day": 0,
+    "sales": 44
+  },
+  {
+    "employee": 2,
+    "day": 1,
+    "sales": 19
+  },
+  {
+    "employee": 2,
+    "day": 2,
+    "sales": 24
+  },
+  {
+    "employee": 2,
+    "day": 3,
+    "sales": 46
+  },
+  {
+    "employee": 2,
+    "day": 4,
+    "sales": 28
+  },
+  {
+    "employee": 3,
+    "day": 0,
+    "sales": 12
+  },
+  {
+    "employee": 3,
+    "day": 1,
+    "sales": 34
+  },
+  {
+    "employee": 3,
+    "day": 2,
+    "sales": 27
+  },
+  {
+    "employee": 3,
+    "day": 3,
+    "sales": 7
+  },
+  {
+    "employee": 3,
+    "day": 4,
+    "sales": 20
+  },
+  {
+    "employee": 4,
+    "day": 0,
+    "sales": 13
+  },
+  {
+    "employee": 4,
+    "day": 1,
+    "sales": 31
+  },
+  {
+    "employee": 4,
+    "day": 2,
+    "sales": 15
+  },
+  {
+    "employee": 4,
+    "day": 3,
+    "sales": 41
+  },
+  {
+    "employee": 4,
+    "day": 4,
+    "sales": 38
+  },
+  {
+    "employee": 5,
+    "day": 0,
+    "sales": 7
+  },
+  {
+    "employee": 5,
+    "day": 1,
+    "sales": 33
+  },
+  {
+    "employee": 5,
+    "day": 2,
+    "sales": 7
+  },
+  {
+    "employee": 5,
+    "day": 3,
+    "sales": 48
+  },
+  {
+    "employee": 5,
+    "day": 4,
+    "sales": 25
+  },
+  {
+    "employee": 6,
+    "day": 0,
+    "sales": 13
+  },
+  {
+    "employee": 6,
+    "day": 1,
+    "sales": 10
+  },
+  {
+    "employee": 6,
+    "day": 2,
+    "sales": 18
+  },
+  {
+    "employee": 6,
+    "day": 3,
+    "sales": 10
+  },
+  {
+    "employee": 6,
+    "day": 4,
+    "sales": 5
+  },
+  {
+    "employee": 7,
+    "day": 0,
+    "sales": 7
+  },
+  {
+    "employee": 7,
+    "day": 1,
+    "sales": 41
+  },
+  {
+    "employee": 7,
+    "day": 2,
+    "sales": 43
+  },
+  {
+    "employee": 7,
+    "day": 3,
+    "sales": 43
+  },
+  {
+    "employee": 7,
+    "day": 4,
+    "sales": 25
+  },
+  {
+    "employee": 8,
+    "day": 0,
+    "sales": 41
+  },
+  {
+    "employee": 8,
+    "day": 1,
+    "sales": 43
+  },
+  {
+    "employee": 8,
+    "day": 2,
+    "sales": 28
+  },
+  {
+    "employee": 8,
+    "day": 3,
+    "sales": 37
+  },
+  {
+    "employee": 8,
+    "day": 4,
+    "sales": 4
+  },
+  {
+    "employee": 9,
+    "day": 0,
+    "sales": 3
+  },
+  {
+    "employee": 9,
+    "day": 1,
+    "sales": 31
+  },
+  {
+    "employee": 9,
+    "day": 2,
+    "sales": 37
+  },
+  {
+    "employee": 9,
+    "day": 3,
+    "sales": 44
+  },
+  {
+    "employee": 9,
+    "day": 4,
+    "sales": 41
+  }
+]

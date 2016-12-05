@@ -72,7 +72,7 @@ function initializeHospitalDropZone(v) {
 
     function allowPatient(hospital, name) {
         var patients = hospital.get('patients');
-        return !patients || patients.indexOf(name) === -1;
+        return !patients || Ext.Array.indexOf(patients, name) === -1;
     }
 
     grid.dropZone = Ext.create('Ext.dd.DropZone', v.el, {
@@ -112,8 +112,6 @@ function initializeHospitalDropZone(v) {
             var rowBody = Ext.fly(target).findParent('.x-grid-rowbody-tr', null, false),
                 mainRow = rowBody.previousSibling,
                 hospital = gridView.getRecord(mainRow),
-                targetEl = Ext.get(target),
-                html = targetEl.dom.innerHTML,
                 patients = hospital.get('patients'),
                 name = data.patientData.name;
 
@@ -123,8 +121,7 @@ function initializeHospitalDropZone(v) {
                     hospital.set('patients', patients);
                 }
                 patients.push(name);
-                html = patients.join(', ');
-                targetEl.update(html);
+                Ext.fly(rowBody).down('.x-grid-rowbody').update(patients.join(', '));
                 Ext.Msg.alert('Drop gesture', 'Dropped patient ' + name +
                     ' on hospital ' + hospital.get('name'));
                 
@@ -214,7 +211,7 @@ Ext.onReady(function() {
     var patientView = Ext.create('Ext.view.View', {
         cls: 'patient-view',
         tpl: '<tpl for=".">' +
-                '<div class="patient-source"><table><tbody>' +
+                '<div class="patient-source x-unselectable"><table><tbody>' +
                     '<tr><td class="patient-label">Name</td><td class="patient-name">{name}</td></tr>' +
                     '<tr><td class="patient-label">Address</td><td class="patient-name">{address}</td></tr>' +
                     '<tr><td class="patient-label">Telephone</td><td class="patient-name">{telephone}</td></tr>' +
@@ -281,10 +278,6 @@ Ext.onReady(function() {
         }],
         features: [{
             ftype:'rowbody',
-            setup: function(rows, rowValues) {
-                Ext.grid.feature.RowBody.prototype.setup.apply(this, arguments);
-                rowValues.rowBodyDivCls = 'hospital-target';
-            },
             getAdditionalData: function(data) {
                 var patients = data.patients,
                     html;
@@ -294,7 +287,8 @@ Ext.onReady(function() {
                     html = 'Drop patients here';
                 }
                 return {
-                    rowBody: html
+                    rowBody: html,
+                    rowBodyCls: 'hospital-target'
                 };
             }
         }],

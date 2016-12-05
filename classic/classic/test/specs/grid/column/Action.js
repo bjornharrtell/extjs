@@ -1,8 +1,16 @@
+/* global Ext, jasmine, expect, spyOn */
+
 describe("Ext.grid.column.Action", function(){
     var store, grid, view, actionColumn,
         synchronousLoad = true,
         proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
-        loadStore;
+        loadStore = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
     
     function getCell(rowIdx, colIdx) {
         return grid.getView().getCellInclusive({
@@ -11,13 +19,21 @@ describe("Ext.grid.column.Action", function(){
         });
     }
     
+    function getActionItem(rowIdx, colIdx, itemIdx) {
+        var cell = getCell(rowIdx || 0, colIdx || 1);
+        
+        var items = cell.select('.' + Ext.grid.column.Action.prototype.actionIconCls);
+        
+        return items.item(itemIdx || 0);
+    }
+    
     function triggerAction(type, row, colIdx) {
         var cell = getCell(row || 0, colIdx || 1);
         jasmine.fireMouseEvent(cell.down('.' + Ext.grid.column.Action.prototype.actionIconCls, true), type || 'click');
         return cell;
     }
 
-    function makeGrid(gridCfg, storeCfg) {
+    function makeGrid(gridCfg, storeCfg, actionHandler) {
         store = new Ext.data.Store(Ext.apply({
             fields: ['text', 'actionCls'],
             data: [{
@@ -38,7 +54,7 @@ describe("Ext.grid.column.Action", function(){
                 header: 'Action',
                 renderer: Ext.emptyFn,
                 items: [{
-                    handler: Ext.emptyFn,
+                    handler: actionHandler|| Ext.emptyFn,
                     isDisabled: Ext.emptyFn
                 }]
             }],
@@ -51,13 +67,7 @@ describe("Ext.grid.column.Action", function(){
 
     beforeEach(function() {
         // Override so that we can control asynchronous loading
-        loadStore = Ext.data.ProxyStore.prototype.load = function() {
-            proxyStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        };
+        Ext.data.ProxyStore.prototype.load = loadStore;
     });
 
     afterEach(function() {
@@ -65,6 +75,107 @@ describe("Ext.grid.column.Action", function(){
         Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
 
         store = grid = view = actionColumn = Ext.destroy(grid);
+    });
+
+    describe('Actioning items from actionable mode', function() {
+        var handlerSpy, actionableSpy, navModel, cellEl, actionItemEl, msgBox;
+        
+        beforeEach(function() {
+            handlerSpy = jasmine.createSpy('action handler');
+            handlerSpy.andCallFake(function() {
+                msgBox = Ext.MessageBox.alert('Title', 'Message');
+            });
+            
+            makeGrid({
+                columns: [{
+                    dataIndex: 'text',
+                    header: 'Text'
+                }, {
+                    xtype: 'actioncolumn',
+                    dataIndex: 'actionCls',
+                    header: 'Action',
+                    renderer: Ext.emptyFn,
+                    items: [{
+                        handler: handlerSpy,
+                        isDisabled: Ext.emptyFn
+                    }, {
+                        handler: Ext.emptyFn,
+                        isDisabled: Ext.emptyFn
+                    }]
+                }]
+            });
+            
+            actionableSpy = spyOn(grid, 'setActionableMode').andCallThrough();
+
+            navModel = grid.getNavigationModel();
+            cellEl = grid.getView().getCell(0, 1);
+            
+            // This is a bit hacky but so is Action column :(
+            actionItemEl = cellEl.down('[role=button]', true);
+        });
+        
+        afterEach(function() {
+            if (msgBox) {
+                msgBox.hide();
+            }
+            
+            handlerSpy = actionableSpy = navModel = cellEl = actionItemEl = msgBox = null;
+        });
+        
+        it('should refocus the action item upon focus reversion when action item focuses outwards', function() {
+            // Navigate and enter actionable mode
+            pressKey(cellEl, 'enter');
+            
+            waitForSpy(actionableSpy);
+            
+            runs(function() {
+                // Check that worked
+                expect(grid.actionableMode).toBe(true);
+                expect(Ext.Element.getActiveElement()).toBe(actionItemEl);
+            });
+
+            // Activate the item.
+            pressKey(actionItemEl, 'space');
+            
+            waitForSpy(handlerSpy);
+            
+            runs(function() {
+                expect(msgBox).toBeDefined();
+            });
+
+            // MsgBox window must contains focus
+            waitsFor(function() {
+                return msgBox.isVisible() === true && msgBox.containsFocus;
+            });
+
+            runs(function () {
+                expect(Ext.getCmp(msgBox.id)).toBe(msgBox);
+
+                // Hide the message box
+                msgBox.hide();
+            });
+
+            waitAWhile();
+
+            // Should revert focus back into grid in same mode that it left.
+            waitsFor(function() {
+                return grid.actionableMode;
+            });
+            
+            runs(function() {
+                // SHould revert focus back into grid in same mode that it left.
+                expect(grid.actionableMode).toBe(true);
+            });
+
+            // Focus should have reverted back to the action item
+            waitsFor(function() {
+                return Ext.Element.getActiveElement() === actionItemEl;
+            });
+            
+            runs(function() {
+                expect(document.activeElement).toBe(actionItemEl);
+            });
+        });
     });
 
     describe('events', function () {
@@ -189,7 +300,7 @@ describe("Ext.grid.column.Action", function(){
 
             triggerAction();
             expect(grid.getSelectionModel().isSelected(store.first())).toBe(true);
-            var pos = grid.view.getNavigationModel().getPosition();
+            var pos = grid.view.actionPosition;
             expect(pos.record).toBe(store.first());
             expect(pos.column).toBe(grid.down('actioncolumn'));
         });
@@ -229,6 +340,18 @@ describe("Ext.grid.column.Action", function(){
         afterEach(function() {
             scope1 = scope2 = col = null;
         });
+
+        it("should not throw an exception if the grid is destroyed in the handler", function() {
+            makeHandlerGrid({
+                handler: function() {
+                    grid.destroy();
+                }
+            });
+
+            expect(function() {
+                triggerAction();
+            }).not.toThrow();
+         });
         
         describe("handler priority", function() {
             it("should use a handler on the column", function() {
@@ -589,6 +712,250 @@ describe("Ext.grid.column.Action", function(){
 
                     expect(item.isDisabled.callCount).toBe(1);
                 });
+            });
+        });
+    });
+    
+    describe("ARIA", function() {
+        describe("tabIndex", function() {
+            it("should default to 0", function() {
+                makeGrid();
+                
+                var item = getActionItem(0, 1);
+                
+                expect(item).toHaveAttr('tabIndex', '0');
+            });
+            
+            it("should be overridable via column config", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        itemTabIndex: -1,
+                        items: [{}, {}]
+                    }]
+                });
+                
+                var item0 = getActionItem(0, 1, 0),
+                    item1 = getActionItem(0, 1, 1);
+                
+                expect(item0).toHaveAttr('tabIndex', '-1');
+                expect(item0).toHaveAttr('tabIndex', '-1');
+            });
+            
+            it("should be removable via column config", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        itemTabIndex: null,
+                        items: [{}, {}]
+                    }]
+                });
+                
+                var item0 = getActionItem(0, 1, 0),
+                    item1 = getActionItem(0, 1, 1);
+                
+                expect(item0).not.toHaveAttr('tabIndex');
+                expect(item0).not.toHaveAttr('tabIndex');
+            });
+            
+            it("should be overridable via item config", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        items: [{
+                            tabIndex: -1
+                        }]
+                    }]
+                });
+                
+                var item = getActionItem(0, 1);
+                
+                expect(item).toHaveAttr('tabIndex', '-1');
+            });
+            
+            it("should be removable via item config", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        items: [{
+                            tabIndex: null
+                        }]
+                    }]
+                });
+                
+                var item = getActionItem(0, 1);
+                
+                expect(item).not.toHaveAttr('tabIndex');
+            });
+            
+            it("should be overridable for multiple items separately", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        items: [{
+                            tabIndex: null
+                        }, {
+                            tabIndex: 42
+                        }, {
+                            tabIndex: -1
+                        }]
+                    }]
+                });
+                
+                var item0 = getActionItem(0, 1, 0),
+                    item1 = getActionItem(0, 1, 1),
+                    item2 = getActionItem(0, 1, 2);
+                
+                expect(item0).not.toHaveAttr('tabIndex');
+                expect(item1).toHaveAttr('tabIndex', '42');
+                expect(item2).toHaveAttr('tabIndex', '-1');
+            });
+        });
+        
+        describe("role", function() {
+            it("should default to 'button'", function() {
+                makeGrid();
+                
+                var item = getActionItem(0, 1);
+                
+                expect(item).toHaveAttr('role', 'button');
+            });
+            
+            it("should be overridable via column config", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        itemAriaRole: 'bork',
+                        items: [{}, {}]
+                    }]
+                });
+                
+                var item0 = getActionItem(0, 1, 0),
+                    item1 = getActionItem(0, 1, 1);
+                
+                expect(item0).toHaveAttr('role', 'bork');
+                expect(item0).toHaveAttr('role', 'bork');
+            });
+            
+            it("should be removable via column config", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        itemAriaRole: null,
+                        itemTabIndex: null,
+                        items: [{}, {}]
+                    }]
+                });
+                
+                var item0 = getActionItem(0, 1, 0),
+                    item1 = getActionItem(0, 1, 1);
+                
+                expect(item0).toHaveAttr('role', 'presentation');
+                expect(item0).toHaveAttr('role', 'presentation');
+            });
+            
+            it("should be overridable via item config", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        items: [{
+                            ariaRole: 'blerg'
+                        }]
+                    }]
+                });
+                
+                var item = getActionItem(0, 1);
+                
+                expect(item).toHaveAttr('role', 'blerg');
+            });
+            
+            it("should be removable via item config", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        items: [{
+                            ariaRole: null,
+                            tabIndex: null
+                        }]
+                    }]
+                });
+                
+                var item = getActionItem(0, 1);
+                
+                expect(item).toHaveAttr('role', 'presentation');
+            });
+            
+            it("should be overridable for multiple items separately", function() {
+                makeGrid({
+                    columns: [{
+                        dataIndex: 'text',
+                        header: 'Text'
+                    }, {
+                        xtype: 'actioncolumn',
+                        dataIndex: 'actionCls',
+                        header: 'Action',
+                        items: [{
+                            ariaRole: null
+                        }, {
+                            ariaRole: '',
+                        }, {
+                            ariaRole: 'throbbe'
+                        }]
+                    }]
+                });
+                
+                var item0 = getActionItem(0, 1, 0),
+                    item1 = getActionItem(0, 1, 1),
+                    item2 = getActionItem(0, 1, 2);
+                
+                expect(item0).toHaveAttr('role', 'presentation');
+                expect(item1).toHaveAttr('role', 'presentation');
+                expect(item2).toHaveAttr('role', 'throbbe');
             });
         });
     });

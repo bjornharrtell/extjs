@@ -339,17 +339,26 @@ Ext.define('Ext.tree.Panel', {
      */
     root: null,
 
+    /**
+     * @cfg {String} [checkPropagation=none]
+     * This configuration controls whether, and how checkbox click gestures are propagated to
+     * child nodes, or to a parent node.
+     *
+     * Valid values are
+     *
+     *      - `'none'` Checking a check node does not affect any other nodes.
+     *      - `'up'` Checking a check node synchronizes the value of its parent node with the state of its children.
+     *      - `'down'` Checking a check node propagates the value to its child nodes.
+     *      - `'both'` Checking a check node updates its child nodes, and syncs its parent node.
+     */
+    checkPropagation: 'none',
+
     // Required for the Lockable Mixin. These are the configurations which will be copied to the
     // normal and locked sub tablepanels
     normalCfgCopy: ['displayField', 'root', 'singleExpand', 'useArrows', 'lines', 'rootVisible', 'scroll'],
     lockedCfgCopy: ['displayField', 'root', 'singleExpand', 'useArrows', 'lines', 'rootVisible'],
     
     isTree: true,
-
-    /**
-     * @cfg {Boolean} hideHeaders
-     * True to hide the headers.
-     */
 
     /**
      * @cfg {Boolean} folderSort
@@ -380,8 +389,7 @@ Ext.define('Ext.tree.Panel', {
     initComponent: function() {
         var me = this,
             cls = [me.treeCls],
-            store,
-            view;
+            store, autoTree, view;
 
         if (me.useArrows) {
             cls.push(me.arrowCls);
@@ -404,25 +412,26 @@ Ext.define('Ext.tree.Panel', {
         // Store must have the same idea about root visibility as us BEFORE callParent binds it.
         store.setRootVisible(me.rootVisible);
 
+        // If the user specifies the headers collection manually then don't inject
+        // our own
+        if (!me.columns) {
+            me.isAutoTree = autoTree = true;
+        }
+
         me.viewConfig = Ext.apply({
             rootVisible: me.rootVisible,
             animate: me.enableAnimations,
             singleExpand: me.singleExpand,
             node: store.getRoot(),
-            hideHeaders: me.hideHeaders,
-            navigationModel: 'tree'
+            navigationModel: 'tree',
+            isAutoTree: autoTree
         }, me.viewConfig);
 
-        // If the user specifies the headers collection manually then don't inject
-        // our own
-        if (!me.columns) {
-            if (me.initialConfig.hideHeaders === undefined) {
-                me.hideHeaders = true;
-            }
+        if (autoTree) {
             me.addCls(me.autoWidthCls);
             me.columns = [{
                 xtype    : 'treecolumn',
-                text     : 'Name',
+                text     : me.hideHeaders === true ? 'Name' : null,
                 flex     : 1,
                 dataIndex: me.displayField         
             }];
@@ -507,6 +516,10 @@ Ext.define('Ext.tree.Panel', {
         return store;
     },
 
+    setRoot: function (root) {
+        this.store.setRoot(root);
+    },
+
     setStore: function(store) {
         var me = this;
 
@@ -520,10 +533,14 @@ Ext.define('Ext.tree.Panel', {
         // Store must have the same idea about root visibility as us BEFORE callParent binds it.
         store.setRootVisible(me.rootVisible);
 
-        if (me.view) {
-            me.view.setRootNode(store.getRootNode());
+        if (me.enableLocking) {
+            me.reconfigure(store);
+        } else {
+            if (me.view) {
+                me.view.setRootNode(store.getRootNode());
+            }
+            me.bindStore(store);
         }
-        me.bindStore(store);
     },
 
     /**
@@ -532,19 +549,10 @@ Ext.define('Ext.tree.Panel', {
      */
     bindStore: function(store, initial) {
         var me = this,
-            root = store.getRoot(),
-            bufferedRenderer = me.bufferedRenderer;
+            root = store.getRoot();
 
         // Bind to store, and autocreate the BufferedRenderer.
         me.callParent(arguments);
-
-        // If we're in a reconfigure (we already have a BufferedRenderer which is bound to our old store),
-        // rebind the BufferedRenderer
-        if (bufferedRenderer) {
-            if (bufferedRenderer.store) {
-                bufferedRenderer.bindStore(store);
-            }
-        }
 
         // The TreeStore needs to know about this TreePanel's singleExpand constraint so that
         // it can ensure the compliance of NodeInterface.expandAll.
@@ -588,13 +596,15 @@ Ext.define('Ext.tree.Panel', {
             // autoLoad: false. This is useful with Direct proxy in cases when
             // Direct API is loaded dynamically and may not be available at the time
             // when TreePanel is created.
-            else if (store.autoLoad !== false) {
+            else if (store.autoLoad !== false && !store.hasPendingLoad()) {
                 root.data.expanded = false;
                 root.expand();
             }
         }
 
         // TreeStore must have an upward link to the TreePanel so that nodes can find their owning tree in NodeInterface.getOwnerTree
+        // TODO: NodeInterface.getOwnerTree is deprecated. Data class must not be coupled to UI. Remove this link
+        // when that method is removed.
         store.ownerTree = me;
 
         if (!initial) {
@@ -882,7 +892,8 @@ Ext.define('Ext.tree.Panel', {
         }
 
         // Invalid root. Relative start could not be found, absolute start was not the rootNode.
-        if (!current || (rooted && current.get(field) !== keys[1])) {
+        // The ids paths may be numeric, so cast the value to a string for comparison.
+        if (!current || (rooted && (current.get(field) + '') !== keys[1])) {
             return Ext.callback(callback, scope || me, [false, current]);
         }
 

@@ -71,6 +71,7 @@ describe("Ext.plugin.Abstract", function() {
                 parent.destroy();
             }
             Plugin = Component = Parent = Controller = ParentController = null;
+            plugin = component = parent = null;
         });
 
         describe("listener declared on class body", function() {

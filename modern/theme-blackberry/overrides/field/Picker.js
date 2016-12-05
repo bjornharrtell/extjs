@@ -12,15 +12,15 @@ Ext.define('Ext.theme.blackberry.field.Picker', {
     getElementConfig: function() {
         return {
             reference: 'element',
-            className: Ext.baseCSSPrefix + 'container',
             children: [{
-                reference: 'innerElement',
-                cls: Ext.baseCSSPrefix + 'component-outer',
+                reference: 'bodyElement',
+                cls: Ext.baseCSSPrefix + 'body-el',
                 children: [{
-                    reference: 'label',
-                    cls: Ext.baseCSSPrefix + 'form-label',
+                    reference: 'labelElement',
+                    cls: Ext.baseCSSPrefix + 'label-el',
                     children: [{
-                        reference: 'labelspan',
+                        reference: 'labelTextElement',
+                        cls: Ext.baseCSSPrefix + 'label-text-el',
                         tag: 'span'
                     }]
                 }]

@@ -68,15 +68,6 @@ Ext.define('Ext.list.AbstractTreeItem', {
         expanded: false,
 
         /**
-         * @cfg {Boolean} floated
-         * `true` if this item is current floated. This mode applies when the owning
-         * `{@link Ext.list.Tree treelist}` is in `{@link Ext.list.Tree#micro micro}`
-         * mode and the sub-tree under this item should be presented as a floating
-         * element.
-         */
-        floated: false,
-
-        /**
          * @cfg {String} iconCls
          * @inheritdoc Ext.panel.Header#cfg-iconCls
          * @localdoc **Note:** This value is taken from the underlying {@link #node}.
@@ -178,9 +169,11 @@ Ext.define('Ext.list.AbstractTreeItem', {
                 me.itemMap = map = {};
                 for (i = 0, len = childNodes.length; i < len; ++i) {
                     child = childNodes[i];
-                    item = owner.createItem(child, me);
-                    map[child.internalId] = item;
-                    me.insertItem(item, null);
+                    if (child.data.visible) {
+                        item = owner.createItem(child, me);
+                        map[child.internalId] = item;
+                        me.insertItem(item, null);
+                    }
                 }
             }
 
@@ -422,46 +415,6 @@ Ext.define('Ext.list.AbstractTreeItem', {
      */
     removeItem: Ext.emptyFn,
 
-    updateFloated: function (floated) {
-        var me = this,
-            el = me.element,
-            placeholder = me.placeholder,
-            node, wasExpanded;
-
-        if (floated) {
-            placeholder = el.clone(false, true); // shallow, asDom
-            placeholder.id += '-placeholder'; // avoid duplicate id
-            me.placeholder = Ext.get(placeholder);
-
-            me.wasExpanded = me.getExpanded();
-            me.setExpanded(true);
-
-            el.dom.parentNode.insertBefore(placeholder, el.dom);
-
-            me.floater = me.createFloater(); // toolkit-specific
-        } else if (placeholder) {
-            wasExpanded = me.wasExpanded;
-            node = me.getNode();
-            me.setExpanded(wasExpanded);
-            if (!wasExpanded && node.isExpanded()) {
-                // If we have been floating and expanded a child, we may have been
-                // expanded as part of the ancestors. Attempt to restore state.
-                me.preventAnimation = true;
-                node.collapse();
-                me.preventAnimation = false;
-            }
-            me.floater.remove(me, false); // don't destroy
-            placeholder.dom.parentNode.insertBefore(el.dom, placeholder.dom);
-
-            placeholder.destroy();
-            me.floater.destroy();
-
-            me.placeholder = me.floater = null;
-
-            me.floatedByHover = false;
-        }
-    },
-
     /**
      * @inheritdoc
      */
@@ -564,6 +517,7 @@ Ext.define('Ext.list.AbstractTreeItem', {
             if (owner.fireEvent('itemclick', owner, info) !== false) {
                 if (info.toggle) {
                     me.toggleExpanded();
+                    e.preventDefault();
                 }
 
                 if (info.select) {
@@ -587,6 +541,16 @@ Ext.define('Ext.list.AbstractTreeItem', {
             for (id in items) {
                 items[id].setIndent(value);
             }
+        },
+
+        /**
+         * Implementation so that the Traversable mixin which manipulates the parent
+         * axis can function in a TreeList.
+         * @param {Ext.list.Tree/Ext.list.TreeItem} owner The owner of this node.
+         * @private
+         */
+        updateOwner: function(owner) {
+            this.parent = owner;
         }
     }
 });

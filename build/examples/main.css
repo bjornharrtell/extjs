@@ -1,8 +1,15 @@
-body {
-    font: 300 15px/19px klavika,helvetica,arial,sans-serif;
-    margin: 0;
+html, body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    background: #DADADA;
+    color: #323232;
+    font-family: Effra, Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
 }
 
 * {
@@ -12,62 +19,102 @@ body {
     box-sizing: border-box;
 }
 
+body > div {
+    background-color: white;
+    margin: 0 auto;
+    max-width: 1200px;
+}
+
 a {
+    -webkit-transition: color .25s ease-out;
+    -moz-transition: all 25s ease-in-out;
+    -o-transition: all 25s ease-in-out;
+    transition: color .25s ease-out;
+
     text-decoration: none;
-    color: inherit;
+    color: #0A8CC6;
 }
 
-#title {
-    height: 60px;
-    width: 100%;
-    background: #fff;
-    border-bottom: 5px solid #c8c8c8;
+a:hover,
+a:focus {
+    color: #025B80;
 }
 
-#title > .wrap {
-    height: 100%;
+a:focus {
+    outline-color: #d2f0fd;
+    outline-offset: 4px;
+    outline-style: solid;
+    outline-width: medium;
 }
 
 .wrap {
-    width: 1000px;
-    padding: 0 20px 10px 20px;
     margin: auto;
-    position: relative;
+    max-width: 1000px;
     overflow: hidden;
+    padding: 8px 24px;
+    position: relative;
+    width: 100%;
 }
 
-#sencha-logo,
-#title-text {
-    height: 50px;
-    line-height: 50px;
-    position: absolute;
-    top: 50%;
-}
-
-#sencha-logo {
+#title-logo {
     background-image: url(../welcome/img/logo-sencha-sm.png);
+    background-repeat: no-repeat;
+    background-size: auto;
+    outline-offset: 0;
+    float: left;
+    height: 55px;
     width: 120px;
-    left: 20px;
-    margin-top: -27px;
 }
 
-#ext-logo {
-    background-image: url(../welcome/img/ext-cube.png);
-    width: 200px;
-    height : 86px;
-    line-height: 86px;
-}
-
-#title-text {
-    right: 20px;
-    font-weight: 400;
-    font-size: 17px;
-    margin-top: -21px;
+#title-menu {
     color: #888;
+    float: right;
+    font-weight: normal;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#title-menu > .item {
+    float: left;
+    padding: 0;
+}
+
+#title-button {
+    border-radius: 50%;
+    text-align: center;
+    position: absolute;
+    font-size: 1.4em;
+    display: none;
+    margin: 16px;
+    height: 42px;
+    width: 42px;
+    top: 0;
+    right: 0;
+    line-height: 2.0em;
+    vertical-align: middle;
+}
+
+#title-menu > .item {
+    margin: 16px 0 16px 16px;
+}
+
+#title-menu > .item > a {
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+#header,
+#footer {
+    border-top: 1px solid #DADADA;
 }
 
 #header {
-    background: url(resources/images/header-bg.jpg);
+    background-color: #f5f5f5;
+    background-image: url("resources/images/hero-bg.jpg");
+    background-size: cover;
+    line-height: 1.6;
+    padding: 24px;
     width: 100%;
 }
 
@@ -77,168 +124,215 @@ a {
     height: 100px;
 }
 
-.header-item {
-    display: table-cell;
-    vertical-align: middle;
-}
-
 #header-title {
-    width: 370px;
-    font-size: 36px;
-    color: #1c5a7d;
+    color: #86BC40;
+    font-size: 3em;
+    font-weight: 300;
+    float: left;
+    width: 50%;
 }
 
-.header-link {
-    text-align: right;
-}
-.header-link > a {
-    font-weight: 500;
-    color: #888;
+#header-image {
+    height: auto;
+    float: right;
+    max-height: 200px;
+    max-width: 100%;
+    width: 40%;
 }
 
-.header-link > a:hover {
-    color: #444;
+#header-image img {
+    display: block;
+    height: auto;
+    margin: 16px auto !important;
+    max-height: 200px;
+    max-width: 100%;
+}
+
+#header-text {
+    margin-bottom: 16px;
+    width: 50%;
+}
+
+#body {
+    padding: 16px 0;
+}
+
+.group {
+    padding-top: 8px;
 }
 
 .group-header {
-    border-top: 1px solid #c8c8c8;
-    height: 80px;
-    font-size: 24px;
-    text-transform: uppercase;
-    color: #1c5a7d;
     cursor: pointer;
+    font-size: 24px;
 }
 
 .group-header > .wrap {
+    border-top: 4px solid #f5f5f5;
     display: table;
     table-layout: fixed;
-    height: 80px;
 }
 
-.group-title,
-.group-action {
-    display: table-cell;
-    vertical-align: middle;
+.group-header:first-child > .wrap {
+    border-top: none;
 }
 
-.group-action {
-    width: 48px;
+.group-title {
+    color: #1c5a7d;
+    font-size: 0.8em;
+    font-weight: 700;
+    margin: 8px 48px 8px 8px;
 }
 
-.group-action-icon {
-    height: 24px;
-    width: 24px;
-    font-size: 24px;
-    line-height: 24px;
-    font-family: Sencha-Examples;
-    background: center no-repeat;
+.group-title::before {
+    border-radius: 50%;
+    font: normal 16px Sencha-Examples;
+    margin-top: -8px;
+    line-height: 1.2;
+    text-align: center;
+    position: absolute;
+    right: 2em;
+    top: 50%;
+}
+
+.collapsed .group-title::before {
+    color: #1c5a7d;
+    content: '\e900';
+}
+.expanded .group-title::before {
+    color: #bcbcbc;
+    content: '\e901';
 }
 
 .collapsed + .group {
     display: none;
 }
 
-.group {
-    border-top: 5px solid #25657b;
-    background-color: #2f7d9c;
-    padding-bottom: 30px;
-}
-
 .example {
-    float: left;
-    padding-left: 85px;
+    display: inline-block;
+    vertical-align: top;
     position: relative;
-    color: #fff;
-    width: 300px;
-    height: 100px;
-    margin: 30px 20px 0 0
+    max-width: 315px;
+    min-width: 315px;
+    min-height: 128px;
+    padding: 15px;
 }
 
-.example-icon-wrap {
-    height: 74px;
-    width: 84px;
-    font-size: 72px;
-    line-height: 72px;
-    position: absolute;
-    top: 50%;
-    left: 0;
-    margin-top: -36px;
-    color: #1c5a7d;
+.example:focus {
+    outline-offset: 0;
+}
+
+.example-icon {
+    -webkit-transition: background-color .25s ease-out;
+    transition: background-color .25s ease-out;
+
+    background: #0A8CC6;
+    border-radius: 50%;
+    color: #fff;
+    float: left;
     font-family: Sencha-Examples;
+    font-size: 36px;
+    height: 72px;
+    width: 72px;
+    line-height: 72px;
+    margin: 0 12px 12px 0;
+    text-align: center;
 }
 
-/* tag name added to this selector to override line-height in font icon stylesheet */
-div.example-icon {
-    color: #fff;
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    font-size: 36px;
-    line-height: 72px;
-    text-align: center;
+.example:hover .example-icon {
+    background: #025B80;
 }
 
 .example-text-wrap {
     display: table;
+    font-size: 14px;
     height: 100%;
+
 }
+
 .example-text-wrap-inner {
-    padding-left: 15px;
     display: table-cell;
-    vertical-align: middle;
 }
 
 .example-title {
-    font-size: 17px;
-    font-weight: bold;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.example-description {
+    color: #323232;
 }
 
 #footer {
     padding: 24px 0;
-    border-top: 1px solid #c8c8c8;
     color: #888;
 }
 
-
-@media screen and (max-width: 1000px) {
-    #header > .wrap {
-        padding: 0 10px 10px 10px;
+@media screen and (max-width: 720px) {
+    #header-title {
+        font-size: 2.6em;
     }
-    
+}
+
+@media screen and (max-width: 640px) {
     .wrap {
+        padding: 8px 16px;
+    }
+
+    #header-title,
+    #header-image,
+    #header-text {
+        display: block;
+        float: none;
         width: 100%;
     }
 
     #header-title {
+        font-size: 2.25em;
+    }
+
+    #title-menu {
         width: 100%;
-        display: block;
-        padding-bottom: 8px;
     }
 
-    #ext-logo {
-        margin: auto;
+    #title-menu > .item {
+        display: none;
+        margin: 16px;
+        float: none;
     }
 
-    .header-item {
-        display: inline-block;
-        width: 33%;
-    }
-    
-    .header-link {
+    #title-menu.expanded > .item {
         text-align: center;
+        display: block;
     }
-}
 
-@media screen and (max-width: 480px) {
-    .header-item {
-        font-size: .75em;
+    #title-button {
+        display: list-item;
+    }
+
+    .example {
+        min-width: 0;
     }
 }
 
 @media screen and (max-width: 320px) {
-    .header-item {
-        font-size: .6em;
+    #header {
+        padding: 8px 16px;
+    }
+
+    #body {
+        padding: 8px 0;
+    }
+}
+
+@media screen and (max-width: 240px) {
+    .example-icon {
+        margin: 0 auto 8px auto;
+        float: none;
+    }
+
+    .example-text-wrap {
+        text-align: center;
     }
 }

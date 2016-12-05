@@ -3,18 +3,15 @@
  */
 Ext.define('KitchenSink.view.grid.ProgressBarPager', {
     extend: 'Ext.grid.Panel',
+    xtype: 'progress-bar-pager',
+    controller: 'basicgrid',
     
     requires: [
-        'Ext.data.*',
-        'Ext.grid.*',
-        'Ext.util.*',
         'Ext.toolbar.Paging',
-        'Ext.ux.ProgressBarPager',
-        'KitchenSink.model.Company'
+        'Ext.ux.ProgressBarPager'
     ],
-    xtype: 'progress-bar-pager',
+    
     //<example>
-    exampleTitle: 'Progress Bar Pager Extension',
     otherContent: [{
         type: 'Model',
         path: 'classic/samples/model/Company.js'
@@ -23,99 +20,73 @@ Ext.define('KitchenSink.view.grid.ProgressBarPager', {
         classic: {
             width: 600,
             percentChangeColumnWidth: 75,
-            lastUpdatedColumnWidth: 85
+            lastUpdatedColumnWidth: 85,
+            green: 'green',
+            red: 'red'
         },
         neptune: {
             width: 650,
             percentChangeColumnWidth: 100,
-            lastUpdatedColumnWidth: 115
+            lastUpdatedColumnWidth: 115,
+            green: '#73b51e',
+            red: '#cf4c35'
         }
     },
     //</example>
-    height: 320,
-    frame: true,
+
     title: 'Progress Bar Pager',
+    width: '${width}',
+    height: 320,
     
-    initComponent: function() {
-        this.width = this.profileInfo.width;
+    frame: true,
+    store: {
+        type: 'companies',
+        pageSize: 10,
+        remoteSort: true
+    },
+    signTpl: '<span style="' +
+            'color:{value:sign(\'${red}\',\'${green}\')}"' +
+        '>{text}</span>',
+
+    columns: [{ 
+        text: 'Company',
+        dataIndex: 'name',
         
-        var store = new Ext.data.Store({
-            model: KitchenSink.model.Company,
-            remoteSort: true,
-            pageSize: 10,
-            proxy: {
-                type: 'memory',
-                enablePaging: true,
-                data: KitchenSink.data.DataSets.company,
-                reader: {
-                    type: 'array'
-                }
-            }
-        });
+        sortable: true,
+        flex: 1
+    },{
+        text: 'Price',
+        dataIndex: 'price',
         
-        Ext.apply(this, {
-            store: store,
-            columns: [{ 
-                text: 'Company',
-                sortable: true,
-                dataIndex: 'name',
-                flex: 1
-            },{
-                text: 'Price',
-                sortable: true,
-                formatter: 'usMoney',
-                dataIndex: 'price',
-                width: 75
-            },{
-                text: 'Change',
-                sortable: true,
-                renderer: this.changeRenderer,
-                dataIndex: 'change',
-                width: 80
-            },{
-                text: '% Change',
-                sortable: true,
-                renderer: this.pctChangeRenderer,
-                dataIndex: 'pctChange',
-                width: this.profileInfo.percentChangeColumnWidth
-            },{
-                text: 'Last Updated',
-                sortable: true,
-                dataIndex: 'lastChange',
-                width: this.profileInfo.lastUpdatedColumnWidth,
-                formatter: 'date("m/d/Y")'
-            }],
-            bbar: {
-                xtype: 'pagingtoolbar',
-                pageSize: 10,
-                store: store,
-                displayInfo: true,
-                plugins: new Ext.ux.ProgressBarPager()
-            }
-        });
-        this.callParent();
-    },
+        sortable: true,
+        formatter: 'usMoney',
+        width: 75
+    },{
+        text: 'Change',
+        dataIndex: 'change',
+        
+        width: 80,
+        sortable: true,
+        renderer: 'renderChange'
+    },{
+        text: '% Change',
+        dataIndex: 'pctChange',
+        
+        width: '${percentChangeColumnWidth}',
+        sortable: true,
+        renderer: 'renderPercent'
+    },{
+        text: 'Last Updated',
+        dataIndex: 'lastChange',
+
+        width: '${lastUpdatedColumnWidth}',
+        sortable: true,
+        formatter: 'date("m/d/Y")'
+    }],
     
-    afterRender: function(){
-        this.callParent(arguments);
-        this.getStore().load();
-    },
-    
-    changeRenderer: function(val) {
-        if (val > 0) {
-            return '<span style="color:green;">' + val + '</span>';
-        } else if(val < 0) {
-            return '<span style="color:red;">' + val + '</span>';
-        }
-        return val;
-    },
-    
-    pctChangeRenderer: function(val){
-        if (val > 0) {
-            return '<span style="color:green;">' + val + '%</span>';
-        } else if(val < 0) {
-            return '<span style="color:red;">' + val + '%</span>';
-        }
-        return val;
+    bbar: {
+        xtype: 'pagingtoolbar',
+        displayInfo: true,
+        plugins: 'ux-progressbarpager'
     }
 });

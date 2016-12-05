@@ -1,3 +1,5 @@
+/* global Ext, expect */
+
 describe("Ext.data.proxy.Memory", function() {
     var proxy, operation, records;
 
@@ -111,6 +113,28 @@ describe("Ext.data.proxy.Memory", function() {
             expect(operation.getRecords().length).toBe(9);
             expect(operation.getResultSet().getTotal()).toBe(9);
         });
+
+        it('should call onCollectionAdd on receipt of autoLoad data from synchronous proxies', function() {
+            var StoreSubclass = Ext.define(null, {
+                extend: 'Ext.data.Store',
+                
+                onCollectionAddCallCount: 0,
+
+                onCollectionAdd: function() {
+                    this.onCollectionAddCallCount++;
+                    this.callParent(arguments);
+                }
+            });
+
+            createSmallProxy();
+            var store = new StoreSubclass({
+                proxy: proxy,
+                autoLoad: true
+            });
+
+            // One block of data has arrived in the collection
+            expect(store.onCollectionAddCallCount).toBe(1);
+        });
     });
     
     describe("sorting", function(){
@@ -165,7 +189,7 @@ describe("Ext.data.proxy.Memory", function() {
             store.load();
             expect(store.getCount()).toBe(10);
         });
-        
+
         it("should load filtered data", function() {
             createLargeProxy(true);
             createStore({
@@ -195,5 +219,30 @@ describe("Ext.data.proxy.Memory", function() {
             expect(store.first().get('name')).toBe('Abe Elias');
             expect(store.last().get('name')).toBe('Ed Spencer');
         });
+
+        it("removeAll should delete unfiltered records when there is a synchronous store sync() call", function() {
+            createLargeProxy(true);
+            createStore({
+                autoSync: true,
+                proxy: proxy,
+                pageSize: 10000
+            });
+            store.load();
+            expect(store.getCount()).toBe(100);
+
+            store.addFilter({
+                filterFn: function(rec) {
+                    return rec.getId() % 4 === 0;
+                }
+            });           
+            expect(store.getCount()).toBe(25);
+            
+            store.removeAll();
+            expect(store.getCount()).toBe(0);
+
+            store.clearFilter();
+            expect(store.getCount()).toBe(75);
+        });
+        
     });
 });

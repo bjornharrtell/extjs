@@ -120,15 +120,18 @@ Ext.define('Ext.form.field.Checkbox', {
                 '</label>',
                 '{afterBoxLabelTpl}',
             '</tpl>',
-            '<input type="button" id="{id}" name="{inputName}" data-ref="inputEl" {inputAttrTpl}',
-                '<tpl if="tabIdx != null"> tabindex="{tabIdx}"</tpl>',
-                '<tpl if="disabled"> disabled="disabled"</tpl>',
-                '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
-                ' class="{checkboxCls} {clipCls}" autocomplete="off" hidefocus="true" ',
-                '<tpl foreach="inputElAriaAttributes"> {$}="{.}"</tpl>',
-                '/>',
-            '<span id="{cmpId}-displayEl" data-ref="displayEl" class="{fieldCls} {typeCls} ',
-                '{typeCls}-{ui} {inputCls} {inputCls}-{ui} {childElCls} {afterLabelCls}"></span>',
+            '<span id="{cmpId}-displayEl" data-ref="displayEl" role="presentation" class="{fieldCls} {typeCls} ',
+                '{typeCls}-{ui} {inputCls} {inputCls}-{ui} {childElCls} {afterLabelCls}">',
+                '<input type="{inputType}" id="{id}" name="{inputName}" data-ref="inputEl" {inputAttrTpl}',
+                    '<tpl if="tabIdx != null"> tabindex="{tabIdx}"</tpl>',
+                    '<tpl if="disabled"> disabled="disabled"</tpl>',
+                    '<tpl if="checked"> checked="checked"</tpl>',
+                    '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
+                    ' class="{checkboxCls}" autocomplete="off" hidefocus="true" ',
+                    '<tpl foreach="ariaElAttributes"> {$}="{.}"</tpl>',
+                    '<tpl foreach="inputElAriaAttributes"> {$}="{.}"</tpl>',
+                    '/>',
+            '</span>',
             '<tpl if="!labelAlignedBefore">',
                 '{beforeBoxLabelTpl}',
                 '<label id="{cmpId}-boxLabelEl" data-ref="boxLabelEl" {boxLabelAttrTpl} class="{boxLabelCls} ',
@@ -275,7 +278,7 @@ Ext.define('Ext.form.field.Checkbox', {
      * change event}).
      * @cfg {Ext.form.field.Checkbox} handler.checkbox The Checkbox being toggled.
      * @cfg {Boolean} handler.checked The new checked state of the checkbox.
-     * @declarativeHandler
+     * @controllable
      */
 
     /**
@@ -289,9 +292,12 @@ Ext.define('Ext.form.field.Checkbox', {
      * @private
      */
     checkChangeEvents: [],
+    
+    // See IE8 override
+    changeEventName: 'change',
     inputType: 'checkbox',
     isTextInput: false,
-    ariaRole: 'checkbox',
+    ariaRole: 'native',
 
     /**
      * @private
@@ -301,7 +307,6 @@ Ext.define('Ext.form.field.Checkbox', {
     // the form-cb css class is for styling shared between checkbox and subclasses (radio)
     inputCls: Ext.baseCSSPrefix + 'form-cb',
     _checkboxCls: Ext.baseCSSPrefix + 'form-cb-input',
-    _clipCls: Ext.baseCSSPrefix + 'hidden-clip',
 
     initComponent: function() {
         var me = this,
@@ -329,7 +334,7 @@ Ext.define('Ext.form.field.Checkbox', {
          * The original value of the field as configured in the {@link #checked} configuration, or as loaded by the last
          * form load operation if the form's {@link Ext.form.Basic#trackResetOnLoad trackResetOnLoad} setting is `true`.
          */
-        me.originalValue = me.lastValue = checked;
+        me.originalValue = me.initialValue = me.lastValue = checked;
 
         // Set the initial checked state
         me.setValue(checked);
@@ -342,8 +347,20 @@ Ext.define('Ext.form.field.Checkbox', {
         if (me.isChecked(me.rawValue, me.inputValue)) {
             me.addCls(me.checkedCls);
         }
+        
+        if (!me.fieldLabel) {
+            me.skipLabelForAttribute = true;
+        }
 
         return me.callParent();
+    },
+
+    getModelData: function() {
+        var o = this.callParent(arguments);
+        if (o) {
+            o[this.getName()] = this.getSubmitValue();
+        }
+        return o;
     },
 
     getSubTplData: function(fieldData) {
@@ -354,9 +371,10 @@ Ext.define('Ext.form.field.Checkbox', {
             data, inputElAttr;
 
         data = Ext.apply(me.callParent([fieldData]), {
-            clipCls: me._clipCls,
+            inputType: me.inputType,
             checkboxCls: me._checkboxCls,
             disabled: me.readOnly || me.disabled,
+            checked: !!me.checked,
             wrapInnerCls: me.wrapInnerCls,
             boxLabel: boxLabel,
             boxLabelCls: me.boxLabelCls,
@@ -377,8 +395,8 @@ Ext.define('Ext.form.field.Checkbox', {
         inputElAttr = data.inputElAriaAttributes;
         
         if (inputElAttr) {
-            inputElAttr['aria-checked'] = !!me.checked;
-            inputElAttr['aria-labelledby'] = me.id + '-boxLabelEl';
+            // aria-readonly is not valid for Checkboxes and Radio buttons
+            delete inputElAttr['aria-readonly'];
         }
         
         return data;
@@ -386,27 +404,37 @@ Ext.define('Ext.form.field.Checkbox', {
 
     initEvents: function() {
         var me = this;
+        
         me.callParent();
-        // We rely on the labelEl to also trigger a click on the DOM element, so force
-        // a click here and never have it translate to a tap
-        me.inputEl.on({
-            click: 'onBoxClick',
-            scope: me,
-            translate: false
-        });
-
-        me.displayEl.on({
-            click: 'onBoxClick',
-            mousedown: '_onDisplayElMouseDown',
-            scope: me
-        });
+        
+        me.inputEl.on(me.changeEventName, me.onChangeEvent, me, { delegated: false });
+        
+        // In all IE versions it is possible to focus ANY element by clicking
+        // regardless of tabIndex attribute. In this case, clicking on boxLabelEl
+        // will end up focusing its parent bodyEl before focusing and activating
+        // the associated input element. Dark wizardry in Focus publisher fails
+        // to propagate the second focusin event so we have to accommodate here
+        // by not allowing bodyEl to focus.
+        if (Ext.isIE) {
+            me.bodyEl.on('mousedown', me.onBodyElMousedown, me);
+        }
+        
+        // Conversely in Safari and Firefox on Mac clicking either box label or input
+        // itself will result in input activation, value change, and immediate blur
+        // to the document body. We place more faith in consistency over platform
+        // specific quirks so have to force inputEl focus here and prevent blurring.
+        // Oh Sanity Where Art Thou. :/
+        else if (Ext.isMac && (Ext.isGecko || Ext.isSafari)) {
+            me.boxLabelEl.on('mousedown', me.onBoxLabelOrInputMousedown, me);
+            me.inputEl.on('mousedown', me.onBoxLabelOrInputMousedown, me);
+        }
     },
     
     /**
      * Sets the {@link #boxLabel} for this checkbox.
      * @param {String} boxLabel The new label
      */
-    setBoxLabel: function(boxLabel){
+    setBoxLabel: function(boxLabel) {
         var me = this;
         
         me.boxLabel = boxLabel;
@@ -416,16 +444,56 @@ Ext.define('Ext.form.field.Checkbox', {
             me.updateLayout();
         }
     },
+    
+    /**
+     * @private Handle mousedown events on bodyEl. See explanations in initEvents().
+     */
+    onBodyElMousedown: function(e) {
+        if (e.target !== this.inputEl.dom) {
+            e.preventDefault();
+        }
+    },
+    
+    /**
+     * @private Handle mousedown events on boxLabelEl and inputEl.
+     * See explanations in initEvents().
+     */
+    onBoxLabelOrInputMousedown: function(e) {
+        this.inputEl.focus();
+        e.preventDefault();
+    },
 
     /**
      * @private
-     * Handle click on the checkbox button
+     * Handle the change event from the DOM.
      */
-    onBoxClick: function() {
-        var me = this;
-        if (!me.disabled && !me.readOnly) {
-            me.setValue(!me.checked);
+    onChangeEvent: function(e) {
+        this.updateValueFromDom();
+    },
+    
+    /**
+     * @private
+     */
+    updateValueFromDom: function() {
+        var me = this,
+            inputEl = me.inputEl && me.inputEl.dom;
+        
+        if (inputEl) {
+            me.checked = me.rawValue = me.value = inputEl.checked;
+            
+            me.checkChange();
         }
+    },
+    
+    /**
+     * @private
+     */
+    updateCheckedCls: function(checked) {
+        var me = this;
+        
+        checked = checked != null ? checked : me.getValue();
+        
+        me[checked ? 'addCls' : 'removeCls'](me.checkedCls);
     },
 
     /**
@@ -433,7 +501,9 @@ Ext.define('Ext.form.field.Checkbox', {
      * @return {Boolean} True if checked, else false
      */
     getRawValue: function() {
-        return this.checked;
+        var inputEl = this.inputEl && this.inputEl.dom;
+        
+        return inputEl ? inputEl.checked : this.checked;
     },
 
     /**
@@ -441,7 +511,9 @@ Ext.define('Ext.form.field.Checkbox', {
      * @return {Boolean} True if checked, else false
      */
     getValue: function() {
-        return this.checked;
+        var inputEl = this.inputEl && this.inputEl.dom;
+        
+        return inputEl ? inputEl.checked : this.checked;
     },
 
     /**
@@ -452,45 +524,55 @@ Ext.define('Ext.form.field.Checkbox', {
     getSubmitValue: function() {
         var unchecked = this.uncheckedValue,
             uncheckedVal = Ext.isDefined(unchecked) ? unchecked : null;
-        return this.checked ? this.inputValue : uncheckedVal;
+        
+        return this.getValue() ? this.inputValue : uncheckedVal;
     },
 
     isChecked: function(rawValue, inputValue) {
-        return (rawValue === true || rawValue === 'true' || rawValue === '1' || rawValue === 1 ||
-                      (((Ext.isString(rawValue) || Ext.isNumber(rawValue)) && inputValue) ? rawValue == inputValue : this.onRe.test(rawValue)));
+        var ret = false;
+
+        if (rawValue === true || rawValue === 'true') {
+            ret = true;
+        } else {
+            if (inputValue !== 'on' && (inputValue || inputValue === 0) && (Ext.isString(rawValue) || Ext.isNumber(rawValue))) {
+                ret = rawValue == inputValue;
+            } else {
+                ret = rawValue === '1' || rawValue === 1 || this.onRe.test(rawValue);
+            }
+        }
+        return ret;
     },
 
     /**
      * Sets the checked state of the checkbox.
      *
      * @param {Boolean/String/Number} value The following values will check the checkbox:
-     * `true, 'true', '1', 1, or 'on'`, as well as a String that matches the {@link #inputValue}.
+     * - `true, 'true'.
+     * - '1', 1, or 'on'`, when there is no {@link #inputValue}.
+     * - Value that matches the {@link #inputValue}.
      * Any other value will un-check the checkbox.
      * @return {Boolean} the new checked state of the checkbox
      */
     setRawValue: function(value) {
         var me = this,
-            inputEl = me.inputEl,
-            displayEl = me.displayEl,
+            inputEl = me.inputEl && me.inputEl.dom,
             checked = me.isChecked(value, me.inputValue);
 
         if (inputEl) {
-            me[checked ? 'addCls' : 'removeCls'](me.checkedCls);
+            // Setting checked property will fire unwanted propertychange event in IE8.
+            me.duringSetRawValue = true;
+            inputEl.checked = checked;
+            me.duringSetRawValue = false;
             
-            if (me.ariaRole) {
-                me.ariaEl.dom.setAttribute('aria-checked', checked);
-            }
+            me.updateCheckedCls(checked);
         }
         
-        // IE8 has a bug with font icons and pseudo-elements, see below in onFocus override
-        if (Ext.isIE8 && displayEl && checked !== me.lastValue) {
-            displayEl.repaint();
-        }
-
         me.checked = me.rawValue = checked;
+        
         if (!me.duringSetValue) {
             me.lastValue = checked;
         }
+        
         return checked;
     },
 
@@ -534,6 +616,7 @@ Ext.define('Ext.form.field.Checkbox', {
     },
 
     /**
+     * @method
      * @private
      */
     valueToRaw: Ext.identityFn,
@@ -547,6 +630,8 @@ Ext.define('Ext.form.field.Checkbox', {
         var me = this,
             handler = me.handler;
 
+        me.updateCheckedCls(newVal);
+        
         if (handler) {
             Ext.callback(handler, me.scope, [me, newVal], 0, me);
         }
@@ -557,8 +642,11 @@ Ext.define('Ext.form.field.Checkbox', {
             me.publishState('checked', newVal);
         }
     },
-    
-    resetOriginalValue: function(/* private */ fromBoxInGroup){
+
+    /**
+     * @private
+     */
+    resetOriginalValue: function(fromBoxInGroup) {
         var me = this,
             boxes,
             box,
@@ -580,9 +668,10 @@ Ext.define('Ext.form.field.Checkbox', {
         me.callParent();
     },
 
-    beforeDestroy: function(){
-        this.callParent();
+    doDestroy: function() {
         this.getManager().removeAtKey(this.id);
+        
+        this.callParent();
     },
 
     getManager: function() {
@@ -591,25 +680,29 @@ Ext.define('Ext.form.field.Checkbox', {
 
     onEnable: function() {
         var me = this,
-            inputEl = me.inputEl;
+            inputEl = me.inputEl && me.inputEl.dom;
+        
         me.callParent();
+        
         if (inputEl) {
             // Can still be disabled if the field is readOnly
-            inputEl.dom.disabled = me.readOnly;
+            inputEl.disabled = me.readOnly;
         }
     },
 
     setReadOnly: function(readOnly) {
         var me = this,
-            inputEl = me.inputEl;
+            inputEl = me.inputEl && me.inputEl.dom;
+        
         if (inputEl) {
             // Set the button to disabled when readonly
-            inputEl.dom.disabled = !!readOnly || me.disabled;
+            inputEl.disabled = !!readOnly || me.disabled;
         }
+        
         me.callParent(arguments);
     },
 
-    getFormId: function(){
+    getFormId: function() {
         var me = this,
             form;
 
@@ -624,16 +717,5 @@ Ext.define('Ext.form.field.Checkbox', {
 
     getFocusClsEl: function() {
         return this.displayEl;
-    },
-
-    privates: {
-        _onDisplayElMouseDown: function(e) {
-            // The preventDefault here is due to an issue in iOS where the
-            // inputEl still receives tap events, which means we check, then
-            // immediately uncheck. Don't need to conditionalize this, other
-            // browsers don't receive the event on the checkbox
-            e.preventDefault();
-            this.inputEl.focus(1);
-        }
     }
 });

@@ -16,7 +16,7 @@
         margin-top: .25em;
     }
 
-    &.x-item-disabled {
+    &.x-disabled {
         &:before {
             opacity: .8;
             box-shadow: none;
@@ -34,7 +34,7 @@
         }
     }
 
-	.x-thumb-pressing {
+	.x-thumb.x-pressing {
 		&:after {
 			background-color: #fff;
 			border: 0;
@@ -53,7 +53,7 @@
 	}
 }
 
-.x-toggle,
+.x-toggleslider,
 .x-slider-multiple {
     .x-thumb:before {
         border: 0;
@@ -87,7 +87,7 @@
     }
 }
 
-.x-thumb.x-item-disabled {
+.x-thumb.x-disabled {
     &:after {
         @include background(linear-gradient(color-stops(#c0c0c0, #c0c0c0)));
         border-color: #919191;

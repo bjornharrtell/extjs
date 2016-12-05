@@ -39,7 +39,7 @@ describe("Ext.field.DatePicker", function() {
                 dateFormat: 'Y-m-d'
             });
             field.setValue(new Date(2010, 0, 1));
-            expect(field.getComponent().input.dom.value).toBe('2010-01-01');
+            expect(field.getComponent().inputElement.dom.value).toBe('2010-01-01');
         });
 
         it("should clear the text field when specifying null", function() {
@@ -48,7 +48,7 @@ describe("Ext.field.DatePicker", function() {
             });
             field.setValue(new Date(2010, 0, 1));
             field.setValue(null);
-            expect(field.getComponent().input.dom.value).toBe('');
+            expect(field.getComponent().inputElement.dom.value).toBe('');
         });
 
         describe("events", function() {

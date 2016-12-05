@@ -33,7 +33,6 @@
  * or '*' wildcard for any Provider. This domain is optional and will be loaded only if
  * {@link Ext.direct.Manager} singleton is required in your application.
  */
-
 Ext.define('Ext.app.EventDomain', {
     requires: [
         'Ext.util.Event'
@@ -290,10 +289,15 @@ Ext.define('Ext.app.EventDomain', {
         domain.monitoredClasses.push(observable);
 
         prototype.doFireEvent = function(ev, args) {
-            var ret = doFireEvent.apply(this, arguments);
+            var me = this,
+                ret;
+            
+            ret = doFireEvent.apply(me, arguments);
 
-            if (ret !== false && !this.isSuspended(ev)) {
-                ret = domain.dispatch(this, ev, args);
+            // Observable can be destroyed in the event handler above,
+            // in which case we can't proceed with dispatching domain event.
+            if (ret !== false && !me.destroyed && !me.isSuspended(ev)) {
+                ret = domain.dispatch(me, ev, args);
             }
 
             return ret;

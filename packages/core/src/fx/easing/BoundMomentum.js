@@ -5,7 +5,6 @@
  * {@link Ext.fx.easing.Momentum} and {@link Ext.fx.easing.Bounce}, which emulates deceleration when the animated element
  * is still within its boundary, then bouncing back (snapping) when it's out-of-bound.
  */
-
 Ext.define('Ext.fx.easing.BoundMomentum', {
     extend: 'Ext.fx.easing.Abstract',
 

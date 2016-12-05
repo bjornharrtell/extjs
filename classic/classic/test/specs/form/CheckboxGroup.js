@@ -2,17 +2,47 @@ describe("Ext.form.CheckboxGroup", function() {
     var component;
 
     function makeComponent(config) {
-        config = config || {};
+        config = Ext.apply({
+            renderTo: Ext.getBody()
+        }, config);
         component = new Ext.form.CheckboxGroup(config);
     }
 
     afterEach(function() {
-        if (component) {
-            component.destroy();
-        }
+        Ext.destroy(component);
         component = null;
     });
 
+    describe("default name", function() {
+        it("should assign group name to child items", function() {
+            makeComponent({
+                name: 'zurg',
+                items: [{}, {}]
+            });
+            
+            expect(component.items.getAt(0)).toHaveAttr('name', 'zurg');
+            expect(component.items.getAt(1)).toHaveAttr('name', 'zurg');
+        });
+        
+        it("should assign its id as group name to child items", function() {
+            makeComponent({
+                items: [{}, {}]
+            });
+            
+            expect(component.items.getAt(0)).toHaveAttr('name', component.id);
+            expect(component.items.getAt(1)).toHaveAttr('name', component.id);
+        });
+        
+        it("should not override child name config", function() {
+            makeComponent({
+                name: 'throbbe',
+                items: [{ name: 'gurgle' }, {}]
+            });
+            
+            expect(component.items.getAt(0)).toHaveAttr('name', 'gurgle');
+            expect(component.items.getAt(1)).toHaveAttr('name', 'throbbe');
+        });
+    });
 
     describe("initial value", function() {
         it("should set its originalValue to the aggregated value of its sub-checkboxes", function() {
@@ -264,10 +294,6 @@ describe("Ext.form.CheckboxGroup", function() {
     });
     
     describe("ARIA", function() {
-        function expectAria(attr, value) {
-            jasmine.expectAriaAttr(component, attr, value);
-        }
-        
         beforeEach(function() {
             makeComponent({
                 renderTo: Ext.getBody(),
@@ -289,15 +315,7 @@ describe("Ext.form.CheckboxGroup", function() {
         
         describe("attributes", function() {
             it("should have group role", function() {
-                expectAria('role', 'group');
-            });
-            
-            it("should have aria-owns", function() {
-                var foo = component.down('[name=foo]').inputEl,
-                    bar = component.down('[name=bar]').inputEl,
-                    baz = component.down('[name=baz]').inputEl;
-                
-                expectAria('aria-owns', foo.id + ' ' + bar.id + ' ' + baz.id);
+                expect(component).toHaveAttr('role', 'group');
             });
         });
     });

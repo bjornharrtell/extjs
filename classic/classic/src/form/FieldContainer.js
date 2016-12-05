@@ -212,6 +212,9 @@ Ext.define('Ext.form.FieldContainer', {
 
         data.containerElCls = me.containerElCls;
         data = Ext.applyIf(data, me.getLabelableRenderData());
+        if (me.labelAlign === 'top' || me.msgTarget === 'under') {
+            data.extraFieldBodyCls += ' ' + Ext.baseCSSPrefix + 'field-container-body-vertical';
+        }
         data.tipAnchorTarget = me.id + '-containerEl';
         return data;
     },
@@ -242,7 +245,7 @@ Ext.define('Ext.form.FieldContainer', {
 
     getSubTplMarkup: function(fieldData) {
         var me = this,
-            tpl = me.getTpl('fieldSubTpl'),
+            tpl = me.lookupTpl('fieldSubTpl'),
             html;
 
         if (!tpl.renderContent) {
@@ -339,7 +342,7 @@ Ext.define('Ext.form.FieldContainer', {
         initRenderTpl: function() {
             var me = this;
             if (!me.hasOwnProperty('renderTpl')) {
-                me.renderTpl = me.getTpl('labelableRenderTpl');
+                me.renderTpl = me.lookupTpl('labelableRenderTpl');
             }
             return me.callParent();
         }

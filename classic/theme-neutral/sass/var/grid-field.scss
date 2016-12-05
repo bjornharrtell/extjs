@@ -281,6 +281,24 @@ $grid-cell-field-trigger-background-color: dynamic($form-trigger-background-colo
  */
 $include-text-field-grid-ui: dynamic($include-grid-cell-field-ui);
 
+/**
+ * @var {boolean}
+ * True to include the "grid-cell" tag field UI
+ */
+$include-tag-field-grid-ui: dynamic($include-grid-cell-field-ui);
+
+/**
+ * @var {number/list}
+ * The padding of a tag field's input element when rendered in the context of a grid cell
+ */
+$grid-cell-tag-field-padding: dynamic($tag-field-padding);
+
+/**
+ * @var {number/list}
+ * The margin of a tag field's items when rendered in the context of a grid cell
+ */
+$grid-cell-tag-field-item-margin: dynamic($tag-field-item-margin);
+
 // </editor-fold>
 
 // <editor-fold desc="Grid Editor Spinner Variables"

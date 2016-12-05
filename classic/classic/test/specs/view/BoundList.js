@@ -46,6 +46,33 @@ describe("Ext.view.BoundList", function() {
         });
     });
     
+    describe("default tpl", function () {
+        it("should be an XTemplate", function () {
+            createBoundList();
+
+            expect(boundList.tpl.isTemplate).toBe(true);
+        });
+
+        it("should generate the correct default tpl", function () {
+            createBoundList();
+
+            expect(boundList.tpl.html).toBe('<tpl for="."><li role="option" unselectable="on" class="x-boundlist-item">{name}</li></tpl>');
+        });
+
+        it("should correctly render items using the tpl", function () {
+            createBoundList({}, [{
+                name: 'Item1',
+                id: 'itemone',
+            }]);
+
+            var nodes = boundList.getNodes(),
+                node = nodes[0];
+
+            expect(Ext.fly(node)).toHaveCls('x-boundlist-item');    
+            expect(node.innerHTML).toBe('Item1');
+        });
+    });
+
     describe("modifying the store", function() {
         describe("adding", function() {
             it("should be able to add to an empty BoundList", function() {
@@ -145,6 +172,93 @@ describe("Ext.view.BoundList", function() {
                 expect(nodes.length).toBe(0); 
             });  
         });
+        
+        describe("ARIA attributes", function() {
+            var nodes;
+            
+            beforeEach(function() {
+                createBoundList({
+                }, []);
+                
+                spyOn(boundList, 'refreshAriaAttributes').andCallThrough();
+                
+                store.add([{
+                    name: 'Item1'
+                }, {
+                    name: 'Item2'
+                }]);
+                
+                nodes = boundList.getNodes();
+            });
+            
+            afterEach(function() {
+                nodes = null;
+            });
+            
+            it("should call refreshAriaAttributes on refresh", function() {
+                expect(boundList.refreshAriaAttributes).toHaveBeenCalled();
+            });
+            
+            it("should not set aria-selected by default", function() {
+                expect(nodes[0]).not.toHaveAttr('aria-selected');
+            });
+            
+            it("should not set aria-setsize by default", function() {
+                expect(nodes[0]).not.toHaveAttr('aria-setsize');
+            });
+            
+            it("should not set aria-posinset by default", function() {
+                expect(nodes[0]).not.toHaveAttr('aria-posinset');
+            });
+            
+            it("should set aria-selected when pickerField is multiSelect", function() {
+                boundList.pickerField = { multiSelect: true };
+                
+                boundList.refresh();
+                nodes = boundList.getNodes();
+                
+                expect(nodes[0]).toHaveAttr('aria-selected', 'false');
+            });
+            
+            describe("paged store", function() {
+                beforeEach(function() {
+                    spyOn(store, 'getTotalCount').andCallFake(function() { return 42; });
+                    
+                    boundList.refresh();
+                    nodes = boundList.getNodes();
+                });
+                
+                it("should set aria-setsize", function() {
+                    expect(nodes[0]).toHaveAttr('aria-setsize', '42');
+                    expect(nodes[1]).toHaveAttr('aria-setsize', '42');
+                });
+                
+                it("should set aria-posinset", function() {
+                    expect(nodes[0]).toHaveAttr('aria-posinset', '0');
+                    expect(nodes[1]).toHaveAttr('aria-posinset', '1');
+                });
+            });
+
+            describe("filtered store", function() {
+                beforeEach(function() {
+                    spyOn(store, 'isFiltered').andCallFake(function() { return true; });
+                    spyOn(store, 'getCount').andCallFake(function() { return 42; });
+                    
+                    boundList.refresh();
+                    nodes = boundList.getNodes();
+                });
+                
+                it("should set aria-setsize", function() {
+                    expect(nodes[0]).toHaveAttr('aria-setsize', '42');
+                    expect(nodes[1]).toHaveAttr('aria-setsize', '42');
+                });
+                
+                it("should set aria-posinset", function() {
+                    expect(nodes[0]).toHaveAttr('aria-posinset', '0');
+                    expect(nodes[1]).toHaveAttr('aria-posinset', '1');
+                });
+            });
+        });
     });
 
     describe("highlighting", function(){
@@ -201,6 +315,89 @@ describe("Ext.view.BoundList", function() {
             expect(nodes.item(0).hasCls(boundList.overItemCls)).toBe(false);
         });
     });
+    
+    describe("selecting", function() {
+        beforeEach(function() {
+            createBoundList();
+        });
+        
+        describe("ARIA attributes", function() {
+            describe("enableAutoSelect == false", function() {
+                beforeEach(function() {
+                    boundList.selModel.select(0);
+                });
+                
+                it("should not set aria-selected by default", function() {
+                    expect(boundList.getNodes()[0]).not.toHaveAttr('aria-selected');
+                });
+            });
+            
+            describe("ariaSelectable == true", function() {
+                beforeEach(function() {
+                    boundList.ariaSelectable = true;
+                    boundList.selModel.select(0);
+                });
+                
+                it("should set aria-selected", function() {
+                    expect(boundList.getNodes()[0]).toHaveAttr('aria-selected', 'true');
+                });
+                
+                it("should remove aria-selected", function() {
+                    boundList.selModel.deselectAll();
+                    
+                    expect(boundList.getNodes()[0]).not.toHaveAttr('aria-selected');
+                });
+                
+                it("should reset aria-selected with multiSelect pickerField", function() {
+                    boundList.pickerField = { multiSelect: true };
+                    boundList.selModel.deselectAll();
+                    
+                    expect(boundList.getNodes()[0]).toHaveAttr('aria-selected', 'false');
+                });
+            });
+        });
+    });
+
+    describe('setDisplayField', function () {
+        it('should update the displayField', function () {
+            createBoundList({}, [{
+                name: 'Item1',
+                id: 'itemone'
+            }]);
+
+            expect(boundList.displayField).toBe('name');
+
+            boundList.setDisplayField('id');
+
+            expect(boundList.displayField).toBe('id');
+        });
+
+        it('should update the tpl', function () {
+            createBoundList();
+
+            // update boundlist displayField
+            boundList.setDisplayField('id');
+
+            expect(boundList.tpl.isTemplate).toBe(true);
+            expect(boundList.tpl.html).toBe('<tpl for="."><li role="option" unselectable="on" class="x-boundlist-item">{id}</li></tpl>');
+        });
+
+        it('should correctly render items using the updated tpl', function () {
+            var nodes;
+
+            createBoundList({}, [{
+                name: 'Item1',
+                id: 'itemone'
+            }]);
+
+            // update boundlist displayField
+            boundList.setDisplayField('id');
+            // refresh so tpl is rerun
+            boundList.refresh();
+            nodes = boundList.getNodes();
+            expect(nodes[0].innerHTML).toBe('itemone');
+        });
+    });
 
     describe('masking', function () {
         describe('disabling the boundlist', function () {
@@ -245,6 +442,42 @@ describe("Ext.view.BoundList", function() {
                 // See EXTJSIV-11838.
                 expect(Ext.dom.Element.prototype.unmask).toHaveBeenCalled();
             });
+        });
+    });
+    
+    describe("deselectOnContainerClick", function() {
+        var ieIt = (Ext.isIE10 || Ext.isIE11) ? it : xit;
+        
+        beforeEach(function() {
+            createBoundList({
+                deselectOnContainerClick: true,
+                width: 200,
+                height: 100
+            }, [
+                { name: 'Item 1' },
+                { name: 'Item 2' },
+                { name: 'Item 3' },
+                { name: 'Item 4' },
+                { name: 'Item 5' },
+                { name: 'Item 6' },
+                { name: 'Item 7' },
+                { name: 'Item 8' },
+                { name: 'Item 9' }
+            ]);
+        });
+        
+        // https://sencha.jira.com/browse/EXTJS-18847
+        ieIt("should not deselect when clicking on scrollbar", function() {
+            var el = boundList.el,
+                xy = el.getXY(),
+                width = el.getWidth(),
+                x = xy[0] + width - Math.ceil(Ext.getScrollbarSize().width / 2);
+            
+            boundList.getSelectionModel().select(1);
+            
+            jasmine.fireMouseEvent(el, 'click', x, xy[1] + 1);
+            
+            expect(boundList.getSelectionModel().getSelection().length).toBe(1);
         });
     });
 });

@@ -17,7 +17,7 @@
  *             }
  *         },
  *
- *         //alternatively, a {@link Ext.data.Model} name can be given (see {@link Ext.data.Store} for an example)
+ *         //alternatively, a Model name can be given (see Ext.data.Store for an example)
  *         fields: ['name', 'url', {name:'size', type: 'float'}, {name:'lastmod', type:'date'}]
  *     });
  *

@@ -4,7 +4,7 @@
 Ext.define('Ext.event.gesture.Swipe', {
     extend: 'Ext.event.gesture.SingleTouch',
 
-    priority: 500,
+    priority: 600,
 
     handledEvents: ['swipestart', 'swipe', 'swipecancel'],
 
@@ -39,27 +39,6 @@ Ext.define('Ext.event.gesture.Swipe', {
      * @member Ext.event.Event
      */
 
-    inheritableStatics: {
-        /**
-         * @private
-         * @static
-         * @inheritable
-         */
-        MAX_OFFSET_EXCEEDED: 'Max Offset Exceeded',
-        /**
-         * @private
-         * @static
-         * @inheritable
-         */
-        MAX_DURATION_EXCEEDED: 'Max Duration Exceeded',
-        /**
-         * @private
-         * @static
-         * @inheritable
-         */
-        DISTANCE_NOT_ENOUGH: 'Distance Not Enough'
-    },
-
     config: {
         minDistance: 80,
         maxOffset: 35,
@@ -67,61 +46,112 @@ Ext.define('Ext.event.gesture.Swipe', {
     },
 
     onTouchStart: function(e) {
-        if (this.callParent(arguments) === false) {
-            return false;
+        var me = this,
+            ret = me.callParent([e]),
+            touch;
+
+        if (ret !== false) {
+            touch = e.changedTouches[0];
+
+            me.startTime = e.time;
+
+            me.isHorizontal = true;
+            me.isVertical = true;
+
+            me.startX = touch.pageX;
+            me.startY = touch.pageY;
         }
 
-        var touch = e.changedTouches[0];
-
-        this.startTime = e.time;
-
-        this.isHorizontal = true;
-        this.isVertical = true;
-
-        this.startX = touch.pageX;
-        this.startY = touch.pageY;
+        return ret;
     },
 
     onTouchMove: function(e) {
-        var touch = e.changedTouches[0],
+        var me = this,
+            touch = e.changedTouches[0],
             x = touch.pageX,
             y = touch.pageY,
-            deltaX = x - this.startX,
-            deltaY = y - this.startY,
-            absDeltaX = Math.abs(x - this.startX),
-            absDeltaY = Math.abs(y - this.startY),
-            duration = e.time - this.startTime,
-            minDistance = this.getMinDistance(),
-            time = e.time,
-            direction, distance;
+            deltaX = x - me.startX,
+            deltaY = y - me.startY,
+            absDeltaX = Math.abs(x - me.startX),
+            absDeltaY = Math.abs(y - me.startY),
+            duration = e.time - me.startTime,
+            minDistance, direction, distance;
 
-        if (time - this.startTime > this.getMaxDuration()) {
-            return this.fail(this.self.MAX_DURATION_EXCEEDED);
+        // If delta is 0 on both axes that's not swipe
+        if ((absDeltaX === 0 && absDeltaY === 0) || (duration > me.getMaxDuration())) {
+            return me.cancel(e);
         }
 
-        if (this.isHorizontal && absDeltaY > this.getMaxOffset()) {
-            this.isHorizontal = false;
+        if (me.isHorizontal && absDeltaY > me.getMaxOffset()) {
+            me.isHorizontal = false;
         }
 
-        if (this.isVertical && absDeltaX > this.getMaxOffset()) {
-            this.isVertical = false;
+        if (me.isVertical && absDeltaX > me.getMaxOffset()) {
+            me.isVertical = false;
         }
 
-        if (!this.isVertical || !this.isHorizontal) {
-            if (this.isHorizontal && absDeltaX < minDistance) {
+        if (!me.isVertical || !me.isHorizontal) {
+            minDistance = me.getMinDistance();
+
+            if (me.isHorizontal && absDeltaX < minDistance) {
                 direction = (deltaX < 0) ? 'left' : 'right';
                 distance = absDeltaX;
             }
-            else if (this.isVertical && absDeltaY < minDistance) {
+            else if (me.isVertical && absDeltaY < minDistance) {
                 direction = (deltaY < 0) ? 'up' : 'down';
                 distance = absDeltaY;
             }
         }
 
-        if (direction && !this.started) {
-            this.started = true;
+        if (!me.isHorizontal && !me.isVertical) {
+            return me.cancel(e);
+        }
 
-            this.fire('swipestart', e, {
+        if (direction && !me.isStarted) {
+            me.isStarted = true;
+
+            me.fire('swipestart', e, {
+                touch: touch,
+                direction: direction,
+                distance: distance,
+                duration: duration
+            });
+        }
+    },
+
+    onTouchEnd: function(e) {
+        var me = this,
+            touch, x, y, deltaX, deltaY, absDeltaX, absDeltaY, minDistance, duration,
+            direction, distance;
+
+        if (me.onTouchMove(e) !== false) {
+            touch = e.changedTouches[0];
+            x = touch.pageX;
+            y = touch.pageY;
+            deltaX = x - me.startX;
+            deltaY = y - me.startY;
+            absDeltaX = Math.abs(deltaX);
+            absDeltaY = Math.abs(deltaY);
+            minDistance = me.getMinDistance();
+            duration = e.time - me.startTime;
+
+            if (me.isVertical && absDeltaY < minDistance) {
+                me.isVertical = false;
+            }
+
+            if (me.isHorizontal && absDeltaX < minDistance) {
+                me.isHorizontal = false;
+            }
+
+            if (me.isHorizontal) {
+                direction = (deltaX < 0) ? 'left' : 'right';
+                distance = absDeltaX;
+            } else if (me.isVertical) {
+                direction = (deltaY < 0) ? 'up' : 'down';
+                distance = absDeltaY;
+            }
+
+            me.fire('swipe', e, {
                 touch: touch,
                 direction: direction,
                 distance: distance,
@@ -129,66 +159,19 @@ Ext.define('Ext.event.gesture.Swipe', {
             });
         }
 
-        if (!this.isHorizontal && !this.isVertical) {
-            return this.fail(this.self.MAX_OFFSET_EXCEEDED);
-        }
+        return this.callParent([e]);
     },
 
-    onTouchEnd: function(e) {
-        if (this.onTouchMove(e) === false) {
-            return false;
-        }
-
-        var touch = e.changedTouches[0],
-            x = touch.pageX,
-            y = touch.pageY,
-            deltaX = x - this.startX,
-            deltaY = y - this.startY,
-            absDeltaX = Math.abs(deltaX),
-            absDeltaY = Math.abs(deltaY),
-            minDistance = this.getMinDistance(),
-            duration = e.time - this.startTime,
-            direction, distance;
-
-        if (this.isVertical && absDeltaY < minDistance) {
-            this.isVertical = false;
-        }
-
-        if (this.isHorizontal && absDeltaX < minDistance) {
-            this.isHorizontal = false;
-        }
-
-        if (this.isHorizontal) {
-            direction = (deltaX < 0) ? 'left' : 'right';
-            distance = absDeltaX;
-        }
-        else if (this.isVertical) {
-            direction = (deltaY < 0) ? 'up' : 'down';
-            distance = absDeltaY;
-        }
-        else {
-            return this.fail(this.self.DISTANCE_NOT_ENOUGH);
-        }
-
-        this.started = false;
-
-        this.fire('swipe', e, {
-            touch: touch,
-            direction: direction,
-            distance: distance,
-            duration: duration
-        });
-    },
-
-    onTouchCancel: function(e) {
-        this.fire('swipecancel', e);
-        return false;
+    onCancel: function(e) {
+        this.fire('swipecancel', e, null, true);
     },
 
     reset: function() {
         var me = this;
 
         me.startTime = me.isHorizontal = me.isVertical = me.startX = me.startY = null;
+
+        return me.callParent();
     }
 }, function(Swipe) {
     var gestures = Ext.manifest.gestures;

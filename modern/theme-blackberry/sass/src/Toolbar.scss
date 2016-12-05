@@ -16,7 +16,7 @@
         }
     }
 
-    .x-field-select .x-component-outer {
+    .x-pickerfield .x-body-el {
         @include background(linear-gradient(color-stops(lighten(#dbdbdb, 5%), #dbdbdb)));
     }
 }

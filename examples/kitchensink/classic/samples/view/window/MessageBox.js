@@ -80,12 +80,18 @@ Ext.define('KitchenSink.view.window.MessageBox', {
             }]
         }]
     }, {
-        xtype: 'container',
         margin: '30 0 0 0',
+        xtype: 'checkboxfield',
+        labelWidth: 120,
+        fieldLabel: 'Hide on mask click',
+        reference: 'hideOnMaskClick'
+    }, {
+        xtype: 'container',
         layout: 'hbox',
         items: [{
             xtype: 'combobox',
             fieldLabel: 'Choose Icon',
+            labelWidth: 120,
             reference: 'icon',
             forceSelection: true,
             editable: false,

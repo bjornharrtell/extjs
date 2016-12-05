@@ -14,30 +14,31 @@ Ext.define('Ext.tree.NavigationModel', {
     
     initKeyNav: function(view) {
         var me = this,
-            columns = me.view.ownerGrid.columns,
-            len, i;
+            columns = me.view.ownerGrid.columns;
 
         // Must go up to any possible locking assembly to find total number of columns
         me.isTreeGrid = columns && columns.length > 1;
         me.callParent([view]);
 
-        // We will have two keyNavs if we are the navigation model for a lockable assembly
-        for (i = 0, len = me.keyNav.length; i < len; i++) {
-            me.keyNav[i].map.addBinding([{
-                key: '8',
-                shift: true,
-                handler: me.onAsterisk,
-                scope: me
-            }, {
-                key: Ext.event.Event.NUM_MULTIPLY,
-                handler: me.onAsterisk,
-                scope: me
-            }]);
-        }
         me.view.grid.on({
             columnschanged: me.onColumnsChanged,
             scope: me
         });
+    },
+
+    onKeyNavCreate: function(keyNav) {
+        var fn = this.onAsterisk;
+
+        keyNav.map.addBinding([{
+            key: '8',
+            shift: true,
+            handler: fn,
+            scope: this
+        }, {
+            key: Ext.event.Event.NUM_MULTIPLY,
+            handler: fn,
+            scope: this
+        }]);
     },
 
     onColumnsChanged: function() {
@@ -121,6 +122,6 @@ Ext.define('Ext.tree.NavigationModel', {
 
     // (asterisk) on keypad expands all nodes.
     onAsterisk: function(keyEvent) {
-        this.view.ownerCt.expandAll();
+        this.view.ownerGrid.expandAll();
     }
 });

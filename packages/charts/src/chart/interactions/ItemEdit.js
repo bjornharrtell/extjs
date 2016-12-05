@@ -102,8 +102,8 @@ Ext.define('Ext.chart.interactions.ItemEdit', {
                 constrainPosition: true,
                 shrinkWrapDock: true,
                 autoHide: true,
-                offsetX: 10,
-                offsetY: 10
+                trackMouse: true,
+                mouseOffset: [20, 20]
             });
 
             tooltip = new Ext.tip.ToolTip(config);
@@ -129,6 +129,8 @@ Ext.define('Ext.chart.interactions.ItemEdit', {
         var me = this,
             chart = me.getChart(),
             item = chart.getHighlightItem();
+
+        e.claimGesture();
 
         if (item) {
             chart.fireEvent('beginitemedit', chart, me, me.item = item);
@@ -326,10 +328,18 @@ Ext.define('Ext.chart.interactions.ItemEdit', {
             config = tooltip.config;
             chart = this.getChart();
             Ext.callback(config.renderer, null, [tooltip, item, target, e], 0, chart);
-            tooltip.show([
-                e.x + config.offsetX,
-                e.y + config.offsetY
-            ]);
+            // If trackMouse is set, a ToolTip shows by its pointerEvent
+            tooltip.pointerEvent = e;
+
+            if (tooltip.isVisible()) {
+                // After show handling repositions according
+                // to configuration. trackMouse uses the pointerEvent
+                // If aligning to an element, it uses a currentTarget
+                // flyweight which may be attached to any DOM element.
+                tooltip.handleAfterShow();
+            } else {
+                tooltip.show();
+            }
         }
     },
 

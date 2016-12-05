@@ -2,7 +2,7 @@
  * Controls the layout view examples.
  */
 Ext.define('KitchenSink.view.pivot.LayoutController', {
-    extend: 'Ext.app.ViewController',
+    extend: 'KitchenSink.view.pivot.PivotController',
 
     alias: 'controller.pivotlayout',
 
@@ -30,11 +30,12 @@ Ext.define('KitchenSink.view.pivot.LayoutController', {
         });
     },
 
-    expandAll: function(){
-        this.getView().expandAll();
+    onPivotGroupExpand: function(matrix, type, group){
+        Ext.log( (group ? 'Group "' + group.name + '" expanded on ' : 'All groups expanded on ') + type);
     },
 
-    collapseAll: function(){
-        this.getView().collapseAll();
+    onPivotGroupCollapse: function(matrix, type, group){
+        Ext.log( (group ? 'Group "' + group.name + '" collapsed on ' : 'All groups expanded on ') + type);
     }
+
 });

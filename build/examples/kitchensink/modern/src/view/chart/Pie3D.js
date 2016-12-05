@@ -13,7 +13,19 @@ Ext.define('KitchenSink.view.chart.Pie3D', {
 
     controller: 'chart',
 
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/Pie.js' 
+    }],
+    // </example>
+    
     layout: 'fit',
+    shadow: true,
+
     items: [{
         xtype: 'toolbar',
         docked: 'top',
@@ -27,15 +39,15 @@ Ext.define('KitchenSink.view.chart.Pie3D', {
         }, {
             iconCls: 'x-fa fa-refresh',
             text: 'Refresh',
-            handler: function() {
-                Ext.getStore('Pie').generateData(9);
-            }
+            handler: 'onRefresh'
         }]
     }, {
         // Bug: When a theme is not specified, the pie disappears on 'rotate', leaving only the shadows.
         // Bug: With or without theme, the shadow doesn't show anymore - except the bug above.
         xtype: 'polar',
-        store: 'Pie',
+        store: {
+            type: 'pie'
+        },
         theme: 'Muted',
         innerPadding: 20,
         platformConfig: {
@@ -74,11 +86,6 @@ Ext.define('KitchenSink.view.chart.Pie3D', {
                 strokeStyle: 'none'
             }
         }]
-    }],
-
-    initialize: function() {
-        this.callParent();
-        Ext.getStore('Pie').generateData(9);
-    }
+    }]
 });
 //</feature>

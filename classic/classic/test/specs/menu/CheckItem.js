@@ -14,14 +14,6 @@ describe("Ext.menu.CheckItem", function(){
         });
         c = menu.items.getAt(0);
     }
-    
-    function expectAria(attr, value) {
-        jasmine.expectAriaAttr(c, attr, value);
-    }
-    
-    function expectNoAria(attr) {
-        jasmine.expectNoAriaAttr(c, attr);
-    }
 
     afterEach(function(){
         Ext.destroy(menu);
@@ -52,16 +44,16 @@ describe("Ext.menu.CheckItem", function(){
                 });
                 
                 it("should have menuitemcheckbox role", function() {
-                    expectAria('role', 'menuitemcheckbox');
+                    expect(c).toHaveAttr('role', 'menuitemcheckbox');
                 });
                 
                 it("should not have aria-label", function() {
-                    expectNoAria('aria-label');
+                    expect(c).not.toHaveAttr('aria-label');
                 });
                 
                 describe("aria-checked", function() {
                     it("should be false when not checked", function() {
-                        expectAria('aria-checked', 'false');
+                        expect(c).toHaveAttr('aria-checked', 'false');
                     });
                     
                     it("should be true when checked", function() {
@@ -69,7 +61,7 @@ describe("Ext.menu.CheckItem", function(){
                         
                         makeItem({ checked: true });
                         
-                        expectAria('aria-checked', 'true');
+                        expect(c).toHaveAttr('aria-checked', 'true');
                     });
                 });
             });
@@ -87,16 +79,16 @@ describe("Ext.menu.CheckItem", function(){
             });
             
             it("should have menuitemcheckbox role", function() {
-                expectAria('role', 'menuitemcheckbox');
+                expect(c).toHaveAttr('role', 'menuitemcheckbox');
             });
             
             it("should have no aria-label", function() {
-                expectNoAria('aria-label');
+                expect(c).not.toHaveAttr('aria-label');
             });
             
             describe("aria-checked", function() {
                 it("should be false when not checked", function() {
-                    expectAria('aria-checked', 'false');
+                    expect(c).toHaveAttr('aria-checked', 'false');
                 });
                 
                 it("should be true when checked", function() {
@@ -104,7 +96,7 @@ describe("Ext.menu.CheckItem", function(){
                     makeItem({ plain: true, checked: true });
                     menu.show();
                     
-                    expectAria('aria-checked', 'true');
+                    expect(c).toHaveAttr('aria-checked', 'true');
                 });
             });
         });
@@ -123,19 +115,19 @@ describe("Ext.menu.CheckItem", function(){
             });
             
             it("should have aria-haspopup", function() {
-                expectAria('aria-haspopup', 'true');
+                expect(c).toHaveAttr('aria-haspopup', 'true');
             });
             
             it("should have aria-owns", function() {
-                expectAria('aria-owns', c.menu.id);
+                expect(c).toHaveAttr('aria-owns', c.menu.id);
             });
             
             it("should have aria-checked", function() {
-                expectAria('aria-checked', 'mixed');
+                expect(c).toHaveAttr('aria-checked', 'mixed');
             });
             
             it("should have aria-label", function() {
-                expectAria('aria-label', 'foo submenu');
+                expect(c).toHaveAttr('aria-label', 'foo submenu');
             });
         });
     });
@@ -159,13 +151,13 @@ describe("Ext.menu.CheckItem", function(){
             });
             
             it("should set aria-checked attribute", function() {
-                expectAria('aria-checked', 'true');
+                expect(c).toHaveAttr('aria-checked', 'true');
             });
         
             it("should reset aria-checked attribute", function() {
                 c.setChecked(false);
                 
-                expectAria('aria-checked', 'false');
+                expect(c).toHaveAttr('aria-checked', 'false');
             });
         });
         
@@ -417,7 +409,7 @@ describe("Ext.menu.CheckItem", function(){
             it("should set aria-label", function() {
                 c.setText('frob');
                 
-                expectAria('aria-label', 'frob submenu');
+                expect(c).toHaveAttr('aria-label', 'frob submenu');
             });
         });
     });

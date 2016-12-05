@@ -178,9 +178,6 @@ describe("Ext.container.ButtonGroup", function() {
     });
     
     describe("ARIA", function() {
-        var expectAria = jasmine.expectAriaAttr,
-            expectNoAria = jasmine.expectNoAriaAttr;
-        
         describe("general", function() {
             beforeEach(function() {
                 makeGroup();
@@ -191,11 +188,11 @@ describe("Ext.container.ButtonGroup", function() {
             });
             
             it("should have presentation role on main el", function() {
-                expectAria(group.el, 'role', 'presentation');
+                expect(group.el).toHaveAttr('role', 'presentation');
             });
             
             it("should have toolbar role on body el", function() {
-                expectAria(group.body, 'role', 'toolbar');
+                expect(group.body).toHaveAttr('role', 'toolbar');
             });
         });
         
@@ -208,11 +205,11 @@ describe("Ext.container.ButtonGroup", function() {
                 });
                 
                 it("should have aria-labelledby", function() {
-                    expectAria(group.body, 'aria-labelledby', group.header.titleCmp.textEl.id);
+                    expect(group.body).toHaveAttr('aria-labelledby', group.header.titleCmp.textEl.id);
                 });
                 
                 it("should not have aria-label", function() {
-                    expectNoAria(group.body, 'aria-label');
+                    expect(group.body).not.toHaveAttr('aria-label');
                 });
             });
             
@@ -225,11 +222,11 @@ describe("Ext.container.ButtonGroup", function() {
                 });
                 
                 it("should have aria-label", function() {
-                    expectAria(group.body, 'aria-label', 'bonzo');
+                    expect(group.body).toHaveAttr('aria-label', 'bonzo');
                 });
                 
                 it("should not have aria-labelledby", function() {
-                    expectNoAria(group.body, 'aria-labelledby');
+                    expect(group.body).not.toHaveAttr('aria-labelledby');
                 });
             });
             
@@ -244,11 +241,11 @@ describe("Ext.container.ButtonGroup", function() {
                 });
                 
                 it("should have aria-label", function() {
-                    expectAria(group.body, 'aria-label', 'throbbe');
+                    expect(group.body).toHaveAttr('aria-label', 'throbbe');
                 });
                 
                 it("should not have aria-labelledby", function() {
-                    expectNoAria(group.body, 'aria-labelledby');
+                    expect(group.body).not.toHaveAttr('aria-labelledby');
                 });
             });
             
@@ -258,11 +255,11 @@ describe("Ext.container.ButtonGroup", function() {
                 });
                 
                 it("should not have aria-labelledby", function() {
-                    expectNoAria(group.body, 'aria-labelledby');
+                    expect(group.body).not.toHaveAttr('aria-labelledby');
                 });
                 
                 it("should not have aria-label", function() {
-                    expectNoAria(group.body, 'aria-label');
+                    expect(group.body).not.toHaveAttr('aria-label');
                 });
             });
         });

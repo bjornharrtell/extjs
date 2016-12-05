@@ -292,7 +292,11 @@
         }
     }
 
-    .#{$prefix}form-empty-field-#{$ui} {
+    .#{$prefix}placeholder-label-#{$ui} {
+        padding: $ui-padding;
+    }
+
+    .#{$prefix}form-empty-field-#{$ui} + .#{$prefix}placeholder-label-#{$ui} {
         color: $ui-empty-color;
     }
 

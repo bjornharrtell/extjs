@@ -108,14 +108,9 @@ Ext.define('Ext.app.bind.Binding', {
      */
     getValue: function () {
         var me = this,
-            stub = me.stub,
-            ret = stub && stub.getValue();
+            stub = me.stub;
 
-        if (me.transform) {
-            ret = me.transform(ret);
-        }
-
-        return ret;
+        return stub && stub.getValue();
     },
 
     /**
@@ -137,20 +132,21 @@ Ext.define('Ext.app.bind.Binding', {
      * This method returns `true` if this binding can only be read. If this method returns
      * `false` then the binding can be set using `setValue` (meaning this binding can be
      * a two-way binding).
-     * @return {boolean}
+     * @return {Boolean}
      * @since 5.0.0
      */
     isReadOnly: function () {
         var stub = this.stub,
-            options = this.options;
+            options = this.options,
+            ret = true;
 
         if (!(options && options.twoWay === false)) {
             if (stub) {
-                return stub.isReadOnly();
+                ret = stub.isReadOnly();
             }
         }
 
-        return true; // readOnly so just one-way
+        return ret;
     },
 
     /**
@@ -186,14 +182,9 @@ Ext.define('Ext.app.bind.Binding', {
 
         getRawValue: function () {
             var me = this,
-                stub = me.stub,
-                ret = stub && stub.getRawValue();
+                stub = me.stub;
 
-            if (me.transform) {
-                ret = me.transform(ret);
-            }
-
-            return ret;
+            return stub && stub.getRawValue();
         },
 
         isDescendantOf: function (item) {

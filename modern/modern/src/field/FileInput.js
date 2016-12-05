@@ -39,10 +39,15 @@ Ext.define('Ext.field.FileInput', {
 
         me.callParent();
 
-        me.input.on({
+        me.inputElement.on({
             scope: me,
             change: 'onInputChange'
         });
+    },
+
+    doBlur: function() {
+        this.showMask();
+        this.setIsFocused(false);
     },
 
     /**
@@ -50,10 +55,10 @@ Ext.define('Ext.field.FileInput', {
      * @return {String} value The field value.
      */
     getValue: function() {
-        var input = this.input;
+        var inputElement = this.inputElement;
 
-        if (input) {
-            this._value = input.dom.value;
+        if (inputElement) {
+            this._value = inputElement.dom.value;
         }
 
         return this._value;
@@ -80,10 +85,10 @@ Ext.define('Ext.field.FileInput', {
      * @return {FileList} List of the files selected.
      */
     getFiles: function() {
-        var input = this.input;
+        var inputElement = this.inputElement;
 
-        if (input) {
-            this.$files = input.dom.files;
+        if (inputElement) {
+            this.$files = inputElement.dom.files;
         }
 
         return this.$files;
@@ -98,9 +103,9 @@ Ext.define('Ext.field.FileInput', {
 
     /**
      * Called when the value changes on this input item
-     * @cfg me {Ext.field.FileInput}
-     * @cfg value {String} new Value
-     * @cfg startValue {String} Original Value
+     * @cfg {Object} me
+     * @cfg {String} value new Value
+     * @cfg {String} startValue Original Value
      */
     onChange: function(me, value, startValue) {
         this.fireEvent('change', me, value, startValue);

@@ -28,11 +28,16 @@ Ext.define('Ext.dom.ElementEvent', {
         var me = this,
             added = false,
             name = me.name,
+            isDirectEvent = Ext.event.publisher.Dom.instance.directEvents[name],
             captures, directs, directCaptures;
 
         options = options || {};
 
-        if (options.delegated === false || Ext.event.publisher.Dom.instance.directEvents[name]) {
+        if (options.delegated === false || isDirectEvent) {
+            if (isDirectEvent && options.delegate) {
+                options.capture = true;
+            }
+            
             if (options.capture) {
                 directCaptures = me.directCaptures ||
                     (me.directCaptures = new Ext.util.Event(me.observable, name));

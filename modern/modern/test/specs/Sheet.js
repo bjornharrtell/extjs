@@ -1,3 +1,5 @@
+/* global Ext, expect */
+
 describe('Ext.Sheet', function() {
     var sheet;
 
@@ -37,7 +39,26 @@ describe('Ext.Sheet', function() {
     });
 
     describe("configurations", function() {
+        describe('positioning', function() {
+            it('should not center positioned Sheets', function() {
+                createSheet({
+                    centered: true,
+                    right: 0,
+                    stretchY: true,
+                    width: 400
+                });
+                spyOn(sheet, 'translate');
+                sheet.show();
 
+                // Wait for animation to finish
+                waitsFor(function() {
+                    return !sheet.activeAnimation;
+                });
+                runs(function() {
+                    // translate must be all 0px
+                    expect(sheet.translate.mostRecentCall.args).toEqual([0, 0]);
+                });
+            });
+        });
     });
-
 });

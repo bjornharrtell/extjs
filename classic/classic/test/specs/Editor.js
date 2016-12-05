@@ -98,14 +98,12 @@ describe("Ext.Editor", function() {
             });
 
             // Only Webkit focusing is reliable in the test runner
-            (Ext.isWebKit ? it : xit)("should focus the field", function() {
+            it("should focus the field", function() {
                 makeEditor();
                 startEditWithTarget();
-                waitsFor(function() {
-                    return field.hasFocus;
-                }, "Field never focused");
+                
                 runs(function() {
-                    expect(field.hasFocus).toBe(true);
+                    expectFocused(field);
                 });
             });
 
@@ -282,6 +280,22 @@ describe("Ext.Editor", function() {
                 expect(editor.isVisible()).toBe(false);
                 expect(editor.editing).toBe(false);
                 expect(editSpy).not.toHaveBeenCalled();
+            });
+            
+            it("should allow the value to be changed in beforestartedit", function() {
+                spy.andCallFake(function(editor) {
+                    editor.context = editor.context || {};
+                    editor.context.value = 'blergo';
+                });
+                
+                makeEditor();
+                makeTarget();
+                
+                editor.on('beforestartedit', spy);
+                
+                editor.startEdit(target);
+                
+                expect(editor.field.getValue()).toBe('blergo');
             });
         });
     });

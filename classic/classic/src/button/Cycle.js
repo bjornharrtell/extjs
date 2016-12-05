@@ -60,7 +60,7 @@ Ext.define('Ext.button.Cycle', {
      * callback is not supplied, the SplitButton will instead fire the {@link #change} event on active item change. The
      * changeHandler function will be called with the following argument list: (SplitButton this, Ext.menu.CheckItem
      * item)
-     * @declarativeHandler
+     * @controllable
      */
     /**
      * @cfg {String} forceIcon
@@ -154,23 +154,21 @@ Ext.define('Ext.button.Cycle', {
      * @private
      */
     initComponent: function() {
-        //<debug>
-        // Ext JS Cycle buttons are implemented in a way that clashes with WAI-ARIA requirements,
-        // so we warn the developer about that.
-        // Don't warn if we're under the slicer though.
-        if (Ext.enableAriaButtons && !Ext.slicer) {
-            Ext.log.warn(
-                "Using Cycle buttons is not recommended in accessible " +
-                "applications, because their behavior conflicts " +
-                "with accessibility best practices. See WAI-ARIA 1.0 " +
-                "Authoring guide: http://www.w3.org/TR/wai-aria-practices/#menubutton"
-            );
-        }
-        //</debug>
         var me = this,
             checked = 0,
             items, i, iLen, item;
 
+        //<debug>
+        // Ext JS Cycle buttons are implemented in a way that clashes with WAI-ARIA requirements,
+        // so we warn the developer about that.
+        Ext.ariaWarn(me,
+            "Using Cycle buttons is not recommended in accessible " +
+            "applications, because their behavior conflicts " +
+            "with accessibility best practices. See WAI-ARIA 1.0 " +
+            "Authoring guide: http://www.w3.org/TR/wai-aria-practices/#menubutton"
+        );
+        //</debug>
+        
         // Allow them to specify a menu config which is a standard Button config.
         // Remove direct use of "items" in 5.0.
         items = (me.menu.items || []).concat(me.items || []);

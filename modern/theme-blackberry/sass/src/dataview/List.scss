@@ -6,7 +6,7 @@
 	background: #fff;
 }
 
-.x-list-item {
+.x-listitem {
 	border-bottom: 1px solid #F7F3F7;
 	color: #292429;
 	font-size: 20px;
@@ -14,7 +14,7 @@
 	line-height: 38px;
 }
 
-.x-list .x-list-disclosure {
+.x-list .x-listitem-disclosure {
 	margin-top: 13px;
 	border: 0;
 	background: transparent;
@@ -34,25 +34,25 @@
 	}
 }
 
-.x-list .x-list-item.x-item-pressed.x-list-item-tpl,
-.x-list .x-list-item.x-item-pressed .x-dock-horizontal {
+.x-list .x-listitem.x-pressed.x-simplelistitem,
+.x-list .x-listitem.x-pressed .x-dock-horizontal {
 	background-color: #ddd;
 }
 
-.x-list .x-list-item.x-item-selected .x-dock-horizontal,
-.x-list .x-list-item.x-item-selected.x-list-item-tpl {
+.x-list .x-listitem.x-selected .x-dock-horizontal,
+.x-list .x-listitem.x-selected.x-simplelistitem {
 	background-color: $base-color;
   	color: white;
 }
 
-.x-list .x-item-selected .x-list-disclosure {
+.x-list .x-listitem.x-selected .x-listitem-disclosure {
 	&:before {
 		color: #000
 	}
 	background-color: transparent;
 }
 
-.x-list .x-list-header {
+.x-list .x-itemheader {
 	font-weight: normal;
 	font-size: 14px;
 	padding: 2px 10px;
@@ -115,7 +115,7 @@ $indexbar-indicator-font-size: 2em;
 	}
 }
 
-.x-indexbar-vertical {
+.x-indexbar.x-vertical {
 	width: 30px;
 	margin-right: 0px;
 	@include st-box-align(center);
@@ -123,12 +123,12 @@ $indexbar-indicator-font-size: 2em;
 	padding-top: .5em;
 }
 
-.x-indexbar-pressed {
+.x-indexbar:active {
 	background: rgba(255, 255, 255, 1);
 }
 
-.x-list-item-odd {
-	&.x-list-item-tpl,
+.x-list-item.x-odd {
+	&.x-simplelistitem,
 	.x-dock-horizontal {
 		background-color: darken(#fff, 5%);
 		border-bottom: 1px solid darken(#fff, 5%);

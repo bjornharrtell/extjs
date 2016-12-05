@@ -1,0 +1,67 @@
+.stretch-html .x-innerhtml {
+    height: 100%;
+}
+
+.constrain-source {
+    width: 80px;
+    height: 80px;
+    padding: 5px;
+    text-align: center;
+    position: absolute;
+    color: #FFF;
+    @include border-radius(5px);
+    @include user-select(none);
+    cursor: move;
+}
+
+.constrain-drag-ct {
+    width: 260px;
+    height: 260px;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    border: 5px solid #BDBDBD;
+
+    .x-phone & {
+        width: 60vw;
+        height: 60vh;
+    }
+}
+
+.constrain-parent {
+    background-color: #FF5722;
+    left: 50px;
+    top: 50px;
+}
+
+.constrain-vertical {
+    background-color: #43A047;
+    left: 280px;
+    top: 10px;
+
+    .x-phone & {
+        left: 65vw;
+    }
+}
+
+.constrain-horizontal {
+    background-color: #1E88E5;
+    left: 280px;
+    top: 100px;
+
+    .x-phone & {
+        left: 10px;
+        top: 65vh;
+    }
+}
+
+.constrain-snap {
+    background-color: #E91E63;
+    left: 280px;
+    top: 190px;
+
+    .x-phone & {
+        left: 65vw;
+        top: 65vh;
+    }
+}

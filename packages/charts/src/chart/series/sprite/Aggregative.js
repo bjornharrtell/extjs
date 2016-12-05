@@ -3,7 +3,10 @@
  */
 Ext.define('Ext.chart.series.sprite.Aggregative', {
     extend: 'Ext.chart.series.sprite.Cartesian',
-    requires: ['Ext.draw.LimitedCache', 'Ext.draw.SegmentTree'],
+    requires: [
+        'Ext.draw.LimitedCache',
+        'Ext.draw.SegmentTree'
+    ],
     inheritableStatics: {
         def: {
             processors: {
@@ -54,13 +57,17 @@ Ext.define('Ext.chart.series.sprite.Aggregative', {
             high = attr.dataHigh,
             low = attr.dataLow,
             close = attr.dataClose,
-            open = attr.dataY;
+            open = attr.dataY,
+            aggregator;
+
         me.callParent(arguments);
+
         if (attr.dataX && open && open.length > 0) {
+            aggregator = me.getAggregator();
             if (high) {
-                me.getAggregator().setData(attr.dataX, attr.dataY, high, low, close);
+                aggregator.setData(attr.dataX, attr.dataY, high, low, close);
             } else {
-                me.getAggregator().setData(attr.dataX, attr.dataY);
+                aggregator.setData(attr.dataX, attr.dataY);
             }
         }
     },
@@ -73,14 +80,17 @@ Ext.define('Ext.chart.series.sprite.Aggregative', {
         var me = this,
             min = Math.min(clip[0], clip[2]),
             max = Math.max(clip[0], clip[2]),
-            aggregates = me.getAggregator() && me.getAggregator().getAggregation(
+            aggregator = me.getAggregator(),
+            aggregates = aggregator && aggregator.getAggregation(
                 min, max, (max - min) / rect[2] * me.getGapWidth()
             );
+
         if (aggregates) {
             me.dataStart = aggregates.data.startIdx[aggregates.start];
             me.dataEnd = aggregates.data.endIdx[aggregates.end - 1];
 
-            me.renderAggregates(aggregates.data, aggregates.start, aggregates.end, surface, ctx, clip, rect);
+            me.renderAggregates(aggregates.data, aggregates.start, aggregates.end,
+                surface, ctx, clip, rect);
         }
     }
 });

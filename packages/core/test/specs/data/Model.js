@@ -5661,8 +5661,8 @@ describe("Ext.data.Model", function() {
                         });
                     });
 
-                    it('should link PostA to the proper user', function () {
-                        var post = rec.posts().getAt(0);
+                    it('should link PostB to the proper user', function () {
+                        var post = rec.posts().getAt(1);
                         expect(post.getUser()).toBe(rec);
                     });
 
@@ -6725,6 +6725,11 @@ describe("Ext.data.Model", function() {
         });
         
         describe("isValid", function() {
+            it("should return true if using an Ext.data.Model instance", function() {
+                var o = new Ext.data.Model();
+                expect(o.isValid()).toBe(true);
+            });
+
             it("should return true if all fields in the model are valid", function() {
                 defineA({
                     name: 'presence'

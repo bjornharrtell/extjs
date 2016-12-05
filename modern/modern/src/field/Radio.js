@@ -49,17 +49,12 @@ Ext.define('Ext.field.Radio', {
          * @cfg
          * @inheritdoc
          */
-        ui: 'radio',
-
-        /**
-         * @cfg
-         * @inheritdoc
-         */
         component: {
-            type: 'radio',
-            cls: Ext.baseCSSPrefix + 'input-radio'
+            xtype: 'radioinput'
         }
     },
+
+    classCls: Ext.baseCSSPrefix + 'radiofield',
 
     getValue: function() {
         return this._value === undefined ? null : this._value;
@@ -93,7 +88,7 @@ Ext.define('Ext.field.Radio', {
      */
     onMaskTap: function(component, e) {
         var me = this,
-            dom = me.getComponent().input.dom;
+            dom = me.getComponent().inputElement.dom;
 
         if (me.getDisabled()) {
             return false;

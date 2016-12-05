@@ -815,6 +815,11 @@ Ext.define('Ext.layout.container.Border', {
                     item.animCollapse = me.panelCollapseAnimate;
                 }
             }
+            
+            // Item can be collapsed when added
+            if (hidden && item.placeholder && item.placeholder.isVisible()) {
+                me.owner.insert(index, item.placeholder);
+            }
         } else if (placeholderFor) {
             Ext.apply(item, me.regionFlags[placeholderFor.region]);
             item.region = placeholderFor.region;

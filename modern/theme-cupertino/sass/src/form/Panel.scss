@@ -2,7 +2,7 @@
  * @class Ext.form.Panel
  */
 
-.x-form {
+.x-formpanel {
 	.x-scroll-container {
 		background-color: #edebf1;
 	}
@@ -11,7 +11,7 @@
 		display: none;
 	}
 
-	.x-field .x-field-input,
+	.x-field .x-input,
 	.x-field .x-input-el {
 		font-weight: 300;
 	}
@@ -22,16 +22,16 @@
 		}
 	}
 
-	.x-field .x-field-input {
+	.x-field .x-input {
 		border: 0px;
 		background-color: transparent;
 	}
 }
 
-.x-form-label {
+.x-field .x-label-el {
 	padding: .6em .6em .6em 1em;
 
-	span {
+	.x-label-text-el {
 		font-size: 1.1em;
 		font-weight: 400;
 	}

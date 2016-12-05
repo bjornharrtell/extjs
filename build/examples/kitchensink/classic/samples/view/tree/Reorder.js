@@ -9,78 +9,59 @@
  */
 Ext.define('KitchenSink.view.tree.Reorder', {
     extend: 'Ext.tree.Panel',
+    xtype: 'tree-reorder',
+    controller: 'tree-reorder',
 
     requires: [
-        'Ext.tree.*',
-        'Ext.data.*'
+        'Ext.data.TreeStore'
     ],
-    xtype: 'tree-reorder',
 
     //<example>
-    exampleTitle: 'Drag and Drop ordering in a TreePanel',
+    otherContent: [{
+        type: 'Controller',
+        path: 'classic/samples/view/tree/ReorderController.js'
+    }],
     //</example>
 
+    title: 'Files',
     height: 400,
     width: 350,
-    title: 'Files',
+
     useArrows: true,
 
-    initComponent: function() {
-        Ext.apply(this, {
-            store: new Ext.data.TreeStore({
-                proxy: {
-                    type: 'ajax',
-                    url: '/tree/get-nodes.php'
-                },
-                root: {
-                    text: 'Ext JS',
-                    id: 'src',
-                    expanded: true
-                },
-                folderSort: true,
-                sorters: [{
-                    property: 'text',
-                    direction: 'ASC'
-                }]
-            }),
-            viewConfig: {
-                plugins: {
-                    ptype: 'treeviewdragdrop',
-                    containerScroll: true
-                }
-            },
-            tbar: [{
-                text: 'Expand All',
-                scope: this,
-                handler: this.onExpandAllClick
-            }, {
-                text: 'Collapse All',
-                scope: this,
-                handler: this.onCollapseAllClick
-            }]
-        });
-        this.callParent();
+    store: {
+        type: 'tree',
+        proxy: {
+            type: 'ajax',
+            url: '/tree/get-nodes.php'
+        },
+        root: {
+            text: 'Ext JS',
+            id: 'src',
+            expanded: true
+        },
+        folderSort: true,
+        sorters: [{
+            property: 'text',
+            direction: 'ASC'
+        }]
     },
 
-    onExpandAllClick: function(){
-        var me = this,
-            toolbar = me.down('toolbar');
-
-        me.getEl().mask('Expanding tree...');
-        toolbar.disable();
-
-        this.expandAll(function() {
-            me.getEl().unmask();
-            toolbar.enable();
-        });
+    viewConfig: {
+        plugins: {
+            ptype: 'treeviewdragdrop',
+            containerScroll: true
+        }
     },
 
-    onCollapseAllClick: function(){
-        var toolbar = this.down('toolbar');
-
-        toolbar.disable();
-        this.collapseAll(function() {
-            toolbar.enable();
-        });
+    tbar: {
+        reference: 'tbar',
+        items: [{
+            text: 'Expand All',
+            handler: 'onExpandAllClick'
+        }, {
+            text: 'Collapse All',
+            handler: 'onCollapseAllClick'
+        }]
     }
 });

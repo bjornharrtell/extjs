@@ -50,6 +50,18 @@ Ext.define('Ext.chart.theme.Midnight', {
             text: {
                 fillStyle: 'rgb(224, 224, 227)'
             }
+        },
+
+        legend: {
+            label: {
+                fillStyle: 'white'
+            },
+            border: {
+                lineWidth: 2,
+                fillStyle: 'rgba(255, 255, 255, 0.3)',
+                strokeStyle: 'rgb(150, 150, 150)'
+            },
+            background: 'rgb(52, 52, 53)'
         }
     }
 });

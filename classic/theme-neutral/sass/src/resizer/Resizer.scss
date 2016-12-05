@@ -12,6 +12,7 @@
     }
     @if $enable-font-icons {
         color: $resizer-handle-glyph-color;
+        text-align: center;
     }
 }
 
@@ -20,18 +21,6 @@
     display: none;
 }
 
-.#{$prefix}resizable-handle-north {
-    cursor: n-resize;
-}
-.#{$prefix}resizable-handle-south {
-    cursor: s-resize;
-}
-.#{$prefix}resizable-handle-east {
-    cursor: e-resize;
-}
-.#{$prefix}resizable-handle-west {
-    cursor: w-resize;
-}
 .#{$prefix}resizable-handle-southeast {
     cursor: se-resize;
     @if $enable-font-icons {
@@ -74,46 +63,47 @@
 }
 
 @if $enable-font-icons {
-    .#{$prefix}resizable-handle-south,
-    .#{$prefix}resizable-handle-north {
-        text-align: center;
-    }
     .#{$prefix}resizable-handle-east,
     .#{$prefix}resizable-handle-west {
-        display: table;
         &:before {
-            display: table-cell;
-            vertical-align: middle;
-            text-align: center;
+            display: block;
+            position: absolute;
+            top: 50%;
+            margin-top: -0.5em;
+            width: 100%;
         }
     }
 }
 
 .#{$prefix}resizable-handle-east {
+    cursor: e-resize;
     width: $resizer-handle-size;
-    height: 100%;
     right: 0;
     top: 0;
+    bottom: 0;
 }
 
 .#{$prefix}resizable-handle-south {
-    width: 100%;
+    cursor: s-resize;
     height: $resizer-handle-size;
     left: 0;
+    right: 0;
     bottom: 0;
 }
 
 .#{$prefix}resizable-handle-west {
+    cursor: w-resize;
     width: $resizer-handle-size;
-    height: 100%;
     left: 0;
     top: 0;
+    bottom: 0;
 }
 
 .#{$prefix}resizable-handle-north {
-    width: 100%;
+    cursor: n-resize;
     height: $resizer-handle-size;
     left: 0;
+    right: 0;
     top: 0;
 }
 
@@ -147,6 +137,26 @@
     left: 0;
     bottom: 0;
     z-index: 101;
+}
+
+// Make handles bigger on tablets.
+// Do not support this on phones!
+.#{$prefix}tablet {
+    .#{$prefix}resizable-handle-north,
+    .#{$prefix}resizable-handle-south {
+        height: $resizer-handle-size * 2;
+    }
+    .#{$prefix}resizable-handle-east,
+    .#{$prefix}resizable-handle-west {
+        width: $resizer-handle-size * 2;
+    }
+    .#{$prefix}resizable-handle-northwest,
+    .#{$prefix}resizable-handle-northeast,
+    .#{$prefix}resizable-handle-southwest,
+    .#{$prefix}resizable-handle-southeast {
+        width: $resizer-handle-size * 2;
+        height: $resizer-handle-size * 2;
+    }
 }
 
 @if $include-ext-window-window {

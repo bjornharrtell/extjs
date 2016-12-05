@@ -4,6 +4,9 @@ Ext.define('KitchenSink.model.Contact', {
     fields: [{
         name: 'id'
     }, {
+        name: 'verified',
+        type: 'boolean'
+    }, {
         name: 'guid',
         type: 'string'
     }, {

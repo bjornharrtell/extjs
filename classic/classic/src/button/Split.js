@@ -44,7 +44,7 @@ Ext.define('Ext.button.Split', {
      * A function called when the arrow button is clicked (can be used instead of click event)
      * @cfg {Ext.button.Split} arrowHandler.this
      * @cfg {Event} arrowHandler.e The click event.
-     * @declarativeHandler
+     * @controllable
      */
     
     /**
@@ -74,13 +74,10 @@ Ext.define('Ext.button.Split', {
     initComponent: function() {
         var me = this;
         
-        // Don't warn if we're under the slicer
-        if (Ext.enableAriaButtons && !Ext.slicer && me.menu &&
-            (me.arrowHandler || me.hasListeners.hasOwnProperty('arrowclick'))) {
-            // Hard error if full ARIA compatibility is enabled, otherwise a warning
-            var logFn = Ext.enableAria ? Ext.log.error : Ext.log.warn;
-            
-            logFn(
+        // Don't warn if we're under the slicer. Only check hasListeners of the component
+        // instance; there could be listeners on the EventBus inherited via prototype.
+        if (me.menu && (me.arrowHandler || me.hasListeners.hasOwnProperty('arrowclick'))) {
+            Ext.ariaWarn(me,
                 "Using both menu and arrowHandler config options in Split buttons " +
                 "leads to confusing user experience and conflicts with accessibility " +
                 "best practices. See WAI-ARIA 1.0 Authoring guide: " +

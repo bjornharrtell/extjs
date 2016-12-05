@@ -18,13 +18,7 @@ describe("Ext.selection.Model", function() {
     afterEach(function() {
         Ext.undefine('spec.Model');
         Ext.data.Model.schema.clear();
-        if (store) {
-            store.clearData();
-        }
-        if (selModel) {
-            selModel.destroy();
-        }
-        selModel = store = null;
+        selModel = store = Ext.destroy(store, selModel);
     });
     
     function setupModel(mode, data) {
@@ -1614,6 +1608,19 @@ describe("Ext.selection.Model", function() {
                 expect(rec.get('name')).toBe('Bar');
                 expect(rec).toBe(store.getById(2));
             });
+
+            it("should be able to reload a store that had multiple items selected", function() {
+                select(range(1, 4));
+                expect(function(){
+                    store.loadData([{
+                        name: 'Foo'
+                    }, {
+                        name: 'Bar'
+                    }]);
+                }).not.toThrow();
+
+                expectNone();
+            });
         });
 
         describe("pruneRemoved: true", function() {
@@ -1695,6 +1702,28 @@ describe("Ext.selection.Model", function() {
                     id: 102
                 }]);
                 expect(spy).not.toHaveBeenCalled();
+            });
+        });
+        
+        describe("store clear", function() {
+            beforeEach(function() {
+                select(1);
+                
+                selModel.on('selectionchange', spy);
+                
+                // BufferedStore will set this flag during clearing
+                store.clearing = true;
+                store.fireEvent('clear', store);
+            });
+            
+            it("should clear selections", function() {
+                var selection = selModel.getSelection();
+                
+                expect(selection.length).toBe(0);
+            });
+            
+            it("should fire selectionchange event", function() {
+                expect(spy).toHaveBeenCalled();
             });
         });
     });
@@ -1791,7 +1820,7 @@ describe("Ext.selection.Model", function() {
 
                     });
 
-                    it("should stop firing events if destroyed on a middle record", function() {
+                    it("should stop firing events if destroyed on the last record", function() {
                         selModel.on('select', spy);
                         destroyOn = 4;
                         expect(function() {
@@ -1842,7 +1871,7 @@ describe("Ext.selection.Model", function() {
 
                     });
 
-                    it("should stop firing events if destroyed on a middle record", function() {
+                    it("should stop firing events if destroyed on the last record", function() {
                         select(range(0, 4));
                         changeSpy.reset();
                         selModel.on('deselect', spy);
@@ -1907,5 +1936,153 @@ describe("Ext.selection.Model", function() {
             });
         });
     });
-    
+
+    describe("bindStore", function() {
+        var other;
+
+        beforeEach(function() {
+            setupModel();
+        });
+
+        afterEach(function() {
+            other = Ext.destroy(other);
+        });
+
+        function makeOtherStore(data) {
+            other = new Ext.data.Store({
+                model: spec.Model,
+                data: data || [{
+                    id: 101,
+                    name: 'Foo'
+                }, {
+                    id: 102,
+                    name: 'Bar'
+                }]
+            });  
+            return other;
+        }
+
+        describe("lastSelected", function() {
+            it("clear lastSelected if it doesn't exist", function() {
+                select(0);
+                selModel.bindStore(makeOtherStore());
+                expect(selModel.getLastSelected()).toBeNull();
+            });
+
+            it("should update the selected details if it exists", function() {
+                var old = get(0);
+                select(old);
+                selModel.bindStore(makeOtherStore([{
+                    id: 1,
+                   name: 'Foo'
+                }]));
+                var last = selModel.getLastSelected();
+                expect(last).not.toBe(old);
+                expect(last).toBe(other.getAt(0));
+                expect(last.get('name')).toBe('Foo');
+            });
+        });
+
+        describe("selections", function() {
+            it("should update selected record information", function() {
+                var recs = [get(1), get(3), get(4)];
+
+                select(recs);
+                selModel.bindStore(makeOtherStore([{
+                    id: 1,
+                    name: 'A'
+                }, {
+                    id: 2,
+                    name: 'B'
+                }, {
+                    id: 3,
+                    name: 'C'
+                }, {
+                    id: 4,
+                    name: 'D'
+                }, {
+                    id: 5,
+                    name: 'E'
+                }]));
+
+                var selection = selModel.getSelection();
+                expect(selection).not.toEqual(recs);
+                expect(selection.length).toBe(3);
+                expect(selection[0]).toBe(other.getAt(1));
+                expect(selection[1]).toBe(other.getAt(3));
+                expect(selection[2]).toBe(other.getAt(4));
+            });
+
+            it("should prune records no longer included", function() {
+                var recs = [get(1), get(3), get(4)];
+
+                select(recs);
+                selModel.bindStore(makeOtherStore([{
+                    id: 1,
+                    name: 'A'
+                }, {
+                    id: 2,
+                    name: 'B'
+                }, {
+                    id: 3,
+                    name: 'C'
+                }, {
+                    id: 5,
+                    name: 'E'
+                }]));
+
+                var selection = selModel.getSelection();
+                expect(selection.length).toBe(2);
+                expect(selection[0]).toBe(other.getAt(1));
+                expect(selection[1]).toBe(other.getAt(3));
+            });
+        });
+
+        describe("events", function() {
+            it("should not fire events if all selections are retained", function() {
+                var recs = [get(1), get(3), get(4)];
+
+                select(recs);
+                selModel.on('selectionchange', spy);
+                selModel.bindStore(makeOtherStore([{
+                    id: 1,
+                    name: 'A'
+                }, {
+                    id: 2,
+                    name: 'B'
+                }, {
+                    id: 3,
+                    name: 'C'
+                }, {
+                    id: 4,
+                    name: 'D'
+                }, {
+                    id: 5,
+                    name: 'E'
+                }]));
+                expect(spy).not.toHaveBeenCalled();
+            });
+
+            it("should fire events if the selection changes", function() {
+                var recs = [get(1), get(3), get(4)];
+
+                select(recs);
+                selModel.on('selectionchange', spy);
+                selModel.bindStore(makeOtherStore([{
+                    id: 1,
+                    name: 'A'
+                }, {
+                    id: 2,
+                    name: 'B'
+                }, {
+                    id: 3,
+                    name: 'C'
+                }, {
+                    id: 5,
+                    name: 'E'
+                }]));
+                expect(spy.callCount).toBe(1);
+            });
+        });
+    });    
 });

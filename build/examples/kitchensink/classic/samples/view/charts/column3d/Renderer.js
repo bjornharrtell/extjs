@@ -49,7 +49,7 @@ Ext.define('KitchenSink.view.charts.column3d.Renderer', {
             grid: true,
             renderer: 'onAxisLabelRender'
         }, {
-            type: 'category',
+            type: 'category3d',
             fields: 'month',
             position: 'bottom',
             grid: true,
@@ -57,8 +57,7 @@ Ext.define('KitchenSink.view.charts.column3d.Renderer', {
                 rotate: {
                     degrees: -45
                 }
-            },
-            visibleRange: [0, 0.75]
+            }
         }],
         series: [{
             type: 'bar3d',

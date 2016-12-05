@@ -1671,12 +1671,12 @@ Ext.define('Ext.data.amf.Packet', function() {
                 // byte1 off to the right.
                 sign = (byte1 >> 7) ? -1 : 1,
                 // the exponent takes up the next 11 bits.
-                exponent = // extract the 7 least significant bits from byte1 and then
+                exponent = (// extract the 7 least significant bits from byte1 and then
                 // shift them left by 4 bits to make room for the 4 remaining
                 // bits from byte 2
-                (((byte1 & 127) << 4) | // add the 4 most significant bits from byte 2 to complete
+                ((byte1 & 127) << 4) | (// add the 4 most significant bits from byte 2 to complete
                 // the exponent
-                (byte2 >> 4)),
+                byte2 >> 4)),
                 // the remaining 52 bits make up the significand. read the 4
                 // least significant bytes of byte 2 to begin the significand
                 significand = (byte2 & 15),
@@ -1717,9 +1717,9 @@ Ext.define('Ext.data.amf.Packet', function() {
             return sign * // The exponent is encoded using an offset binary
             // representation with the zero offset being 0x3FF (1023),
             // so we have to subtract 0x3FF to get the true exponent
-            Math.pow(2, exponent - 1023) * // convert the significand to its decimal value by multiplying
+            Math.pow(2, exponent - 1023) * (// convert the significand to its decimal value by multiplying
             // it by 2^52 and then add the hidden bit
-            (hiddenBit + twoPowN52 * significand);
+            hiddenBit + twoPowN52 * significand);
         },
         /**
          * Reads an AMF0 ECMA Array from the byte array
@@ -1871,11 +1871,13 @@ Ext.define('Ext.data.amf.Packet', function() {
             return value;
         },
         /**
+         * @method
          * Returns undefined.  Used for reading the undefined type
          * @private
          */
         readUndefined: Ext.emptyFn,
         /**
+         * @method
          * Returns undefined.  Used for reading the unsupported type
          * @private
          */

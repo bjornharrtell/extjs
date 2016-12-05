@@ -11,7 +11,15 @@ Ext.define('Ext.chart.axis.segmenter.Time', {
     config: {
         /**
          * @cfg {Object} step
-         * If specified, the will override the result of {@link #preferredStep}.
+         * @cfg {String} step.unit The unit of the step (Ext.Date.DAY, Ext.Date.MONTH, etc).
+         * @cfg {Number} step.step The number of units for the step (1, 2, etc).
+         * If specified, will override the result of {@link #preferredStep}.
+         * For example:
+         *     
+         *     step: {
+         *         unit: Ext.Date.HOUR,
+         *         step: 1
+         *     }
          */
         step: null
     },
@@ -41,6 +49,14 @@ Ext.define('Ext.chart.axis.segmenter.Time', {
             max = new Date(max);
         }
         return Ext.Date.diff(min, max, unit);
+    },
+
+    updateStep: function () {
+        var axis = this.getAxis();
+
+        if (axis && !this.isConfiguring) {
+            axis.performLayout();
+        }
     },
 
     align: function (date, step, unit) {

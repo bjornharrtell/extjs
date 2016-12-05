@@ -54,7 +54,7 @@ Ext.define('KitchenSink.view.tree.TreeListController', {
     },
     
     repaintList: function(treelist, microMode) {
-        treelist.getStore().getRoot().cascadeBy(function(node) {
+        treelist.getStore().getRoot().cascade(function(node) {
             var item, toolElement;
             
             item = treelist.getItem(node);

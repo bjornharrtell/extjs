@@ -297,6 +297,7 @@ Ext.define('Ext.util.LocalStorage', {
     },
 
     /**
+     * @method
      * @static
      * @private
      */

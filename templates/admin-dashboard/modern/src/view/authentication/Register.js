@@ -18,32 +18,32 @@ Ext.define('Admin.view.authentication.Register', {
         },{
             xtype: 'container',
             padding: 20,
+            layout: 'vbox',
             defaults: {
                 margin:'0 0 10 0'
             },
             items: [{
                 xtype: 'textfield',
                 placeHolder: 'Full Name',
-                userCls: 'text-border'
+                ui: 'light'
             },{
                 xtype: 'textfield',
                 placeHolder: 'Username',
-                userCls: 'text-border'
+                ui: 'light'
             },{
                 xtype: 'textfield',
                 placeHolder: 'Email',
-                userCls: 'text-border'
+                ui: 'light'
             },{
                 xtype: 'passwordfield',
                 placeHolder: 'Password',
-                userCls: 'text-border'
+                ui: 'light'
             },{
                 layout: 'hbox',
                 items: [{
                     xtype: 'checkboxfield'
                 },{
-                    html: 'I agree to the terms & conditions',
-                    userCls: 'checkbox-text-adjustment'
+                    html: 'I agree to the terms & conditions'
                 }]
             },{
                 xtype: 'button',

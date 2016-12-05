@@ -165,7 +165,7 @@ describe("Ext.data.Connection", function() {
             makeConnection();
             expect(function(){
                 connection.request();
-            }).toRaiseExtError('No URL specified');
+            }).toThrow('No URL specified');
         });
 
         it("should use the url specified in the config", function(){

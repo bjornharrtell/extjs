@@ -553,8 +553,7 @@ Ext.define('KitchenSink.view.charts.combination.Unemployment', {
     ],
 
     listeners: {
-        beforerender: 'onBeforeRender',
-        destroy: 'onDestroy'
+        beforerender: 'onBeforeRender'
     }
 
 });

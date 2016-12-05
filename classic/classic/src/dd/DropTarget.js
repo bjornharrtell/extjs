@@ -131,10 +131,10 @@ Ext.define('Ext.dd.DropTarget', {
         return false;
     },
 
-    destroy : function(){
-        this.callParent();
+    destroy: function() {
         if (this.containerScroll) {
             Ext.dd.ScrollManager.unregister(this.el);
         }
+        this.callParent();
     }
 });

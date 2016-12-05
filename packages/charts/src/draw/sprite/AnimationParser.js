@@ -21,13 +21,13 @@ Ext.define('Ext.draw.sprite.AnimationParser', function () {
         color: {
             parseInitial: function (color1, color2) {
                 if (Ext.isString(color1)) {
-                    color1 = Ext.draw.Color.create(color1);
+                    color1 = Ext.util.Color.create(color1);
                 }
                 if (Ext.isString(color2)) {
-                    color2 = Ext.draw.Color.create(color2);
+                    color2 = Ext.util.Color.create(color2);
 
                 }
-                if ((color1 instanceof Ext.draw.Color) && (color2 instanceof Ext.draw.Color)) {
+                if ((color1 && color1.isColor) && (color2 && color2.isColor)) {
                     return [
                         [color1.r, color1.g, color1.b, color1.a],
                         [color2.r, color2.g, color2.b, color2.a]
@@ -45,7 +45,7 @@ Ext.define('Ext.draw.sprite.AnimationParser', function () {
                 }
             },
             serve: function (array) {
-                var color = Ext.draw.Color.fly(array[0], array[1], array[2], array[3]);
+                var color = Ext.util.Color.fly(array[0], array[1], array[2], array[3]);
                 return color.toString();
             }
         },

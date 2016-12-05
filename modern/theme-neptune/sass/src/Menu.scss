@@ -1,28 +1,32 @@
 .x-menu {
-	padding: $sheet-padding;
-	background-color: $sheet-background-color;
+    padding: $menu-padding;
+    background-color: $sheet-background-color;
 
-	&.x-top {
-		border-bottom: 1px solid $sheet-border-color;
-	}
+    &.x-top {
+        @include border($menu-top-border-width, $menu-top-border-style, $menu-top-border-color);
+    }
 
-	&.x-right {
-		border-left: 1px solid $sheet-border-color;
-	}
+    &.x-right {
+        @include border($menu-right-border-width, $menu-right-border-style, $menu-right-border-color);
+    }
 
-	&.x-bottom {
-		border-top: 1px solid $sheet-border-color;
-	}
+    &.x-bottom {
+        @include border($menu-bottom-border-width, $menu-bottom-border-style, $menu-bottom-border-color);
+    }
 
-	&.x-left {
-		border-right: 1px solid $sheet-border-color;
-	}
+    &.x-left {
+        @include border($menu-left-border-width, $menu-left-border-style, $menu-left-border-color);
+    }
 
-	.x-button {
-		margin-bottom: $sheet-button-spacing;
+    .x-menu-inner {
+        padding: 0;
+    }
 
-		&:last-child {
-			margin-bottom: 0;
-		}
-	}
+    .x-button {
+        margin-bottom: $sheet-button-spacing;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
 }

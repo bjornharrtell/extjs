@@ -532,6 +532,20 @@
      *
      */
     "builds": {
+        // iOS Native Build profile example
+       /* "ios": {
+            "toolkit": "modern",
+            "theme": "theme-triton",
+            "packager": "cordova",
+            "cordova" : {
+                "config": {
+                    "platforms": "ios",
+                    "id": "com.foo.AdminDashboard",
+                    "name": "AdminDashboard"
+                }
+            }
+        },*/
+
         "classic": {
             "toolkit": "classic",
             "theme": "theme-triton"

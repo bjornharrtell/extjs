@@ -12,19 +12,19 @@
 Ext.define('KitchenSink.view.form.FormGrid', {
     extend: 'Ext.form.Panel',
     xtype: 'form-grid',
-    
-    //<example>
+    controller: 'form-grid',
+
     requires: [
         'Ext.grid.*',
         'Ext.form.*',
         'Ext.layout.container.Column',
         'KitchenSink.model.Company'
     ],
-    
-    exampleTitle: 'Dynamic Form interacting with an embedded Grid',
+
+    //<example>
     otherContent: [{
-        type: 'Model',
-        path: 'classic/samples/model/Company.js'
+        type: 'Controller',
+        path: 'classic/samples/view/form/FormGridController.js'
     }],
     profiles: {
         classic: {
@@ -33,7 +33,9 @@ Ext.define('KitchenSink.view.form.FormGrid', {
             formWidth: 0.4,
             percentChangeColumnWidth: 75,
             lastUpdatedColumnWidth: 85,
-            ratingColumnWidth: 30
+            ratingColumnWidth: 30,
+            green: 'green',
+            red: 'red'
         },
         neptune: {
             width: 880,
@@ -41,158 +43,131 @@ Ext.define('KitchenSink.view.form.FormGrid', {
             formWidth: 0.35,
             percentChangeColumnWidth: 100,
             lastUpdatedColumnWidth: 115,
-            ratingColumnWidth: 60
+            ratingColumnWidth: 60,
+            green: '#73b51e',
+            red: '#cf4c35'
         }
     },
     //</example>
     
-    frame: true,
     title: 'Company data',
+    width: '${width}',
+    frame: true,
     bodyPadding: 5,
     layout: 'column',
-    
-    // In this example, configuration is applied at initComponent time
-    // because it depends on profileInfo object that is generated for the
-    // FormGrid instance.
-    initComponent: function() {
-        Ext.apply(this, {
-            width: this.profileInfo.width,
-            fieldDefaults: {
-                labelAlign: 'left',
-                labelWidth: 90,
-                anchor: '100%',
-                msgTarget: 'side'
-            },
+    signTpl: '<span style="' +
+            'color:{value:sign(\'${red}\',\'${green}\')}"' +
+        '>{text}</span>',
+
+    viewModel: {
+        data: {
+            theCompany: null
+        }
+    },
+
+    fieldDefaults: {
+        labelAlign: 'left',
+        labelWidth: 90,
+        anchor: '100%',
+        msgTarget: 'side'
+    },
+
+    items: [{
+        xtype: 'gridpanel',
+
+        height: 400,
+        columnWidth: '${gridWidth}',
+
+        bind: {
+            selection: '{theCompany}'
+        },
+        store: {
+            type: 'companies'
+        },
+
+        columns: [{
+            text: 'Company',
+            dataIndex: 'name',
+
+            flex: 1,
+            sortabl: true
+        }, {
+            text: 'Price',
+            dataIndex: 'price',
+
+            width: 75,
+            sortable: true
+        }, {
+            text: 'Change',
+            dataIndex: 'change',
+
+            width: 80,
+            sortable: true,
+            renderer: 'renderChange'
+        }, {
+            text: '% Change',
+            dataIndex: 'pctChange',
+
+            width: '${percentChangeColumnWidth}',
+            sortable: true,
+            renderer: 'renderPercent'
+        }, {
+            text: 'Last Updated',
+            dataIndex: 'lastChange',
+
+            width: '${lastUpdatedColumnWidth}',
+            sortable: true,
+            formatter: 'date("m/d/Y")'
+        }, {
+            text: 'Rating',
+            dataIndex: 'rating',
+
+            width: '${ratingColumnWidth}',
+            sortable: true,
+            formatter: 'pick("A","B","C")'
+        }]
+    }, {
+        xtype: 'fieldset',
+        title:'Company details',
+
+        columnWidth: '${formWidth}',
+        margin: '0 0 0 10',
+        layout: 'anchor',
+        defaultType: 'textfield',
+
+        items: [{
+            fieldLabel: 'Name',
+            bind: '{theCompany.name}'
+        }, {
+            fieldLabel: 'Price',
+            bind: '{theCompany.price}'
+        }, {
+            fieldLabel: '% Change',
+            bind: '{theCompany.pctChange}'
+        }, {
+            xtype: 'datefield',
+            fieldLabel: 'Last Updated',
+            bind: '{theCompany.lastChange}'
+        }, {
+            xtype: 'radiogroup',
+            fieldLabel: 'Rating',
+            bind: '{theCompany.rating}',
+
+            // Maps the value of this radiogroup to the child radio with matching
+            // inputValue.
+            simpleValue: true,
+            columns: 3,
 
             items: [{
-                columnWidth: this.profileInfo.gridWidth,
-                xtype: 'gridpanel',
-                store: new Ext.data.Store({
-                    model: KitchenSink.model.Company,
-                    proxy: {
-                        type: 'memory',
-                        reader: {
-                            type: 'array'
-                        }
-                    },
-                    data: KitchenSink.data.DataSets.company
-                }),
-                height: 400,
-                columns: [{
-                    text: 'Company',
-                    flex: 1,
-                    sortable: true,
-                    dataIndex: 'name'
-                }, {
-                    text: 'Price',
-                    width: 75,
-                    sortable: true,
-                    dataIndex: 'price'
-                }, {
-                    text: 'Change',
-                    width: 80,
-                    sortable: true,
-                    renderer: this.changeRenderer,
-                    dataIndex: 'change'
-                }, {
-                    text: '% Change',
-                    width: this.profileInfo.percentChangeColumnWidth,
-                    sortable: true,
-                    renderer: this.pctChangeRenderer,
-                    dataIndex: 'pctChange'
-                }, {
-                    text: 'Last Updated',
-                    width: this.profileInfo.lastUpdatedColumnWidth,
-                    sortable: true,
-                    formatter: 'date("m/d/Y")',
-                    dataIndex: 'lastChange'
-                }, {
-                    text: 'Rating',
-                    width: this.profileInfo.ratingColumnWidth,
-                    sortable: true,
-                    renderer: this.renderRating,
-                    dataIndex: 'rating'
-                }],
-                listeners: {
-                    scope: this,
-                    selectionchange: this.onSelectionChange
-                }
+                boxLabel: 'A',
+                inputValue: 0
             }, {
-                columnWidth: this.profileInfo.formWidth,
-                margin: '0 0 0 10',
-                xtype: 'fieldset',
-                title:'Company details',
-                layout: 'anchor',
-                defaultType: 'textfield',
-                items: [{
-                    fieldLabel: 'Name',
-                    name: 'name'
-                },{
-                    fieldLabel: 'Price',
-                    name: 'price'
-                },{
-                    fieldLabel: '% Change',
-                    name: 'pctChange'
-                },{
-                    xtype: 'datefield',
-                    fieldLabel: 'Last Updated',
-                    name: 'lastChange'
-                }, {
-                    xtype: 'radiogroup',
-                    fieldLabel: 'Rating',
-                    columns: 3,
-                    defaults: {
-                        name: 'rating' //Each radio has the same name so the browser will make sure only one is checked at once
-                    },
-                    items: [{
-                        inputValue: '0',
-                        boxLabel: 'A'
-                    }, {
-                        inputValue: '1',
-                        boxLabel: 'B'
-                    }, {
-                        inputValue: '2',
-                        boxLabel: 'C'
-                    }]
-                }]
+                boxLabel: 'B',
+                inputValue: 1
+            }, {
+                boxLabel: 'C',
+                inputValue: 2
             }]
-        });
-        this.callParent();
-    },
-    
-    changeRenderer: function(val) {
-        if (val > 0) {
-            return '<span style="color:green;">' + val + '</span>';
-        } else if(val < 0) {
-            return '<span style="color:red;">' + val + '</span>';
-        }
-        return val;
-    },
-    
-    pctChangeRenderer: function(val){
-        if (val > 0) {
-            return '<span style="color:green;">' + val + '%</span>';
-        } else if(val < 0) {
-            return '<span style="color:red;">' + val + '%</span>';
-        }
-        return val;
-    },
-    
-    renderRating: function(val){
-        switch (val) {
-            case 0:
-                return 'A';
-            case 1:
-                return 'B';
-            case 2:
-                return 'C';
-        }
-    },
-    
-    onSelectionChange: function(model, records) {
-        var rec = records[0];
-        if (rec) {
-            this.getForm().loadRecord(rec);
-        }
-    }
+        }]
+    }]
 });

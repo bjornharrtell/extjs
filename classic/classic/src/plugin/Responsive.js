@@ -28,7 +28,7 @@ Ext.define('Ext.plugin.Responsive', {
     extend: 'Ext.mixin.Responsive',
 
     alias: 'plugin.responsive',
-    pluginId: 'responsive',
+    id: 'responsive',
 
     isPlugin: true,
 

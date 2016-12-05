@@ -157,6 +157,18 @@ Ext.define('Ext.data.schema.Schema', {
          */
         instances: {},
 
+        //<debug>
+        // Method used for testing to clear cache for custom instances.
+        clearInstance: function(id) {
+            var schema = this.instances[id]; 
+            delete this.instances[id];
+            if (schema) {
+                schema.clear(true);
+                schema.destroy();
+            }
+        },
+        //</debug>
+
         /**
          * Returns the `Schema` instance given its `id` or config object. If only the `id`
          * is specified, that `Schema` instance is looked up and returned. If there is no
@@ -618,14 +630,13 @@ Ext.define('Ext.data.schema.Schema', {
      * 
      * @protected
      */
-    addReference: function (entityType, referenceField, descr, unique) {
+    addReference: function (entityType, referenceField, descr, unique, dupeCheck) {
         var me = this,
             namer = me.getNamer(),
             entities = me.entities,
             associations = me.associations,
             entityName  = entityType.entityName,
             association = descr.association,
-            legacy      = !!descr.legacy,
             child       = descr.child,
             parent      = descr.parent,
             rightRole   = descr.role,
@@ -640,7 +651,7 @@ Ext.define('Ext.data.schema.Schema', {
             // In a FK association, the left side has the key in a field named something
             // like "orderId". The default implementation of "fieldRole" namer is to drop
             // the id suffix which gives is the role of the right side.
-            if (legacy) {
+            if (!referenceField || descr.legacy) {
                 rightRole = namer.apply('uncapitalize', rightType);
             } else {
                 rightRole = namer.apply('fieldRole', referenceField.name);
@@ -656,6 +667,12 @@ Ext.define('Ext.data.schema.Schema', {
                 association = namer.oneToOne(entityType, leftRole, rightType, rightRole);
             } else {
                 association = namer.manyToOne(entityType, leftRole, rightType, rightRole);
+            }
+        }
+
+        if (dupeCheck && association in associations) {
+            if (dupeCheck(associations[association], association, leftRole, rightRole) !== false) {
+                return;
             }
         }
 
@@ -685,7 +702,6 @@ Ext.define('Ext.data.schema.Schema', {
             schema: me,
             field: referenceField,
             nullable: referenceField ? !!referenceField.allowBlank : true,
-            legacy: descr.legacy,
             left: {
                 cls: entityType,
                 type: entityName,
@@ -697,7 +713,8 @@ Ext.define('Ext.data.schema.Schema', {
                 type: rightType,
                 role: rightRole,
                 extra: descr
-            }
+            },
+            meta: descr
         });
 
         // Add the left and right association "sides" to the appropriate collections, but
@@ -993,86 +1010,102 @@ Ext.define('Ext.data.schema.Schema', {
             } else {
                 descr = Ext.apply({}, descr);
             }
-            if (descr.legacy) {
-                if (descr.single) {
-                    me.addLegacySingle(entityType, descr);
-                } else {
-                    me.addLegacyHasMany(entityType, descr);
-                }
-            } else {
-                me.addReference(entityType, referenceField, descr, referenceField.unique);
-            }
+
+            me.addReference(entityType, referenceField, descr, referenceField.unique);
         },
 
-        // Using 0 = belongsTo
-        //       1 = hasOne
-        //       2 = hasMany
-        addPending: function(name, entityType, assoc, type) {
-            var pending = this.pending;
-            if (!pending[name]) {
-                pending[name] = [];
-            }
-            pending[name].push([entityType, assoc, type]);
+        addBelongsTo: function(entityType, assoc) {
+            this.addKeylessSingle(entityType, assoc, false);
         },
 
-        addLegacyBelongsTo: function(entityType, assoc) {
-            this.addLegacySingle(entityType, assoc);
+        addHasOne: function(entityType, assoc) {
+            this.addKeylessSingle(entityType, assoc, true);
         },
 
-        addLegacyHasOne: function(entityType, assoc) {
-            this.addLegacySingle(entityType, assoc);
-        },
+        addKeylessSingle: function(entityType, assoc, unique) {
+            var foreignKey, referenceField;
 
-        addLegacySingle: function(entityType, assoc) {
-            var foreignKey, name, referenceField;
+            assoc = Ext.apply({}, this.checkLegacyAssociation(entityType, assoc));
+            assoc.type = this.getEntityName(assoc.child || assoc.parent || assoc.type);
 
-            assoc = this.constructLegacyAssociation(entityType, assoc);
-            assoc.single = true;
-
-            name = assoc.type;
-
-            foreignKey = assoc.foreignKey || (name.toLowerCase() + '_id');
+            foreignKey = assoc.foreignKey || (assoc.type.toLowerCase() + '_id');
             referenceField = entityType.getField(foreignKey);
+            assoc.fromSingle = true;
             if (referenceField) {
                 referenceField.$reference = assoc;
+                referenceField.unique = true;
+                assoc.legacy = true;
+                //<debug>
+                Ext.log.warn('Using foreignKey is deprecated, use a keyed association. See Ext.data.field.Field.reference');
+                //</debug>
             }
-            this.addReference(entityType, referenceField, assoc, true);
+            this.addReference(entityType, referenceField, assoc, unique);
         },
 
-        addLegacyHasMany: function (entityType, assoc) {
+        addHasMany: function (entityType, assoc) {
             var me = this,
                 entities = me.entities,
                 pending = me.pending,
-                associationKey = assoc.associationKey,
-                cls, name,
-                referenceField, target, foreignKey,
-                assocName;
+                cls, name, referenceField, target, 
+                foreignKey, inverseOptions, child, declaredInverse;
 
-            assoc = this.constructLegacyAssociation(entityType, assoc);
+            assoc = Ext.apply({}, this.checkLegacyAssociation(entityType, assoc));
+
+            assoc.type = this.getEntityName(assoc.child || assoc.parent || assoc.type);
 
             name = assoc.type;
             target = entities[name];
-            if (target && target.cls) {
-                assoc.type = entityType.entityName;
-                foreignKey = assoc.foreignKey || (assoc.type.toLowerCase() + '_id');
-                cls = target.cls;
-                referenceField = cls.getField(foreignKey);
-                assoc.inverse = assoc || {};
-                assocName = assoc.name;
-                if (assocName || associationKey) {
-                    if (assocName) {
-                        assoc.inverse.role = assocName;
-                    }
-                    if (associationKey) {
-                        assoc.inverse.associationKey = associationKey;
-                    }
+            cls = target && target.cls;
+            if (cls) {
+                name = entityType.entityName;
+                foreignKey = assoc.foreignKey || (name.toLowerCase() + '_id');
+                delete assoc.foreignKey;
+
+                // The assoc is really the inverse, so we only set the minimum.
+                // We copy the inverse from assoc and apply it over assoc!
+                declaredInverse = Ext.apply({}, assoc.inverse);
+                delete assoc.inverse;
+                inverseOptions = Ext.apply({}, assoc);
+                delete inverseOptions.type;
+
+                assoc = Ext.apply({
+                    type: name,
+                    inverse: inverseOptions
+                }, declaredInverse);
+
+                child = inverseOptions.child;
+                if (child) {
+                    delete inverseOptions.child;
+                    assoc.parent = name;
                 }
 
+                referenceField = cls.getField(foreignKey);
                 if (referenceField) {
                     referenceField.$reference = assoc;
+                    assoc.legacy = true;
+                    //<debug>
+                    Ext.log.warn('Using foreignKey is deprecated, use a keyed association. See Ext.data.field.Field.reference');
+                    //</debug>
                 }
+
                 // We already have the entity, we can process it
-                me.addReference(cls, referenceField, assoc, false);
+                me.addReference(cls, referenceField, assoc, false
+                //<debug>
+                , function(association, name, leftRole, rightRole) {
+                    // Check to see if the user has used belongsTo/hasMany in conjunction.
+                    var result = !!association.meta.fromSingle && cls === association.left.cls,
+                        l, r;
+
+                    if (result) {
+                        l = cls.entityName;
+                        r = entityType.entityName;
+                        Ext.raise('hasMany ("' + r + '") and belongsTo ("' + l + '") should not be used in conjunction to declare a relationship. Use only one.');
+                    }
+
+                    return result;
+                }
+                //</debug>
+                );
             } else {
                 // Pending, push it in the queue for when we load it
                 if (!pending[name]) {
@@ -1082,22 +1115,33 @@ Ext.define('Ext.data.schema.Schema', {
             }
         },
 
-        constructLegacyAssociation: function(entityType, assoc) {
+        checkLegacyAssociation: function(entityType, assoc) {
             if (Ext.isString(assoc)) {
                 assoc = {
-                    model: assoc
+                    type: assoc
                 };
+            } else {
+                assoc = Ext.apply({}, assoc);
             }
-            assoc.legacy = true;
-            assoc.type = this.getEntityName(assoc.model);
+
+            if (assoc.model) {
+                assoc.type = assoc.model;
+                // TODO: warn
+                delete assoc.model;
+            }
+
             var name = assoc.associatedName || assoc.name;
             if (name) {
+                // TODO: warn
+                delete assoc.associatedName;
+                delete assoc.name;
                 assoc.role = name;
             }
+
             return assoc;
         },
 
-        afterLegacyAssociations: function(cls) {
+        afterKeylessAssociations: function(cls) {
             var pending = this.pending,
                 name = cls.entityName,
                 mine = pending[name],
@@ -1105,7 +1149,7 @@ Ext.define('Ext.data.schema.Schema', {
 
             if (mine) {
                 for (i = 0, len = mine.length; i < len; ++i) {
-                    this.addLegacyHasMany.apply(this, mine[i]);
+                    this.addHasMany.apply(this, mine[i]);
                 }
                 delete pending[name];
             }

@@ -254,11 +254,6 @@ Ext.define('Ext.util.LruCache', {
                 me.removeAtKey(me.first.key);
             }
         }
-    },
-
-    destroy: function() {
-        this.first = this.last = null;
-        this.callParent();     
     }
 
   /**

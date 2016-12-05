@@ -51,6 +51,10 @@ Ext.define('Ext.grid.column.Date', {
          */
         format: null,
 
+        defaultEditor: {
+            xtype: 'datepickerfield'
+        },
+
         cell: {
             xtype: 'datecell'
         }

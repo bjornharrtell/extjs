@@ -4,21 +4,6 @@
             depends="-detect-app-build-properties,
                      -generate-slicer-bootstrap,
                      -generate-slicer-manifest">
-        <x-run-if-true value="${app.sass.fashion}">
-            <if>
-                <x-is-false value="${app.sass.rhino}"/>
-                <then>
-                    <x-get-relative-path from="${build.web.root}"
-                                         to="${app.example.fashion.html}"
-                                         property="app.example.fashion.html.relative"/>
-                    <property name="example.page.url"
-                              value="http://localhost:${build.web.port}/${app.example.fashion.html.relative}"/>
-                    <x-sass-page page="${app.example.fashion.html}"
-                                 url="${example.page.url}"
-                                 refId="app.web.server"/>
-                </then>
-            </if>
-        </x-run-if-true>
     </target>
     
     <!--
@@ -116,10 +101,13 @@
                                 toFile="${app.example.build.dir}"/>
                     </then>
                     <else>
-                        <x-sass-build input="${app.example.build.dir}"
-                                      output="${app.example.build.dir}"
-                                      refId="app.web.server"
-                                      compress="false"/>
+                        <x-sencha-command>
+                            fashion
+                            -compress=${build.css.compress}
+                            -split=${build.css.selector.limit}
+                            ${app.example.build.dir}
+                            ${app.example.build.dir}
+                        </x-sencha-command>
                     </else>
                 </if>
             </then>
@@ -188,18 +176,13 @@ Ext.Boot.loadSync([
             </then>
         </if>
 
-        <condition property="remove.slicer.css.bootstrap.entries" value="true">
-            <and>
-                <x-is-true value="${app.sass.fashion}"/>
-                <x-is-false value="${app.sass.rhino}"/>
-            </and>
-        </condition>
         <property name="remove.slicer.css.bootstrap.entries" value="false"/>
 
         <x-compile refid="${compiler.ref.id}">
             <![CDATA[
                 slicer-manifest
                     -exclude=${manifest.root.excludes}
+                    -jsonp=Ext.Microloader.setManifest
                     -removeBootstrapCssEntries=${remove.slicer.css.bootstrap.entries}
                     +ignoreDisabled
                     -basePath=${bootstrap.base.path}
@@ -216,24 +199,16 @@ Ext.Boot.loadSync([
     </target>
 
     <target name="-capture-theme-image">
-        <if>
-            <or>
-                <x-is-false value="${app.sass.fashion}"/>
-                <x-is-true value="${app.sass.rhino}"/>
-            </or>
-            <then>
-                <echo>Capture theme image to ${build.capture.png}</echo>
-                <x-sencha-command>
-                    <![CDATA[
+        <echo>Capture theme image to ${build.capture.png}</echo>
+        <x-sencha-command>
+            <![CDATA[
                         theme
                             capture
                                 -page=${app.example.theme.html}
                                 -image=${build.capture.png}
                                 -manifest=${build.capture.json}
                     ]]>
-                </x-sencha-command>
-            </then>
-        </if>
+        </x-sencha-command>
     </target>
 
     <target name="-capture-sass-page-image">
@@ -273,7 +248,6 @@ Ext.Boot.loadSync([
     <target name="-slice-app-theme" 
             depends="-load-sass-page,
                      -compass-compile-slicer-css,
-                     -capture-sass-page-image,
                      -capture-theme-image,
                      -slice-theme-images">
     </target>

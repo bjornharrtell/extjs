@@ -5,6 +5,14 @@
 .x-picker {
     .x-toolbar {
         padding-top: .5em;
+        .x-button-icon {
+            &.check2 {
+                @include inline-icon('check2');
+            }
+            &.delete {
+                @include inline-icon('delete');
+            }
+        }
     }
 
     background-color: $background-color;
@@ -63,13 +71,13 @@
         border: 1px solid color-by-background($background-color, 30);
         line-height: $picker-row-height;
 
-        &.x-item-selected {
+        &.x-selected {
             color: color-by-background($base-color);
             background: $base-color;
             border-color: $base-color;
         }
 
-        &.x-item-pressed {
+        &.x-pressed {
             color: color-by-background($base-color);
         }
     }

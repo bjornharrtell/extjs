@@ -119,6 +119,7 @@
                     <equals arg1="theme" arg2="${package.type}"/>
                 </not>
                 <equals arg1="touch" arg2="${framework.name}"/>
+                <equals arg1="modern" arg2="${package.toolkit}"/>
             </or>
             <then>
                 <property name="skip.slice" value="1"/>
@@ -284,7 +285,7 @@
         </x-compile>
     </target>
 
-    <target name="-init-web-server">
+    <target name="-init-web-server" unless="skip.web.start">
         <x-server port="${build.web.port}"
                   portPropertyName="build.web.port"
                   defaultSassFile="${package.example.scss}"

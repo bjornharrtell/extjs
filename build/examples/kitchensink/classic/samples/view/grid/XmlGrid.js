@@ -7,23 +7,8 @@
  */
 Ext.define('KitchenSink.view.grid.XmlGrid', {
     extend: 'Ext.grid.Panel',
-    requires: [
-        'Ext.grid.column.Column',
-        'KitchenSink.store.Books'
-    ],
     xtype: 'xml-grid',
-    store: {
-        type: 'books'
-    },
-    stateful: true,
-    collapsible: true,
-    multiSelect: true,
-    stateId: 'stateXmlGrid',
-    height: 350,
-    title: 'XML Grid',
-    viewConfig: {
-        enableTextSelection: true
-    },
+
     //<example>
     otherContent: [{
         type: 'Store',
@@ -34,42 +19,51 @@ Ext.define('KitchenSink.view.grid.XmlGrid', {
     }],
     profiles: {
         classic: {
-            width: 600,
-            percentChangeColumnWidth: 75,
-            lastUpdatedColumnWidth: 85,
-            green: 'green',
-            red: 'red'
+            width: 600
         },
         neptune: {
-            width: 650,
-            percentChangeColumnWidth: 100,
-            lastUpdatedColumnWidth: 115,
-            green: '#73b51e',
-            red: '#cf4c35'
+            width: 650
         }
     },
     //</example>
 
-    initComponent: function () {
-        var me = this;
+    title: 'XML Grid',
+    width: '${width}',
+    height: 350,
 
-        me.width = this.profileInfo.width;
-        me.columns = [
-            {text: "Author", flex: 1, dataIndex: 'Author'},
-            {text: "Title", width: 180, dataIndex: 'Title'},
-            {text: "Manufacturer", width: 115, dataIndex: 'Manufacturer'},
-            {text: "Product Group", width: 100, dataIndex: 'ProductGroup'}
-        ];
+    autoLoad: true, // wait for render to load the store
+    stateful: true,
+    collapsible: true,
+    multiSelect: true,
+    stateId: 'stateXmlGrid',
 
-        me.callParent();
-
-        this.on('afterlayout', this.loadStore, this, {
-            delay: 1,
-            single: true
-        });
+    store: {
+        type: 'books',
+        autoLoad: false // don't load on create (wait for render)
+    },
+    viewConfig: {
+        enableTextSelection: true
     },
 
-    loadStore: function() {
-        this.getStore().load();
-    }
+    columns: [{
+        text: "Author",
+        dataIndex: 'Author',
+
+        flex: 1
+    }, {
+        text: "Title",
+        dataIndex: 'Title',
+
+        width: 180
+    }, {
+        text: "Manufacturer",
+        dataIndex: 'Manufacturer',
+
+        width: 115
+    }, {
+        text: "Product Group",
+        dataIndex: 'ProductGroup',
+
+        width: 100
+    }]
 });

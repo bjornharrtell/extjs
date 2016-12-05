@@ -21,21 +21,19 @@ Ext.define('KitchenSink.view.draw.FreeDraw', {
     }],
     // </example>
 
-    lastEvent: 0,
-
     tbar: ['->', {
         text: 'Clear',
-        handler: function(event, toolEl, panelHeader) {
-            // Remove all the sprites and redraw
-            var draw = Ext.getCmp('free-paint');
+        handler: function () {
+            // Remove all the sprites and redraw.
+            var draw = Ext.getCmp('free-draw');
             draw.getSurface().removeAll(true);
             draw.renderFrame();
         }
     }],
 
     items: [{
-        xtype: 'free-paint-component',
-        id: 'free-paint',
+        xtype: 'free-draw-component',
+        id: 'free-draw',
         anchor: '100%',
         height: 500
     }],

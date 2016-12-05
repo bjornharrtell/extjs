@@ -39,7 +39,7 @@
  *                         sourceEl: sourceEl,
  *                         repairXY: Ext.fly(sourceEl).getXY(),
  *                         sourceStore: v.store,
- *                         draggedRecord: v.{@link Ext.view.View#getRecord getRecord}(sourceEl)
+ *                         draggedRecord: v.getRecord(sourceEl)
  *                     }
  *                 }
  *             },
@@ -64,11 +64,14 @@ Ext.define('Ext.dd.DragZone', {
      * @param {String/HTMLElement/Ext.dom.Element} el The container element or ID of it.
      * @param {Object} config
      */
-    constructor : function(el, config){
+    constructor: function(el, config) {
         var me = this,
-            scroll = me.containerScroll;
+            scroll;
         
         me.callParent([el, config]);
+        
+        scroll = me.containerScroll;
+        
         if (scroll) {
             el = me.scrollEl || el;
             el = Ext.get(el);
@@ -127,10 +130,11 @@ Ext.define('Ext.dd.DragZone', {
         return Ext.fly(this.dragData.ddel).getXY();
     },
 
-    destroy : function(){
-        this.callParent();
+    destroy: function() {
         if (this.containerScroll) {
             Ext.dd.ScrollManager.unregister(this.scrollEl || this.el);
         }
+
+        this.callParent();
     }
 });

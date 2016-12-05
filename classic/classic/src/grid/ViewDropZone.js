@@ -10,23 +10,20 @@ Ext.define('Ext.grid.ViewDropZone', {
     handleNodeDrop : function(data, record, position) {
         var view = this.view,
             store = view.getStore(),
+            crossView = view !== data.view,
             index, records, i, len;
 
         // If the copy flag is set, create a copy of the models
         if (data.copy) {
             records = data.records;
-            data.records = [];
             for (i = 0, len = records.length; i < len; i++) {
-                data.records.push(records[i].copy());
+                records[i] = records[i].copy();
             }
-        } else {
+        } else if (crossView) {
             /*
-             * Remove from the source store. We do this regardless of whether the store
-             * is the same bacsue the store currently doesn't handle moving records
-             * within the store. In the future it should be possible to do this.
-             * Here was pass the isMove parameter if we're moving to the same view.
+             * Remove from the source store only if we are moving to a different store.
              */
-            data.view.store.remove(data.records, data.view === view);
+            data.view.store.remove(data.records);
         }
 
         if (record && position) {
@@ -43,8 +40,11 @@ Ext.define('Ext.grid.ViewDropZone', {
             store.add(data.records);
         }
 
-        // Select the dropped nodes
-        view.getSelectionModel().select(data.records);
+        // Select the dropped nodes unless dropping in the same view.
+        // In which case we do not disturb the selection.
+        if (crossView) {
+            view.getSelectionModel().select(data.records);
+        }
 
         // Focus the first dropped node.
         view.getNavigationModel().setPosition(data.records[0]);

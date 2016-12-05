@@ -106,6 +106,18 @@ $form-field-border-style: dynamic(solid);
 $form-field-focus-border-color: dynamic($base-color);
 
 /**
+ * @var {string} $form-field-focus-border-style
+ * Border style for focused form fields.
+ */
+$form-field-focus-border-style: dynamic($form-field-border-style);
+
+/**
+ * @var {number} $form-field-focus-border-width
+ * Border width for focused form fields.
+ */
+$form-field-focus-border-width: dynamic($form-field-border-width);
+
+/**
  * @var {color} $form-field-invalid-border-color
  * Border color for invalid form fields.
  */
@@ -874,6 +886,18 @@ $form-toolbar-trigger-glyph: dynamic($form-trigger-glyph);
 $form-toolbar-trigger-glyph-color: dynamic($form-trigger-glyph-color);
 
 /**
+ * @var {number/list}
+ * The padding for toolbar tag fields
+ */
+$form-toolbar-tag-field-item-margin: dynamic($tag-field-item-margin);
+
+/**
+ * @var {number/list}
+ * The margin for toolbar tag field items
+ */
+$form-toolbar-tag-field-padding: dynamic($tag-field-padding);
+
+/**
  * @var {boolean}
  * True to include the "default" text field UI
  */
@@ -884,6 +908,12 @@ $include-text-field-default-ui: dynamic($include-field-default-ui);
  * True to include the "toolbar" text field UI
  */
 $include-text-field-toolbar-ui: dynamic($include-field-toolbar-ui);
+
+/**
+ * @var {boolean}
+ * True to include the "toolbar" tag field UI
+ */
+$include-tag-field-toolbar-ui: dynamic($include-field-toolbar-ui);
 
 // </editor-fold>
 
@@ -1082,7 +1112,7 @@ $form-checkbox-label-font-weight: dynamic($form-label-font-weight);
  * @var {string}
  * The font-size of the checkbox's {@link #boxLabel}
  */
-$form-checkbox-label-font-size: dynamic($form-label-font-family);
+$form-checkbox-label-font-size: dynamic($form-label-font-size);
 
 /**
  * @var {string}
@@ -1207,6 +1237,24 @@ $form-display-field-line-height: dynamic(round($form-display-field-font-size * 1
 
 /**
  * @var {color}
+ * Border or outline color for focused display fields.
+ */
+$form-display-field-focus-border-color: dynamic($form-field-focus-border-color);
+
+/**
+ * @var {string}
+ * Border or outline style for focused display fields.
+ */
+$form-display-field-focus-border-style: dynamic($form-field-focus-border-style);
+
+/**
+ * @var {number}
+ * Border or outline width for focused display fields.
+ */
+$form-display-field-focus-border-width: dynamic($form-field-focus-border-width);
+
+/**
+ * @var {color}
  * The text color of toolbar display fields
  */
 $form-toolbar-display-field-color: dynamic($form-display-field-color);
@@ -1234,6 +1282,24 @@ $form-toolbar-display-field-font-weight: dynamic($form-display-field-font-weight
  * The line-height of toolbar display fields
  */
 $form-toolbar-display-field-line-height: dynamic(round($form-toolbar-display-field-font-size * 1.15));
+
+/**
+ * @var {color}
+ * Border or outline color for focused toolbar display fields
+ */
+$form-toolbar-display-field-focus-border-color: dynamic($form-display-field-focus-border-color);
+
+/**
+ * @var {string}
+ * Border or outline style for focused toolbar display fields
+ */
+$form-toolbar-display-field-focus-border-style: dynamic($form-display-field-focus-border-style);
+
+/**
+ * @var {number}
+ * Border or outline width for focused toolbar display fields
+ */
+$form-toolbar-display-field-focus-border-width: dynamic($form-display-field-focus-border-width);
 
 /**
  * @var {boolean}

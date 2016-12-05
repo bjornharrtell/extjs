@@ -53,6 +53,16 @@ describe("Ext.data.proxy.Proxy", function() {
             expect(proxy.getBatchOrder()).toBe('create,update,destroy');
         });
     });
+    
+    describe("destruction", function() {
+        it("should call parent destructor", function() {
+            proxy.destroy();
+            
+            expect(proxy.isDestroyed).toBe(true);
+            
+            proxy = null;
+        });
+    });
 
     describe("methods", function() {
         describe("getModel", function() {
@@ -113,6 +123,13 @@ describe("Ext.data.proxy.Proxy", function() {
     });
 
     describe("metachange event", function () {
+        function completeWithData(data) {
+            Ext.Ajax.mockComplete({
+                status: 200,
+                responseText: Ext.JSON.encode(data)
+            });
+        }
+
         var wasCalled = false,
             successData = {
                 success: true,
@@ -132,7 +149,8 @@ describe("Ext.data.proxy.Proxy", function() {
             args, proxyArg, metaArg;
 
         beforeEach(function () {
-            proxy = new Proxy({
+            MockAjaxManager.addMethods();
+            proxy = new Ext.data.proxy.Ajax({
                 listeners: {
                     metachange: function (proxy, meta) {
                         wasCalled = true;
@@ -143,10 +161,14 @@ describe("Ext.data.proxy.Proxy", function() {
                 }
             });
 
-            proxy.getReader().readRecords(successData);
+            proxy.read(new Ext.data.operation.Read({
+                url: 'foo'
+            }));
+            completeWithData(successData);
         });
 
         afterEach(function () {
+            MockAjaxManager.removeMethods();
             wasCalled = false;
             args = proxyArg = metaArg = null;
         });

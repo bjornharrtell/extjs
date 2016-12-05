@@ -20,14 +20,16 @@ Ext.define('Admin.view.authentication.PasswordReset', {
             },
             items: [{
                 xtype: 'textfield',
+                minWidth: 300,
                 placeHolder: 'example@example.com',
-                userCls: 'text-border'
+                ui: 'light'
             },{
                 xtype: 'button',
                 text: 'Reset Password',
                 iconAlign: 'right',
                 iconCls: 'x-fa fa-angle-right',
                 ui: 'action',
+                width: '100%',
                 handler: function(){
                     window.location.href = "#dashboard";
                 }

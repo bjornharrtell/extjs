@@ -251,14 +251,6 @@ Ext.define('Ext.layout.Layout', {
         return this.autoSizePolicy;
     },
 
-    /**
-     * Returns the element that wraps the contents for the purposes of touch scrolling.
-     * Only applicable when the layout adds the scroller element as part of its renderTpl
-     * (e.g. autocontainer and box)
-     * @private
-     */
-    getScrollerEl: Ext.emptyFn,
-
     isItemBoxParent: function (itemContext) {
         return false;
     },
@@ -383,16 +375,19 @@ Ext.define('Ext.layout.Layout', {
         var me = this,
             ln = items.length,
             i = 0,
+            pos = 0,
             item;
 
         if (ln) {
             Ext.suspendLayouts();
-            for (; i < ln; i++) {
+            for (; i < ln; i++, pos++) {
                 item = items[i];
                 if (item && !item.rendered) {
-                    me.renderItem(item, target, i);
-                } else if (!me.isValidParent(item, target, i)) {
-                    me.moveItem(item, target, i);
+                    me.renderItem(item, target, pos);
+                } else if (item.ignoreDomPosition) {
+                    --pos;
+                } else if (!me.isValidParent(item, target, pos)) {
+                    me.moveItem(item, target, pos);
                 } else {
                     // still need to configure the item, it may have moved in the container.
                     me.configureItem(item);
@@ -480,13 +475,36 @@ Ext.define('Ext.layout.Layout', {
      * @private
      */
     moveItem : function(item, target, position) {
+        var activeEl = Ext.Element.getActiveElement(true);
+
         target = target.dom || target;
         if (typeof position === 'number') {
             position = target.childNodes[position];
         }
+
+        // If the element we are about to move contains focus, ensure we don't
+        // disturb application state when it blurs on remove.
+        // 
+        // That's if it blurs on remove! Some browsers don't, which leaves
+        // focus "stranded" with framework and app state set, and rendition
+        // set on an element while the element is in fact not focused.
+        // By actively restoring focus afterwards we avoid an inconsistent state.
+        // Specifically: https://sencha.jira.com/browse/EXTJS-20609
+        if (item.el.contains(activeEl)) {
+            activeEl.suspendFocusEvents();
+        } else {
+            activeEl = null;
+        }
+
         target.insertBefore(item.el.dom, position || null);
         item.container = Ext.get(target);
         this.configureItem(item);
+
+        // If we moved the element that contained focus, silently restore it.
+        if (activeEl) {
+            activeEl.focus();
+            activeEl.resumeFocusEvents();
+        }
     },
 
     /**
@@ -600,7 +618,10 @@ Ext.define('Ext.layout.Layout', {
             }
         }
 
-        me.onDestroy();
+        if (!me.onDestroy.$emptyFn) {
+            me.onDestroy();
+        }
+        
         me.callParent();
     },
 

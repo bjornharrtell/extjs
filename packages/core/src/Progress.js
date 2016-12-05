@@ -40,8 +40,8 @@
  *
  */
 Ext.define('Ext.Progress', {
-    extend: 'Ext.Widget',
-    xtype: [ 'progress', 'progressbarwidget' ],
+    extend: 'Ext.Gadget',
+    xtype: ['progress', 'progressbarwidget'],
     alternateClassName: 'Ext.ProgressBarWidget',
 
     mixins: [
@@ -71,9 +71,7 @@ Ext.define('Ext.Progress', {
 
         textCls: Ext.baseCSSPrefix + 'progress-text',
 
-        cls: null,
-
-        ui: null
+        cls: null
     },
 
     template: [{
@@ -87,16 +85,7 @@ Ext.define('Ext.Progress', {
 
     defaultBindProperty: 'value',
 
-    updateWidth: function(width, oldWidth) {
-        var me = this;
-
-        me.callParent([width, oldWidth]);
-        width -= me.element.getBorderWidth('lr');
-        me.backgroundEl.setWidth(width);
-        me.textEl.setWidth(width);
-    },
-
-    updateCls: function(cls, oldCls) {
+    updateCls: function (cls, oldCls) {
         var el = this.element;
 
         if (oldCls) {
@@ -108,7 +97,7 @@ Ext.define('Ext.Progress', {
         }
     },
 
-    updateUi: function(ui, oldUi) {
+    updateUi: function (ui, oldUi) {
         var element = this.element,
             barEl = this.barEl,
             baseCls = this.getBaseCls() + '-';
@@ -122,7 +111,7 @@ Ext.define('Ext.Progress', {
         barEl.addCls(baseCls + 'bar-' + ui);
     },
 
-    updateBaseCls: function(baseCls, oldBaseCls) {
+    updateBaseCls: function (baseCls, oldBaseCls) {
         //<debug>
         if (oldBaseCls) {
             Ext.raise('You cannot configure baseCls - use a subclass');
@@ -132,12 +121,12 @@ Ext.define('Ext.Progress', {
         this.barEl.addCls(baseCls + '-bar');
     },
 
-    updateTextCls: function(textCls) {
+    updateTextCls: function (textCls) {
         this.backgroundEl.addCls(textCls + ' ' + textCls + '-back');
         this.textEl.addCls(textCls);
     },
 
-    updateValue: function(value, oldValue) {
+    updateValue: function (value, oldValue) {
         var me = this,
             barEl = me.barEl,
             textTpl = me.getTextTpl();
@@ -163,7 +152,7 @@ Ext.define('Ext.Progress', {
         }
     },
 
-    updateText: function(text) {
+    updateText: function (text) {
         this.backgroundEl.setHtml(text);
         this.textEl.setHtml(text);
     }

@@ -1,20 +1,20 @@
-.#{$prefix}grid-row {
+.#{$prefix}gridrow {
     border-width: 0 0 1px 0;
     border-style: solid;
 }
 
-.#{$prefix}grid-cell {
+.#{$prefix}gridcell {
     line-height: 60px;
     padding: 0 8px;
     height: 60px;
     border-width: 0 1px 0 0;
 }
 
-.#{$prefix}grid-summaryrow {
+.#{$prefix}summaryrow {
     height: 32px;
     font-size: 0.8em;
 
-    .#{$prefix}grid-cell {
+    .#{$prefix}gridcell {
         height: 32px;
         line-height: 30px;
         border-width: 0 0 1px;
@@ -22,19 +22,19 @@
     }
 }
 
-.#{$prefix}grid-header {
+.#{$prefix}rowheader {
     line-height: 44px;
     font-weight: bold;
 }
 
-.#{$prefix}grid-header-container {
+.#{$prefix}headercontainer {
     border-width: 0 0 1px 1px;
     border-style: solid;
     height: 65px;
     font-weight: bold;
 }
 
-.#{$prefix}grid-column {
+.#{$prefix}gridcolumn {
     height: 64px;
     border-width: 1px 1px 0 0;
     border-style: solid;
@@ -42,13 +42,12 @@
     vertical-align: middle;
     padding: 0 8px;
 
-    .#{$prefix}innerhtml {
+    .#{$prefix}text-el {
         position: relative;
         display: inline-block;
     }
 
-    &.#{$prefix}column-sorted-asc,
-    &.#{$prefix}column-sorted-desc {
+    &.#{$prefix}sorted {
         .#{$prefix}innerhtml:after {
             position: absolute;
             width: 12px;
@@ -70,10 +69,10 @@
         left: -16px;
     }
 
-    &.#{$prefix}column-sorted-asc .#{$prefix}innerhtml:after {
+    &.#{$prefix}sorted-asc .#{$prefix}innerhtml:after {
         content: icon-character-for-name('up');
     }
-    &.#{$prefix}column-sorted-desc .#{$prefix}innerhtml:after {
+    &.#{$prefix}sorted-desc .#{$prefix}innerhtml:after {
         content: icon-character-for-name('down');
     }
 }
@@ -86,27 +85,14 @@
     border-style: solid;
     border-width: 1px 0 0;
 
-    .#{$prefix}inner > .#{$prefix}innerhtml {
-        height: 32px;
-        line-height: 28px;
-        vertical-align: middle;
-        display: block;
-        position: absolute;
-        width: 100%;
-        top: 0;
-        left: 0;
-        border-style: solid;
-        border-width: 1px;
-    }
-
-    .#{$prefix}grid-column {
+    .#{$prefix}gridcolumn {
         height: 32px !important;
         line-height: 27px !important;
         font-size: 0.7em;
 
-        &.#{$prefix}column-sorted-asc,
-        &.#{$prefix}column-sorted-desc {
-            .#{$prefix}innerhtml:after {
+        &.#{$prefix}sorted-asc,
+        &.#{$prefix}sorted-desc {
+            .#{$prefix}text-el:after {
                 line-height: 27px;
                 height: 27px;
             }
@@ -114,23 +100,16 @@
     }
 }
 
-.#{$prefix}grid-headergroup-text {
-    height: 32px;
-    line-height: 32px;
-    border-style: solid;
-    border-width: 0 1px 0 0;
-}
-
-.#{$prefix}grid-pagingtoolbar-prev {
+.#{$prefix}pagingtoolbar-prev {
     @include font-icon($pictos-var-arrow_left Pictos);
 }
 
-.#{$prefix}grid-pagingtoolbar-next {
+.#{$prefix}pagingtoolbar-next {
     @include font-icon($pictos-var-arrow_right Pictos);
 }
 
-.#{$prefix}grid-viewoptions {
-    .#{$prefix}list-item .#{$prefix}innerhtml {
+.#{$prefix}gridviewoptions {
+    .#{$prefix}listitem .#{$prefix}innerhtml {
         padding: 0px !important;
     }
 
@@ -220,7 +199,7 @@
 
 //-----------------------------------------------
 
-.#{$prefix}grid-multiselection-column {
+.#{$prefix}selectioncolumn {
     position: relative;
     padding: 0;
 
@@ -238,7 +217,7 @@
     }
 }
 
-.#{$prefix}grid-multiselection-cell {
+.#{$prefix}checkcell {
     position: relative;
     padding: 0;
 
@@ -256,6 +235,6 @@
     }
 }
 
-.#{$prefix}item-selected .#{$prefix}grid-multiselection-cell:after {
+.#{$prefix}gridrow.#{$prefix}selected .#{$prefix}checkcell:after {
     content: $pictos-var-check2;
 }

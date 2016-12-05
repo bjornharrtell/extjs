@@ -537,4 +537,69 @@ describe("Ext.event.Event", function() {
         makeSuite(false);
         makeSuite(true);
     });
+
+    describe("time stamp", function() {
+        describe("delegated", function() {
+            var target, event;
+
+            beforeEach(function() {
+                target = Ext.getBody().createChild();
+
+                target.on('mousedown', function(e) {
+                    event = e;
+                });
+            });
+
+            afterEach(function() {
+                target.destroy();
+                target = null;
+            });
+
+            it("should be the current date in milliseconds", function() {
+                var start = +new Date();
+                jasmine.fireMouseEvent(target,'mousedown');
+                var end = +new Date();
+
+                expect(event.time >= start && event.time <= end).toBe(true);
+            });
+
+            it("should set both time and timeStamp", function() {
+                jasmine.fireMouseEvent(target,'mousedown');
+                expect(event.time).toBe(event.timeStamp);
+            });
+        });
+
+        describe("non-delegated", function() {
+            var target, event;
+
+            beforeEach(function() {
+                target = Ext.getBody().createChild();
+
+                target.on({
+                    mousedown: function(e) {
+                        event = e;
+                    },
+                    delegated: false
+                });
+            });
+
+            afterEach(function() {
+                target.destroy();
+                target = null;
+            });
+
+            it("should be the current date in milliseconds", function() {
+                var start = +new Date();
+                jasmine.fireMouseEvent(target,'mousedown');
+                var end = +new Date();
+
+                expect(event.time >= start && event.time <= end).toBe(true);
+            });
+
+            it("should set both time and timeStamp", function() {
+                jasmine.fireMouseEvent(target,'mousedown');
+                expect(event.time).toBe(event.timeStamp);
+            });
+        });
+    });
 });

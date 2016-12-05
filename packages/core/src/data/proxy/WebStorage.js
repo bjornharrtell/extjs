@@ -285,14 +285,20 @@ Ext.define('Ext.data.proxy.WebStorage', {
             fields  = model.getFields(),
             length  = fields.length,
             i = 0,
-            field, name, obj, key;
+            field, name, obj, key, value;
 
         for (; i < length; i++) {
             field = fields[i];
             name  = field.name;
 
             if(field.persist) {
-                data[name] = rawData[name];
+                value = rawData[name];
+                if (field.isDateField && field.dateFormat && Ext.isDate(value)) {
+                    value = Ext.Date.format(value, field.dateFormat);
+                } else if (field.serialize) {
+                    value = field.serialize(value, record);
+                }
+                data[name] = value;
             }
         }
 

@@ -10,6 +10,6 @@ describe("Ext.data.proxy.Client", function() {
     });
 
     it("should throw an error on clear", function() {
-        expect(function() {proxy.clear();}).toRaiseExtError();
+        expect(function() {proxy.clear();}).toThrow();
     });
 });

@@ -15,12 +15,13 @@ describe('Ext.draw.sprite.Composite', function () {
                 type: 'rect'
             });
 
-            var child = composite.sprites[1];
+            var sprites = composite.sprites,
+                child = sprites[1];
 
             composite.destroy();
 
-            expect(composite.sprites.length).toEqual(0);
-            expect(child.isDestroyed).toEqual(true);
+            expect(sprites.length).toEqual(0);
+            expect(child.destroyed).toEqual(true);
         });
     });
 });

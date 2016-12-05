@@ -22,7 +22,7 @@
     "summary": "Sencha Charts",
     "detailedDescription": "Sencha Charts is a package that allows to generate charts of different types (line, columns, scatter, radar, gauge, etc...). It also includes the Drawing library which provides an abstraction sitting on top of HTML Canvas, SVG and VML.",
 
-    "version": "6.0.1.250",
+    "version": "6.2.0.981",
     "compatVersion": "6.0.0",
     "format": "1",
 
@@ -90,6 +90,11 @@
         "classic": {
             "toolkit": "classic",
             "theme": "theme-classic"
+        },
+
+        "modern-triton": {
+            "toolkit": "modern",
+            "theme": "theme-triton"
         },
 
         "modern-neptune": {

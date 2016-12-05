@@ -15,6 +15,13 @@
     }
 }
 
+.#{$prefix}panel-bodyWrap {
+    overflow: hidden;
+    position: static;
+    height: 100%;
+    width: 100%;
+}
+
 .#{$prefix}panel-body {
     overflow: hidden;
     position: relative;
@@ -33,3 +40,18 @@
 .#{$prefix}panel-collapsed-mini {
     visibility: hidden;
 }
+
+// This is required because viewport uses a min-height, not a height
+// to stretch the body. This means the bodyWrap height: 100% has no
+// effect because there's no explicit height. Use an alternative method
+// to stretch, but scope it only to the scenario where using a panel as
+// the viewport since using position: relative/absolute may not be a
+// good general solution
+.#{$prefix}viewport > .#{$prefix}body.#{$prefix}panel > .#{$prefix}panel-bodyWrap {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+

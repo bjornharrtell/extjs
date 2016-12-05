@@ -108,20 +108,5 @@ Ext.define('ExecDashboard.view.profitloss.ProfitLossController', {
         } else {
             view.store.getFilters().add(filter);
         }
-    },
-
-    // Fix an issue when using touch scrolling and hiding columns, occasionally
-    // there is an issue wher the total scroll size is not updated.
-    onViewRefresh: function(view) {
-        if (view.ownerGrid.normalGrid === view.ownerCt) {
-            var scrollManager = view.scrollManager,
-                scroller;
-
-            if (scrollManager) {
-                scroller = scrollManager.scroller;
-                scroller.setSize('auto');
-                scroller.refresh();
-            }
-        }
     }
 });

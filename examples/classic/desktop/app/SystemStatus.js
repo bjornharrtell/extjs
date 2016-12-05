@@ -289,7 +289,7 @@ Ext.define('Desktop.SystemStatus', {
                 xField: 'name',
                 yField: 'memory',
                 renderer: function(sprite, config, data, index) {
-                    var lowColor = Ext.draw.Color.fromString('#b1da5a'),
+                    var lowColor = Ext.util.Color.fromString('#b1da5a'),
                         value = data.store.getAt(index).get('memory'),
                         color;
 

@@ -13,4 +13,5 @@ $light-color: dynamic(#f0f0f0);
 $font-family: dynamic('Open Sans', 'Helvetica Neue', helvetica, arial, sans-serif);
 $font-weight-normal: dynamic(300);
 $font-weight-bold: dynamic(400);
-$font-size-big: dynamic(100%);
+$font-size: dynamic(pxToRootPct(13px));
+$font-size-big: dynamic(pxToRootPct(16px));

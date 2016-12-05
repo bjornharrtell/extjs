@@ -2,7 +2,7 @@
  * Controls the remote calculations example.
  */
 Ext.define('KitchenSink.view.pivot.RemoteCalculationsController', {
-    extend: 'Ext.app.ViewController',
+    extend: 'KitchenSink.view.pivot.PivotController',
 
     alias: 'controller.remotecalculations',
 
@@ -42,7 +42,8 @@ Ext.define('KitchenSink.view.pivot.RemoteCalculationsController', {
     },
 
     getJsonResponse: function(){
-        var text;
+        var simlet = Ext.ux.ajax.SimManager.getSimlet(this.getView().getMatrix().url),
+            text;
 
         // JSON.stringify is supported in most browsers
         // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
@@ -51,20 +52,21 @@ Ext.define('KitchenSink.view.pivot.RemoteCalculationsController', {
         text += ' * The keys can be defined as you want but bear in mind that grid\n';
         text += ' * DOM elements will use them, so sanitize them.\n';
         text += ' */\n\n';
-        text += JSON.stringify(Ext.ux.ajax.SimManager.getSimlet(this.getView().getMatrix().url).lastResponse, null, 4);
+        text += simlet ? JSON.stringify(simlet.lastResponse, null, 4) : '';
 
         return '<pre class="prettyprint">' + text + '</pre>';
     },
 
     getAjaxParams: function(){
-        var text;
+        var simlet = Ext.ux.ajax.SimManager.getSimlet(this.getView().getMatrix().url),
+            text;
 
         // JSON.stringify is supported in most browsers
         // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
         text = '/**\n';
         text += ' * This is how the params sent to the Ajax call look like. \n';
         text += ' */\n\n';
-        text += JSON.stringify(Ext.ux.ajax.SimManager.getSimlet(this.getView().getMatrix().url).lastPost, null, 4);
+        text += simlet ? JSON.stringify(simlet.lastPost, null, 4) : '';
 
         return '<pre class="prettyprint">' + text + '</pre>';
     }

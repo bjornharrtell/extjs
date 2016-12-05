@@ -2,21 +2,21 @@
  * @class Ext.MessageBox
  */
 
-.x-msgbox,
-.x-panel.x-floating,
-.x-form.x-floating {
-    margin: .5em;
+.x-msgbox {
     @include border($messagebox-border-width, $messagebox-border-style, $messagebox-border-color);
     background-color: $messagebox-background-color;
 
-    // This !important border-width setting is here to disable the border:0 that gets set
-    // on the floating panel by virtue of it having "border: false".  In the classic toolkit
-    // this is not an issue because message boxes and windows have frame:true which enables
-    // borders.  Since modern toolkit does not yet have any concept of framing we need this
-    // property for now.
-    border-width: $messagebox-border-width !important;
 
-    @if $include-border-radius {
+    @if $messagebox-border-width {
+        // This !important border-width setting is here to disable the border:0 that gets set
+        // on the floating panel by virtue of it having "border: false".  In the classic toolkit
+        // this is not an issue because message boxes and windows have frame:true which enables
+        // borders.  Since modern toolkit does not yet have any concept of framing we need this
+        // property for now.
+        border-width: $messagebox-border-width !important;
+    }
+
+    @if $enable-border-radius {
         @include border-radius($messagebox-border-radius);
     }
 
@@ -30,11 +30,11 @@
 }
 
 .x-msgbox-title {
-    padding-top: calc(#{top($toolbar-padding)} - #{top($messagebox-border-width)});
+    padding-top: calc(#{top($toolbar-padding) or $default-calc-value} - #{top($messagebox-border-width) or $default-calc-value});
 
     @if $enable-big {
         .x-big & {
-            padding-top: calc(#{top($toolbar-padding-big)} - #{top($messagebox-border-width)});
+            padding-top: calc(#{top($toolbar-padding-big) or $default-calc-value} - #{top($messagebox-border-width) or $default-calc-value});
         }
     }
 
@@ -45,9 +45,15 @@
 }
 
 .x-msgbox-inner {
-    padding: 1em .6em;
+    padding: $messagebox-padding;
 }
 
 .x-msgbox-buttons {
     background-color: $messagebox-footer-background-color;
+}
+
+.x-msgbox {
+    .x-field {
+        width: 15em;
+    }
 }

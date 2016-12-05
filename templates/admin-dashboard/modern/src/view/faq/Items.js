@@ -34,7 +34,7 @@ Ext.define('Admin.view.faq.Items', {
     }],
 
     updateStore: function (store) {
-        var grid = this.getComponent(0);
+        var grid = this.down('dataview');
         grid.setStore(store);
     }
 });

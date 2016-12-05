@@ -40,12 +40,13 @@ Ext.define('Admin.view.authentication.LockScreen', {
             items: [{
                 xtype: 'passwordfield',
                 placeHolder: 'Password',
-                userCls: 'text-border'
+                ui: 'light'
             },{
                 xtype: 'button',
                 text: 'Login',
                 iconAlign: 'right',
                 iconCls: 'x-fa fa-angle-right',
+                width: '100%',
                 ui: 'gray-button',
                 handler: function(){
                     window.location.href = "#dashboard";

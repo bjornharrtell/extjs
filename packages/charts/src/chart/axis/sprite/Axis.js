@@ -122,11 +122,15 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
 
                 /**
                  * @cfg {Number} min The minimum value of the axis.
+                 * `min` and {@link #max} attributes represent the effective range of the axis
+                 * after segmentation, layout, and range reconciliation between axes.
                  */
                 min: 'number',
 
                 /**
                  * @cfg {Number} max The maximum value of the axis.
+                 * {@link #min} and `max` attributes represent the effective range of the axis
+                 * after segmentation, layout, and range reconciliation between axes.
                  */
                 max: 'number',
 
@@ -207,6 +211,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                 majorTickSize: 'bbox',
                 position: 'bbox,layout',
                 axisLine: 'bbox,layout',
+                minorTicks: 'layout',
                 min: 'layout',
                 max: 'layout',
                 length: 'layout',
@@ -235,6 +240,13 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
          * returns a new string with the modified values.
          */
         label: null,
+
+        /**
+         * @cfg {Number} labelOffset
+         * The distance between the label and the edge of a major tick.
+         * Only applicable for 'gauge' and 'angular' axes.
+         */
+        labelOffset: 10,
 
         /**
          * @cfg {Object|Ext.chart.axis.layout.Layout} layout The layout configuration used by the axis.
@@ -477,7 +489,8 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
             majorTicks = layoutContext.majorTicks,
             tickPadding = Math.max(attr.majorTickSize, attr.minorTickSize) + attr.lineWidth,
             isBBoxIntersect = Ext.draw.Draw.isBBoxIntersect,
-            label = me.getLabel(), font, labelOffset,
+            label = me.getLabel(), font,
+            labelOffset = me.getLabelOffset(),
             lastLabelText = null,
             textSize = 0, textCount = 0,
             segmenter = layoutContext.segmenter,
@@ -486,7 +499,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
             title = axis.getTitle(),
             titleBBox = title && title.attr.text !== '' && title.getBBox(),
             labelInverseMatrix, lastBBox = null, bbox, fly, text, titlePadding,
-            translation;
+            translation, gaugeAngles;
 
         if (majorTicks && label && !label.attr.hidden) {
             font = label.attr.font;
@@ -653,7 +666,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                     }
                 });
             } else if (docked === 'angular') {
-                labelOffset = attr.majorTickSize + attr.lineWidth * 0.5 + (parseInt(label.attr.fontSize, 10) || 10) / 2;
+                labelOffset += attr.majorTickSize + attr.lineWidth * 0.5;
                 me.iterate(majorTicks, function (position, labelText, i) {
                     if (labelText === undefined) {
                         return;
@@ -688,7 +701,8 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                     }
                 });
             } else if (docked === 'gauge') {
-                var gaugeAngles = me.getGaugeAngles();
+                gaugeAngles = me.getGaugeAngles();
+                labelOffset += attr.majorTickSize + attr.lineWidth * 0.5;
                 me.iterate(majorTicks, function (position, labelText, i) {
                     if (labelText === undefined) {
                         return;
@@ -706,8 +720,8 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                             attr.totalAngle + gaugeAngles.start;
                         label.setAttributes({
                             text: String(text),
-                            translationX: attr.centerX + (attr.length + 10) * Math.cos(angle),
-                            translationY: attr.centerY + (attr.length + 10) * Math.sin(angle)
+                            translationX: attr.centerX + (attr.length + labelOffset) * Math.cos(angle),
+                            translationY: attr.centerY + (attr.length + labelOffset) * Math.sin(angle)
                         }, true);
                         label.applyTransformations();
                         bbox = label.attr.matrix.transformBBox(label.getBBox(true));
@@ -919,7 +933,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                 limit.line.strokeStyle = limit.line.strokeStyle || attr.strokeStyle;
                 me.putMarker('horizontal-limit-lines', limit.line, i, true);
                 if (limit.line.title) {
-                    titles.createInstance(limit.line.title);
+                    titles.add(limit.line.title);
                     titleBBox = titles.getBBoxFor(titles.position - 1);
                     titlePosition = limit.line.title.position || (position === 'left' ? 'start' : 'end');
                     switch (titlePosition) {
@@ -951,7 +965,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                 limit.line.strokeStyle = limit.line.strokeStyle || attr.strokeStyle;
                 me.putMarker('vertical-limit-lines', limit.line, i, true);
                 if (limit.line.title) {
-                    titles.createInstance(limit.line.title);
+                    titles.add(limit.line.title);
                     titleBBox = titles.getBBoxFor(titles.position - 1);
                     titlePosition = limit.line.title.position || (position === 'top' ? 'end' : 'start');
                     switch (titlePosition) {
@@ -989,7 +1003,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                 limit.line.strokeStyle = limit.line.strokeStyle || attr.strokeStyle;
                 me.putMarker('circular-limit-lines', limit.line, i, true);
                 if (limit.line.title) {
-                    titles.createInstance(limit.line.title);
+                    titles.add(limit.line.title);
                     titleBBox = titles.getBBoxFor(titles.position - 1);
                     titles.setAttributesFor(titles.position - 1, {
                         x: attr.centerX,
@@ -1014,7 +1028,7 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
                 limit.line.strokeStyle = limit.line.strokeStyle || attr.strokeStyle;
                 me.putMarker('radial-limit-lines', limit.line, i, true);
                 if (limit.line.title) {
-                    titles.createInstance(limit.line.title);
+                    titles.add(limit.line.title);
                     titleBBox = titles.getBBoxFor(titles.position - 1);
                     titleFlip = ((value > -0.5 * Math.PI && value < 0.5 * Math.PI) || (value > 1.5 * Math.PI && value < 2 * Math.PI)) ? 1 : -1;
                     titles.setAttributesFor(titles.position - 1, {
@@ -1037,19 +1051,19 @@ Ext.define('Ext.chart.axis.sprite.Axis', {
         }
     },
 
-    render: function (surface, ctx, clipRect) {
+    render: function (surface, ctx, rect) {
         var me = this,
             layoutContext = me.getLayoutContext();
 
         if (layoutContext) {
-            if (false === me.renderLabels(surface, ctx, layoutContext, clipRect)) {
+            if (false === me.renderLabels(surface, ctx, layoutContext, rect)) {
                 return false;
             }
             ctx.beginPath();
-            me.renderTicks(surface, ctx, layoutContext, clipRect);
-            me.renderAxisLine(surface, ctx, layoutContext, clipRect);
-            me.renderGridLines(surface, ctx, layoutContext, clipRect);
-            me.renderLimits(clipRect);
+            me.renderTicks(surface, ctx, layoutContext, rect);
+            me.renderAxisLine(surface, ctx, layoutContext, rect);
+            me.renderGridLines(surface, ctx, layoutContext, rect);
+            me.renderLimits(rect);
             ctx.stroke();
         }
     }

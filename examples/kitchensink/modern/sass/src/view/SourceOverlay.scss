@@ -1,3 +1,19 @@
-#sourceoverlay pre {
-    font-size: 13px;
+#sourceoverlay {
+    z-index: 2;
+
+    pre {
+        font-size: 13px;
+    }
+}
+
+pre.prettyprint {
+    border: none !important;
+}
+
+$source-overlay-transition-duration: 0.4s;
+
+.sourceoverlay-transition {
+    transition: right $source-overlay-transition-duration, width $source-overlay-transition-duration;
+    -webkit-transition: right $source-overlay-transition-duration, width $source-overlay-transition-duration;
+    -ms-transition: right $source-overlay-transition-duration, width $source-overlay-transition-duration;
 }

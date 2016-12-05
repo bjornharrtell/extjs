@@ -66,6 +66,10 @@ describe("Ext.util.Bag", function() {
             it("should return the added item", function() {
                 expect(bag.add(a)).toBe(a);
             });
+
+            it("should retrun an array if more than one item was added", function() {
+                expect(bag.add([a,b])).toEqual([a,b]);
+            });
         });
 
         describe("an existing item", function() {
@@ -247,7 +251,7 @@ describe("Ext.util.Bag", function() {
 
                 expect(bag.length).toBe(3);
                 expect(bag.getCount()).toBe(3);
-                expect(bag.getAt(3)).toBeNull()
+                expect(bag.getAt(3)).toBeNull();
                 expect(bag.getByKey('d')).toBeNull();
             });
 
@@ -261,7 +265,7 @@ describe("Ext.util.Bag", function() {
 
                 expect(other.length).toBe(3);
                 expect(other.getCount()).toBe(3);
-                expect(other.getAt(3)).toBeNull()
+                expect(other.getAt(3)).toBeNull();
                 expect(other.getByKey('d')).toBeNull();
             });
         });
@@ -445,6 +449,10 @@ describe("Ext.util.Bag", function() {
                     expect(bag.getAt(1)).toBeNull();
                     expect(bag.getAt(2)).toBeNull();
                     expect(bag.getAt(3)).toBeNull();
+                });
+
+                it("should return an array if more than one item is removed", function() {
+                    expect(bag.remove([a,b,c,d])).toEqual([a,b,c,d]);
                 });
             });
 

@@ -177,7 +177,7 @@ Ext.define('Ext.form.field.Date', {
      * @cfg {String} formatText The format text to be announced by screen readers
      * when the field is focused.
      */
-    formatText: 'Expected date format: {0}',
+    formatText: 'Expected date format {0}.',
     //</locale>
     
     /**
@@ -268,8 +268,15 @@ Ext.define('Ext.form.field.Date', {
      * @inheritdoc
      */
     valuePublishEvent: ['select', 'blur'],
+
+    componentCls: Ext.baseCSSPrefix + 'form-field-date',
     
     ariaRole: 'combobox',
+
+    /** @private */
+    rawDate: null,
+    /** @private */
+    rawDateText: '',
 
     initComponent: function() {
         var me = this,
@@ -289,6 +296,24 @@ Ext.define('Ext.form.field.Date', {
 
         me.callParent();
     },
+    
+    getSubTplData: function(fieldData) {
+        var me = this,
+            data, ariaAttr;
+        
+        data = me.callParent([fieldData]);
+        
+        if (!me.ariaStaticRoles[me.ariaRole]) {
+            ariaAttr = data.ariaElAttributes;
+            
+            if (ariaAttr) {
+                ariaAttr['aria-owns'] = me.id + '-inputEl ' + me.id + '-picker-eventEl';
+                ariaAttr['aria-autocomplete'] = 'none';
+            }
+        }
+        
+        return data;
+    },
 
     initValue: function() {
         var me = this,
@@ -297,6 +322,13 @@ Ext.define('Ext.form.field.Date', {
         // If a String value was supplied, try to convert it to a proper Date
         if (Ext.isString(value)) {
             me.value = me.rawToValue(value);
+            me.rawDate = me.value;
+            me.rawDateText = me.parseDate(me.value);
+        }
+        else {
+            me.value = value || null;
+            me.rawDate = me.value;
+            me.rawDateText = me.value ? me.parseDate(me.value) : '';
         }
 
         me.callParent();
@@ -457,7 +489,12 @@ Ext.define('Ext.form.field.Date', {
     },
 
     rawToValue: function(rawValue) {
-        return this.parseDate(rawValue) || rawValue || null;
+        var me = this;
+
+        if (rawValue === me.rawDateText) {
+            return me.rawDate;
+        }
+        return me.parseDate(rawValue) || rawValue || null;
     },
 
     valueToRaw: function(value) {
@@ -476,7 +513,8 @@ Ext.define('Ext.form.field.Date', {
      *
      *     //Pass a date object:
      *     var dt = new Date('5/4/2006');
-     *     dateField.setValue(dt);
+     *     dateField.me = this,
+     *     setValue(dt);
      *
      *     //Pass a date string (default format):
      *     dateField.setValue('05/04/2006');
@@ -488,6 +526,55 @@ Ext.define('Ext.form.field.Date', {
      * @param {String/Date} date The date or valid date string
      * @return {Ext.form.field.Date} this
      */
+    setValue: function(v) {
+        var me = this;
+
+        me.lastValue = me.rawDateText;
+        me.lastDate = me.rawDate;
+        if (Ext.isDate(v)) {
+            me.rawDate  = v;
+            me.rawDateText = me.formatDate(v);
+        }
+        else {
+            me.rawDate = me.rawToValue(v);
+            me.rawDateText = me.formatDate(v);
+            if (me.rawDate === v) {
+                me.rawDate = null;
+                me.rawDateText = '';
+            }
+        }
+        me.callParent(arguments);
+    },
+
+   /**
+     * Checks whether the value of the field has changed since the last time it was checked.
+     * If the value has changed, it:
+     *
+     * 1. Fires the {@link #change change event},
+     * 2. Performs validation if the {@link #validateOnChange} config is enabled, firing the
+     *    {@link #validitychange validitychange event} if the validity has changed, and
+     * 3. Checks the {@link #isDirty dirty state} of the field and fires the {@link #dirtychange dirtychange event}
+     *    if it has changed.
+     */
+    checkChange: function() {
+        var me = this,
+            newVal, oldVal, lastDate;
+
+        if (!me.suspendCheckChange) {
+            newVal = me.getRawValue();
+            oldVal = me.lastValue;
+            lastDate = me.lastDate;
+
+            if (!me.destroyed && me.didValueChange(newVal, oldVal)) {
+                me.rawDate = me.rawToValue(newVal);
+                me.rawDateText = me.formatDate(newVal);
+                me.lastValue = newVal;
+                me.lastDate = me.rawDate;
+                me.fireEvent('change', me, me.getValue(), lastDate);
+                me.onChange(newVal, oldVal);
+            }
+        }
+    },
 
     /**
      * Attempts to parse a given string value using a given {@link Ext.Date#parse date format}.
@@ -520,9 +607,28 @@ Ext.define('Ext.form.field.Date', {
      */
     getSubmitValue: function() {
         var format = this.submitFormat || this.format,
-            value = this.getValue();
+            value = this.rawDate;
 
         return value ? Ext.Date.format(value, format) : '';
+    },
+
+    /**
+     * Returns the current data value of the field. The type of value returned is particular to the type of the
+     * particular field (e.g. a Date object for {@link Ext.form.field.Date}), as the result of calling {@link #rawToValue} on
+     * the field's {@link #processRawValue processed} String value. To return the raw String value, see {@link #getRawValue}.
+     * @return {Object} value The field value
+     */
+    getValue: function() {
+        return this.rawDate || null;
+    },
+
+    setRawValue: function(value) {
+        var me = this;
+
+        me.callParent([value]);
+
+        me.rawDate = Ext.isDate(value) ? value : me.rawToValue(value);
+        me.rawDateText = this.formatDate(value);
     },
 
     /**
@@ -565,6 +671,7 @@ Ext.define('Ext.form.field.Date', {
         // its ancestor hierarchy (Pickers use their pickerField property as an upward link)
         // for a floating component.
         return new Ext.picker.Date({
+            id: me.id + '-picker',
             pickerField: me,
             floating: true,
             preventRefocus: true,
@@ -602,6 +709,7 @@ Ext.define('Ext.form.field.Date', {
         var me = this;
 
         me.setValue(d);
+        me.rawDate = d;
         me.fireEvent('select', me, d);
         
         // Focus the inputEl first and then collapse. We configure
@@ -623,7 +731,7 @@ Ext.define('Ext.form.field.Date', {
      * Sets the Date picker's value to match the current field value when expanding.
      */
     onExpand: function() {
-        var value = this.getValue();
+        var value = this.rawDate;
         this.picker.setValue(Ext.isDate(value) ? value : new Date());
     },
 
@@ -634,7 +742,7 @@ Ext.define('Ext.form.field.Date', {
         var me = this,
             v = me.rawToValue(me.getRawValue());
 
-        if (Ext.isDate(v)) {
+        if (v === '' || Ext.isDate(v)) {
             me.setValue(v);
         }
         me.callParent([e]);

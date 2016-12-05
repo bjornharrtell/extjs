@@ -62,7 +62,9 @@ Ext.define('Ext.fx.runner.Css', {
         'translateX'         : true,
         'translateY'         : true,
         'translateZ'         : true,
-        'translate3d'        : true
+        'translate3d'        : true,
+        'x'                  : true,
+        'y'                  : true
     },
 
     durationProperties: {
@@ -90,7 +92,15 @@ Ext.define('Ext.fx.runner.Css', {
 
     DEFAULT_UNIT_DURATION: 'ms',
 
-    formattedNameCache: {},
+    customProperties: {
+        x: true,
+        y: true
+    },
+
+    formattedNameCache: {
+        'x': 'left',
+        'y': 'top'
+    },
 
     transformMethods3d: [
         'translateX', 
@@ -194,7 +204,7 @@ Ext.define('Ext.fx.runner.Css', {
 
         for (id in styles) {
             if (styles.hasOwnProperty(id)) {
-                element = document.getElementById(id);
+                this.activeElement = element = document.getElementById(id);
 
                 if (!element) {
                     continue;
@@ -218,6 +228,8 @@ Ext.define('Ext.fx.runner.Css', {
                 }
             }
         }
+
+        this.activeElement = null;
 
         return this;
     },
@@ -243,6 +255,7 @@ Ext.define('Ext.fx.runner.Css', {
     formatValue: function(value, name) {
         var type = typeof value,
             lengthUnit = this.DEFAULT_UNIT_LENGTH,
+            isCustom = this.customProperties[name],
             transformMethods,
             method, i, ln,
             transformValues, values, unit;
@@ -251,7 +264,7 @@ Ext.define('Ext.fx.runner.Css', {
             return '';
         }
 
-        if (type == 'string') {
+        if (type === 'string') {
             if (this.lengthProperties[name]) {
                 unit = value.match(this.lengthUnitRegex)[1];
 
@@ -264,19 +277,27 @@ Ext.define('Ext.fx.runner.Css', {
                     //</debug>
                 }
                 else {
-                    return value + lengthUnit;
+                    value = value + lengthUnit;
+                    if (isCustom) {
+                        value = this.getCustomValue(value, name);
+                    }
+                    return value;
                 }
             }
 
             return value;
         }
-        else if (type == 'number') {
+        else if (type === 'number') {
             if (value == 0) {
                 return '0';
             }
 
             if (this.lengthProperties[name]) {
-                return value + lengthUnit;
+                value = value + lengthUnit;
+                if (isCustom) {
+                    value = this.getCustomValue(value, name);
+                }
+                return value;
             }
 
             if (this.angleProperties[name]) {
@@ -310,5 +331,17 @@ Ext.define('Ext.fx.runner.Css', {
         }
 
         return value;
+    },
+
+    getCustomValue: function(value, name) {
+        var el = Ext.fly(this.activeElement),
+             unit = value.match(this.lengthUnitRegex)[1];
+
+        if (name === 'x') {
+            value = el.translateXY(parseInt(value, 10)).x;
+        } else if (name === 'y') {
+            value = el.translateXY(null, parseInt(value, 10)).y;
+        }
+        return value + unit;
     }
 });

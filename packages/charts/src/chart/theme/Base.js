@@ -42,7 +42,7 @@ Ext.define('Ext.chart.theme.Base', {
 
     config: {
         /**
-         * @cfg {String/Ext.draw.Color} baseColor
+         * @cfg {String/Ext.util.Color} baseColor
          * The base color used to generate the {@link Ext.chart.AbstractChart#colors} of the theme.
          */
         baseColor: null,
@@ -227,6 +227,30 @@ Ext.define('Ext.chart.theme.Base', {
         },
 
         /**
+         * Style information for the {Ext.chart.legend.SpriteLegend sprite legend}.
+         * If the {@link Ext.chart.legend.Legend DOM} legend is used, this config is ignored.
+         * For additional details see {@link Ext.chart.AbstractChart#legend}.
+         * @cfg {Object} legend
+         * @cfg {Ext.chart.legend.sprite.Item} legend.item
+         * @cfg {Object} legend.border See {@link Ext.chart.legend.SpriteLegend#border}.
+         */
+        legend: {
+            label: {
+                fontSize: 14,
+                fontWeight: 'default',
+                fontFamily: 'default',
+                fillStyle: 'black'
+            },
+            border: {
+                lineWidth: 1,
+                radius: 4,
+                fillStyle: 'none',
+                strokeStyle: 'gray'
+            },
+            background: 'white'
+        },
+
+        /**
          * @private
          * An object with the following structure:
          * {
@@ -280,6 +304,7 @@ Ext.define('Ext.chart.theme.Base', {
         var me = this;
         Ext.onReady(function () {
             var sprites = Ext.clone(me.getSprites()),
+                legend = Ext.clone(me.getLegend()),
                 axis = Ext.clone(me.getAxis()),
                 series = Ext.clone(me.getSeries()),
                 div, key, config;
@@ -298,6 +323,9 @@ Ext.define('Ext.chart.theme.Base', {
 
             me.replaceDefaults(sprites.text);
             me.setSprites(sprites);
+
+            me.replaceDefaults(legend.label);
+            me.setLegend(legend);
 
             for (key in axis) {
                 config = axis[key];
@@ -339,7 +367,7 @@ Ext.define('Ext.chart.theme.Base', {
     applyBaseColor: function (baseColor) {
         var midColor, midL;
         if (baseColor) {
-            midColor = baseColor.isColor ? baseColor : Ext.draw.Color.fromString(baseColor);
+            midColor = baseColor.isColor ? baseColor : Ext.util.Color.fromString(baseColor);
             midL = midColor.getHSL()[2];
             if (midL < 0.15) {
                 midColor = midColor.createLighter(0.3);
@@ -391,7 +419,7 @@ Ext.define('Ext.chart.theme.Base', {
 
         if (Ext.isObject(gradients)) {
             for (i = 0, ln = colors && colors.length || 0; i < ln; i++) {
-                midColor = Ext.draw.Color.fromString(colors[i]);
+                midColor = Ext.util.Color.fromString(colors[i]);
                 if (midColor) {
                     color = midColor.createLighter(0.15).toString();
                     gradient = Ext.apply(Ext.Object.chain(gradients), {
@@ -426,7 +454,7 @@ Ext.define('Ext.chart.theme.Base', {
             newSeriesThemes = {
                 fillStyle: Ext.Array.clone(colors),
                 strokeStyle: Ext.Array.map(colors, function (value) {
-                    var color = Ext.draw.Color.fromString(value.stops ? value.stops[0].color : value);
+                    var color = Ext.util.Color.fromString(value.stops ? value.stops[0].color : value);
                     return color.createDarker(0.15).toString();
                 })
             };

@@ -321,5 +321,53 @@ describe("Ext.Util", function() {
             Ext.copyToIf(dest, source, 'a,b');
             expect(dest).toEqual({ a: 427, b: 'x' });
         });
-    })
+    });
+
+    describe('coerce', function () {
+        var coerce = Ext.coerce;
+
+        function doCoercion(type, v, res) {
+            it('should coerce ' + (typeof v) + ' "' + v + '", to type: ' + type + ', value: ' + res, function () {
+                expect(coerce(v, type)).toBe(res);
+            });
+        }
+
+        describe('boolean', function () {
+            doCoercion(true, 'true', true);
+            doCoercion(true, 'false', false);
+            doCoercion(true, '1', true);
+            doCoercion(true, '0', false);
+        });
+
+        describe('number', function () {
+            doCoercion(5, 7, 7);
+            doCoercion(5, '13', 13);
+        });
+
+        describe('null', function () {
+            doCoercion(null, null, null);
+            doCoercion(null, 'null', null);
+            doCoercion(null, undefined, false);
+            doCoercion(null, 'undefined', false);
+            doCoercion(null, true, false);
+            doCoercion(null, 1, false);
+        });
+
+        describe('string', function () {
+            doCoercion('', 'true', 'true');
+            doCoercion('', 'false', 'false');
+            doCoercion('', '1', '1');
+            doCoercion('', '0', '0');
+        });
+
+        describe('undefined', function () {
+            doCoercion(undefined, undefined, undefined);
+            doCoercion(undefined, 'undefined', undefined);
+            doCoercion(undefined, null, false);
+            doCoercion(undefined, 'null', false);
+            doCoercion(undefined, true, false);
+            doCoercion(undefined, 1, false);
+        });
+    });
 });
+

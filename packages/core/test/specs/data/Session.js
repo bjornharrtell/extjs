@@ -64,8 +64,7 @@ describe("Ext.data.Session", function() {
 
     afterEach(function() {
         MockAjaxManager.removeMethods();
-        Ext.destroy(session);
-        session = null;
+        session = Ext.destroy(session);
     });
 
     describe("record access", function() {
@@ -548,6 +547,14 @@ describe("Ext.data.Session", function() {
                     rec = session.createRecord('User');
                 }).not.toThrow();
                 expect(rec.phantom).toBe(true);
+            });
+            
+            it("should become dirty", function() {
+                rec = session.createRecord('User', {
+                    name: 'Foo'
+                });
+                
+                expect(session.isDirty()).toBe(true);
             });
 
             describe("with a parent", function() {
@@ -1250,6 +1257,123 @@ describe("Ext.data.Session", function() {
         });
     });
 
+    describe("id generation", function() {
+        var User, Order, Job, identifier;
+
+        beforeEach(function() {
+            identifier = new Ext.data.identifier.Sequential({
+                id: 'spec-session',
+                seed: 10
+            });
+
+            Ext.data.Model.schema.setNamespace('spec');
+            session = new Ext.data.Session();
+
+            User = Ext.define('spec.User', {
+                extend: 'Ext.data.Model',
+                identifier: 'spec-session',
+                fields: ['id']
+            });
+
+            Order = Ext.define('spec.Order', {
+                extend: 'Ext.data.Model',
+                identifier: 'spec-session',
+                fields: ['id']
+            });
+
+            Job = Ext.define('spec.Job', {
+                extend: 'Ext.data.Model',
+                identifier: {
+                    id: 'sequential'
+                },
+                fields: ['id']
+            });
+        });
+
+        afterEach(function() {
+            Ext.undefine('spec.User');
+            Ext.undefine('spec.Order');
+            Ext.undefine('spec.Job');
+            Ext.data.Model.schema.clear(true);
+            Job = Order = User = identifier = Ext.destroy(identifier);
+
+            var Generator = Ext.data.identifier.Generator;
+            Generator.all = {
+                uuid: Generator.all.uuid
+            };
+        });
+
+        it("should start generation fresh", function() {
+            expect((new User()).id).toBe(10);
+            expect((new User()).id).toBe(11);
+            expect((new User()).id).toBe(12);
+
+            expect((new User({}, session)).id).toBe(10);
+            expect((new User({}, session)).id).toBe(11);
+            expect((new User({}, session)).id).toBe(12);
+
+            var other = new Ext.data.Session();
+
+            expect((new User({}, other)).id).toBe(10);
+            expect((new User({}, other)).id).toBe(11);
+            expect((new User({}, other)).id).toBe(12);
+
+            other.destroy();
+        });
+
+        it("should share identifiers in the way that happens outside sessions", function() {
+            expect((new User()).id).toBe(10);
+            expect((new Order()).id).toBe(11);
+            expect((new Order()).id).toBe(12);
+            expect((new Order()).id).toBe(13);
+            expect((new User()).id).toBe(14);
+            expect((new Order()).id).toBe(15);
+
+            expect((new User({}, session)).id).toBe(10);
+            expect((new Order({}, session)).id).toBe(11);
+            expect((new Order({}, session)).id).toBe(12);
+            expect((new Order({}, session)).id).toBe(13);
+            expect((new User({}, session)).id).toBe(14);
+            expect((new Order({}, session)).id).toBe(15);
+
+            var other = new Ext.data.Session();
+            expect((new User({}, other)).id).toBe(10);
+            expect((new Order({}, other)).id).toBe(11);
+            expect((new Order({}, other)).id).toBe(12);
+            expect((new Order({}, other)).id).toBe(13);
+            expect((new User({}, other)).id).toBe(14);
+            expect((new Order({}, other)).id).toBe(15);
+
+            other.destroy();
+        });
+
+        it("should not share ids for generators that are not the same", function() {
+            expect((new User()).id).toBe(10);
+            expect((new Job()).id).toBe(1);
+            expect((new Job()).id).toBe(2);
+            expect((new Job()).id).toBe(3);
+            expect((new User()).id).toBe(11);
+            expect((new Job()).id).toBe(4);
+
+            expect((new User({}, session)).id).toBe(10);
+            expect((new Job({}, session)).id).toBe(1);
+            expect((new Job({}, session)).id).toBe(2);
+            expect((new Job({}, session)).id).toBe(3);
+            expect((new User({}, session)).id).toBe(11);
+            expect((new Job({}, session)).id).toBe(4);
+
+            var other = new Ext.data.Session();
+            expect((new User({}, other)).id).toBe(10);
+            expect((new Job({}, other)).id).toBe(1);
+            expect((new Job({}, other)).id).toBe(2);
+            expect((new Job({}, other)).id).toBe(3);
+            expect((new User({}, other)).id).toBe(11);
+            expect((new Job({}, other)).id).toBe(4);
+
+            other.destroy();
+        });
+    });
+
     describe("getChanges", function() {
         var User;
 
@@ -1333,6 +1457,15 @@ describe("Ext.data.Session", function() {
                         }
                     });
                 });
+                
+                it("should become dirty with new phantom record", function() {
+                    var user = session.createRecord('User', {
+                        name: 'Foo',
+                        age: 34
+                    });
+                    
+                    expect(session.isDirty()).toBe(true);
+                });
 
                 it("should include the updated record state", function() {
                     var user = session.createRecord('User', {
@@ -1351,6 +1484,17 @@ describe("Ext.data.Session", function() {
                         }
                     });
                 });
+                
+                it("should still be dirty after updating record state", function() {
+                    var user = session.createRecord('User', {
+                        name: 'Foo',
+                        age: 34
+                    });
+                    user.set('name', 'Bar');
+                    user.set('age', 5000);
+                    
+                    expect(session.isDirty()).toBe(true);
+                });
 
                 it("should be able to create multiple records", function() {
                     var user1 = session.createRecord('User'),
@@ -1368,11 +1512,24 @@ describe("Ext.data.Session", function() {
                     var user = getAndComplete('User', 1);
                     expect(session.getChanges()).toBeNull();
                 });
+                
+                it("should not be dirty with non-phantoms", function() {
+                    var user = getAndComplete('User', 1);
+                    
+                    expect(session.isDirty()).toBeFalsy();
+                });
 
                 it("should not include phantom records that are dropped", function() {
                     var user = session.createRecord('User');
                     user.drop();
                     expect(session.getChanges()).toBeNull();
+                });
+                
+                it("should be dirty when phantoms were dropped", function() {
+                    var user = session.createRecord('User');
+                    user.drop();
+                    
+                    expect(session.isDirty()).toBe(true);
                 });
             });
 
@@ -1389,6 +1546,13 @@ describe("Ext.data.Session", function() {
                         }
                     });
                 });
+                
+                it("should become dirty after record is updated", function() {
+                    var user = getAndComplete('User', 1);
+                    user.set('name', 'Foo');
+                    
+                    expect(session.isDirty()).toBe(true);
+                });
 
                 it("should include the most recently updated state", function() {
                     var user = getAndComplete('User', 1);
@@ -1403,6 +1567,15 @@ describe("Ext.data.Session", function() {
                             }]
                         }
                     });
+                });
+                
+                it("should still be dirty after updating record multiple times", function() {
+                    var user = getAndComplete('User', 1);
+                    user.set('name', 'Foo');
+                    user.set('name', 'Bar');
+                    user.set('name', 'Baz');
+                    
+                    expect(session.isDirty()).toBe(true);
                 });
 
                 it("should be able to update many records", function() {
@@ -1436,12 +1609,28 @@ describe("Ext.data.Session", function() {
                     user.commit();
                     expect(session.getChanges()).toBeNull();
                 });
+                
+                it("should not be dirty after record was committed", function() {
+                    var user = getAndComplete('User', 1);
+                    user.set('name', 'Foo');
+                    user.commit();
+                    
+                    expect(session.isDirty()).toBe(false);
+                });
 
                 it("should not include a dropped record", function() {
                     var user = getAndComplete('User', 1);
                     user.set('name', 'Foo');
                     user.drop();
                     expect(session.getChanges().User.U).toBeUndefined();
+                });
+                
+                it("should be dirty when updated record was dropped", function() {
+                    var user = getAndComplete('User', 1);
+                    user.set('name', 'Foo');
+                    user.drop();
+                    
+                    expect(session.isDirty()).toBe(true);
                 });
 
                 it("should not include changes to phantoms", function() {
@@ -1461,6 +1650,13 @@ describe("Ext.data.Session", function() {
                         }
                     });
                 });
+                
+                it("should become dirty with record droppings", function() {
+                    var user = getAndComplete('User', 1);
+                    user.drop();
+                    
+                    expect(session.isDirty()).toBe(true);
+                });
 
                 it("should drop multiple records", function() {
                     var user1 = getAndComplete('User', 1),
@@ -1476,11 +1672,30 @@ describe("Ext.data.Session", function() {
                         }
                     });
                 });
+                
+                it("should get even dirtier with multiple record droppings", function() {
+                    var user1 = getAndComplete('User', 1),
+                        user2 = getAndComplete('User', 2),
+                        user3 = getAndComplete('User', 3);
+
+                    user1.drop();
+                    user2.drop();
+                    user3.drop();
+                    
+                    expect(session.isDirty()).toBe(true);
+                });
 
                 it("should not include phantom records", function() {
                     var user = session.createRecord('User');
                     user.drop();
                     expect(session.getChanges()).toBeNull();
+                });
+                
+                it("should be dirty when phantom was dropped", function() {
+                    var user = session.createRecord('User');
+                    user.drop();
+                    
+                    expect(session.isDirty()).toBe(true);
                 });
             });
         });
@@ -3566,6 +3781,17 @@ describe("Ext.data.Session", function() {
             });
         });
 
+        describe("record copying", function() {
+            it("should mark child records as non-phantoms even if the parent record is", function() {
+                parent = new Ext.data.Session();
+
+                var user = parent.createRecord('User', {});
+
+                session = parent.spawn();
+                expect(session.getRecord('User', user.id).phantom).toBe(false);
+            });
+        });
+
         describe("associations", function() {
             beforeEach(function() {
                 Ext.define('spec.Post', {
@@ -3612,46 +3838,82 @@ describe("Ext.data.Session", function() {
             });
 
             describe("stores", function() {
-                it("should mark loaded stores as complete", function() {
+                beforeEach(function() {
                     parent = new Ext.data.Session();
-                    getAndComplete('User', 1, parent, {
-                        id: 1,
-                        posts: [{
-                            id: 101,
-                            userId: 1
-                        }, {
-                            id: 102,
-                            userId: 1
-                        }]
-                    });
-
-                    session = parent.spawn();
-
-                    var parentPosts = parent.getRecord('User', 1).posts(),
-                        posts = session.getRecord('User', 1).posts();
-
-                    expect(posts.complete).toBe(true);
-                    expect(posts.getAt(0)).not.toBe(parentPosts.getAt(0));
-                    expect(posts.getAt(0).getId()).toBe(parentPosts.getAt(0).getId());
-                    expect(posts.getAt(1)).not.toBe(parentPosts.getAt(1));
-                    expect(posts.getAt(1).getId()).toBe(parentPosts.getAt(1).getId());
                 });
 
-                it("should not mark stores as complete if not loaded", function() {
-                    parent = new Ext.data.Session();
-                    getAndComplete('User', 1, parent);
-                    getAndComplete('Post', 101, parent, {
-                        userId: 1
-                    })
+                describe("store exists in the parent", function() {
+                    it("should mark loaded stores as complete", function() {
+                        getAndComplete('User', 1, parent, {
+                            id: 1,
+                            posts: [{
+                                id: 101,
+                                userId: 1
+                            }, {
+                                id: 102,
+                                userId: 1
+                            }]
+                        });
 
-                    session = parent.spawn();
+                        session = parent.spawn();
 
-                    var parentPosts = parent.getRecord('User', 1).posts(),
-                        posts = session.getRecord('User', 1).posts();
+                        var parentPosts = parent.getRecord('User', 1).posts(),
+                            posts = session.getRecord('User', 1).posts();
 
-                    expect(posts.complete).toBe(false);
-                    expect(posts.getAt(0)).not.toBe(parentPosts.getAt(0));
-                    expect(posts.getAt(0).getId()).toBe(parentPosts.getAt(0).getId());
+                        expect(posts.complete).toBe(true);
+                        expect(posts.getAt(0)).not.toBe(parentPosts.getAt(0));
+                        expect(posts.getAt(0).getId()).toBe(parentPosts.getAt(0).getId());
+                        expect(posts.getAt(1)).not.toBe(parentPosts.getAt(1));
+                        expect(posts.getAt(1).getId()).toBe(parentPosts.getAt(1).getId());
+                    });
+
+                    it("should not mark stores as complete if not loaded", function() {
+                        getAndComplete('User', 1, parent);
+                        getAndComplete('Post', 101, parent, {
+                            userId: 1
+                        })
+
+                        session = parent.spawn();
+
+                        var parentPosts = parent.getRecord('User', 1).posts(),
+                            posts = session.getRecord('User', 1).posts();
+
+                        expect(posts.complete).toBe(false);
+                        expect(posts.getAt(0)).not.toBe(parentPosts.getAt(0));
+                        expect(posts.getAt(0).getId()).toBe(parentPosts.getAt(0).getId());
+                    });
+
+                    it("should mark the store as complete if the parent record is a phantom", function() {
+                        var user = parent.createRecord('User', {}),
+                            childUser;
+
+                        // Trigger store creation
+                        user.posts();
+                        session = parent.spawn();
+                        childUser = session.getRecord('User', user.id);
+                        expect(childUser.posts().complete).toBe(true);
+                    });
+                });
+
+                describe("store does not exist in the parent", function() {
+                    it("should mark the store as complete if the parent record is a phantom", function() {
+                        var user = parent.createRecord('User', {}),
+                            childUser;
+
+                        session = parent.spawn();
+                        childUser = session.getRecord('User', user.id);
+                        expect(childUser.posts().complete).toBe(true);
+                    });
+
+                    it("should not mark the store as complete if the parent record is not a phantom", function() {
+                        var user = parent.createRecord('User', {
+                            id: 1
+                        }), childUser;
+
+                        session = parent.spawn();
+                        childUser = session.getRecord('User', 1);
+                        expect(childUser.posts().complete).toBe(false);
+                    });
                 });
             });
         });

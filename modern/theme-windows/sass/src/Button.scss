@@ -26,7 +26,7 @@ $disabled-color: #999;
         color: $foreground-color;
     }
 
-    &.x-item-disabled {
+    &.x-disabled {
         border-color: $disabled-color;
 
         .x-button-label, .x-button-icon {

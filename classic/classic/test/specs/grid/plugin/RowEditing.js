@@ -2,7 +2,13 @@ describe('Ext.grid.plugin.RowEditing', function () {
     var store, plugin, grid, view, column,
         synchronousLoad = true,
         proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
-        loadStore;
+        loadStore = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
 
     function makeGrid(pluginCfg, gridCfg, storeCfg) {
         var gridPlugins = gridCfg && gridCfg.plugins,
@@ -49,13 +55,7 @@ describe('Ext.grid.plugin.RowEditing', function () {
 
     beforeEach(function() {
         // Override so that we can control asynchronous loading
-        loadStore = Ext.data.ProxyStore.prototype.load = function() {
-            proxyStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        };
+        Ext.data.ProxyStore.prototype.load = loadStore;
     });
 
     afterEach(function () {
@@ -760,6 +760,35 @@ describe('Ext.grid.plugin.RowEditing', function () {
 
                     expect(plugin.cancelEdit).toHaveBeenCalled();
                 });
+            });
+        });
+    });
+    
+    describe("button position", function() {
+        describe("not enough space to fit the editor", function() {
+            beforeEach(function() {
+                makeGrid({
+                    clicksToEdit: 1
+                }, {
+                    height: undefined
+                }, {
+                    data: [
+                        {'name': 'Lisa', 'email': 'lisa@simpsons.com', 'phone': '555-111-1224'},
+                        {'name': 'Bart', 'email': 'bart@simpsons.com', 'phone': '555-222-1234'}
+                    ]
+                });
+            });
+            
+            it("should position buttons at the bottom when editing first row", function() {
+                plugin.startEdit(store.getAt(0), grid.columns[0]);
+                
+                expect(plugin.editor.floatingButtons.el.hasCls('x-grid-row-editor-buttons-bottom')).toBe(true);
+            });
+            
+            it("should position buttons at the top when editing last row", function() {
+                plugin.startEdit(store.getAt(1), grid.columns[0]);
+                
+                expect(plugin.editor.floatingButtons.el.hasCls('x-grid-row-editor-buttons-top')).toBe(true);
             });
         });
     });

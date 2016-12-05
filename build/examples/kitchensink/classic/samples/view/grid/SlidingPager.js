@@ -3,19 +3,15 @@
  */
 Ext.define('KitchenSink.view.grid.SlidingPager', {
     extend: 'Ext.grid.Panel',
-    
-    requires: [
-        'Ext.data.*',
-        'Ext.grid.*',
-        'Ext.util.*',
-        'Ext.toolbar.Paging',
-        'Ext.ux.SlidingPager',
-        'KitchenSink.model.Company'
-    ],
     xtype: 'sliding-pager',
-    
+    controller: 'basicgrid',
+
+    requires: [
+        'Ext.toolbar.Paging',
+        'Ext.ux.SlidingPager'
+    ],
+
     //<example>
-    exampleTitle: 'Sliding Pager Extension',
     otherContent: [{
         type: 'Model',
         path: 'classic/samples/model/Company.js'
@@ -24,100 +20,76 @@ Ext.define('KitchenSink.view.grid.SlidingPager', {
         classic: {
             width: 600,
             percentChangeColumnWidth: 75,
-            lastUpdatedColumnWidth: 85
+            lastUpdatedColumnWidth: 85,
+            green: 'green',
+            red: 'red'
         },
         neptune: {
             width: 650,
             percentChangeColumnWidth: 100,
-            lastUpdatedColumnWidth: 115
+            lastUpdatedColumnWidth: 115,
+            green: '#73b51e',
+            red: '#cf4c35'
         }
     },
     //</example>
     
-    height: 460,
-    width: 600,
-    frame: true,
     title: 'Sliding Pager',
-    
-    initComponent: function(){
-        this.width = this.profileInfo.width;
-        var store = new Ext.data.Store({
-            model: KitchenSink.model.Company,
-            remoteSort: true,
-            pageSize: 10,
-            proxy: {
-                type: 'memory',
-                enablePaging: true,
-                data: KitchenSink.data.DataSets.company,
-                reader: {
-                    type: 'array'
-                }
-            }
-        });
-        
-        Ext.apply(this, {
-            store: store,
-            columns: [{ 
-                text: 'Company',
-                sortable: true,
-                dataIndex: 'name',
-                flex: 1
-            },{
-                text: 'Price',
-                sortable: true,
-                formatter: 'usMoney',
-                dataIndex: 'price',
-                width: 75
-            },{
-                text: 'Change',
-                sortable: true,
-                renderer: this.changeRenderer,
-                dataIndex: 'change',
-                width: 80
-            },{
-                text: '% Change',
-                sortable: true,
-                renderer: this.pctChangeRenderer,
-                dataIndex: 'pctChange',
-                width: this.profileInfo.percentChangeColumnWidth
-            },{
-                text: 'Last Updated',
-                sortable: true,
-                dataIndex: 'lastChange',
-                width: this.profileInfo.lastUpdatedColumnWidth,
-                formatter: 'date("m/d/Y")'
-            }],
-            bbar: {
-                xtype: 'pagingtoolbar',
-                pageSize: 10,
-                store: store,
-                displayInfo: true,
-                plugins: new Ext.ux.SlidingPager()
-            }
-        });
-        this.callParent();
+    height: 460,
+    width: '${width}',
+
+    autoLoad: true,
+    frame: true,
+    store: {
+        type: 'companies',
+        pageSize: 10,
+        remoteSort: true
     },
-    
-    afterRender: function(){
-        this.callParent(arguments);
-        this.getStore().load();
-    },
-    
-    changeRenderer: function(val) {
-        if (val > 0) {
-            return '<span style="color:green;">' + val + '</span>';
-        } else if(val < 0) {
-            return '<span style="color:red;">' + val + '</span>';
+    signTpl: '<span style="' +
+            'color:{value:sign(\'${red}\',\'${green}\')}"' +
+        '>{text}</span>',
+
+    columns: [{
+        text: 'Company',
+        dataIndex: 'name',
+
+        sortable: true,
+        flex: 1
+    },{
+        text: 'Price',
+        dataIndex: 'price',
+
+        sortable: true,
+        formatter: 'usMoney',
+        width: 75
+    },{
+        text: 'Change',
+        dataIndex: 'change',
+
+        sortable: true,
+        renderer: 'renderChange',
+        width: 80
+    },{
+        text: '% Change',
+        dataIndex: 'pctChange',
+
+        sortable: true,
+        renderer: 'renderPercent',
+        width: '${percentChangeColumnWidth}'
+    },{
+        text: 'Last Updated',
+        dataIndex: 'lastChange',
+
+        sortable: true,
+        formatter: 'date("m/d/Y")',
+        width: '${lastUpdatedColumnWidth}'
+    }],
+
+    bbar: {
+        xtype: 'pagingtoolbar',
+        displayInfo: true,
+        plugins: {
+            ptype: 'ux-slidingpager'
         }
-        return val;
-    },
-    
-    pctChangeRenderer: function(val){
-        if (val > 0) {
-            return '<span style="color:green;">' + val + '%</span>';
-        } else if(val < 0) {
-            return '<span style="color:red;">' + val + '%</span>';
-        }
-        return val;
     }
 });

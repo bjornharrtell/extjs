@@ -55,6 +55,8 @@ Ext.define('Ext.view.View', {
     inputTagRe: /^textarea$|^input$/i,
     keyEventRe: /^key/,
 
+    manageLayoutScroll: false,
+
     inheritableStatics: {
         /**
          * @private
@@ -510,7 +512,13 @@ Ext.define('Ext.view.View', {
     handleEvent: function(e) {
         var me = this,
             isKeyEvent = me.keyEventRe.test(e.type);
-
+        
+        // We need to know if the event target is an input field to block
+        // drag n' drop plugin(s) from stopping pointer events as this makes
+        // input fields unfocusable and unselectable. We also need to know
+        // this for key events to prevent scrolling, see below.
+        e.isInputFieldEvent = Ext.fly(e.target).isInputField();
+        
         e.view = me;
 
         // Find the item from the event target.
@@ -519,7 +527,8 @@ Ext.define('Ext.view.View', {
             e.record = me.getRecord(e.item);
         }
 
-        if (me.processUIEvent(e) !== false) {
+        // Event handlers could have destroyed the view
+        if (me.processUIEvent(e) !== false && !me.destroyed) {
             me.processSpecialEvent(e);
         }
         
@@ -527,7 +536,7 @@ Ext.define('Ext.view.View', {
         // that can cause View element scroll unless the event is from an input field.
         // We MUST prevent browser's default action on SPACE which is to focus the event's target element.
         // Focusing causes the browser to attempt to scroll the element into view.
-        if (isKeyEvent && !Ext.fly(e.target).isInputField()) {
+        if (isKeyEvent && !e.isInputFieldEvent) {
             if (e.getKey() === e.SPACE || e.isNavKeyPress(true)) {
                 e.preventDefault();
             }

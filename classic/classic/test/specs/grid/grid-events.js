@@ -144,7 +144,7 @@ describe("grid-events", function() {
                         });
                     });
                 
-                    describe("item events", function() {
+                    describe('item events', function() {
                         function expectArgs(index, type) {
                             expect(args[0]).toBe(view);
                             expect(args[1]).toBe(getRec(index));
@@ -152,7 +152,38 @@ describe("grid-events", function() {
                             expect(args[3]).toBe(index);
                             expect(args[4].type).toBe(type);
                         }
-                    
+                        
+                        describe('longpresses', function() {
+                            it('should fire beforeitemlongpress', function() {
+                                var test = {
+                                    setArgs: setArgs
+                                };
+                                spyOn(test, 'setArgs').andCallThrough();
+                                grid.on('beforeitemlongpress', test.setArgs);
+                                triggerCellMouseEvent('mousedown', 1, 3);
+                                waitsFor(function(){
+                                    return test.setArgs.callCount;
+                                });
+                                runs(function () {
+                                    expectArgs(1, 'longpress');
+                                });
+                            });
+
+                            it('should fire itemlongpress', function() {
+                                var test = {
+                                    setArgs: setArgs
+                                };
+                                spyOn(test, 'setArgs').andCallThrough();
+                                grid.on('itemlongpress', test.setArgs);
+                                triggerCellMouseEvent('mousedown', 1, 3);
+                                waitsFor(function(){
+                                    return test.setArgs.callCount;
+                                });
+                                runs(function () {
+                                    expectArgs(1, 'longpress');
+                                });
+                            });
+                        });
                         // For mouseenter the view uses mouseover
                         describe("itemmouseenter", function() {
                             it("should fire the beforeitemmouseenter event", function(){

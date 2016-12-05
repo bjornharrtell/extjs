@@ -1,27 +1,25 @@
-/**
- * @class Ext.slider.Toggle
- */
+@include toggleslider-ui(
+    $width: $toggleslider-width,
+    $width-big: $toggleslider-width-big,
 
-.x-toggle {
-    width: $form-thumb-size * 2;
-    border: 1px solid darken(#ddd, 15%);
+    $track-height: $toggleslider-track-height,
+    $track-height-big: $toggleslider-track-height-big,
+    $track-background-color: $toggleslider-track-background-color,
+    $track-border-width: $toggleslider-track-border-width,
+    $track-border-style: $toggleslider-track-border-style,
+    $track-border-color: $toggleslider-track-border-color,
+    $track-border-radius: $toggleslider-track-border-radius,
+    $track-border-radius-big: $toggleslider-track-border-radius-big,
 
-    @include background-gradient(#ddd, 'recessed');
-    @if $include-border-radius {
-        @include border-radius($form-thumb-size/2);
-    }
+    $fill-background-color: $toggleslider-fill-background-color,
+    $disabled-fill-background-color: $toggleslider-disabled-fill-background-color,
+    $fill-border-color: $toggleslider-fill-border-color,
+    $disabled-fill-border-color: $toggleslider-disabled-fill-border-color,
 
-    .x-thumb {
-        &.x-dragging {
-            opacity: 1;
-        }
+    $disabled-opacity: $toggleslider-disabled-opacity,
+    $thumb-inset: $toggleslider-thumb-inset
+);
 
-        &:before {
-            top: ($form-thumb-size - $form-toggle-size) / 2;
-        }
-    }
-}
+@include thumb-toggle-on-ui;
+@include thumb-toggle-off-ui;
 
-.x-toggle-on {
-    @include background-gradient($confirm-color, 'recessed');
-}

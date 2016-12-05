@@ -5,7 +5,6 @@
  *
  * @private
  */
-
 Ext.define('Ext.app.domain.Store', {
     extend: 'Ext.app.EventDomain',
     singleton: true,

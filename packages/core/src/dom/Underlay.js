@@ -25,6 +25,7 @@ Ext.define('Ext.dom.Underlay', {
     },
 
     /**
+     * @method
      * @protected
      * Called before the underlay is shown, immediately after its element is retrieved
      * from the pool

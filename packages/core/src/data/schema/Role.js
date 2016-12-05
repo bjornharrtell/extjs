@@ -68,6 +68,7 @@ Ext.define('Ext.data.schema.Role', {
 
         Ext.apply(me, config);
         if (extra) {
+            extra = Ext.apply({}, extra);
             delete extra.type;
             Ext.apply(me, extra);
             delete me.extra;
@@ -129,6 +130,8 @@ Ext.define('Ext.data.schema.Role', {
         }
     },
 
+    $roleFilterId: '$associationRoleFilter',
+
     createAssociationStore: function (session, from, records, isComplete) {
         var me = this,
             association = me.association,
@@ -152,14 +155,16 @@ Ext.define('Ext.data.schema.Role', {
         if (isMany) {
             // For many-to-many associations each role has a field
             config.filters = [{
-                property  : me.inverse.field, // @TODO filterProperty
-                value     : id,
+                id: me.$roleFilterId,
+                property: me.inverse.field, // @TODO filterProperty
+                value: id,
                 exactMatch: true
             }];
         } else if (foreignKeyName) {
             config.filters = [{
-                property  : foreignKeyName, // @TODO filterProperty
-                value     : id,
+                id: me.$roleFilterId,
+                property: foreignKeyName, // @TODO filterProperty
+                value: id,
                 exactMatch: true
             }];
             config.foreignKeyName = foreignKeyName;
@@ -184,8 +189,8 @@ Ext.define('Ext.data.schema.Role', {
 
         if (records) {
             store.loadData(records);
-            store.complete = !!isComplete;
         }
+        store.complete = !!isComplete;
 
         return store;
     },
@@ -205,41 +210,48 @@ Ext.define('Ext.data.schema.Role', {
             load = options && options.reload,
             source = inverseRecord.$source,
             isComplete = false,
-            hadSource, args, i, len, raw, rec, sourceStore, hadRecords;
+            phantom = false,
+            hadSourceStore, args, i, len, raw, 
+            rec, sourceStore, hadRecords;
 
         if (!store) {
             if (session) {
                 // We want to check whether we can automatically get the store contents from the parent session.
                 // For this to occur, we need to have a parent in the session, and the store needs to be created
                 // and loaded with the initial dataset.
+                if (source) {
+                    phantom = source.phantom;
+                }
+                
                 if (!records && source) {
-                    source = source[storeName];
-                    if (source && !source.isLoading()) {
-                        sourceStore = source;
+                    sourceStore = source[storeName];
+                    if (sourceStore && !sourceStore.isLoading()) {
                         records = [];
-                        raw = source.getData().items;
+                        raw = sourceStore.getData().items;
 
                         for (i = 0, len = raw.length; i < len; ++i) {
                             rec = raw[i];
                             records.push(session.getRecord(rec.self, rec.id));
                         }
-                        isComplete = !!source.complete;
-                        hadSource = true;
+                        isComplete = !!sourceStore.complete;
+                        hadSourceStore = true;
                     }
                 }
-                if (!hadSource) {
+                if (!hadSourceStore) {
                     // We'll only hit here if we didn't have a usable source
                     hadRecords = !!records;
                     records = me.findRecords(session, inverseRecord, records, allowInfer);
                     if (!hadRecords && (!records || !records.length)) {
                         records = null;
                     }
-                    isComplete = hadRecords;
+                    isComplete = phantom || hadRecords;
                 }
             } else {
-                isComplete = !!(records && records.length > 0);
+                // As long as we had the collection exist, we're complete, even if it's empty.
+                isComplete = !!records;
             }
-            store = me.createAssociationStore(session, inverseRecord, records, isComplete);
+            // If the inverse is a phantom, we can't be loading any data so we're complete
+            store = me.createAssociationStore(session, inverseRecord, records, isComplete || inverseRecord.phantom);
             store.$source = sourceStore;
 
             if (!records && (me.autoLoad || options)) {
@@ -300,6 +312,8 @@ Ext.define('Ext.data.schema.Role', {
     },
 
     onDrop: Ext.emptyFn,
+
+    onIdChanged: Ext.emptyFn,
 
     getReaderRoot: function() {
         var me = this;
@@ -454,6 +468,7 @@ Ext.define('Ext.data.schema.Role', {
                 // Without a FK value by which to request the User record, we cannot do
                 // anything. Declare victory and get out.
                 done = true;
+                rightRecord = null;
             }
         } else if (rightRecord) {
             // If we're still loading, call load again which will handle the extra callbacks.
@@ -507,6 +522,7 @@ Ext.define('Ext.data.schema.Role', {
                     leftRecord.set(foreignKey, rightRecord.getId());
                 }
                 delete leftRecord[oldInstanceName];
+                leftRecord.onAssociatedRecordSet(rightRecord, me);
 
                 if (inverseSetter) {
                     // Because the rightRecord has a reference back to the leftRecord

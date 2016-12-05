@@ -48,6 +48,11 @@ Ext.define('Ext.data.Session', {
         'Ext.data.session.BatchVisitor'
     ],
 
+    mixins: [
+        'Ext.mixin.Dirty',
+        'Ext.mixin.Observable'
+    ],
+
     isSession: true,
 
     config: {
@@ -80,8 +85,6 @@ Ext.define('Ext.data.Session', {
         }
     },
 
-    destroyed: false,
-
     crudOperations: [{
         type: 'R',
         entityMethod: 'readEntities'
@@ -101,6 +104,10 @@ Ext.define('Ext.data.Session', {
         R: 1,
         U: 1,
         D: 1
+    },
+
+    statics: {
+        nextId: 1
     },
 
     constructor: function (config) {
@@ -132,12 +139,14 @@ Ext.define('Ext.data.Session', {
          */
         me.matrices = {};
 
+        me.id = Ext.data.Session.nextId++;
+
         me.identifierCache = {};
 
         // Bind ourselves so we're always called in our own scope.
         me.recordCreator = me.recordCreator.bind(me);
 
-        me.initConfig(config);
+        me.mixins.observable.constructor.call(me, config);
     },
 
     destroy: function () {
@@ -158,12 +167,19 @@ Ext.define('Ext.data.Session', {
                 if (record) {
                     // Clear up any source if we pushed one on, remove
                     // the session reference
-                    record.$source = record.session = null;
+                    record.$source = null;
+
+                    // While we don't actually call join() for the session, we need to
+                    // tell the records that they are being detached from the session in
+                    // some way.
+                    record.unjoin(me);
+
+                    // see also evict()
                 }
             }
         }
 
-        me.recordCreator = me.matrices = me.data = null;
+        me.identifierCache = me.recordCreator = me.matrices = me.data = null;
         me.setSchema(null);
         me.callParent();
     },
@@ -188,6 +204,7 @@ Ext.define('Ext.data.Session', {
         if (record.session !== me) {
             record.session = me;
             me.add(record);
+
             if (associations) {
                 for (roleName in associations) {
                     associations[roleName].adoptAssociated(record, me);
@@ -207,8 +224,9 @@ Ext.define('Ext.data.Session', {
      * @since 5.1.0
      */
     commit: function() {
-        var data = this.data,
-            matrices = this.matrices,
+        var me = this,
+            data = me.data,
+            matrices = me.matrices,
             entityName, entities, id, record;
 
         for (entityName in data) {
@@ -224,6 +242,8 @@ Ext.define('Ext.data.Session', {
         for (id in matrices) {
             matrices[id].commit();
         }
+
+        me.clearRecordStates();
     },
 
     /**
@@ -467,14 +487,23 @@ Ext.define('Ext.data.Session', {
      * Save any changes in this session to a {@link #parent} session.
      */
     save: function() {
+        var me = this,
+            parent = me.getParent(),
+            visitor;
+
+        if (parent) {
+            visitor = new Ext.data.session.ChildChangesVisitor(me);
+
+            me.visitData(visitor);
+            parent.update(visitor.result);
+
+            me.commit();
+        }
         //<debug>
-        if (!this.getParent()) {
+        else {
             Ext.raise('Cannot commit session, no parent exists');
         }
         //</debug>
-        var visitor = new Ext.data.session.ChildChangesVisitor(this);
-        this.visitData(visitor);
-        this.getParent().update(visitor.result);
     },
 
     /**
@@ -568,6 +597,7 @@ Ext.define('Ext.data.Session', {
 
             entry.record = record;
 
+            me.trackRecordState(record, true);
             me.registerReferences(record);
             associations = record.associations;
             for (roleName in associations) {
@@ -576,10 +606,44 @@ Ext.define('Ext.data.Session', {
         },
 
         /**
+         * Template method, will be called by Model after a record is committed.
+         * @param {Ext.data.Model} record The record.
+         *
+         * @protected
+         * @since 6.2.0
+         */
+        afterCommit: function (record) {
+            this.trackRecordState(record);
+        },
+
+        /**
          * Template method, will be called by Model after a record is dropped.
          * @param {Ext.data.Model} record The record.
          *
-         * @private
+         * @protected
+         * @since 6.2.0
+         */
+        afterDrop: function (record) {
+            this.trackRecordState(record);
+        },
+
+        /**
+         * Template method, will be called by Model after a record is edited.
+         * @param {Ext.data.Model} record The record.
+         *
+         * @protected
+         * @since 6.2.0
+         */
+        afterEdit: function (record) {
+            this.trackRecordState(record);
+        },
+
+        /**
+         * Template method, will be called by Model after a record is erased (a drop
+         * that is committed).
+         * @param {Ext.data.Model} record The record.
+         *
+         * @protected
          */
         afterErase: function(record) {
             this.evict(record);
@@ -676,14 +740,23 @@ Ext.define('Ext.data.Session', {
          *
          * @private
          */
-        evict: function(record) {
-            var entityName = record.entityName,
-                entities = this.data[entityName],
-                id = record.id,
-                entry;
+        evict: function (record) {
+            var me = this,
+                entityName = record.entityName,
+                entities = me.data[entityName],
+                id = record.id;
 
-            if (entities) {
+            if (entities && entities[id]) {
+                me.untrackRecordState(record);
+
+                // While we don't actually call join() for the session, we need to
+                // tell the records that they are being detached from the session in
+                // some way.
+                record.unjoin(me);
+
                 delete entities[id];
+
+                // see also destroy()
             }
         },
 
@@ -773,13 +846,13 @@ Ext.define('Ext.data.Session', {
             } else {
                 cache = this.identifierCache;
                 identifier = entityType.identifier;
-                key = identifier.id || entityType.entityName;
+                key = identifier.getId() || entityType.entityName;
                 ret = cache[key];
 
                 if (!ret) {
                     if (identifier.clone) {
                         ret = identifier.clone({
-                            cache: cache
+                            id: null
                         });
                     } else {
                         ret = identifier;

@@ -1,13 +1,19 @@
 Ext.define('KitchenSink.view.window.MessageBoxController', {
     extend: 'Ext.app.ViewController',
     alias: 'controller.window-messagebox',
+    
+    getMaskClickAction: function() {
+        return this.lookupReference('hideOnMaskClick').getValue() ? 'hide' : 'focus';
+    },
 
     onConfirmClick: function() {
         Ext.MessageBox.confirm('Confirm', 'Are you sure you want to do that?', this.showResult, this);
+        Ext.MessageBox.maskClickAction = this.getMaskClickAction();
     },
 
     onPromptClick: function() {
         Ext.MessageBox.prompt('Name', 'Please enter your name:', this.showResultText, this);
+        Ext.MessageBox.maskClickAction = this.getMaskClickAction();
     },
 
     onMultiLinePromptClick: function(btn) {
@@ -19,7 +25,8 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
             multiline: true,
             scope: this,
             fn: this.showResultText,
-            animateTarget: btn
+            animateTarget: btn,
+            maskClickAction: this.getMaskClickAction()
         });
     },
 
@@ -31,7 +38,8 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
             scope: this,
             fn: this.showResult,
             animateTarget: btn,
-            icon: Ext.MessageBox.QUESTION
+            icon: Ext.MessageBox.QUESTION,
+            maskClickAction: this.getMaskClickAction()
         });
     },
 
@@ -47,14 +55,15 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
             width:300,
             progress:true,
             closable:false,
-            animateTarget: btn
+            animateTarget: btn,
+            maskClickAction: me.getMaskClickAction()
         });
 
         // Fake progress fn
         fn = function() {
             me.timer = null;
             ++i;
-            if (i === 12) {
+            if (i === 12 || !Ext.MessageBox.isVisible()) {
                 Ext.MessageBox.hide();
                 me.showToast('Your fake items were loaded', 'Done');
             } else {
@@ -68,6 +77,8 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
     },
 
     onWaitClick: function(btn) {
+        var me = this;
+
         Ext.MessageBox.show({
             msg: 'Saving your data, please wait...',
             progressText: 'Saving...',
@@ -75,10 +86,10 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
             wait: {
                 interval: 200
             },
-            animateTarget: btn
+            animateTarget: btn,
+            maskClickAction: me.getMaskClickAction()
         });
 
-        var me = this;
         me.timer = Ext.defer(function(){
             //This simulates a long-running operation like a database save or XHR call.
             //In real code, this would be in a callback function.
@@ -90,6 +101,7 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
 
     onAlertClick: function() {
         Ext.MessageBox.alert('Status', 'Changes saved successfully.', this.showResult, this);
+        Ext.MessageBox.maskClickAction = this.getMaskClickAction();
     },
 
     onIconClick: function(btn) {
@@ -103,7 +115,8 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
             animateTarget: btn,
             scope: this,
             fn: this.showResult,
-            icon: icon
+            icon: icon,
+            maskClickAction: this.getMaskClickAction()
         });
     },
 
@@ -116,8 +129,21 @@ Ext.define('KitchenSink.view.window.MessageBoxController', {
                 yes: "Definitely!", 
                 no: "No chance!" 
             },
+            buttonTips: {
+                yes: {
+                    text: "We would't!",
+                    anchor: true,
+                    align: 't-b'
+                },
+                no: {
+                    text: "Probably best!",
+                    anchor: true,
+                    align: 't-b'
+                }
+            },
             scope: this,
-            fn: this.showResult
+            fn: this.showResult,
+            maskClickAction: this.getMaskClickAction()
         });
     },
 

@@ -287,7 +287,7 @@ describe("Ext.list.Tree", function() {
             it("should set the store to null", function() {
                 makeList();
                 list.destroy();
-                expect(list.getStore()).toBeNull();
+                expect(list._store).toBeNull();
             });
 
             it("should unbind any listeners", function() {
@@ -348,10 +348,14 @@ describe("Ext.list.Tree", function() {
                     xtype: 'spec_treelist_customitem',
 
                     config: {
-                        testConfig: null
+                        testConfig: null,
+                        floated: false
                     },
 
                     constructor: function(config) {
+                        this.$noClearOnDestroy = (this.$noClearOnDestroy || {});
+                        this.$noClearOnDestroy.logs = true;
+                        
                         this.logs = {
                             expandable: [],
                             expanded: [],
@@ -370,6 +374,13 @@ describe("Ext.list.Tree", function() {
                             removeItem: []
                         };
                         this.callParent([config]);
+                    },
+
+                    getToolElement: function() {
+                        if (!this.toolElement) {
+                            this.toolElement = this.element.createChild();
+                        }   
+                        return this.toolElement;
                     },
 
                     insertItem: function(item, refItem) {
@@ -1224,6 +1235,96 @@ describe("Ext.list.Tree", function() {
         });
 
         describe("dynamic store modifications", function() {
+            describe("filtering", function() {
+                it("should react to the store being filtered", function() {
+                    makeList();
+                    store.filterer = 'bottomup';
+                    store.filterBy(function(rec) {
+                        var s = rec.data.text;
+                        return s === 'Item 1.1' || s === 'Item 4.2';
+                    });
+                    byId('i1').expand();
+
+                    expect(getItem('i1')).not.toBeNull();
+                    expect(getItem('i11')).not.toBeNull();
+                    expect(getItem('i12')).toBeNull();
+
+                    expect(getItem('i2')).toBeNull();
+
+                    expect(getItem('i3')).toBeNull();
+
+                    expect(getItem('i4')).not.toBeNull();
+                    expect(getItem('i41')).toBeNull();
+                    expect(getItem('i42')).not.toBeNull();
+                    expect(getItem('i43')).toBeNull();
+                });
+
+                it("should react to filters being cleared", function() {
+                    makeList();
+                    store.filterer = 'bottomup';
+                    byId('i1').expand();
+                    store.filterBy(function(rec) {
+                        var s = rec.data.text;
+                        return s === 'Item 1.1' || s === 'Item 4.2';
+                    });
+                    store.getFilters().removeAll();
+
+                    expect(getItem('i1')).not.toBeNull();
+                    expect(getItem('i11')).not.toBeNull();
+                    expect(getItem('i12')).not.toBeNull();
+
+                    expect(getItem('i2')).not.toBeNull();
+
+                    expect(getItem('i3')).not.toBeNull();
+
+                    expect(getItem('i4')).not.toBeNull();
+                    expect(getItem('i41')).not.toBeNull();
+                    expect(getItem('i42')).not.toBeNull();
+                    expect(getItem('i43')).not.toBeNull();
+                });
+
+                describe("events", function() {
+                    it("should fire the refresh event after filtering/clearing", function() {
+                        var spy = jasmine.createSpy();
+
+                        makeList({
+                            listeners: {
+                                refresh: spy
+                            }
+                        });
+                        store.filterer = 'bottomup';
+                        byId('i1').expand();
+                        store.filterBy(function(rec) {
+                            var s = rec.data.text;
+                            return s === 'Item 1.1' || s === 'Item 4.2';
+                        });
+                        expect(spy.callCount).toBe(1);
+                        store.getFilters().removeAll();
+                        expect(spy.callCount).toBe(2);
+                    });
+
+                    it("should not fire iteminsert/itemremove events", function() {
+                        var spy = jasmine.createSpy();
+
+                        makeList({
+                            listeners: {
+                                iteminsert: spy,
+                                itemremove: spy
+                            }
+                        });
+                        store.filterer = 'bottomup';
+                        store.filterBy(function(rec) {
+                            var s = rec.data.text;
+                            return s === 'Item 1.1' || s === 'Item 4.2';
+                        });
+                        expect(spy).not.toHaveBeenCalled();
+                        byId('i1').expand();
+                        store.getFilters().removeAll();
+                        expect(spy).not.toHaveBeenCalled();
+                    });
+                });
+            });
+
             describe("adding nodes", function() {
                 describe("via insert", function() {
                     describe("to the root", function() {
@@ -3750,6 +3851,198 @@ describe("Ext.list.Tree", function() {
                 });
             });
         });          
+
+        describe("micro mode", function() {
+            describe("at construction", function() {
+                it("should have root level items in the toolElement", function() {
+                    makeCustomList({
+                        micro: true
+                    });
+                    var toolNodes = list.toolsElement.dom.childNodes;
+                    expect(toolNodes[0]).toBe(getItem('i1').getToolElement().dom);
+                    expect(toolNodes[1]).toBe(getItem('i2').getToolElement().dom);
+                    expect(toolNodes[2]).toBe(getItem('i3').getToolElement().dom);
+                    expect(toolNodes[3]).toBe(getItem('i4').getToolElement().dom);
+                });
+
+                it("should be empty if there is no data", function() {
+                    store = new Ext.data.TreeStore({
+                        model: Model,
+                        root: {
+                            expanded: true,
+                            children: []
+                        }
+                    });
+                    makeCustomList({
+                        micro: true
+                    });
+                    expect(list.toolsElement.dom.childNodes.length).toBe(0);
+                });
+            });
+
+            describe("dynamic", function() {
+                describe("starting empty", function() {
+                    it("should add nodes", function() {
+                        store = new Ext.data.TreeStore({
+                            model: Model,
+                            root: {
+                                expanded: true,
+                                children: []
+                            }
+                        });
+                        makeCustomList({
+                            micro: true
+                        });
+                        store.getRoot().appendChild({
+                            id: 'foo'
+                        });
+                        var toolNodes = list.toolsElement.dom.childNodes;
+                        expect(toolNodes.length).toBe(1);
+                        expect(toolNodes[0]).toBe(getItem('foo').getToolElement().dom);
+                    });
+                });
+
+                describe("starting with nodes", function() {
+                    beforeEach(function() {
+                        makeCustomList({
+                            micro: true
+                        });
+                    });
+
+                    it("should handle appending", function() {
+                        store.getRoot().appendChild({
+                            id: 'foo'
+                        });
+                        var toolNodes = list.toolsElement.dom.childNodes;
+                        expect(toolNodes.length).toBe(5);
+                        expect(toolNodes[4]).toBe(getItem('foo').getToolElement().dom);
+                    });
+
+                    it("should handle insertion", function() {
+                        store.getRoot().insertChild(0, {
+                            id: 'foo'
+                        });
+
+                        var toolNodes = list.toolsElement.dom.childNodes;
+
+                        expect(toolNodes.length).toBe(5);
+                        expect(toolNodes[0]).toBe(getItem('foo').getToolElement().dom);
+
+                        store.getRoot().insertChild(2, {
+                            id: 'foo'
+                        });
+
+                        expect(toolNodes.length).toBe(6);
+                        expect(toolNodes[2]).toBe(getItem('foo').getToolElement().dom);
+                    });
+
+                    it("should handle removal", function() {
+                        var root = store.getRoot();
+                        root.removeChild(root.getChildAt(1));
+
+                        var toolNodes = list.toolsElement.dom.childNodes;
+                        expect(toolNodes.length).toBe(3);
+
+                        expect(toolNodes[0]).toBe(getItem('i1').getToolElement().dom);
+                        expect(toolNodes[1]).toBe(getItem('i3').getToolElement().dom);
+                        expect(toolNodes[2]).toBe(getItem('i4').getToolElement().dom);
+                    });
+                });
+            });
+        });
+    });
+
+    describe("micro mode", function() {
+        it("should default to micro: false", function() {
+            makeList();
+            expect(list.getMicro()).toBe(false);
+        });
+
+        describe("at construction", function() {
+            describe("starting as micro: true", function() {
+                beforeEach(function() {
+                    makeList({
+                        micro: true
+                    });
+                });
+
+                it("should have the microCls", function() {
+                    expect(list.element).toHaveCls(list.microCls);
+                });
+
+                it("should have the toolsElement be visible", function() {
+                    expect(list.toolsElement.isVisible()).toBe(true);
+                });
+
+                // https://sencha.jira.com/browse/EXTJS-20210
+                if (!Ext.supports.Touch) {
+                    it('should hide the icon on float', function() {
+                        var rec0 = store.getAt(0),
+                            item0 = list.getItem(rec0);
+
+                        // Icon element begins visible
+                        expect(item0.iconElement.isVisible()).toBe(true);
+
+                        jasmine.fireMouseEvent(item0.toolElement, 'mouseover');
+
+                        // When floated, it should be hidden
+                        expect(item0.iconElement.isVisible()).toBe(false);
+                    });
+                }
+            });
+
+            describe("starting micro: false", function() {
+                beforeEach(function() {
+                    makeList({
+                        micro: false
+                    });
+                });
+
+                it("should not have the microCls", function() {
+                    expect(list.element).not.toHaveCls(list.microCls);
+                });
+
+                it("should have the toolsElement be not visible", function() {
+                    expect(list.toolsElement.isVisible()).toBe(false);
+                });
+            });
+        });
+
+        describe("dynamic", function() {
+            describe("starting as micro: true", function() {
+                beforeEach(function() {
+                    makeList({
+                        micro: true
+                    });
+                    list.setMicro(false);
+                });
+
+                it("should remove the microCls", function() {
+                    expect(list.element).not.toHaveCls(list.microCls);
+                });
+
+                it("should have the toolsElement be not visible", function() {
+                    expect(list.toolsElement.isVisible()).toBe(false);
+                });
+            });
+
+            describe("starting micro: false", function() {
+                beforeEach(function() {
+                    makeList({
+                        micro: false
+                    });
+                    list.setMicro(true);
+                });
+
+                it("should add the microCls", function() {
+                    expect(list.element).toHaveCls(list.microCls);
+                });
+
+                it("should have the toolsElement be visible", function() {
+                    expect(list.toolsElement.isVisible()).toBe(true);
+                });
+            });
+        });
     });
 
     describe("list methods", function() {
@@ -4195,7 +4488,7 @@ describe("Ext.list.Tree", function() {
 
         it("should unbind the store", function() {
             list.destroy();
-            expect(list.getStore()).toBeNull();
+            expect(list._store).toBeNull();
         });
     });
 

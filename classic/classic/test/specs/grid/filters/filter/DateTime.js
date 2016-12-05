@@ -1,4 +1,4 @@
-xdescribe('Ext.grid.filters.filter.DateTime', function () {
+xdescribe("Ext.grid.filters.filter.DateTime", function () {
     var viewReady = false,
         grid, plugin, store;
 
@@ -51,13 +51,13 @@ xdescribe('Ext.grid.filters.filter.DateTime', function () {
         }, gridCfg));
     }
 
-    afterEach(function () {
-        Ext.destroy(grid);
+    afterEach(function() {
+        Ext.destroy(store, grid);
         grid = plugin = store = null;
         viewReady = false;
     });
 
-    describe('setValue', function () {
+    describe("setValue", function () {
         var parse = Ext.Date.parse,
             columnFilter;
 
@@ -65,7 +65,7 @@ xdescribe('Ext.grid.filters.filter.DateTime', function () {
             columnFilter = null;
         });
 
-        it('should update the value of the date whenever called', function () {
+        it("should update the value of the date whenever called", function () {
             // See EXTJSIV-11532.
             createGrid();
 
@@ -85,14 +85,14 @@ xdescribe('Ext.grid.filters.filter.DateTime', function () {
         });
     });
 
-    describe('onMenuSelect handler and setFieldValue', function () {
+    describe("onMenuSelect handler and setFieldValue", function () {
         var columnFilter, headerCt, header, filtersCheckItem, beforeCheckItem, datepicker, timepicker, btn;
 
         afterEach(function () {
             columnFilter = headerCt = header = filtersCheckItem = beforeCheckItem = datepicker = timepicker = btn = null;
         });
 
-        it('should correctly filter based upon picker selections', function () {
+        it("should correctly filter based upon picker selections", function () {
             createGrid();
 
             waitsFor(function () {

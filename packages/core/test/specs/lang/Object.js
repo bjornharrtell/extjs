@@ -521,6 +521,16 @@ describe("Ext.Object", function(){
     describe("merge", function(){
         var merge = Ext.Object.merge;
 
+        describe("empty values", function() {
+            it("should allow undefined", function() {
+                expect(merge({}, undefined)).toEqual({});
+            });
+
+            it("should allow null", function() {
+                expect(merge({}, null)).toEqual({});
+            });
+        });
+
         describe("complex values", function(){
             it("should copy a simple object but not have the same reference", function(){
                 var o = {

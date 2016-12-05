@@ -4,7 +4,9 @@ Ext.define('KitchenSink.view.form.ColorPickerController', {
     alias: 'controller.form-color-picker',
 
     onChange: function(picker) {
-        console.log(picker.getId() + '.color: ' + picker.getValue());
+        if (window.console && window.console.log) {
+            console.log(picker.getId() + '.color: ' + picker.getValue());
+        }
     },
 
     onShowMoreLess: function (button) {

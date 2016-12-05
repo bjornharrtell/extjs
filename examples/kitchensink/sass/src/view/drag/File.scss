@@ -1,0 +1,55 @@
+.stretch-html .x-innerhtml {
+    height: 100%;
+}
+
+.stretch-html .drag-file-ct .x-innerhtml {
+    pointer-events: none;
+}
+
+.drag-file-fadeout {
+    opacity: 0;
+    -webkit-transition: all 1s ease-in-out;
+    transition: all 1s ease-in-out;
+}
+
+.drag-file-label {
+    font-size: 18px;
+    padding-top: 30px;
+    text-align: center;
+    pointer-events: none;
+}
+
+.drag-file-icon {
+    font-family: FontAwesome;
+    display: block;
+    font-size: 64px;
+    margin-top: 50px;
+    display: none;
+    text-align: center;
+    pointer-events: none;
+
+    .active & {
+        display: block;
+        &:after {
+            content: $fa-var-check-circle;
+            color: #8BC34A;
+        }
+    }
+
+    .dropped & {
+        display: block;
+
+        &:after {
+            content: $fa-var-cog;
+            color: #9E9E9E;
+        }
+    }
+
+    .nosupport & {
+        display: block;
+        &:after {
+            content: $fa-var-frown-o;
+            color: #9E9E9E;
+        }
+    }
+}

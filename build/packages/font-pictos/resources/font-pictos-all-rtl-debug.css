@@ -1,4 +1,4 @@
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:9 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:7 */
 @font-face {
     font-family: 'Pictos';
     src: url('fonts/pictos-web.eot');
@@ -6,423 +6,423 @@
     font-weight: normal;
     font-style: normal;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:19 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:17 */
 .pictos {
     font-family: Pictos !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:23 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:21 */
 .pictos-anchor:before {
     content: "a" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:24 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:22 */
 .pictos-box:before {
     content: "b" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:25 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:23 */
 .pictos-upload:before {
     content: "c" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:26 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:24 */
 .pictos-forbidden:before {
     content: "d" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:27 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:25 */
 .pictos-lightning:before {
     content: "e" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:28 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:26 */
 .pictos-rss:before {
     content: "f" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:29 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:27 */
 .pictos-team:before {
     content: "g" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:30 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:28 */
 .pictos-help:before {
     content: "h" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:31 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:29 */
 .pictos-info:before {
     content: "i" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:32 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:30 */
 .pictos-attachment:before {
     content: "j" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:33 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:31 */
 .pictos-heart:before {
     content: "k" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:34 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:32 */
 .pictos-list:before {
     content: "l" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:35 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:33 */
 .pictos-music:before {
     content: "m" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:36 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:34 */
 .pictos-table:before {
     content: "n" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:37 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:35 */
 .pictos-folder:before {
     content: "o" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:38 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:36 */
 .pictos-pencil:before {
     content: "p" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:39 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:37 */
 .pictos-chat2:before {
     content: "q" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:40 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:38 */
 .pictos-retweet:before {
     content: "r" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:41 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:39 */
 .pictos-search:before {
     content: "s" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:42 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:40 */
 .pictos-time:before {
     content: "t" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:43 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:41 */
 .pictos-switch:before {
     content: "u" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:44 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:42 */
 .pictos-camera:before {
     content: "v" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:45 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:43 */
 .pictos-chat:before {
     content: "w" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:46 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:44 */
 .pictos-settings2:before {
     content: "x" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:47 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:45 */
 .pictos-settings:before {
     content: "y" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:48 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:46 */
 .pictos-tags:before {
     content: "z" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:49 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:47 */
 .pictos-attachment2:before {
     content: "A" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:50 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:48 */
 .pictos-bird:before {
     content: "B" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:51 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:49 */
 .pictos-cloud:before {
     content: "C" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:52 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:50 */
 .pictos-delete_black1:before {
     content: "D" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:53 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:51 */
 .pictos-eye:before {
     content: "E" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:54 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:52 */
 .pictos-file:before {
     content: "F" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:55 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:53 */
 .pictos-browser:before {
     content: "G" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:56 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:54 */
 .pictos-home:before {
     content: "H" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:57 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:55 */
 .pictos-inbox:before {
     content: "I" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:58 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:56 */
 .pictos-network:before {
     content: "J" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:59 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:57 */
 .pictos-key:before {
     content: "K" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:60 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:58 */
 .pictos-radio:before {
     content: "L" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:61 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:59 */
 .pictos-mail:before {
     content: "M" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:62 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:60 */
 .pictos-news:before {
     content: "N" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:63 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:61 */
 .pictos-case:before {
     content: "O" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:64 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:62 */
 .pictos-photos:before {
     content: "P" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:65 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:63 */
 .pictos-power:before {
     content: "Q" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:66 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:64 */
 .pictos-action:before {
     content: "R" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:67 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:65 */
 .pictos-favorites:before {
     content: "S" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:68 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:66 */
 .pictos-plane:before {
     content: "T" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:69 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:67 */
 .pictos-user:before {
     content: "U" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:70 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:68 */
 .pictos-video:before {
     content: "V" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:71 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:69 */
 .pictos-compose:before {
     content: "W" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:72 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:70 */
 .pictos-truck:before {
     content: "X" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:73 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:71 */
 .pictos-chart2:before {
     content: "Y" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:74 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:72 */
 .pictos-chart:before {
     content: "Z" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:75 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:73 */
 .pictos-expand:before {
     content: "`" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:76 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:74 */
 .pictos-refresh:before {
     content: "1" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:77 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:75 */
 .pictos-check:before {
     content: "2" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:78 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:76 */
 .pictos-check2:before {
     content: "3" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:79 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:77 */
 .pictos-play:before {
     content: "4" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:80 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:78 */
 .pictos-pause:before {
     content: "5" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:81 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:79 */
 .pictos-stop:before {
     content: "6" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:82 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:80 */
 .pictos-forward:before {
     content: "7" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:83 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:81 */
 .pictos-rewind:before {
     content: "8" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:84 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:82 */
 .pictos-play2:before {
     content: "9" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:85 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:83 */
 .pictos-refresh2:before {
     content: "0" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:86 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:84 */
 .pictos-minus:before {
     content: "-" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:87 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:85 */
 .pictos-battery:before {
     content: "=" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:88 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:86 */
 .pictos-left:before {
     content: "[" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:89 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:87 */
 .pictos-right:before {
     content: "]" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:90 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:88 */
 .pictos-calendar:before {
     content: "\005C" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:91 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:89 */
 .pictos-shuffle:before {
     content: ";" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:92 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:90 */
 .pictos-wireless:before {
     content: "'" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:93 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:91 */
 .pictos-speedometer:before {
     content: "," !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:94 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:92 */
 .pictos-more:before {
     content: "." !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:95 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:93 */
 .pictos-print:before {
     content: "/" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:96 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:94 */
 .pictos-download:before {
     content: "~" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:97 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:95 */
 .pictos-warning_black:before {
     content: "!" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:98 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:96 */
 .pictos-locate:before {
     content: "@" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:99 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:97 */
 .pictos-trash:before {
     content: "#" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:100 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:98 */
 .pictos-cart:before {
     content: "$" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:101 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:99 */
 .pictos-bank:before {
     content: "%" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:102 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:100 */
 .pictos-flag:before {
     content: "^" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:103 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:101 */
 .pictos-add:before {
     content: "&" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:104 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:102 */
 .pictos-delete:before {
     content: "*" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:105 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:103 */
 .pictos-lock:before {
     content: "(" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:106 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:104 */
 .pictos-unlock:before {
     content: ")" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:107 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:105 */
 .pictos-minus2:before {
     content: "_" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:108 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:106 */
 .pictos-add2:before {
     content: "+" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:109 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:107 */
 .pictos-up:before {
     content: "{" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:110 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:108 */
 .pictos-down:before {
     content: "}" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:111 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:109 */
 .pictos-screens:before {
     content: "|" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:112 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:110 */
 .pictos-bell:before {
     content: ":" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:113 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:111 */
 .pictos-quote:before {
     content: "\"" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:114 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:112 */
 .pictos-volume_mute:before {
     content: "<" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:115 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:113 */
 .pictos-volume:before {
     content: ">" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:116 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:114 */
 .pictos-question:before {
     content: "?" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:117 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:115 */
 .pictos-arrow_left:before {
     content: "[" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:118 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:116 */
 .pictos-arrow_right:before {
     content: "]" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:119 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:117 */
 .pictos-arrow_up:before {
     content: "{" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:120 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:118 */
 .pictos-arrow_down:before {
     content: "}" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:121 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:119 */
 .pictos-organize:before {
     content: "I" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:122 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:120 */
 .pictos-bookmarks:before {
     content: "I" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:123 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:121 */
 .pictos-loop2:before {
     content: "r" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:124 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:122 */
 .pictos-star:before {
     content: "S" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:125 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:123 */
 .pictos-maps:before {
     content: "@" !important;
 }
-/* http://localhost:1842/packages/font-pictos/sass/src/all.scss:126 */
+/* /Users/space/buildAgent/work/8cc7421dd8da164c/staging/packages/font-pictos/sass/src/all.scss:124 */
 .pictos-reply:before {
     content: "R" !important;
 }

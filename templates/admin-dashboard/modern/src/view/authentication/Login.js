@@ -21,25 +21,24 @@ Ext.define('Admin.view.authentication.Login', {
             defaults: {
                 margin:'0 0 10 0'
             },
+            layout: 'vbox',
             items: [{
                 xtype: 'textfield',
                 placeHolder: 'Email',
-                userCls: 'text-border'
+                ui: 'light'
             },{
                 xtype: 'passwordfield',
                 placeHolder: 'Password',
-                userCls: 'text-border'
+                ui: 'light'
             },{
                 layout: 'hbox',
                 items: [{
                     xtype: 'checkboxfield'
                 },{
                     html: 'Remember Me',
-                    userCls: 'checkbox-text-adjustment',
                     style: 'marginRight:20px'
                 },{
-                    html: '<a href="#passwordreset">Forgot Password</a>',
-                    userCls: 'checkbox-text-adjustment'
+                    html: '<a href="#passwordreset">Forgot Password</a>'
                 }]
             },{
                 xtype: 'button',

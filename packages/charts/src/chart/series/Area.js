@@ -77,5 +77,14 @@ Ext.define('Ext.chart.series.Area', {
          * @cfg {Boolean} [splitStacks=false]
          */
         splitStacks: false
+
+        /**
+         * @inheritdoc
+         * Area series renderers only affect markers.
+         * For styling individual segments with a renderer it is possible to use
+         * the Line series with {@link Ext.chart.series.Line#fill} config set to `true`,
+         * which makes Line series look like Area series.
+         * @cfg {Function} renderer
+         */
     }
 });

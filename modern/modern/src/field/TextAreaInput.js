@@ -2,8 +2,8 @@
  * @private
  */
 Ext.define('Ext.field.TextAreaInput', {
-    extend: 'Ext.field.Input',
+    extend: 'Ext.field.TextInput',
     xtype : 'textareainput',
-
-    tag: 'textarea'
+    tag: 'textarea',
+    classCls: Ext.baseCSSPrefix + 'textareainput'
 });

@@ -1,8 +1,11 @@
+@import './functions/calc-math';
+@import './functions/color';
+
 /*
  * Method which inserts a full background-image property for a theme image.
  * It checks if the file exists and if it doesn't, it'll throw an error.
  * By default it will not include the background-image property if it is not found,
- * but this can be changed by changing the default value of $include-missing-images to
+ * but this can be changed by changing the default value of $enable-missing-images to
  * be true.
  */
 @function theme-background-image($path, $extension: $image-extension, $nocheck: false) {
@@ -16,7 +19,7 @@
       $background-image: $path;
     } @else {
       @warn "@theme-background-image: Theme image not found: #{$path}";
-      @if $include-missing-images {
+      @if $enable-missing-images {
         $background-image: $path;
       }
     }
@@ -33,10 +36,6 @@
 
 @function get-image-url($path, $extension: $image-extension, $nocheck: false) {
   @return theme-background-image($path, $extension, $nocheck);
-}
-
-@function ui-suffix($ui) {
-    @return if($ui == null, '', '-' + $ui);
 }
 
 @function x($position) {
@@ -75,7 +74,15 @@
     @return max(max(top($box), right($box)), max(bottom($box), left($box)));
 }
 @function boxmin($box) {
-    @return min(min(top($box), right($box)), min(bottom($box), left($box)));
+  @return min(min(top($box), right($box)), min(bottom($box), left($box)));
+}
+@function boxContainsNull($list) {
+  @for $i from 1 through length($list) {
+    @if nth($list, $i) == null {
+      @return true;
+    }
+  }
+  @return false;
 }
 @function rotate90($box) {
     @return left($box) top($box) right($box) bottom($box);

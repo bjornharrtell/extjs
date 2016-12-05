@@ -68,7 +68,7 @@
  *         }
  *     });
  *
- *     proxy.getReader(); //returns an {@link Ext.data.reader.Xml XmlReader} instance based on the config we supplied
+ *     proxy.getReader(); //returns an XmlReader instance based on the config we supplied
  *
  * # Url generation
  *

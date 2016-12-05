@@ -4,7 +4,7 @@
  * an element that can be dragged around to change the Slider's value.
  *
  * DragTracker provides a series of template methods that should be overridden to provide functionality
- * in response to detected drag operations. These are onBeforeStart, onStart, onDrag and onEnd.
+ * in response to detected drag operations. These are onBeforeStart, onStart, onDrag, onCancel and onEnd.
  * See {@link Ext.slider.Multi}'s initEvents function for an example implementation.
  */
 Ext.define('Ext.dd.DragTracker', {
@@ -182,6 +182,14 @@ Ext.define('Ext.dd.DragTracker', {
         if (me.disabled) {
             me.disable();
         }
+
+        if (Ext.supports.Touch) {
+            Ext.getWin().on({
+                touchstart: 'onWindowTouchStart',
+                scope: me,
+                capture: true
+            });
+        }
     },
 
     /**
@@ -190,9 +198,14 @@ Ext.define('Ext.dd.DragTracker', {
      */
     initEl: function(el) {
         var me = this,
-            delegate = me.delegate;
+            delegate = me.delegate,
+            elCmp,
+            touchScrollable;
 
         me.el = el = Ext.get(el);
+
+        // Disable drag to select. We must take over any drag selecting gestures.
+        el.addCls(Ext.baseCSSPrefix + 'unselectable');
 
         // The delegate option may also be an element on which to listen
         if (delegate && delegate.isElement) {
@@ -201,6 +214,25 @@ Ext.define('Ext.dd.DragTracker', {
 
         // If delegate specified an actual element to listen on, we do not use the delegate listener option
         me.delegate = me.handle ? undefined : me.delegate;
+
+        // See if the handle or delegates are inside the scrolling part of the component.
+        // If they are, we will need to use longpress to trigger the dragstart.
+        if (Ext.supports.Touch) {
+            elCmp = Ext.ComponentManager.fromElement(el);
+            touchScrollable = elCmp && elCmp.getScrollable();
+            if (touchScrollable) {
+                elCmp = touchScrollable.getElement();
+                if (me.handle && !elCmp.contains(me.handle)) {
+                    touchScrollable = false;
+                }
+                else if (me.delegate && !elCmp.down(me.delegate)) {
+                    touchScrollable = false;
+                }
+                else {
+                    touchScrollable = touchScrollable.getX() || touchScrollable.getY();
+                }
+            }
+        }
 
         if (!me.handle) {
             me.handle = el;
@@ -211,9 +243,25 @@ Ext.define('Ext.dd.DragTracker', {
         me.handleListeners = {
             scope: me,
             delegate: me.delegate,
-            mousedown: me.onMouseDown,
             dragstart: me.onDragStart
         };
+
+        // If the element is part of a component which is scrollable by touch
+        // then we have to use a longpress to trigger drag.
+        // In this case, we also use untranslated mousedown because of multi input platforms.
+        if (touchScrollable) {
+            me.handleListeners.longpress = me.onMouseDown;
+            me.handleListeners.mousedown = {
+                fn: me.onMouseDown,
+                delegate: me.delegate,
+                translate: false
+            };
+            me.handleListeners.contextmenu = function(e) {
+                e.stopEvent();
+            };
+        } else {
+            me.handleListeners.mousedown = me.onMouseDown;
+        }
 
         // If configured to do so, track mouse entry and exit into the target (or delegate).
         // The mouseover and mouseout CANNOT be replaced with mouseenter and mouseleave
@@ -250,8 +298,15 @@ Ext.define('Ext.dd.DragTracker', {
 
         // endDrag has a mandatory event parameter
         me.endDrag({});
-        me.el = me.handle = me.onBeforeStart = me.onStart = me.onDrag = me.onEnd = null;
+        me.el = me.handle = me.onBeforeStart = me.onStart = me.onDrag = me.onEnd = me.onCancel = null;
         me.callParent();
+    },
+
+    onWindowTouchStart: function(e) {
+        if (this.mouseIsDown) {
+            // on devices that support multi-touch the second touch terminates drag
+            this.onMouseUp(e);
+        }
     },
 
     // When the pointer enters a tracking element, fire a mouseover if the mouse entered from outside.
@@ -309,10 +364,13 @@ Ext.define('Ext.dd.DragTracker', {
     },
 
     onMouseDown: function(e, target){
-        var me = this;
+        var me = this,
+            // If this is a translated event, the event object is chained, so
+            // we need to track on the parentEvent if it exists.
+            trackEvent = e.parentEvent || e;
 
         // If this is disabled, or the mousedown has been processed by an upstream DragTracker, return
-        if (me.disabled ||e.dragTracked) {
+        if (me.disabled || trackEvent.dragTracked) {
             return;
         }
 
@@ -332,7 +390,7 @@ Ext.define('Ext.dd.DragTracker', {
         me.mouseIsDown = true;
 
         // Flag for downstream DragTracker instances that the mouse is being tracked.
-        e.dragTracked = true;
+        trackEvent.dragTracked = true;
 
         // See Ext.dd.DragDropManager::handleMouseDown
         //<feature legacyBrowser>
@@ -340,7 +398,7 @@ Ext.define('Ext.dd.DragTracker', {
         //</feature>
 
         e.stopPropagation();
-        if (me.preventDefault !== false) {
+        if (me.preventDefault !== false || e.pointerType === 'touch') {
             e.preventDefault();
         }
         Ext.getDoc().on({
@@ -440,10 +498,12 @@ Ext.define('Ext.dd.DragTracker', {
         });
         me.clearStart();
         me.active = false;
+        me.dragEnded = true;
         if (wasActive) {
-            me.dragEnded = true;
             me.onEnd(e);
             me.fireEvent('dragend', me, e);
+        } else {
+            me.onCancel(e);
         }
         // Private property calculated when first required and only cached during a drag
         me._constrainRegion = null;
@@ -496,6 +556,16 @@ Ext.define('Ext.dd.DragTracker', {
      * @template
      */
     onDrag : function(e) {
+
+    },
+
+    /**
+     * Template method which mey be overridden by each DragTracker instance. Called when a mouseup gesture is detected
+     * but the onStart has not yet been reached. To clear things up that may have been set up on {@link #onBeforeStart}.
+     * @param {Ext.event.Event} e The event object
+     * @template
+     */
+    onCancel : function(e) {
 
     },
 

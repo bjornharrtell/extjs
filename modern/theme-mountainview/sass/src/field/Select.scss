@@ -2,7 +2,7 @@
  * @class Ext.field.Select
  */
 
-.x-panel.x-select-overlay {
+.x-panel.x-selectfield-overlay {
     background: $background-color;
 
     > .x-panel-inner {
@@ -14,7 +14,7 @@
         background: transparent !important;
     }
 
-    .x-list-item {
+    .x-listitem {
         color: $primary-text-color;
     }
 }

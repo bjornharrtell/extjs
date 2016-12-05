@@ -51,7 +51,7 @@
         "pkgName": "theme-classic",
         "pkgType": "theme",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/etc/all.scss": {
@@ -62,7 +62,7 @@
         "pkgName": "theme-classic",
         "pkgType": "theme",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/example/custom.js": {
@@ -73,7 +73,7 @@
         "pkgName": "theme-classic",
         "pkgType": "theme",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/example/theme.html": {
@@ -84,7 +84,7 @@
         "pkgName": "theme-classic",
         "pkgType": "theme",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     ".sencha/package/build.properties": {
@@ -95,7 +95,7 @@
         "pkgName": "theme-classic",
         "pkgType": "theme",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     ".sencha/package/sencha.cfg": {
@@ -106,7 +106,7 @@
         "pkgName": "theme-classic",
         "pkgType": "theme",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     ".sencha/package/testing.properties": {
@@ -117,7 +117,7 @@
         "pkgName": "theme-classic",
         "pkgType": "theme",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/example/sass-page.html": {
@@ -139,7 +139,7 @@
         "pkgName": "theme-classic",
         "pkgType": "theme",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     }
   }

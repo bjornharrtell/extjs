@@ -108,6 +108,13 @@ describe("Ext.window.MessageBox", function(){
 
             expect(M.title).toBe(M.header.getTitle().getText());
         });
+        
+        it("should accept empty string as valid title", function() {
+            M.show({ title: "foo" });
+            M.show({ title: "" });
+            
+            expect(M.header.getTitle().getText()).toBe('&#160;');
+        });
 
         describe('passed in the config to the constructor', function () {
             beforeEach(function () {
@@ -154,10 +161,50 @@ describe("Ext.window.MessageBox", function(){
 
                 expect(M.title).toBe('Bar');
             });
+            
+            it("should accept empty string as a valid default header title", function() {
+                M = new Ext.window.MessageBox({
+                    header: {
+                        title: ''
+                    }
+                });
+                
+                M.show({ title: 'throbbe' });
+                M.show({});
+                
+                expect(M.header.getTitle().getText()).toBe('&#160;');
+            });
+        });
+    });
+    
+    describe("iconCls", function() {
+        it("should accept empty string in config", function() {
+            M.show({ iconCls: 'frobbe' });
+            M.show({ iconCls: '' });
+            
+            expect(M.header.getTitle().iconEl.hasCls('frobbe')).toBe(false);
+        });
+        
+        describe("passed in constructor config", function() {
+            beforeEach(function() {
+                M.destroy();
+            });
+            
+            it("should accept default value for iconCls", function() {
+                M = new Ext.window.MessageBox({
+                    header: {
+                        iconCls: 'bonzo'
+                    }
+                });
+                
+                M.show({});
+                
+                expect(M.header.getTitle().iconEl.hasCls('bonzo')).toBe(true);
+            });
         });
     });
 
-    describe("custom button text", function(){
+    describe("custom button text", function() {
         var oldText;
         beforeEach(function(){
             oldText = M.buttonText;
@@ -479,6 +526,66 @@ describe("Ext.window.MessageBox", function(){
                 closable: false
             });
             expect(M.down('tool').isVisible()).toBe(false);
+        });
+    });
+    
+    describe("ARIA", function() {
+        describe("aria-describedby", function() {
+            it("should set aria-describedby for alert", function() {
+                M.alert('foo', 'bar');
+                
+                expect(M.ariaEl).toHaveAttribute('aria-describedby', M.msg.id);
+            });
+            
+            it("should set aria-describedby for confirm", function() {
+                M.confirm('blerg', 'zingbong');
+                
+                expect(M.ariaEl).toHaveAttribute('aria-describedby', M.msg.id);
+            });
+            
+            it("should remove aria-describedby for prompt", function() {
+                M.prompt('quiz', 'type something');
+                
+                expect(M.ariaEl).not.toHaveAttribute('aria-describedby');
+            });
+        });
+        
+        describe("aria-labelledby", function() {
+            describe("textField", function() {
+                beforeEach(function() {
+                    M.show({
+                        title: 'throbbe',
+                        msg: 'bonzo',
+                        prompt: true
+                    });
+                });
+                
+                it("should not have for attribute on labelEl", function() {
+                    expect(M.textField.labelEl).not.toHaveAttribute('for');
+                });
+                
+                it("should have aria-labelledby attribute on inputEl", function() {
+                    expect(M.textField.inputEl).toHaveAttribute('aria-labelledby', M.msg.id);
+                });
+            });
+            
+            describe("textArea", function() {
+                beforeEach(function() {
+                    M.show({
+                        title: 'changa',
+                        msg: 'masala',
+                        multiline: true
+                    });
+                });
+                
+                it("should not have for attribute on labelEl", function() {
+                    expect(M.textArea.labelEl).not.toHaveAttribute('for');
+                });
+                
+                it("should have aria-labelledby attribute on inputEl", function() {
+                    expect(M.textArea.inputEl).toHaveAttribute('aria-labelledby', M.msg.id);
+                });
+            });
         });
     });
     

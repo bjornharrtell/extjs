@@ -1,68 +1,28 @@
-/**
- * Creates a visual theme for a Tab Bar.
- *
- * @param {string} $ui
- * The name of the UI being created. Can not included spaces or special punctuation
- * (used in CSS class names).
- *
- * @param {color} $background-color
- * TabBar background-color
- *
- * @param {number/list} $padding
- * Toolbar padding
- *
- * @param {number/list} $padding-big
- * Toolbar padding in the {@link Global_CSS#$enable-big big} sizing scheme
- *
- * @param {number} $tab-spacing
- * The space between tabs
- *
- * @param {number} $tab-spacing-big
- * The space between tabs in the {@link Global_CSS#$enable-big big} sizing scheme
- *
- * @member Ext.tab.Bar
- */
-@mixin tabbar-ui(
-    $ui: null,
-    $background-color: null,
-    $padding: null,
-    $padding-big: null,
-    $tab-spacing: null,
-    $tab-spacing-big: null
-) {
-    $ui-suffix: ui-suffix($ui);
-
-    .x-tabbar#{$ui-suffix} {
-        background-color: $background-color;
-        padding: $padding;
-
-        @if $enable-big and (($padding-big != $padding) or ($padding-big != $tabbar-padding-big)) {
-            .x-big & {
-                padding: $padding-big;
-            }
-        }
-
-
-        .x-tabbar-inner > .x-tab {
-            margin-right: $tab-spacing;
-
-            @if $enable-big and (($tab-spacing-big != $tab-spacing) or ($tab-spacing-big != $tabbar-tab-spacing-big)) {
-                .x-big & {
-                    margin-right: $tab-spacing-big;
-                }
-            }
-
-            &:last-child {
-                margin-right: 0;
-            }
-        }
-    }
-}
-
 @include tabbar-ui(
     $background-color: $tabbar-background-color,
+    $background-gradient: $tabbar-background-gradient,
+    $color: $tabbar-color,
+    $border-color: $tabbar-border-color,
+    $border-width: $tabbar-border-width,
+    $border-style: $tabbar-border-style,
+    $box-shadow: $tabbar-box-shadow,
+    $font-weight: $tabbar-font-weight,
+    $font-size: $tabbar-font-size,
+    $font-size-big: $tabbar-font-size-big,
+    $line-height: $tabbar-line-height,
+    $line-height-big: $tabbar-line-height-big,
+    $font-family: $tabbar-font-family,
     $padding: $tabbar-padding,
     $padding-big: $tabbar-padding-big,
-    $tab-spacing: $tabbar-tab-spacing,
-    $tab-spacing-big: $tabbar-tab-spacing-big
+    $horizontal-spacing: $tabbar-horizontal-spacing,
+    $horizontal-spacing-big: $tabbar-horizontal-spacing-big,
+    $vertical-spacing: $tabbar-vertical-spacing,
+    $vertical-spacing-big: $tabbar-vertical-spacing-big,
+    $title-color: $tabbar-title-color,
+    $title-font-weight: $tabbar-title-font-weight,
+    $title-font-size: $tabbar-title-font-size,
+    $title-font-size-big: $tabbar-title-font-size-big,
+    $title-font-family: $tabbar-title-font-family,
+    $min-height: $tabbar-min-height,
+    $min-height-big: $tabbar-min-height-big
 );

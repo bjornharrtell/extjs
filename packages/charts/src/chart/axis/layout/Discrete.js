@@ -64,12 +64,11 @@ Ext.define('Ext.chart.axis.layout.Discrete', {
             attr = context.attr,
             data = context.data,
             range = attr.max - attr.min,
-            zoom = range / Math.max(1, attr.length) * (attr.visibleMax - attr.visibleMin),
             viewMin = attr.min + range * attr.visibleMin,
             viewMax = attr.min + range * attr.visibleMax,
-            estStepSize = attr.estStepSize * zoom;
+            out;
 
-        var out = me.snapEnds(context, Math.max(0, attr.min), Math.min(attr.max, data.length - 1), estStepSize);
+        out = me.snapEnds(context, Math.max(0, attr.min), Math.min(attr.max, data.length - 1), 1);
         if (out) {
             me.trimByRange(context, out, viewMin, viewMax);
             context.majorTicks = out;
@@ -93,11 +92,11 @@ Ext.define('Ext.chart.axis.layout.Discrete', {
             step: estStepSize,
             steps: steps,
             unit: 1,
-            getLabel: function (current) {
-                return data[this.from + this.step * current];
+            getLabel: function (currentStep) {
+                return data[this.from + this.step * currentStep];
             },
-            get: function (current) {
-                return this.from + this.step * current;
+            get: function (currentStep) {
+                return this.from + this.step * currentStep;
             }
         };
     },

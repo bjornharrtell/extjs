@@ -4,8 +4,8 @@
 Ext.define('KitchenSink.view.form.Date', {
     extend: 'Ext.container.Container',
     xtype: 'form-date',
+    controller: 'form-date',
 
-    //<example>
     requires: [
         'Ext.panel.Panel',
         'Ext.picker.Date',
@@ -13,7 +13,12 @@ Ext.define('KitchenSink.view.form.Date', {
         'Ext.layout.container.VBox',
         'Ext.layout.container.HBox'
     ],
-    exampleTitle: 'Date/Month Picking',
+
+    //<example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'classic/samples/view/form/DateController.js'
+    }],
     profiles: {
         classic: {
             width: 400
@@ -29,13 +34,12 @@ Ext.define('KitchenSink.view.form.Date', {
         }
     },
     //</example>
-    
+
+    width: '${width}',
     layout: {
         type: 'vbox',
         align: 'center'
     },
-    
-    width: 500,
 
     items: [{
         xtype: 'container',
@@ -45,12 +49,14 @@ Ext.define('KitchenSink.view.form.Date', {
             title: 'Date Picker',
             margin: '0 20 0 0',
             items: {
-                xtype: 'datepicker'
+                xtype: 'datepicker',
+                handler: 'onDatePicked'
             }
         }, {
             title: 'Month Picker',
             items: {
-                xtype: 'monthpicker'
+                xtype: 'monthpicker',
+                handler: 'onMonthPicked'
             }
         }]
     }, {
@@ -61,20 +67,16 @@ Ext.define('KitchenSink.view.form.Date', {
             margin: '0 20 0 0',
             items: {
                 xtype: 'datepicker',
-                showToday: false
+                showToday: false,
+                handler: 'onDatePicked'
             }
         }, {
             title: 'Month Picker (no buttons)',
             items: {
                 xtype: 'monthpicker',
-                showButtons: false
+                showButtons: false,
+                handler: 'onMonthPicked'
             }
         }]
-    }],
-    
-    initComponent: function() {
-        this.width = this.profileInfo.width;
-        
-        this.callParent();
-    }
+    }]
 });

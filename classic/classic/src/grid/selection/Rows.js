@@ -40,22 +40,43 @@ Ext.define('Ext.grid.selection.Rows', {
     //-------------------------------------------------------------------------
     // Methods unique to this type of Selection
 
-    add: function(record) {
+    addOne: function(record) {
+        var me = this;
+
         //<debug>
         if (!(record.isModel)) {
             Ext.raise('Row selection must be passed a record');
         }
         //</debug>
 
-        var selection = this.selectedRecords || (this.selectedRecords = this.createRecordCollection());
+        var selection = me.selectedRecords || (me.selectedRecords = me.createRecordCollection());
 
         if (!selection.byInternalId.get(record.internalId)) {
             selection.add(record);
-            this.view.onRowSelect(record);
+            me.view.onRowSelect(record);
         }
     },
 
-    remove: function(record) {
+    add: function(record) {
+        var me = this,
+            i, len;
+
+        if (record.isModel) {
+            me.addOne(record);
+        }
+        else if (Ext.isArray(record)) {
+            for (i=0, len=record.length; i<len; i++) {
+                me.addOne(record[i]);
+            }
+        }
+        //<debug>
+        else {
+            Ext.raise('add must be called with a record or array of records');
+        }
+        //</debug>
+    },
+
+    removeOne: function(record) {
         //<debug>
         if (!(record.isModel)) {
             Ext.raise('Row selection must be passed a record');
@@ -74,6 +95,28 @@ Ext.define('Ext.grid.selection.Rows', {
             
             return true;
         }
+        return false;
+    },
+
+    remove: function(record) {
+        var me = this,
+            i, len,
+            ret = true;
+
+        if (record.isModel) {
+            return me.removeOne(record);
+        }
+        else if (Ext.isArray(record)) {
+            for (i=0, len=record.length; i<len; i++) {
+                ret &= me.removeOne(record[i]);
+            }
+        }
+        //<debug>
+        else {
+            Ext.raise('remove must be called with a record or array of records');
+        }
+        //</debug>
+        return ret;
     },
 
     /**
@@ -92,7 +135,7 @@ Ext.define('Ext.grid.selection.Rows', {
             recIndex,
             dragRange;
 
-        // Flag set when selectAll is called in th selModel.
+        // Flag set when selectAll is called in the selModel.
         // This allows buffered stores to treat all *rendered* records
         // as selected, so that the selection model will always encompass
         // What the user *sees* as selected
@@ -147,11 +190,13 @@ Ext.define('Ext.grid.selection.Rows', {
     },
 
     selectAll: function() {
-        var me = this;
+        var me = this,
+            ds = me.view.dataSource,
+            rangeSize = ds.isBufferedStore ? ds.getData().getCount() : ds.getCount();
 
         me.clear();
         me.setRangeStart(0);
-        me.setRangeEnd(me.view.dataSource.getCount() - 1);
+        me.setRangeEnd(rangeSize - 1);
 
         // Adds the records to the collection
         me.addRange();
@@ -233,6 +278,7 @@ Ext.define('Ext.grid.selection.Rows', {
             if (!abort && me.rangeStart != null) {
                 range = me.getRange();
                 me.view.dataSource.getRange(range[0], range[1], {
+                    forRender: false,
                     callback: function(records) {
                         recCount = records.length;
                         for (i = 0; !abort && i < recCount; i++) {
@@ -385,6 +431,15 @@ Ext.define('Ext.grid.selection.Rows', {
         },
 
         /**
+         * @private
+         * Called through {@link Ext.grid.selection.SpreadsheetModel#getLastSelected} by {@link Ext.panel.Table#updateBindSelection} when publishing the `selection` property.
+         * It should yield the last record selected.
+         */
+        getLastSelected: function() {
+            return this.selectedRecords.last();
+        },
+
+        /**
          * @return {Number[]}
          * @private
          */
@@ -448,6 +503,7 @@ Ext.define('Ext.grid.selection.Rows', {
                 range = me.getRange();
                 selection = me.selectedRecords || (me.selectedRecords = me.createRecordCollection());
                 me.view.dataSource.getRange(range[0], range[1], {
+                    forRender: false,
                     callback: function(range) {
                         selection.add.apply(selection, range);
                     }

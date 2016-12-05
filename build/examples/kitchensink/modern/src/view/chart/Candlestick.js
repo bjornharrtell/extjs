@@ -19,7 +19,18 @@ Ext.define('KitchenSink.view.chart.Candlestick', {
             bottom: [0, 0.3]
         }
     },
-
+    
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/StockPrice.js'
+    }],
+    // </example>
+    
+    shadow: true,
     layout: 'fit',
     items: [{
         xtype: 'toolbar',
@@ -27,9 +38,6 @@ Ext.define('KitchenSink.view.chart.Candlestick', {
         cls: 'charttoolbar',
         items: [{
             xtype: 'spacer'
-        }, {
-            text: 'Reset',
-            handler: 'onReset'
         }]
     }, {
         xtype: 'cartesian',
@@ -125,7 +133,7 @@ Ext.define('KitchenSink.view.chart.Candlestick', {
                 }
             }]
         });
-        if (toolbar && panzoom && !panzoom.isMultiTouch()) {
+        if (toolbar && panzoom) {
             toolbar.add(panzoom.getModeToggleButton());
         }
     }

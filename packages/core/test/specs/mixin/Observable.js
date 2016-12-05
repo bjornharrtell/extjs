@@ -1,9 +1,12 @@
+/* global expect, xdescribe, Ext, jasmine, spyOn */
+
 (function() {
 
-function makeObservableSuite(Observable) {
+function makeObservableSuite(isMixin) {
 
-    describe(Observable.$className, function() {
-        var Boss,
+    describe(isMixin ? "Ext.mixin.Observable" : "Ext.util.Observable", function() {
+        var Observable = isMixin ? Ext.mixin.Observable : Ext.util.Observable,
+            Boss,
             boss,
             bossConfig,
             bossListeners,
@@ -23,7 +26,6 @@ function makeObservableSuite(Observable) {
             employeeFiredFn,
             employeeQuitListener,
             employeeQuitFn,
-            events,
             fakeScope;
 
         function makeDefaultListenerScope(o) {
@@ -41,13 +43,18 @@ function makeObservableSuite(Observable) {
             };
         }
 
+        function spyOnEvent(object, eventName, fn, options) {
+            var listeners = Ext.apply({}, options),
+                spy;
+
+            listeners[eventName] = fn || Ext.emptyFn;
+            spy = spyOn(listeners, eventName);
+            object.addListener(listeners);
+            return spy
+        }
+
         beforeEach(function() {
             fakeScope = {};
-            events = {
-                "fired": true,
-                "quit": true,
-                "ask_salary_augmentation": true
-            };
             // boss creation
             Boss = Ext.extend(Observable, {
                 constructor: function(conf) {
@@ -482,7 +489,7 @@ function makeObservableSuite(Observable) {
                         o2.mon(o, 'FOO', spy);
                         expect(o.hasListener('foo')).toBe(true);
                     });
-                })
+                });
             });
 
             describe("suspend/resume", function() {
@@ -496,8 +503,8 @@ function makeObservableSuite(Observable) {
                     o.suspendEvent('FOO');
                     o.fireEvent('foo');
                     expect(spy).not.toHaveBeenCalled();
-                    o.resumeEvent('foo');
-                    o.fireEvent('foo');
+                    o.resumeEvent('FoO');
+                    o.fireEvent('fOo');
                     expect(spy).toHaveBeenCalled();
                 });
             });
@@ -509,7 +516,7 @@ function makeObservableSuite(Observable) {
                     o.enableBubble('FOO');
                     o.getBubbleTarget = function() {
                         return other;
-                    }
+                    };
                     o.fireEvent('foo');
                     expect(spy).toHaveBeenCalled();
                 });
@@ -807,9 +814,8 @@ function makeObservableSuite(Observable) {
                     });
                 });
 
-                (Ext.isSafari4 ? xdescribe : describe)("buffer", function() {
-                    var bufferFn,
-                        bufferEventListener;
+                describe("buffer", function() {
+                    var bufferFn;
 
                     beforeEach(function() {
                         bufferFn = jasmine.createSpy("bufferFn");
@@ -887,9 +893,8 @@ function makeObservableSuite(Observable) {
                     });
                 });
 
-                (Ext.isSafari4 ? xdescribe : describe)("delay", function() {
-                    var delayFn,
-                        delayEventListener;
+                describe("delay", function() {
+                    var delayFn;
 
                     beforeEach(function() {
                         delayFn = jasmine.createSpy("delayFn");
@@ -1170,6 +1175,121 @@ function makeObservableSuite(Observable) {
                     expect(fn4Called).toBe(true);
                     expect(fn2Called).toBe(false);
                     expect(fn3Called).toBe(false);
+                });
+            });
+            
+            // https://sencha.jira.com/browse/EXTJS-22353
+            // Three different but related bugs here, so three suites
+            describe("during scope destruction", function() {
+                var employee2, listenerSpy;
+                
+                beforeEach(function() {
+                    spyOn(Ext, 'raise');
+                    listenerSpy = jasmine.createSpy('listener');
+                    employee2 = new Employee();
+                    
+                    employee.on('foo', function() {
+                        employee2.destroy();
+                    });
+                });
+                
+                afterEach(function() {
+                    listenerSpy = employee2 = Ext.destroy(employee2);
+                });
+
+                describe("with non-managed listener", function() {
+                    beforeEach(function() {
+                        employee.on('foo', listenerSpy, employee2);
+                    });
+
+                    it("should not throw an exception", function() {
+                        expect(function() {
+                            employee.fireEvent('foo');
+                        }).not.toThrow();
+                    });
+                    
+                    it("should not fire the listener", function() {
+                        employee.fireEvent('foo');
+                        
+                        expect(listenerSpy).not.toHaveBeenCalled();
+                    });
+                    
+                    it("should remove the listener", function() {
+                        employee.fireEvent('foo');
+                        
+                        // The destruction listener above
+                        expect(employee.hasListeners.foo).toBe(1);
+                    });
+                });
+                
+                describe("with managed listener", function() {
+                    beforeEach(function() {
+                        employee2.mon(employee, 'foo', listenerSpy, employee2);
+                    });
+                    
+                    it("should not throw an exception", function() {
+                        expect(function() {
+                            employee.fireEvent('foo');
+                        }).not.toThrow();
+                    });
+                    
+                    it("should not fire the listener", function() {
+                        employee.fireEvent('foo');
+                        
+                        expect(listenerSpy).not.toHaveBeenCalled();
+                    });
+                    
+                    it("should remove the listener", function() {
+                        employee.fireEvent('foo');
+                        
+                        // The destruction listener above
+                        expect(employee.hasListeners.foo).toBe(1);
+                    });
+                });
+                
+                describe("with 3rd party listener", function() {
+                    var employee3;
+                    
+                    beforeEach(function() {
+                        // A la Classic components
+                        Ext.override(employee2, {
+                            destroy: function() {
+                                this.fireEvent('destroy', this);
+                                this.callParent();
+                            }
+                        });
+                        
+                        employee3 = new Employee();
+                        
+                        employee2.on('destroy', function() {
+                            employee3.destroy();
+                        });
+                        
+                        employee.on('foo', listenerSpy, employee3);
+                    });
+                    
+                    afterEach(function() {
+                        employee3 = Ext.destroy(employee3);
+                    });
+                    
+                    it("should not throw an exception", function() {
+                        expect(function() {
+                            employee.fireEvent('foo');
+                        }).not.toThrow();
+                    });
+                    
+                    it("should not fire the listener", function() {
+                        employee.fireEvent('foo');
+                        
+                        expect(listenerSpy).not.toHaveBeenCalled();
+                    });
+                    
+                    it("should remove the listener", function() {
+                        employee.fireEvent('foo');
+                        
+                        // The destruction listener above
+                        expect(employee.hasListeners.foo).toBe(1);
+                    });
                 });
             });
         });
@@ -1494,7 +1614,7 @@ function makeObservableSuite(Observable) {
                     });
 
                     it("should call the event with correct arguments", function() {
-                        expect(bossFiredFn).toHaveBeenCalledWith("I'am fired! (1)", employeeFiredListener);
+                        expect(bossFiredFn).toHaveBeenCalledWith("I'am fired! (1)");
                     });
 
                     it("should call the event with correct scope", function() {
@@ -1807,7 +1927,7 @@ function makeObservableSuite(Observable) {
                     });
 
                     it("should call the event with correct arguments", function() {
-                        expect(bossFiredFn).toHaveBeenCalledWith("I'm fired! (1)", employeeFiredListener);
+                        expect(bossFiredFn).toHaveBeenCalledWith("I'm fired! (1)");
                     });
 
                     it("should call the event with correct scope", function() {
@@ -1834,7 +1954,7 @@ function makeObservableSuite(Observable) {
                     });
 
                     it("should call the event with correct arguments", function() {
-                        expect(bossSpy).toHaveBeenCalledWith("I'm fired! (1)", employeeFiredListener);
+                        expect(bossSpy).toHaveBeenCalledWith("I'm fired! (1)");
                     });
 
                     it("should call the event with correct scope", function() {
@@ -1862,7 +1982,7 @@ function makeObservableSuite(Observable) {
                         boss.removeManagedListener(employee, 'fired', 'doSomething', 'controller');
                         employee.fireEvent('fired', "I'm fired! (2)");
                         expect(bossSpy).not.toHaveBeenCalled();
-                    })
+                    });
                 });
 
                 describe("with no scope specified", function() {
@@ -1879,7 +1999,7 @@ function makeObservableSuite(Observable) {
                     });
 
                     it("should call the event with correct arguments", function() {
-                        expect(bossFiredFn).toHaveBeenCalledWith("I'm fired! (1)", employeeFiredListener);
+                        expect(bossFiredFn).toHaveBeenCalledWith("I'm fired! (1)");
                     });
 
                     it("should call the event with correct scope", function() {
@@ -1923,7 +2043,7 @@ function makeObservableSuite(Observable) {
 
                 it("should call the event with correct arguments", function() {
                     employee.fireEvent("fired", "I am fired!");
-                    expect(bossFiredFn).toHaveBeenCalledWith("I am fired!", employeeFiredListener);
+                    expect(bossFiredFn).toHaveBeenCalledWith("I am fired!");
                 });
 
                 it("should call the event with correct scope", function() {
@@ -1960,6 +2080,25 @@ function makeObservableSuite(Observable) {
                     expect(boss.managedListeners.length).toBe(1);
                     expect(boss.managedListeners[0].item).toBe(employee2);
                     expect(boss.managedListeners[0].fn).toBe(bossFired2Fn);
+                });
+
+                it('should not add duplicated listeners to the managed stack', function() {
+                    employee.clearListeners();
+                    boss.clearManagedListeners();
+
+                    // Check preconditions
+                    expect(employee.events).toBe(null);
+                    expect(boss.managedListeners.length).toBe(0);
+
+                    // Adding suplicate listeners should only result in one being added
+                    employee.addListener("fired", bossFiredFn, boss);
+                    employee.addListener("fired", bossFiredFn, boss);
+
+                    // The second listener was a dupe, and should not have been added.
+                    expect(employee.events.fired.listeners.length).toBe(1);
+
+                    // The second listener was a dupe, and should not have been added.
+                    expect(boss.managedListeners.length).toBe(1);
                 });
             });
 
@@ -2148,19 +2287,19 @@ function makeObservableSuite(Observable) {
             it("should call the action fn before the handlers", function() {
                 o.fireAction('foo', null, actionFn);
 
-                expect(result).toEqual(['action', 1, 2])
+                expect(result).toEqual(['action', 1, 2]);
             });
 
             it("should call the action fn before the handlers if order is 'before'", function() {
                 o.fireAction('foo', null, actionFn, null, null, 'before');
 
-                expect(result).toEqual(['action', 1, 2])
+                expect(result).toEqual(['action', 1, 2]);
             });
 
             it("should call the action fn after the handlers if order is 'after'", function() {
                 o.fireAction('foo', null, actionFn, null, null, 'after');
 
-                expect(result).toEqual([1, 2, 'action'])
+                expect(result).toEqual([1, 2, 'action']);
             });
 
             describe("with a 'before' and 'after' handler", function() {
@@ -2177,7 +2316,7 @@ function makeObservableSuite(Observable) {
                             result.push(3);
                         },
                         order: 'after'
-                    })
+                    });
                 });
 
                 it("should call the action fn after the 'before' handler", function() {
@@ -2222,7 +2361,7 @@ function makeObservableSuite(Observable) {
                 it("should not call the action fn if order is 'after'", function() {
                     o.fireAction('foo', null, actionFn, null, null, 'after');
 
-                    expect(result).toEqual([1, 2, 3])
+                    expect(result).toEqual([1, 2, 3]);
                 });
             });
 
@@ -2249,14 +2388,14 @@ function makeObservableSuite(Observable) {
             it("should call the handlers with the passed arguments", function() {
                 o.fireAction('foo', ['a', 'b', 'c'], actionFn);
 
-                expect(handlerArgs.length).toBe(4);
+                expect(handlerArgs.length).toBe(3);
                 expect(handlerArgs[0]).toBe('a');
                 expect(handlerArgs[1]).toBe('b');
                 expect(handlerArgs[2]).toBe('c');
             });
 
             it("should not call the action fn on next fire (it should remove the single listener)", function() {
-                actionFn = jasmine.createSpy();
+                var actionFn = jasmine.createSpy();
 
                 o.fireAction('foo', null, actionFn);
 
@@ -3689,18 +3828,80 @@ function makeObservableSuite(Observable) {
                     }),
                     foo = new Foo();
 
-                spyOn(Observable.prototype, 'clearListeners').andCallThrough();
+                var clearSpy = spyOn(foo, 'clearListeners').andCallThrough();
 
                 foo.destroy();
 
-                expect(Observable.prototype.clearListeners).toHaveBeenCalled();
+                expect(clearSpy).toHaveBeenCalled();
+            });
+        });
+
+        describe('removing buffered listeners while the event is being fired', function() {
+            var success,
+                source;
+
+            afterEach(function() {
+                Ext.destroy(source);
+            });
+
+            it('should not throw an error', function() {
+                expect(function() {
+                    var secondListenerFn = function(){},
+                        secondListenerScope = {},
+                        secondlisteners;
+
+                    source = new Ext.util.Observable();
+
+                    source.on('test', function() {
+                        // Remove the second (buffered) listener during the
+                        // event fire.
+                        // This clears the listener's task property.
+                        secondlisteners.destroy();
+                    });
+                    secondlisteners = source.on({
+                        test: secondListenerFn,
+                        scope: secondListenerScope,
+                        buffer: 50,
+                        destroyable: true
+                    });
+                    source.on('test', function() {
+                        success = true;
+                    });
+
+                    source.fireEvent('test');
+
+                    // Event firing sequence must have completed.
+                    expect(success).toBe(true);
+                }).not.toThrow();
+            });
+        });
+
+        describe('onFrame option', function() {
+            it('should call the handler in an animationFrameListener', function() {
+                var b = new Boss(),
+                    spy = spyOnEvent(b, 'newevent', null, {
+                        onFrame: true
+                    });
+
+                b.fireEvent('newevent', 1);
+                b.fireEvent('newevent', 2);
+
+                // Does not call handler immediately
+                expect(spy).not.toHaveBeenCalled();
+
+                // Multiple calls before the animation frame.
+                // Only the last one wins, as documented.
+                waitsFor(function() {
+                    return spy.callCount === 1 && spy.mostRecentCall.args[0] === 2;
+                });
             });
         });
     });
 
 }
 
-makeObservableSuite(Ext.mixin.Observable);
-makeObservableSuite(Ext.util.Observable);
+
+makeObservableSuite(true);
+makeObservableSuite(false);
 
 })();

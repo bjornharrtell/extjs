@@ -191,7 +191,7 @@ describe("Ext.layout.container.HBox", function(){
             // make sure we get the same height for the nested version:
             var c1 = ct.down('#child1');
             expect(c1.getHeight()).toBe(height);
-        })
+        });
     });
         
     describe("padding", function(){
@@ -659,6 +659,44 @@ describe("Ext.layout.container.HBox", function(){
                 expect(getWidth(1)).toBe(400);
             });
         });
+
+        describe("%age", function(){
+            it("should be able to use %age width", function(){
+                makeCt([{
+                    width: '50%'
+                }, {
+                    width: '50%'
+                }]);
+                expect(getWidth(0)).toBe(300);
+                expect(getWidth(1)).toBe(300);
+            });
+            
+            it("should work with fixed width", function(){
+                makeCt([{
+                    width: '20%'
+                }, {
+                    width: 380
+                }, {
+                    width: 100
+                }]);
+                expect(getWidth(0)).toBe(120);
+                expect(getWidth(1)).toBe(380);
+                expect(getWidth(2)).toBe(100);
+            });
+            
+            it("should work with flex", function(){
+                makeCt([{
+                    flex: 2
+                }, {
+                    width: '50%'
+                }, {
+                    flex: 1
+                }]);    
+                expect(getWidth(0)).toBe(200);
+                expect(getWidth(1)).toBe(300);
+                expect(getWidth(2)).toBe(100);
+            });
+        });
         
         describe("mixed", function(){
             it("should give any remaining space to a single flexed item", function(){
@@ -834,8 +872,31 @@ describe("Ext.layout.container.HBox", function(){
                 expect(c2.getWidth()).toBe(100);
                 expect(c3.getWidth()).toBe(100);
             });
+
+            describe("with %age", function() {
+                it("should respect min constraints", function(){
+                    makeCt([{
+                        width: '10%',
+                        minWidth: 400
+                    },{
+                        flex: 1
+                    }]);
+                    expect(getWidth(0)).toBe(400);
+                    expect(getWidth(1)).toBe(200);
+                });
+
+                it("should respect max constraints", function(){
+                    makeCt([{
+                        width: '70%',
+                        maxWidth: 200
+                    },{
+                        flex: 1
+                    }]);
+                    expect(getWidth(0)).toBe(200);
+                    expect(getWidth(1)).toBe(400);
+                });
+            });
         });
-        
     });
 
     describe("shrink wrap width", function(){
@@ -1076,7 +1137,7 @@ describe("Ext.layout.container.HBox", function(){
                 return {
                     width: scrollSize,
                     height: scrollSize
-                }
+                };
             };
         });
 
@@ -1458,7 +1519,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([400, 180]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -1514,7 +1575,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([200, 300]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -1569,7 +1630,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([200, 380]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -1619,7 +1680,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([200, 300]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -1673,7 +1734,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([200, 380]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -1744,7 +1805,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([400, 180]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -1797,7 +1858,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([200, 300]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -1851,7 +1912,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([200, 380]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -1901,7 +1962,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([200, 300]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -1952,7 +2013,7 @@ describe("Ext.layout.container.HBox", function(){
                                     }]);
                                     expectScroll(false, true);
                                     expectWidths([200, 380]);
-                                    expectInnerCtWidth(defaultSize - scrollSize)
+                                    expectInnerCtWidth(defaultSize - scrollSize);
                                 });
 
                                 it("should account for the vertical scrollbar when the minWidth causes an overflow", function() {
@@ -2861,6 +2922,16 @@ describe("Ext.layout.container.HBox", function(){
         });
 
         describe("preserving scroll state", function() {
+            var endSpy;
+
+            beforeEach(function() {
+                endSpy = jasmine.createSpy();
+            });
+
+            afterEach(function() {
+                endSpy = null;
+            });
+
             it("should restore the horizontal/vertical scroll position with user scrolling", function() {
                 makeCt({
                     width: 400,
@@ -2874,20 +2945,26 @@ describe("Ext.layout.container.HBox", function(){
                         height: 500
                     }]
                 });
-                
                 var scrollable = ct.getScrollable();
+                scrollable.on('scrollend', endSpy);
                 scrollable.scrollTo(50, 30);
-                
-                // Make sure that we're where we want to be
-                var position = scrollable.getPosition();
-                expect(position).toEqual({ x: 50, y: 30 });
-                
-                ct.setSize(401, 401);
-                
-                var position = scrollable.getPosition();
-
-                // There IS no y overflow, so the y scroll request cannot have had any effect
-                expect(position).toEqual({ x: 50, y: 0 });
+                waitsFor(function() {
+                    return endSpy.callCount > 0;
+                });
+                runs(function() {
+                    ct.setSize(401, 401);
+                });
+                waitsFor(function() {
+                    var pos = scrollable.getPosition();
+                    return pos.x > 0 && pos.y > 0;
+                });
+                runs(function() {
+                    var pos = scrollable.getPosition();
+                    expect(pos).toEqual({
+                        x: 50,
+                        y: 30
+                    });
+                });
             });
 
             it("should restore the horizontal/vertical scroll position with programmatic scrolling", function() {
@@ -2907,20 +2984,26 @@ describe("Ext.layout.container.HBox", function(){
                         height: 500
                     }]
                 });
-                
                 var scrollable = ct.getScrollable();
+                scrollable.on('scrollend', endSpy);
                 scrollable.scrollTo(50, 30);
-                
-                // Make sure that we're where we want to be
-                var position = scrollable.getPosition();
-                expect(position).toEqual({ x: 50, y: 30 });
-                
-                ct.setSize(401, 401);
-                
-                var position = scrollable.getPosition();
-
-                // There IS no y overflow, so the y scroll request cannot have had any effect
-                expect(position).toEqual({ x: 50, y: 0 });
+                waitsFor(function() {
+                    return endSpy.callCount > 0;
+                });
+                runs(function() {
+                    ct.setSize(401, 401);
+                });
+                waitsFor(function() {
+                    var pos = scrollable.getPosition();
+                    return pos.x > 0 && pos.y > 0;
+                });
+                runs(function() {
+                    var pos = scrollable.getPosition();
+                    expect(pos).toEqual({
+                        x: 50,
+                        y: 30
+                    });
+                });
             });
         });
     });

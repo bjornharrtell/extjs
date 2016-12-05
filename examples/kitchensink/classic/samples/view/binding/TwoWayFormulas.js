@@ -15,7 +15,7 @@ Ext.define('KitchenSink.view.binding.TwoWayFormulas', {
 
     title: 'Two-Way Formulas',
 
-    scrollable: true,
+    manageHeight: false,
     width: 450,
     frame: true,
     resizable: true,

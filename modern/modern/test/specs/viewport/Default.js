@@ -1,21 +1,11 @@
 describe("Ext.viewport.Default", function() {
-    var initialHeight = 600,
-        initialWidth = 300,
-        addWindowListenerSpy,
+    var addWindowListenerSpy,
         Viewport = Ext.viewport.Default;
 
     Viewport.override({
         addWindowListener: function() {
             if (!addWindowListenerSpy) return this.callOverridden(arguments);
             addWindowListenerSpy.apply(this, arguments);
-        },
-
-        getWindowWidth: function() {
-            return initialWidth;
-        },
-
-        getWindowHeight: function() {
-            return initialHeight;
         },
 
         getWindowOrientation: function() {
@@ -99,53 +89,6 @@ describe("Ext.viewport.Default", function() {
 
                 expect(viewport.fireEvent).not.toHaveBeenCalled();
             });
-
-            it("should fire a 'resize' event and pass the width and height as arguments if the size changes", function(){
-                // both width and height must change, and the actual calculated orientation
-                // much also change between portrait and landscape
-                var newHeight = initialWidth,
-                    newWidth = initialHeight;
-
-                spyOn(viewport, 'getWindowHeight').andReturn(newHeight);
-                spyOn(viewport, 'getWindowWidth').andReturn(newWidth);
-                spyOn(viewport, 'fireEvent');
-
-                viewport.onResize();
-
-                expect(viewport.fireEvent).toHaveBeenCalledWith(
-                    'orientationchange',
-                    viewport, 'landscape',
-                    newWidth,
-                    newHeight);
-            });
-
-            it("should invoke fireOrientationChangeEvent() if width is greater than height", function(){
-                var newHeight = 300,
-                    newWidth = 600;
-
-                spyOn(viewport, 'getWindowHeight').andReturn(newHeight);
-                spyOn(viewport, 'getWindowWidth').andReturn(newWidth);
-
-                spyOn(viewport, 'fireOrientationChangeEvent');
-
-                viewport.onResize();
-
-                expect(viewport.fireOrientationChangeEvent).toHaveBeenCalled();
-            });
-
-            it("should NOT invoke onOrientationChange() if width is still smaller than height", function(){
-                var newHeight = 600,
-                    newWidth = 599;
-
-                spyOn(viewport, 'getWindowHeight').andReturn(newHeight);
-                spyOn(viewport, 'getWindowWidth').andReturn(newWidth);
-
-                spyOn(viewport, 'fireOrientationChangeEvent');
-
-                viewport.onResize();
-
-                expect(viewport.fireOrientationChangeEvent).not.toHaveBeenCalled();
-            });
         });
 
         describe("determineOrientation()", function(){
@@ -165,33 +108,36 @@ describe("Ext.viewport.Default", function() {
                 it("should return viewport.PORTRAIT if orientation equals 0", function(){
                     spyOn(viewport, 'getWindowOrientation').andReturn(0);
 
-                    viewport.determineOrientation();
-
-                    expect(viewport.determineOrientation()).toBe(viewport.PORTRAIT);
+                    var orientation = viewport.determineOrientation();
+                    expect(orientation).toBe(viewport.PORTRAIT);
                 });
 
                 it("should return viewport.PORTRAIT if orientation equals 180", function(){
                     spyOn(viewport, 'getWindowOrientation').andReturn(180);
 
-                    viewport.determineOrientation();
-
-                    expect(viewport.determineOrientation()).toBe(viewport.PORTRAIT);
+                    var orientation = viewport.determineOrientation();
+                    expect(orientation).toBe(viewport.PORTRAIT);
                 });
 
                 it("should return viewport.LANDSCAPE if orientation equals 90", function(){
                     spyOn(viewport, 'getWindowOrientation').andReturn(90);
 
-                    viewport.determineOrientation();
+                    var orientation = viewport.determineOrientation();
+                    expect(orientation).toBe(viewport.LANDSCAPE);
+                });
 
-                    expect(viewport.determineOrientation()).toBe(viewport.LANDSCAPE);
+                it("should return viewport.LANDSCAPE if orientation equals -90", function(){
+                    spyOn(viewport, 'getWindowOrientation').andReturn(-90);
+
+                    var orientation = viewport.determineOrientation();
+                    expect(orientation).toBe(viewport.LANDSCAPE);
                 });
 
                 it("should return viewport.LANDSCAPE if orientation equals 270", function(){
                     spyOn(viewport, 'getWindowOrientation').andReturn(270);
 
-                    viewport.determineOrientation();
-
-                    expect(viewport.determineOrientation()).toBe(viewport.LANDSCAPE);
+                    var orientation = viewport.determineOrientation();
+                    expect(orientation).toBe(viewport.LANDSCAPE);
                 });
             });
 
@@ -200,35 +146,9 @@ describe("Ext.viewport.Default", function() {
                     spyOn(viewport, 'supportsOrientation').andReturn(false);
                 });
 
-                it("should invoke getWindowWidth() and getWindowHeight()", function(){
-                    spyOn(viewport, 'getWindowWidth');
-                    spyOn(viewport, 'getWindowHeight');
-
-                    viewport.determineOrientation();
-
-                    expect(viewport.getWindowWidth).toHaveBeenCalled();
-                    expect(viewport.getWindowHeight).toHaveBeenCalled();
-                });
-
-                it("should return viewport.PORTRAIT if height is 600 and width is 400", function(){
-                    spyOn(viewport, 'getWindowHeight').andReturn(600);
-                    spyOn(viewport, 'getWindowWidth').andReturn(400);
-
-                    expect(viewport.determineOrientation()).toBe(viewport.PORTRAIT);
-                });
-
-                it("should return viewport.PORTRAIT if height is 600 and width is 600 (equivalent)", function(){
-                    spyOn(viewport, 'getWindowHeight').andReturn(600);
-                    spyOn(viewport, 'getWindowWidth').andReturn(600);
-
-                    expect(viewport.determineOrientation()).toBe(viewport.PORTRAIT);
-                });
-
-                it("should return viewport.LANDSCAPE if height is 400 and width is 600", function(){
-                    spyOn(viewport, 'getWindowHeight').andReturn(400);
-                    spyOn(viewport, 'getWindowWidth').andReturn(600);
-
-                    expect(viewport.determineOrientation()).toBe(viewport.LANDSCAPE);
+                it("should return a value other then null", function(){
+                    var orientation = viewport.determineOrientation();
+                    expect(orientation).not.toBeNull();
                 });
             });
         });
@@ -253,81 +173,21 @@ describe("Ext.viewport.Default", function() {
             it("should fire an 'orientationchange' event and pass the new orientation, width and height as arguments, if the orientation did change", function(){
                 var newOrientation = viewport.LANDSCAPE;
 
+                viewport.setOrientation(viewport.PORTRAIT);
+
                 spyOn(viewport, 'determineOrientation').andReturn(newOrientation);
                 spyOn(viewport, 'fireEvent');
 
+                viewport.updateSize = function() {
+                    this.windowWidth = 100;
+                    this.windowHeight = 200;
+
+                    return this;
+                };
                 viewport.onOrientationChange();
 
-                expect(viewport.fireEvent).toHaveBeenCalledWith('orientationchange', viewport, newOrientation, viewport.windowWidth, viewport.windowHeight);
+                expect(viewport.fireEvent).toHaveBeenCalledWith('orientationchange', viewport, newOrientation, 100, 200);
             });
         });
     });
-    
-    
-    describe("scrolling", function(){
-        var viewport,
-            viewportScroller,
-            DomScroller = Ext.scroll.DomScroller,
-            viewportScrollCount = 0,
-            documentScrollCount = 0;
-
-        beforeEach(function() {
-            // Gets destroyed by viewports, so restore to initial conditions for tests
-            if (!DomScroller.document) {
-                DomScroller.document = new DomScroller({
-                    x: true,
-                    y: true,
-                    element: document.body
-                });
-            };
-
-            document.documentElement.style.height = '500px';
-            document.documentElement.style.overflow = 'auto';
-
-            // This must not fire.
-            // We can't use a single global listener because different
-            // event sources are used on different platforms.
-            // We are checking that the global instance is destroyed and fires
-            // no events.
-            DomScroller.document.on('scroll', function() {
-                documentScrollCount++;
-            });
-            viewport = new Viewport({
-                layout: 'default',
-                scrollable: true,
-                items: [{
-                    xtype: 'component',
-                    height: 5000,
-                    width: 100
-                }]
-            });
-            viewportScroller = viewport.getScrollable();
-            viewportScroller.on({
-                scroll: function() {
-                    viewportScrollCount++;
-                }
-            });
-        });
-
-        afterEach(function(){
-            viewport.destroy();
-        });
-
-        it('should only a fire scroll event through the viewport. The global dom scroller must be destroyed', function() {
-            viewportScroller.scrollTo(null, 500);
-
-            // Wait for potentially asynchronous scroll events to fire.
-            waits(100);
-
-            runs(function() {
-                expect(DomScroller.document == null).toBe(true);
-
-                expect(viewportScrollCount).toBe(1);
-
-                // We must have received no scroll events from the document scroller
-                expect(documentScrollCount).toBe(0);
-            });
-        });
-    });
-
 });

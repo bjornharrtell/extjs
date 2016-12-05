@@ -1,11 +1,11 @@
 Ext.define('KitchenSink.view.binding.Form', {
     extend: 'Ext.form.Panel',
 
-    //<example>
+    // <example>
     requires: [
         'Ext.app.ViewModel'
     ],
-    //</example>
+    // </example>
 
     viewModel: {
         data: {
@@ -17,6 +17,8 @@ Ext.define('KitchenSink.view.binding.Form', {
 
     layout: 'vbox',
     scrollable: true,
+    shadow: true,
+    cls: 'demo-solid-background',
 
     items: {
         xtype: 'fieldset',

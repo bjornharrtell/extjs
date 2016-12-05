@@ -4,6 +4,7 @@
 Ext.define('KitchenSink.view.form.RatingForm', {
     extend: 'Ext.panel.Panel',
     xtype: 'form-rating',
+    controller: 'form-rating',
 
     requires: [
         'Ext.ux.rating.Picker'
@@ -11,6 +12,9 @@ Ext.define('KitchenSink.view.form.RatingForm', {
     //<example>
     exampleTitle: 'Rating Form',
     otherContent: [{
+        type: 'Controller',
+        path: 'classic/samples/view/form/RatingFormController.js'
+    }, {
         type: 'Store',
         path: 'classic/samples/store/BigData.js'
     }, {
@@ -22,7 +26,6 @@ Ext.define('KitchenSink.view.form.RatingForm', {
     title: 'Rating Form',
     viewModel: true,
 
-    bodyPadding: 10,
     width: 520,
     height: 500,
     minHeight: 400,
@@ -32,16 +35,23 @@ Ext.define('KitchenSink.view.form.RatingForm', {
         type: 'vbox',
         align: 'stretch'
     },
-    defaultType: 'textfield',
+
+    keyMap: {
+        '+': 'onKeyPlus',
+        '-': 'onKeyMinus'
+    },
 
     items: [{
         xtype: 'grid',
-        flex: 1,
         reference: 'employeeGrid',
+        flex: 1,
+        style: {
+            borderBottomWidth: '1px',
+            borderBottomStyle: 'solid'
+        },
         store: {
             type: 'big-data'
         },
-        margin: '0 0 10 0',
         columns:[{
             xtype: 'rownumberer',
             width: 40,
@@ -100,46 +110,55 @@ Ext.define('KitchenSink.view.form.RatingForm', {
                 }
             }]
         }]
-    },{
-        fieldLabel: 'First Name',
-        emptyText: 'First Name',
-        bind: {
-            disabled: '{!employeeGrid.selection}',
-            value: '{employeeGrid.selection.forename}'
-        }
     }, {
-        fieldLabel: 'Last Name',
-        emptyText: 'Last Name',
-        bind: {
-            disabled: '{!employeeGrid.selection}',
-            value: '{employeeGrid.selection.surname}'
-        }
-    }, {
-        fieldLabel: 'Email',
-        vtype: 'email',
-        bind: {
-            disabled: '{!employeeGrid.selection}',
-            value: '{employeeGrid.selection.email}'
-        }
-    }, {
-        xtype: 'datefield',
-        fieldLabel: 'Date of Birth',
-        allowBlank: false,
-        maxValue: new Date(),
-        bind: {
-            disabled: '{!employeeGrid.selection}',
-            value: '{employeeGrid.selection.dob}'
-        }
-    }, {
-        xtype: 'fieldcontainer',
-        fieldLabel: 'Current\u00a0Rating',
-        bind: {
-            disabled: '{!employeeGrid.selection}'
+        xtype: 'container',
+        layout: 'anchor',
+        defaults: {
+            width: '100%'
         },
+        defaultType: 'textfield',
+        padding: 10,
         items: [{
-            xtype: 'rating',
-            scale: '150%',
-            bind: '{employeeGrid.selection.ratingThisYear}'
+            fieldLabel: 'First Name',
+            emptyText: 'First Name',
+            bind: {
+                disabled: '{!employeeGrid.selection}',
+                value: '{employeeGrid.selection.forename}'
+            }
+        }, {
+            fieldLabel: 'Last Name',
+            emptyText: 'Last Name',
+            bind: {
+                disabled: '{!employeeGrid.selection}',
+                value: '{employeeGrid.selection.surname}'
+            }
+        }, {
+            fieldLabel: 'Email',
+            vtype: 'email',
+            bind: {
+                disabled: '{!employeeGrid.selection}',
+                value: '{employeeGrid.selection.email}'
+            }
+        }, {
+            xtype: 'datefield',
+            fieldLabel: 'Date of Birth',
+            allowBlank: false,
+            maxValue: new Date(),
+            bind: {
+                disabled: '{!employeeGrid.selection}',
+                value: '{employeeGrid.selection.dob}'
+            }
+        }, {
+            xtype: 'fieldcontainer',
+            fieldLabel: 'Current\u00a0Rating',
+            bind: {
+                disabled: '{!employeeGrid.selection}'
+            },
+            items: [{
+                xtype: 'rating',
+                scale: '150%',
+                bind: '{employeeGrid.selection.ratingThisYear}'
+            }]
         }]
     }]
 });

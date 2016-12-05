@@ -57,7 +57,7 @@ describe("Ext.Array", function() {
                 it("should not cause an exception", function() {
                     expect(function() {
                         Ext.Array.remove(myArray, 1);
-                    }).not.toRaiseExtError();
+                    }).not.toThrow();
 
                     expect(myArray).toEqual([]);
                 });
@@ -821,7 +821,7 @@ describe("Ext.Array", function() {
         it("should throw an exception if no fn is passed", function(){
             expect(function(){
                 Ext.Array.every([1, 2, 3]);
-            }).toRaiseExtError();
+            }).toThrow();
         });
 
         it("should stop as soon as a false value is found", function(){
@@ -881,7 +881,7 @@ describe("Ext.Array", function() {
         it("should throw an exception if no fn is passed", function(){
             expect(function(){
                 Ext.Array.some([1, 2, 3]);
-            }).toRaiseExtError();
+            }).toThrow();
         });
 
         it("should stop as soon as a matching value is found", function(){

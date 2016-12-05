@@ -104,6 +104,12 @@ $tree-leaf-glyph-color: dynamic($tree-glyph-color);
 $tree-arrow-glyph: dynamic($fa-var-caret-right $tree-glyph-font-size $font-icon-font-family);
 
 /**
+* @var {string/list}
+* Glyph for the RTL "arrow" tree icon when {@link Global_CSS#$enable-font-icons} is `true`.
+*/
+$tree-arrow-glyph-rtl: dynamic($fa-var-caret-left $tree-glyph-font-size $font-icon-font-family);
+
+/**
  * @var {color}
  * The color to use for the "arrow" tree icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */

@@ -7,24 +7,23 @@
 Ext.define('KitchenSink.view.form.Checkout', {
     extend: 'Ext.form.Panel',
     xtype: 'form-checkout',
-    
-    //<example>
+    controller: 'form-checkout',
+
     requires: [
         'KitchenSink.model.State',
         'KitchenSink.store.States'
     ],
-    
-    exampleTitle: 'Checkout Form',
+
+    //<example>
     otherContent: [{
-        type: 'Model',
-        path: 'classic/samples/model/State.js'
-    },{
-        type: 'Data',
-        path: 'classic/samples/data/DataSets.js'
+        type: 'Controller',
+        path: 'classic/samples/view/form/CheckoutController.js'
     }],
     profiles: {
         classic: {
-            formWidth: 550,
+            bodyPadding: 5,
+            width: 550,
+
             normalLabelWidth: 90,
             longLabelWidth: 90,
             phoneWidth: 200,
@@ -32,26 +31,28 @@ Ext.define('KitchenSink.view.form.Checkout', {
             stateWidth: 115,
             postalCodeLabelWidth: 80,
             expirationMonthWidth: 100,
-            expirationYearWidth: 70
+            expirationYearWidth: 80
         },
         neptune: {
-            formWidth: 550,
+            bodyPadding: 10,
+            width: 620,
+            
             normalLabelWidth: 90,
             longLabelWidth: 110,
-            phoneWidth: 200,
+            phoneWidth: 220,
             phoneLabelWidth: 100,
-            stateWidth: 115,
+            stateWidth: 125,
             postalCodeLabelWidth: 80,
             expirationMonthWidth: 100,
-            expirationYearWidth: 70
+            expirationYearWidth: 90
         },
         'neptune-touch': {
-            formWidth: 650,
+            width: 680,
             normalLabelWidth: 100,
             longLabelWidth: 130,
             phoneWidth: 230,
             phoneLabelWidth: 120,
-            stateWidth: 125,
+            stateWidth: 135,
             postalCodeLabelWidth: 90,
             expirationMonthWidth: 120,
             expirationYearWidth: 110
@@ -59,383 +60,353 @@ Ext.define('KitchenSink.view.form.Checkout', {
     },
     //</example>
 
-    frame: true,
     title: 'Complete Check Out',
-    bodyPadding: 5,
+    width: '${width}',
+    bodyPadding: '${bodyPadding}',
+    frame: true,
 
-    initComponent: function(){
-        var states = new Ext.data.Store({
-            model: KitchenSink.model.State,
-            proxy: {
-                type: 'memory',
-                reader: {
-                    type: 'array'
-                }
-            },
-            data: KitchenSink.data.DataSets.states
-        }),
-        billingStates = new Ext.data.Store({
-            model: KitchenSink.model.State,
-            proxy: {
-                type: 'memory',
-                reader: {
-                    type: 'array'
-                }
-            },
-            data: KitchenSink.data.DataSets.states
-        });
-        
-        if (!this.monthStore) {
-            this.self.prototype.monthStore = new Ext.data.Store({
-                fields: ['name', 'num'],
-                data: (function() {
-                    var data = new Array(12);
-                        Ext.Array.forEach(Ext.Date.monthNames, function(name, i) {
-                            data[i] = {name: name, num: i + 1};
-                        });
-                    return data;
-                })()
-            });
-        }
+    fieldDefaults: {
+        labelAlign: 'right',
+        labelWidth: '${normalLabelWidth}',
+        msgTarget: Ext.supports.Touch ? 'side' : 'qtip'
+    },
 
-        Ext.apply(this, {
-            width: this.profileInfo.formWidth,
-            fieldDefaults: {
-                labelAlign: 'right',
-                labelWidth: this.profileInfo.normalLabelWidth,
-                msgTarget: Ext.supports.Touch ? 'side' : 'qtip'
+    items: [{
+        xtype: 'fieldset',
+        title: 'Contact Information',
+        defaultType: 'textfield',
+        layout: 'anchor',
+        defaults: {
+            anchor: '100%'
+        },
+        items: [{
+            xtype: 'fieldcontainer',
+            fieldLabel: 'Name',
+
+            layout: 'hbox',
+            combineErrors: true,
+            defaultType: 'textfield',
+            defaults: {
+                hideLabel: 'true'
             },
 
             items: [{
-                xtype: 'fieldset',
-                title: 'Your Contact Information',
-                defaultType: 'textfield',
-                layout: 'anchor',
-                defaults: {
-                    anchor: '100%'
-                },
-                items: [{
-                    xtype: 'fieldcontainer',
-                    fieldLabel: 'Name',
-                    layout: 'hbox',
-                    combineErrors: true,
-                    defaultType: 'textfield',
-                    defaults: {
-                        hideLabel: 'true'
-                    },
-                    items: [{
-                        name: 'firstName',
-                        fieldLabel: 'First Name',
-                        flex: 2,
-                        emptyText: 'First',
-                        allowBlank: false
-                    }, {
-                        name: 'lastName',
-                        fieldLabel: 'Last Name',
-                        flex: 3,
-                        margin: '0 0 0 6',
-                        emptyText: 'Last',
-                        allowBlank: false
-                    }]
-                }, {
-                    xtype: 'container',
-                    layout: 'hbox',
-                    defaultType: 'textfield',
-                    margin: '0 0 5 0',
-                    items: [{
-                        fieldLabel: 'Email Address',
-                        name: 'email',
-                        vtype: 'email',
-                        flex: 1,
-                        allowBlank: false
-                    }, {
-                        fieldLabel: 'Phone Number',
-                        labelWidth: this.profileInfo.phoneLabelWidth,
-                        name: 'phone',
-                        width: this.profileInfo.phoneWidth,
-                        emptyText: 'xxx-xxx-xxxx',
-                        maskRe: /[\d\-]/,
-                        regex: /^\d{3}-\d{3}-\d{4}$/,
-                        regexText: 'Must be in the format xxx-xxx-xxxx'
-                    }]
-                }]
-            }, {
-                xtype: 'fieldset',
-                title: 'Mailing Address',
-                defaultType: 'textfield',
-                layout: 'anchor',
-                defaults: {
-                    anchor: '100%'
-                },
-                items: [{
-                    labelWidth: this.profileInfo.longLabelWidth,
-                    fieldLabel: 'Street Address',
-                    name: 'mailingStreet',
-                    listeners: {
-                        scope: this,
-                        change: this.onMailingAddrFieldChange
-                    },
-                    billingFieldName: 'billingStreet',
-                    allowBlank: false
-                }, {
-                    xtype: 'container',
-                    layout: 'hbox',
-                    margin: '0 0 5 0',
-                    items: [{
-                        labelWidth: this.profileInfo.longLabelWidth,
-                        xtype: 'textfield',
-                        fieldLabel: 'City',
-                        name: 'mailingCity',
-                        listeners: {
-                            scope: this,
-                            change: this.onMailingAddrFieldChange
-                        },
-                        billingFieldName: 'billingCity',
-                        flex: 1,
-                        allowBlank: false
-                    }, {
-                        xtype: 'combobox',
-                        name: 'mailingState',
-                        forceSelection: true,
-                        enforceMaxLength: true,
-                        listeners: {
-                            scope: this,
-                            change: this.onMailingAddrFieldChange
-                        },
-                        billingFieldName: 'billingState',
-                        fieldLabel: 'State',
-                        labelWidth: 50,
-                        width: this.profileInfo.stateWidth,
-                        listConfig: {
-                            minWidth: null
-                        },
-                        store: states,
-                        valueField: 'abbr',
-                        displayField: 'abbr',
-                        typeAhead: true,
-                        queryMode: 'local',
-                        allowBlank: false
-                    }, {
-                        xtype: 'textfield',
-                        fieldLabel: 'Postal Code',
-                        labelWidth: this.profileInfo.postalCodeLabelWidth,
-                        name: 'mailingPostalCode',
-                        listeners: {
-                            scope: this,
-                            change: this.onMailingAddrFieldChange
-                        },
-                        billingFieldName: 'billingPostalCode',
-                        width: 160,
-                        allowBlank: false,
-                        maxLength: 10,
-                        enforceMaxLength: true,
-                        maskRe: /[\d\-]/,
-                        regex: /^\d{5}(\-\d{4})?$/,
-                        regexText: 'Must be in the format xxxxx or xxxxx-xxxx'
-                    }]
-                }]
-            }, {
-                xtype: 'fieldset',
-                title: 'Billing Address',
-                layout: 'anchor',
-                defaults: {
-                    anchor: '100%'
-                },
-                items: [{
-                    xtype: 'checkbox',
-                    name: 'billingSameAsMailing',
-                    boxLabel: 'Same as Mailing Address?',
-                    hideLabel: true,
-                    checked: true,
-                    margin: '0 0 10 0',
-                    scope: this,
-                    handler: this.onSameAddressChange
-                }, {
-                    labelWidth: this.profileInfo.longLabelWidth,
-                    xtype: 'textfield',
-                    fieldLabel: 'Street Address',
-                    name: 'billingStreet',
-                    style: 'opacity:.3',
-                    disabled: true,
-                    allowBlank: false
-                }, {
-                    xtype: 'container',
-                    layout: 'hbox',
-                    margin: '0 0 5 0',
-                    items: [{
-                        labelWidth: this.profileInfo.longLabelWidth,
-                        xtype: 'textfield',
-                        fieldLabel: 'City',
-                        name: 'billingCity',
-                        style: 'opacity:.3',
-                        flex: 1,
-                        disabled: true,
-                        allowBlank: false
-                    }, {
-                        xtype: 'combobox',
-                        name: 'billingState',
-                        enforceMaxLength: true,
-                        style: 'opacity:.3',
-                        fieldLabel: 'State',
-                        labelWidth: 50,
-                        listConfig: {
-                            minWidth: null
-                        },
-                        width: this.profileInfo.stateWidth,
-                        store: billingStates,
-                        valueField: 'abbr',
-                        displayField: 'abbr',
-                        typeAhead: true,
-                        queryMode: 'local',
-                        disabled: true,
-                        allowBlank: false,
-                        forceSelection: true
-                    }, {
-                        xtype: 'textfield',
-                        fieldLabel: 'Postal Code',
-                        labelWidth: this.profileInfo.postalCodeLabelWidth,
-                        name: 'billingPostalCode',
-                        style: 'opacity:.3',
-                        width: 160,
-                        disabled: true,
-                        allowBlank: false,
-                        maxLength: 10,
-                        enforceMaxLength: true,
-                        maskRe: /[\d\-]/,
-                        regex: /^\d{5}(\-\d{4})?$/,
-                        regexText: 'Must be in the format xxxxx or xxxxx-xxxx'
-                    }]
-                }]
-            }, {
-                xtype: 'fieldset',
-                title: 'Payment',
-                layout: 'anchor',
-                defaults: {
-                    anchor: '100%'
-                },
-                items: [{
-                    xtype: 'radiogroup',
-                    layout: {
-                        autoFlex: false
-                    },
-                    defaults: {
-                        name: 'ccType',
-                        margin: '0 15 0 0'
-                    },
-                    items: [{
-                        inputValue: 'visa',
-                        boxLabel: 'VISA',
-                        checked: true
-                    }, {
-                        inputValue: 'mastercard',
-                        boxLabel: 'MasterCard'
-                    }, {
-                        inputValue: 'amex',
-                        boxLabel: 'American Express'
-                    }, {
-                        inputValue: 'discover',
-                        boxLabel: 'Discover'
-                    }]
-                }, {
-                    xtype: 'textfield',
-                    name: 'ccName',
-                    fieldLabel: 'Name On Card',
-                    labelWidth: 110,
-                    allowBlank: false
-                }, {
-                    xtype: 'container',
-                    layout: 'hbox',
-                    margin: '0 0 5 0',
-                    items: [{
-                        xtype: 'textfield',
-                        name: 'ccNumber',
-                        fieldLabel: 'Card Number',
-                        labelWidth: 110,
-                        flex: 1,
-                        allowBlank: false,
-                        minLength: 15,
-                        maxLength: 16,
-                        enforceMaxLength: true,
-                        maskRe: /\d/
-                    }, {
-                        xtype: 'fieldcontainer',
-                        fieldLabel: 'Expiration',
-                        labelWidth: 75,
-                        layout: 'hbox',
-                        items: [{
-                            xtype: 'combobox',
-                            name: 'ccExpireMonth',
-                            displayField: 'name',
-                            valueField: 'num',
-                            queryMode: 'local',
-                            emptyText: 'Month',
-                            hideLabel: true,
-                            margin: '0 6 0 0',
-                            store: this.monthStore,
-                            width: this.profileInfo.expirationMonthWidth,
-                            allowBlank: false,
-                            forceSelection: true
-                        }, {
-                            xtype: 'numberfield',
-                            name: 'ccExpireYear',
-                            hideLabel: true,
-                            width: this.profileInfo.expirationYearWidth,
-                            value: new Date().getFullYear(),
-                            minValue: new Date().getFullYear(),
-                            allowBlank: false
-                        }]
-                    }]
-                }]
-            }
-        ],
+                fieldLabel: 'First Name',
+                name: 'firstName',
 
-        buttons: [{
-            text: 'Reset',
-            scope: this,
-            handler: this.onResetClick
+                flex: 2,
+                emptyText: 'First',
+                allowBlank: false
+            }, {
+                fieldLabel: 'Last Name',
+                name: 'lastName',
+
+                flex: 3,
+                margin: '0 0 0 6',
+                emptyText: 'Last',
+                allowBlank: false
+            }]
         }, {
-            text: 'Complete Purchase',
-            width: 150,
-            scope: this,
-            handler: this.onCompleteClick
+            xtype: 'container',
+            layout: 'hbox',
+            defaultType: 'textfield',
+            margin: '0 0 5 0',
+
+            items: [{
+                fieldLabel: 'Email Address',
+                name: 'email',
+
+                vtype: 'email',
+                flex: 1,
+                allowBlank: false
+            }, {
+                fieldLabel: 'Phone Number',
+                name: 'phone',
+
+                labelWidth: '${phoneLabelWidth}',
+                width: '${phoneWidth}',
+                emptyText: 'xxx-xxx-xxxx',
+                maskRe: /[\d\-]/,
+                regex: /^\d{3}-\d{3}-\d{4}$/,
+                regexText: 'Must be in the format xxx-xxx-xxxx'
+            }]
         }]
-        });
-        this.callParent();
-    },
+    }, {
+        xtype: 'fieldset',
+        title: 'Mailing Address',
+        reference: 'mailingAddressForm',
+        
+        defaultType: 'textfield',
+        layout: 'anchor',
+        defaults: {
+            anchor: '100%'
+        },
+        
+        items: [{
+            fieldLabel: 'Street Address',
+            name: 'mailingStreet',
+            reference: 'mailingStreet',
 
-    onResetClick: function(){
-        this.getForm().reset();
-    },
+            labelWidth: '${longLabelWidth}',
+            allowBlank: false,
+            
+            listeners: {
+                change: 'onMailingAddrFieldChange'
+            }
+        }, {
+            xtype: 'container',
+            layout: 'hbox',
+            margin: '0 0 5 0',
 
-    onCompleteClick: function(){
-        var form = this.getForm();
-        if (form.isValid()) {
-            Ext.MessageBox.alert('Submitted Values', form.getValues(true));
-        }
-    },
+            items: [{
+                xtype: 'textfield',
+                fieldLabel: 'City',
+                name: 'mailingCity',
+                reference: 'mailingCity',
 
-    onMailingAddrFieldChange: function(field){
-        var copyToBilling = this.down('[name=billingSameAsMailing]').getValue(),
-            copyField = this.down('[name=' + field.billingFieldName + ']');
+                labelWidth: '${longLabelWidth}',
+                flex: 1,
+                allowBlank: false,
+                
+                listeners: {
+                    change: 'onMailingAddrFieldChange'
+                }
+            }, {
+                xtype: 'combobox',
+                fieldLabel: 'State',
+                name: 'mailingState',
+                reference: 'mailingState',
 
-        if (copyToBilling) {
-            copyField.setValue(field.getValue());
-        } else {
-            copyField.clearInvalid();
-        }
-    },
+                width: '${stateWidth}',
+                forceSelection: true,
+                enforceMaxLength: true,
+                labelWidth: 50,
+                valueField: 'abbr',
+                displayField: 'abbr',
+                typeAhead: true,
+                queryMode: 'local',
+                allowBlank: false,
+                
+                listConfig: {
+                    minWidth: null
+                },
+                store: {
+                    type: 'states'
+                },
 
-    /**
-     * Enables or disables the billing address fields according to whether the checkbox is checked.
-     * In addition to disabling the fields, they are animated to a low opacity so they don't take
-     * up visual attention.
-     */
-    onSameAddressChange: function(box, checked){
-        var fieldset = box.ownerCt;
-        Ext.Array.forEach(fieldset.previousSibling().query('textfield'), this.onMailingAddrFieldChange, this);
-        Ext.Array.forEach(fieldset.query('textfield'), function(field) {
-            field.setDisabled(checked);
-            field.el.animate({opacity: checked ? 0.3 : 1});
-        });
-    }
+                listeners: {
+                    change: 'onMailingAddrFieldChange'
+                }
+            }, {
+                xtype: 'textfield',
+                fieldLabel: 'Postal Code',
+                name: 'mailingPostalCode',
+                reference: 'mailingPostalCode',
+
+                labelWidth: '${postalCodeLabelWidth}',
+                width: 160,
+                allowBlank: false,
+                maxLength: 10,
+                enforceMaxLength: true,
+                maskRe: /[\d\-]/,
+                regex: /^\d{5}(\-\d{4})?$/,
+                regexText: 'Must be in the format xxxxx or xxxxx-xxxx',
+
+                listeners: {
+                    change: 'onMailingAddrFieldChange'
+                }
+            }]
+        }]
+    }, {
+        xtype: 'fieldset',
+        title: 'Billing Address',
+        layout: 'anchor',
+
+        defaults: {
+            anchor: '100%'
+        },
+
+        items: [{
+            xtype: 'checkbox',
+            boxLabel: 'Same as Mailing Address?',
+            name: 'billingSameAsMailing',
+            reference: 'billingSameAsMailing',
+
+            hideLabel: true,
+            checked: true,
+            margin: '0 0 10 0',
+            handler: 'onSameAddressChange'
+        }, {
+            xtype: 'textfield',
+            fieldLabel: 'Street Address',
+            name: 'billingStreet',
+            reference: 'billingStreet',
+
+            labelWidth: '${longLabelWidth}',
+            style: 'opacity:.5',
+            disabled: true,
+            allowBlank: false
+        }, {
+            xtype: 'container',
+            layout: 'hbox',
+            margin: '0 0 5 0',
+
+            items: [{
+                xtype: 'textfield',
+                fieldLabel: 'City',
+                name: 'billingCity',
+                reference: 'billingCity',
+
+                labelWidth: '${longLabelWidth}',
+                style: 'opacity:.5',
+                flex: 1,
+                disabled: true,
+                allowBlank: false
+            }, {
+                xtype: 'combobox',
+                fieldLabel: 'State',
+                name: 'billingState',
+                reference: 'billingState',
+
+                width: '${stateWidth}',
+                enforceMaxLength: true,
+                style: 'opacity:.5',
+                labelWidth: 50,
+                valueField: 'abbr',
+                displayField: 'abbr',
+                typeAhead: true,
+                queryMode: 'local',
+                disabled: true,
+                allowBlank: false,
+                forceSelection: true,
+
+                listConfig: {
+                    minWidth: null
+                },
+                store: {
+                    type: 'states'
+                }
+            }, {
+                xtype: 'textfield',
+                fieldLabel: 'Postal Code',
+                name: 'billingPostalCode',
+                reference: 'billingPostalCode',
+
+                labelWidth: '${postalCodeLabelWidth}',
+                style: 'opacity:.5',
+                width: 160,
+                disabled: true,
+                allowBlank: false,
+                maxLength: 10,
+                enforceMaxLength: true,
+                maskRe: /[\d\-]/,
+                regex: /^\d{5}(\-\d{4})?$/,
+                regexText: 'Must be in the format xxxxx or xxxxx-xxxx'
+            }]
+        }]
+    }, {
+        xtype: 'fieldset',
+        title: 'Payment',
+
+        layout: 'anchor',
+        defaults: {
+            anchor: '100%'
+        },
+
+        items: [{
+            xtype: 'radiogroup',
+
+            layout: {
+                autoFlex: false
+            },
+
+            defaults: {
+                name: 'ccType',
+                margin: '0 15 0 0'
+            },
+
+            items: [{
+                boxLabel: 'VISA',
+                inputValue: 'visa',
+                checked: true
+            }, {
+                boxLabel: 'MasterCard',
+                inputValue: 'mastercard'
+            }, {
+                boxLabel: 'American Express',
+                inputValue: 'amex'
+            }, {
+                boxLabel: 'Discover',
+                inputValue: 'discover'
+            }]
+        }, {
+            xtype: 'textfield',
+            fieldLabel: 'Name On Card',
+            name: 'ccName',
+
+            labelWidth: 110,
+            allowBlank: false
+        }, {
+            xtype: 'container',
+            layout: 'hbox',
+            margin: '0 0 5 0',
+
+            items: [{
+                xtype: 'textfield',
+                fieldLabel: 'Card Number',
+                name: 'ccNumber',
+
+                labelWidth: 110,
+                flex: 1,
+                allowBlank: false,
+                minLength: 15,
+                maxLength: 16,
+                enforceMaxLength: true,
+                maskRe: /\d/
+            }, {
+                xtype: 'fieldcontainer',
+                fieldLabel: 'Expiration',
+
+                labelWidth: 75,
+                layout: 'hbox',
+
+                items: [{
+                    xtype: 'combobox',
+                    name: 'ccExpireMonth',
+
+                    displayField: 'name',
+                    valueField: 'number',
+                    queryMode: 'local',
+                    emptyText: 'Month',
+                    hideLabel: true,
+                    margin: '0 6 0 0',
+                    width: '${expirationMonthWidth}',
+                    allowBlank: false,
+                    forceSelection: true,
+
+                    store: {
+                        type: 'months'
+                    }
+                }, {
+                    xtype: 'numberfield',
+                    name: 'ccExpireYear',
+
+                    width: '${expirationYearWidth}',
+                    hideLabel: true,
+                    value: new Date().getFullYear(),
+                    minValue: new Date().getFullYear(),
+                    allowBlank: false
+                }]
+            }]
+        }]
+    }],
+
+    buttons: [{
+        text: 'Reset',
+        handler: 'onResetClick'
+    }, {
+        text: 'Complete Purchase',
+        width: 150,
+        handler: 'onCompleteClick'
+    }]
 });

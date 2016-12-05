@@ -3,7 +3,7 @@
  *
  * The Editable plugin injects editing at a row level for Modern Toolkit's
  * Grid. Editing begins by double-tapping a row.  This can be set to any event, which we'll
- * discuss below. The editor consists of a small floating dialog that be shown on the right
+ * discuss below. The editor consists of a small positioned dialog that be shown on the right
  * side of your viewport.
  *
  * There is a button to save or cancel all changes for the edit in the toolbar, and the
@@ -11,68 +11,81 @@
  *
  * The default editable grid can be defined like so:
  *
- *     Ext.define('MyApp.view.EditableGrid', {
- *        extend: 'Ext.grid.Grid',
- *
- *        plugins: 'grideditable'
- *
- *        store: store,
- *
- *        columns: [
- *            // columns
- *        ]
- *     );
+ *     @example
+ *     Ext.create({
+ *         xtype: 'grid',
+ *         fullscreen: true,
+ *         plugins: 'grideditable',
+ *         store: {
+ *             fields: [],
+ *             data: [{
+ *                 name: 'Jake'
+ *             }, {
+ *                 name: 'Finn'
+ *             }]
+ *         },
+ *         columns: [{
+ *             text: 'Name',
+ *             dataIndex: 'name',
+ *             flex: 1,
+ *             editable: true
+ *         }]
+ *     });
  *
  * By opening up the plugins type as an object (or an array of objects), you can modify your
  * editor more significantly.  You can see the changeable bits below:
  *
- *     Ext.define('MyApp.view.EditableGrid', {
- *        extend: 'Ext.grid.Grid',
+ *     @example
+ *     Ext.create({
+ *         xtype: 'grid',
+ *         fullscreen: true,
+ *         plugins: {
+ *             type: 'grideditable',
+ *             triggerEvent: 'doubletap',
+ *             enableDeleteButton: true,
+ *             formConfig: null, // See more below
  *
- *        plugins: {
+ *             defaultFormConfig: {
+ *                 xtype: 'formpanel',
+ *                 scrollable: true,
+ *                 items: {
+ *                     xtype: 'fieldset'
+ *                 }
+ *             },
  *
- *            type: 'grideditable',
- *
- *            triggerEvent: 'doubletap',
- *
- *            enableDeleteButton: true,
- *
- *            formConfig: null,  // See more below
- *
- *            defaultFormConfig: {
- *                xtype: 'formpanel',
- *                modal: true,
- *                scrollable: true,
- *                items: {
- *                    xtype: 'fieldset'
- *                }
- *            },
- *
- *            toolbarConfig: {
- *                xtype: 'titlebar',
- *                docked: 'top',
- *                items: [{
- *                    xtype: 'button',
- *                    ui: 'decline',
- *                    text: 'Cancel',
- *                    align: 'left',
- *                    action: 'cancel'
- *                }, {
- *                    xtype: 'button',
- *                    ui: 'confirm',
- *                    text: 'Submit',
- *                    align: 'right',
- *                    action: 'submit'
- *                }]
- *            },
- *        },
- *
- *        store: store,
- *
- *        columns: [
- *            // columns
- *        ]
- *     );
+ *             toolbarConfig: {
+ *                 xtype: 'titlebar',
+ *                 docked: 'top',
+ *                 items: [{
+ *                     xtype: 'button',
+ *                     ui: 'decline',
+ *                     text: 'Cancel',
+ *                     align: 'left',
+ *                     action: 'cancel'
+ *                 }, {
+ *                     xtype: 'button',
+ *                     ui: 'confirm',
+ *                     text: 'Submit',
+ *                     align: 'right',
+ *                     action: 'submit'
+ *                 }]
+ *             },
+ *         },
+ *         store: {
+ *             fields: [],
+ *             data: [{
+ *                 name: 'Jake'
+ *             }, {
+ *                 name: 'Finn'
+ *             }]
+ *         },
+ *         columns: [{
+ *             text: 'Name',
+ *             dataIndex: 'name',
+ *             flex: 1,
+ *             editable: true
+ *         }]
+ *     });
  *
  *  As you can see, you can easily modify nearly every bit of the editor window.  As mentioned
  *  above, the toolbar and delete button are the only components included by default.  That's
@@ -127,7 +140,6 @@ Ext.define('Ext.grid.plugin.Editable', {
          */
         defaultFormConfig: {
             xtype: 'formpanel',
-            modal: true,
             scrollable: true,
             items: {
                 xtype: 'fieldset'
@@ -163,6 +175,10 @@ Ext.define('Ext.grid.plugin.Editable', {
 
     init: function(grid) {
         this.setGrid(grid);
+
+        grid.setTouchAction({
+            doubleTapZoom: false
+        });
     },
 
     updateGrid: function(grid, oldGrid) {
@@ -192,7 +208,7 @@ Ext.define('Ext.grid.plugin.Editable', {
     },
 
     getRecordByTriggerEvent: function(e) {
-        var rowEl = e.getTarget('.' + Ext.baseCSSPrefix + 'grid-row'),
+        var rowEl = e.getTarget('.' + Ext.baseCSSPrefix + 'gridrow'),
             row;
 
         if (rowEl) {
@@ -252,6 +268,7 @@ Ext.define('Ext.grid.plugin.Editable', {
                 hideOnMaskTap: true,
                 enter: 'right',
                 exit: 'right',
+                centered: false,
                 right: 0,
                 width: 320,
                 layout: 'fit',

@@ -109,7 +109,7 @@ Ext.define('Ext.chart.MarkerHolder', {
         return this.boundMarkers[name] || null;
     },
 
-    preRender: function () {
+    preRender: function (surface, ctx, rect) {
         var me = this,
             id = me.getId(),
             boundMarkers = me.boundMarkers,

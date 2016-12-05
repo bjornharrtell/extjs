@@ -1,16 +1,57 @@
 /**
- * This type of association is similar to {@link Ext.data.schema.ManyToOne many-to-one},
- * except that the {@link Ext.data.field.Field#cfg-reference reference} field also has set
- * {@link Ext.data.field.Field#cfg-unique unique} to `true`.
+ * **This class is never created directly. It should be constructed through associations in `Ext.data.Model`.**
  *
- * While this type of association helps handle both sides of the association properly, it
- * is problematic to enforce the uniqueness aspect. If the database were to enforce this
- * uniqueness constraint, it would limit the field to be non-nullable. Even if this were
- * acceptable, this also creates challenges for a "soft-delete" strategy where records are
- * kept in the table, but only marked as "deleted" in a field.
+ * This is a specialized version of `Ext.data.schema.ManyToOne` that declares a relationship between a single 
+ * entity type and a single related entities. The relationship can be declared as a keyed or keyless relationship.
+ *
+ *     // Keyed
+ *     Ext.define('User', {
+ *         extend: 'Ext.data.Model',
+ *         fields: ['id', 'name', {
+ *             name: 'userInfoId',
+ *             reference: {
+ *                 type: 'UserInfo',
+ *                 unique: true
+ *             }
+ *         }]
+ *     });
+ *
+ *     Ext.define('UserInfo', {
+ *         extend: 'Ext.data.Model',
+ *         fields: ['id', 'secretKey']
+ *     });
+ *
+ *     // Keyless
+ *     Ext.define('User', {
+ *         extend: 'Ext.data.Model',
+ *         fields: ['id', 'name'],
+ *         hasOne: 'UserInfo'
+ *     });
+ *
+ *     Ext.define('Ticket', {
+ *         extend: 'Ext.data.Model',
+ *         fields: ['id', 'secretKey']
+ *     });
+ *
+ *     // Generated methods
+ *     var user = new User();
+ *     user.getUserInfo();
+ *     user.setUserInfo();
+ *     
+ *     var info = new UserInfo();
+ *     info.getUser();
+ *     info.setUser();
+ *     
+ *
+ *     var ticket = new Ticket();
+ *     ticket.setCustomer(customer);
+ *     console.log(ticket.getCustomer()); // The customer object
+ *
+ * By declaring a keyed relationship, extra functionality is gained that maintains
+ * the key field in the model as changes are made to the association. 
  * 
- * Ensuring uniqueness on the client-side is also difficult. So, at the present time, this
- * is not enforced.
+ * For available configuration options, see {@link Ext.data.schema.Reference}.
+ * Each record type will have a {@link Ext.data.schema.Association#recordGetter getter} and {@link Ext.data.schema.Association#recordSetter setter}.
  */
 Ext.define('Ext.data.schema.OneToOne', {
     extend: 'Ext.data.schema.Association',
@@ -29,6 +70,15 @@ Ext.define('Ext.data.schema.OneToOne', {
             rightRecord[this.getInstanceName()] = null;
             if (leftRecord) {
                 leftRecord[this.inverse.getInstanceName()] = null;
+            }
+        },
+
+        onIdChanged: function(rightRecord, oldId, newId) {
+            var leftRecord = this.getAssociatedItem(rightRecord),
+                fieldName = this.association.getFieldName();
+
+            if (!rightRecord.session && leftRecord && fieldName) {
+                leftRecord.set(fieldName, newId);
             }
         },
 
@@ -86,6 +136,7 @@ Ext.define('Ext.data.schema.OneToOne', {
                     // thing we keep on this side so we won't recurse back-and-forth.
                     leftRecord[inverseSetter](rightRecord);
                 }
+                rightRecord.onAssociatedRecordSet(leftRecord, this);
             }
 
             return ret;
@@ -142,7 +193,7 @@ Ext.define('Ext.data.schema.OneToOne', {
                 id;
 
             if (me.inverse.owner) {
-                if (session) {
+                if (session && field) {
                     id = leftRecord.get(field.name);
                     if (id || id === 0) {
                         rightRecord = session.getEntry(me.cls, id).record;

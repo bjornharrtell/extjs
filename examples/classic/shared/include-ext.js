@@ -40,7 +40,7 @@
     var scriptEls = document.getElementsByTagName('script'),
         scriptPath = scriptEls[scriptEls.length - 1].src,
         rtl = getQueryParam('rtl'),
-        themeName = getQueryParam('theme') || 'triton',
+        themeName = (getQueryParam('theme') || 'triton').replace(/^([-A-Za-z]*)(.*)/, '$1'),
         includeCSS = !hasOption('nocss', scriptPath),
         useDebug = hasOption('debug'),
         hasOverrides = !hasOption('nooverrides', scriptPath) && !!{
@@ -49,7 +49,6 @@
             triton: 1,
             classic: 1,
             gray: 1,
-            triton: 1,
             'neptune-touch': 1,
             crisp: 1,
             'crisp-touch': 1
@@ -60,7 +59,7 @@
         rtlSuffix = (rtl ? '-rtl' : ''),
         debugSuffix = (devMode ? '-debug' : ''),
         cssSuffix = rtlSuffix + debugSuffix + '.css',
-        themePackageDir, chartsJS, uxJS, themeOverrideJS, extPrefix, extPackagesRoot;
+        themePackageDir, chartsJS, d3JS, uxJS, themeOverrideJS, extPrefix, extPackagesRoot;
 
     rtl = rtl && rtl.toString() === 'true';
 
@@ -72,12 +71,16 @@
 
     uxJS = extPackagesRoot + '/packages/ux/classic/ux' + debugSuffix + '.js';
     chartsJS = extPackagesRoot + '/packages/charts/classic/charts' + debugSuffix + '.js';
+    d3JS = extPackagesRoot + '/packages/d3/classic/d3' + debugSuffix + '.js';
     themePackageDir = extPackagesRoot + '/classic/theme-' + themeName + '/';
 
     if (includeCSS) {
         loadCss(themePackageDir + 'resources/theme-' + themeName + '-all' + cssSuffix);
         loadCss(extPackagesRoot + '/packages/charts/classic/' + themeName + '/resources/charts-all' + cssSuffix);
         loadCss(extPackagesRoot + '/packages/ux/classic/' + themeName + '/resources/ux-all' + cssSuffix);
+        if (Ext.devMode === 2) {
+            loadCss(extPackagesRoot + '/packages/d3/classic/' + themeName + '/resources/d3-all' + cssSuffix);
+        }
     }
 
     extPrefix = useDebug ? '/ext' : '/ext-all';
@@ -110,6 +113,9 @@
             // ux and charts js are not needed in dev mode because they are included in bootstrap
             loadScript(uxJS);
             loadScript(chartsJS);
+            if (Ext.devMode === 2) {
+                loadScript(d3JS);
+            }
         }
     }
 

@@ -3,7 +3,7 @@
  */
 Ext.define('Ext.grid.HeaderGroup', {
     extend: 'Ext.Container',
-    alias: 'widget.gridheadergroup',
+    xtype: ['headergroup', 'gridheadergroup'],
     isHeaderGroup: true,
 
     config: {
@@ -24,7 +24,6 @@ Ext.define('Ext.grid.HeaderGroup', {
         items: undefined,
 
         defaultType: 'column',
-        baseCls: Ext.baseCSSPrefix + 'grid-headergroup',
 
         /**
          * We hide the HeaderGroup by default, and show it when any columns are added to it.
@@ -38,16 +37,28 @@ Ext.define('Ext.grid.HeaderGroup', {
         }
     },
 
+    classCls: Ext.baseCSSPrefix + 'headergroup',
+    headerCls: Ext.baseCSSPrefix + 'gridcolumn',
+
     getElementConfig: function() {
         return {
             reference: 'element',
-            classList: ['x-container', 'x-unsized'],
             children: [{
-                reference: 'textElement',
-                className: 'x-grid-headergroup-text'
+                // This markup intentionally mimics that of a gridcolumn for styling reasons.
+                // This header element can be styled using column uis (see updtateUi)
+                reference: 'headerElement',
+                classList: [ this.headerCls, Ext.baseCSSPrefix + 'align-center' ],
+                children: [{
+                    reference: 'titleElement',
+                    className: Ext.baseCSSPrefix + 'title-el',
+                    children: [{
+                        reference: 'textElement',
+                        className: Ext.baseCSSPrefix + 'text-el'
+                    }]
+                }]
             }, {
                 reference: 'innerElement',
-                className: 'x-inner'
+                className: Ext.baseCSSPrefix + 'inner'
             }]
         };
     },
@@ -80,13 +91,27 @@ Ext.define('Ext.grid.HeaderGroup', {
             scope: 'this'
         });
 
+        me.textElement.on({
+            tap: 'onHeaderGroupTap',
+            longpress: 'onHeaderGroupLongPress',
+            scope: this
+        });
+
         me.callParent();
 
         me.doVisibilityCheck();
     },
 
+    onHeaderGroupTap: function(e) {
+        this.fireEvent('tap', this, e);
+    },
+
+    onHeaderGroupLongPress: function(e) {
+        this.fireEvent('longpress', this, e);
+    },
+
     onColumnShow: function(column) {
-        if (this.getVisibleCount() === this.getInnerItems().length) {
+        if (this.getVisibleCount() > 0) {
             this.show();
         }
     },
@@ -132,9 +157,25 @@ Ext.define('Ext.grid.HeaderGroup', {
         me.hide();
     },
 
-    destroy: function() {
+    doDestroy: function() {
         this.setColumns(null);
         this.callParent();
+    },
+
+    updateUi: function(ui, oldUi) {
+        var me = this,
+            headerCls = me.headerCls,
+            headerElement = me.headerElement;
+
+        if (oldUi) {
+            headerElement.removeCls(oldUi, headerCls);
+        }
+
+        if (ui) {
+            headerElement.addCls(ui, headerCls);
+        }
+
+        me.callParent([ui, oldUi]);
     },
 
     privates: {
@@ -145,7 +186,11 @@ Ext.define('Ext.grid.HeaderGroup', {
                 i;
 
             for (i = 0; i < len; ++i) {
-                count += columns[i].isHidden() ? 0 : 1;
+                if(columns[i].isHeaderGroup){
+                    count += columns[i].getVisibleCount();
+                }else {
+                    count += columns[i].isHidden() ? 0 : 1;
+                }
             }
 
             return count;

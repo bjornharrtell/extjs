@@ -9,5 +9,9 @@ Ext.define('KitchenSink.store.Posts', {
         url: '/KitchenSink/Posts'
     },
 
-    lazyFill: false
+    // Preload child nodes before expand request
+    lazyFill: false,
+
+    // If a leaf node passes the filter, all its ancestors will be filtered in
+    filterer: 'bottomup'
 });

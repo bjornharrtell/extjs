@@ -28,6 +28,7 @@ describe('Ext.app.bind.Template', function () {
     describe('tokens', function () {
         it('should parse on first use', function () {
             var tpl = new BindTemplate('Hello {foo}');
+
             expect(tpl.tokens).toBe(null);
 
             var tokens = tpl.getTokens();
@@ -39,6 +40,7 @@ describe('Ext.app.bind.Template', function () {
 
         it('should parse simple names', function () {
             var tpl = new BindTemplate('Hello {foo} {bar}');
+
             var tokens = tpl.getTokens();
 
             expect(tokens).toEqual(['foo', 'bar']);
@@ -52,16 +54,6 @@ describe('Ext.app.bind.Template', function () {
             var tokens = tpl.getTokens();
 
             expect(tokens).toEqual(['foo.bar', 'bar.foo']);
-
-            expect(getNumFragments(tpl)).toBe(2);
-            expect(getNumSlots(tpl)).toBe(2);
-        });
-
-        it('should parse indexes', function () {
-            var tpl = new BindTemplate('Hello {1} {0}');
-            var tokens = tpl.getTokens();
-
-            expect(tokens).toEqual(['1', '0']);
 
             expect(getNumFragments(tpl)).toBe(2);
             expect(getNumSlots(tpl)).toBe(2);
@@ -83,103 +75,720 @@ describe('Ext.app.bind.Template', function () {
             tpl.parse();
 
             expect(getNumFragments(tpl)).toBe(2);
+            expect(getNumSlots(tpl)).toBe(4);
 
-            expect(tpl.slots[1].pos).toBe(0);
-            expect(tpl.slots[2].pos).toBe(1);
+            expect(typeof tpl.slots[1]).toBe('function');
+            expect(typeof tpl.slots[2]).toBe('function');
             // slots[3] is null due to " - " in buffer[3]
-            expect(tpl.slots[4].pos).toBe(0);
-            expect(tpl.slots[5].pos).toBe(1);
+            expect(typeof tpl.slots[4]).toBe('function');
+            expect(typeof tpl.slots[5]).toBe('function');
         });
+
+        it("should not attempt to parse outside of curly braces", function() {
+            var tpl = new BindTemplate('Hello `{foo}`!'),
+                tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([5]);
+            expect(s).toBe('Hello `5`!');
+
+        });
+    });
+
+    describe('unary operators', function(){
+        it('should parse -', function(){
+            var tpl = new BindTemplate('Hello {foo.bar + -5}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar']);
+
+            var s = tpl.apply([10]);
+            expect(s).toBe('Hello 5!');
+        });
+
+        it('should parse - before an expression', function(){
+            var tpl = new BindTemplate('Hello {foo.bar + -(bar + 3):number("0.00")}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar']);
+
+            var s = tpl.apply([10, 7]);
+            expect(s).toBe('Hello 0!'); // 10 - '10.00'
+        });
+
+        it('should parse - before an expression and follow parans', function(){
+            var tpl = new BindTemplate('Hello {(foo.bar + -(bar + 3)):number("0.00")}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar']);
+
+            var s = tpl.apply([10, 7]);
+            expect(s).toBe('Hello 0.00!');
+        });
+
+        it('should parse - before parans and before literal', function(){
+            var tpl = new BindTemplate('Hello {(foo.bar + -(bar +- 3)):number("0.00")}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar']);
+
+            var s = tpl.apply([10, 7]);
+            expect(s).toBe('Hello 6.00!');
+        });
+
+        it('should parse - before parans and before token', function(){
+            var tpl = new BindTemplate('Hello {(foo.bar + -(bar -- foo)):number("0.00")}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar', 'foo']);
+
+            var s = tpl.apply([10, 7, 4]);
+            expect(s).toBe('Hello -1.00!');
+        });
+
+        it('should parse @ unary operator', function(){
+            var tpl = new BindTemplate('Hello {@Ext.justTemp}!');
+
+            Ext.justTemp = 'foo';
+            var s = tpl.apply();
+            expect(s).toBe('Hello foo!');
+            Ext.justTemp = 'bar';
+            s = tpl.apply();
+            expect(s).toBe('Hello bar!');
+            expect(tpl.isStatic()).toBe(false);
+            Ext.justTemp = null;
+        });
+
+    });
+
+    describe('binary operators', function(){
+        it('should parse + operations', function(){
+            var tpl = new BindTemplate('Hello {foo.bar + bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([5, 7]);
+            expect(s).toBe('Hello 12!');
+        });
+
+        it('should parse - operations', function(){
+            var tpl = new BindTemplate('Hello {foo.bar - bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([5, 7]);
+            expect(s).toBe('Hello -2!');
+        });
+
+        it('should parse * operations', function(){
+            var tpl = new BindTemplate('Hello {foo.bar * bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([5, 7]);
+            expect(s).toBe('Hello 35!');
+        });
+
+        it('should parse / operations', function(){
+            var tpl = new BindTemplate('Hello {foo.bar / bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([10, 2]);
+            expect(s).toBe('Hello 5!');
+        });
+
+        it('should parse > operations', function(){
+            var tpl = new BindTemplate('{foo.bar > bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([10, 2]);
+            expect(s).toBe('true!');
+        });
+
+        it('should parse < operations', function(){
+            var tpl = new BindTemplate('{foo.bar < bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([2, 10]);
+            expect(s).toBe('true!');
+        });
+
+        it('should parse >= operations', function(){
+            var tpl = new BindTemplate('{foo.bar >= bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([10, 10]);
+            expect(s).toBe('true!');
+        });
+
+        it('should parse <= operations', function(){
+            var tpl = new BindTemplate('{foo.bar <= bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([10, 10]);
+            expect(s).toBe('true!');
+        });
+
+        it('should parse === operations', function(){
+            var tpl = new BindTemplate('{foo.bar === bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([10, '10']);
+            expect(s).toBe('false!');
+        });
+
+        it('should parse == operations', function(){
+            var tpl = new BindTemplate('{foo.bar == bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([10, '10']);
+            expect(s).toBe('true!');
+        });
+
+        it('should parse !== operations', function(){
+            var tpl = new BindTemplate('{foo.bar !== bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([10, '10']);
+            expect(s).toBe('true!');
+        });
+
+        it('should parse != operations', function(){
+            var tpl = new BindTemplate('{foo.bar != bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo']);
+
+            var s = tpl.apply([10, '10']);
+            expect(s).toBe('false!');
+        });
+
+        it('should parse && operations', function(){
+            var tpl = new BindTemplate('{foo.bar > bar.foo && bar > 5}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo', 'bar']);
+
+            var s = tpl.apply([10, 5, 3]);
+            expect(s).toBe('false!');
+        });
+
+        it('should parse || operations', function(){
+            var tpl = new BindTemplate('{foo.bar > bar.foo || bar > 5}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar.foo', 'bar']);
+
+            var s = tpl.apply([10, 5, 3]);
+            expect(s).toBe('true!');
+        });
+
+        it('should parse operations by priority', function(){
+            var tpl = new BindTemplate('Hello {foo.bar * foo + bar / bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'foo', 'bar', 'bar.foo']);
+
+            var s = tpl.apply([10, 2, 5, 2]);
+            expect(s).toBe('Hello 22.5!');
+        });
+    });
+
+    describe('ternary operator', function(){
+        it('should parse token condition', function () {
+            var tpl = new BindTemplate('Hello {foo ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([true]);
+            expect(s).toBe('Hello 5');
+        });
+
+        it('should parse binary condition >', function () {
+            var tpl = new BindTemplate('Hello {foo > 3 ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([2]);
+            expect(s).toBe('Hello 6');
+        });
+
+        it('should parse binary condition >=', function () {
+            var tpl = new BindTemplate('Hello {foo >= 3 ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([3]);
+            expect(s).toBe('Hello 5');
+        });
+
+        it('should parse binary condition <', function () {
+            var tpl = new BindTemplate('Hello {foo < 3 ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([2]);
+            expect(s).toBe('Hello 5');
+        });
+
+        it('should parse binary condition <=', function () {
+            var tpl = new BindTemplate('Hello {foo <= 3 ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([4]);
+            expect(s).toBe('Hello 6');
+        });
+
+        it('should parse binary condition ==', function () {
+            var tpl = new BindTemplate('Hello {foo == "3" ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([3]);
+            expect(s).toBe('Hello 5');
+        });
+
+        it('should parse binary condition ===', function () {
+            var tpl = new BindTemplate('Hello {foo === "3" ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([3]);
+            expect(s).toBe('Hello 6');
+        });
+
+        it('should parse binary condition !=', function () {
+            var tpl = new BindTemplate('Hello {foo != "3" ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([3]);
+            expect(s).toBe('Hello 6');
+        });
+
+        it('should parse binary condition !==', function () {
+            var tpl = new BindTemplate('Hello {foo !== "3" ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([3]);
+            expect(s).toBe('Hello 5');
+        });
+
+        it('should parse condition with format fn', function () {
+            var tpl = new BindTemplate('Hello {foo:this.fn ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([4], {
+                fn: function(){ return false; }
+            });
+            expect(s).toBe('Hello 6');
+        });
+
+        it('should parse condition with format fn and args', function () {
+            var tpl = new BindTemplate('Hello {foo:this.fn("testing", 4) ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([4], {
+                fn: function(){ return false; }
+            });
+            expect(s).toBe('Hello 6');
+        });
+
+        it('should parse condition with chained format fn and args', function () {
+            var tpl = new BindTemplate('Hello {foo:this.fn("testing", 4):this.fn2 ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([4], {
+                fn: function(){ return false; },
+                fn2: function(){ return true; }
+            });
+            expect(s).toBe('Hello 5');
+        });
+
+        it('should parse condition with chained and nested format fn and args', function () {
+            var tpl = new BindTemplate('Hello {foo:this.fn("testing", bar:this.fn3(null, true)):this.fn2 ? 5 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo', 'bar']);
+
+            var s = tpl.apply([4], {
+                fn: function(){ return false; },
+                fn2: function(){ return true; },
+                fn3: function(){ return 5; }
+            });
+            expect(s).toBe('Hello 5');
+        });
+
+        it('should parse true part with literal', function () {
+            var tpl = new BindTemplate('Hello {foo ? "test" : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([true]);
+            expect(s).toBe('Hello test');
+        });
+
+        it('should parse true part with number', function () {
+            var tpl = new BindTemplate('Hello {foo ? .04 : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([true]);
+            expect(s).toBe('Hello 0.04');
+        });
+
+        it('should parse true part with null', function () {
+            var tpl = new BindTemplate('Hello {foo ? null : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([true]);
+            expect(s).toBe('Hello ');
+        });
+
+        it('should parse true part with boolean', function () {
+            var tpl = new BindTemplate('Hello {foo ? true : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([true]);
+            expect(s).toBe('Hello true');
+        });
+
+        it('should parse true part enclosed in parans with simple format fn', function () {
+            var tpl = new BindTemplate('Hello {foo ? (bar:number) : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo', 'bar']);
+
+            var s = tpl.apply([true, 5]);
+            expect(s).toBe('Hello 5');
+        });
+
+        it('should parse true part enclosed in parans with format fn and args', function () {
+            var tpl = new BindTemplate('Hello {foo ? (bar:number("0.00")) : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo', 'bar']);
+
+            var s = tpl.apply([true, 5]);
+            expect(s).toBe('Hello 5.00');
+        });
+
+        it('should parse true part with basic algebra inside parans', function () {
+            var tpl = new BindTemplate('Hello {foo ? (bar + 5 * foo.bar) : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo', 'bar', 'foo.bar']);
+
+            var s = tpl.apply([true, 4, 3]);
+            expect(s).toBe('Hello 19');
+        });
+
+        it('should parse true part with basic algebra and no parans', function () {
+            var tpl = new BindTemplate('Hello {foo ? bar + 5 * foo.bar : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo', 'bar', 'foo.bar']);
+
+            var s = tpl.apply([true, 4, 3]);
+            expect(s).toBe('Hello 19');
+        });
+
+        it('should parse true part with basic algebra and format fn', function () {
+            var tpl = new BindTemplate('Hello {foo ? ( ( bar + 5 * foo.bar:this.fn( 2 ) / 4 ):round:number("0.00") ) : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo', 'bar', 'foo.bar']);
+
+            var s = tpl.apply([true, 4, 3], {
+                fn: function(v, factor){
+                    return v * factor;
+                }
+            });
+            expect(s).toBe('Hello 12.00');
+        });
+
+        it('should parse true part with nested ternary', function () {
+            var tpl = new BindTemplate('Hello {foo ? (bar ? (foo.bar + 9) : "failed") : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo', 'bar', 'foo.bar']);
+
+            var s = tpl.apply([true, 4, 3]);
+            expect(s).toBe('Hello 12');
+        });
+
+        it('should parse true part with nested ternary and no parans', function () {
+            var tpl = new BindTemplate('Hello {foo ? bar ? foo.bar + 9 : "failed" : 6}');
+
+            var tokens = tpl.getTokens();
+            expect(tokens).toEqual(['foo', 'bar', 'foo.bar']);
+
+            var s = tpl.apply([true, 4, 3]);
+            expect(s).toBe('Hello 12');
+        });
+
+    });
+
+    describe('combined unary and binary operators', function(){
+        it('should parse binary and unary -', function(){
+            var tpl = new BindTemplate('Hello {foo.bar --5}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar']);
+
+            var s = tpl.apply([10]);
+            expect(s).toBe('Hello 15!');
+        });
+
+        it('should parse binary + and unary -', function(){
+            var tpl = new BindTemplate('Hello {foo.bar +-5}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar']);
+
+            var s = tpl.apply([10]);
+            expect(s).toBe('Hello 5!');
+        });
+
+        it('should parse binary + and unary ! and -', function(){
+            var tpl = new BindTemplate('Hello {foo.bar + !-5}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar']);
+
+            var s = tpl.apply([10]);
+            expect(s).toBe('Hello 10!'); // 10 + false
+        });
+
+        it('should parse ! operator in front of open paran', function(){
+            var tpl = new BindTemplate('Hello {foo.bar + !(bar:number("0.00"))}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar']);
+
+            var s = tpl.apply([10, 4]);
+            expect(s).toBe('Hello 10!'); // 10 + false
+        });
+
+        it('should parse ! operator in front of a token', function(){
+            var tpl = new BindTemplate('Hello {foo.bar + !bar}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'bar']);
+
+            var s = tpl.apply([10, false]);
+            expect(s).toBe('Hello 11!'); // 10 + true
+        });
+
+        it('should parse ! operator in front of a @', function(){
+            var tpl = new BindTemplate('Hello {foo.bar + !@Ext.versions.core}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar']);
+
+            var s = tpl.apply([10]);
+            expect(s).toBe('Hello 10!'); // 10 + false
+        });
+
+    });
+
+    describe('algebra', function(){
+
+        it('should parse basic algebra', function(){
+            var tpl = new BindTemplate('{foo:round + 2}');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo']);
+
+            var s = tpl.apply([15.6]);
+            expect(s).toBe(18);
+        });
+
+        it('should parse operations by priority', function(){
+            var tpl = new BindTemplate('Hello {(foo.bar * foo + bar +-test ? 7 : 1):this.thing(3) / bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'foo', 'bar', 'test', 'bar.foo']);
+
+            var s = tpl.apply([10, 2, 5, 25, 2], {
+                thing: function(v, factor){
+                    return v * factor;
+                }
+            });
+            expect(s).toBe('Hello 1.5!');
+        });
+
+        it('should parse operations and apply formulas', function(){
+            var tpl = new BindTemplate('Hello {(foo.bar * foo + bar):this.thing(3) / bar.foo}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'foo', 'bar', 'bar.foo']);
+
+            var s = tpl.apply([10, 2, 5, 2], {
+                thing: function(v, factor){
+                    return v * factor;
+                }
+            });
+            expect(s).toBe('Hello 37.5!');
+        });
+
+        it('should parse operations in formula arguments', function(){
+            var tpl = new BindTemplate('Hello {((foo.bar * foo + bar):this.thing(bar + test:this.thing(3)) / bar.foo):number("0.00")}!');
+            var tokens = tpl.getTokens();
+
+            expect(tokens).toEqual(['foo.bar', 'foo', 'bar', 'test', 'bar.foo']);
+
+            var s = tpl.apply([10, 2, 5, 7, 25], {
+                thing: function(v, factor){
+                    return v * factor;
+                }
+            });
+            expect(s).toBe('Hello 26.00!');
+        });
+
+        it('should parse complex operations', function(){
+            var tpl = new BindTemplate('Hello {(foo.bar + bar.foo:this.thing):number("0.00")}!');
+
+            var s = tpl.apply([5, 7], {
+                thing: function(v){
+                    return v * 2;
+                }
+            });
+            expect(s).toBe('Hello 19.00!');
+        });
+
+
     });
 
     describe('default formatters', function () {
         it('should parse', function () {
-            var tpl = new BindTemplate('Hello {foo:number} {bar.foo:date}');
-            var tokens = tpl.getTokens();
+            var tpl = new BindTemplate('Hello {foo:number} {bar.foo:lowercase}');
+            expect(tpl.getTokens()).toEqual(['foo', 'bar.foo']);
 
-            expect(tokens).toEqual(['foo', 'bar.foo']);
+            var s = tpl.apply([5, 'SENCHA']);
+            expect(s).toBe('Hello 5 sencha');
+        });
 
-            expect(getNumSlots(tpl)).toBe(2);
+        it('should parse chained formatters', function(){
+            var tpl = new BindTemplate('Hello {foo:lowercase:capitalize} {bar.foo:number("0.00")}');
+            expect(tpl.getTokens()).toEqual(['foo', 'bar.foo']);
 
-            var i = 0,
-                slot;
+            var s = tpl.apply(['SENCHA', 23]);
+            expect(s).toBe('Hello Sencha 23.00');
+        });
 
-            expect(tpl.buffer[i++]).toBe('Hello ');
+        it('should parse nested formatters', function(){
+            var tpl = new BindTemplate('Hello {foo:format(bar:pick("First: \\"param\\"", foo.bar:number("0")))}');
+            expect(tpl.getTokens()).toEqual(['foo', 'bar', 'foo.bar']);
 
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('number');
-            expect(slot.scope).toBe(Ext.util.Format);
+            var s = tpl.apply(['Result: {0}', false, 5]);
+            expect(s).toBe('Hello Result: First: "param"');
+        });
 
-            expect(tpl.buffer[i++]).toBe(' ');
+        it('should parse complex nested formatters', function(){
+            var tpl = new BindTemplate('Hello {foo:format(bar:capitalize:leftPad(5, "x"))}');
+            expect(tpl.getTokens()).toEqual(['foo', 'bar']);
 
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('date');
-            expect(slot.scope).toBe(Ext.util.Format);
+            var s = tpl.apply(['there, {0}', 'john']);
+            expect(s).toBe('Hello there, xJohn');
+        });
+
+        it('should parse nested and chained formatters', function(){
+            var tpl = new BindTemplate('Hello {foo.bar:leftPad(!foo.test:pick(bar,foo), "X"):uppercase:ellipsis(8)} there and {foo:capitalize}!');
+            expect(tpl.getTokens()).toEqual(['foo.bar', 'foo.test', 'bar', 'foo']);
+
+            var s = tpl.apply(['sencha', true, 10, 'sencha']);
+            expect(s).toBe('Hello XXXXS... there and Sencha!');
+        });
+
+        it('should parse escaped strings', function(){
+            var tpl = new BindTemplate("{foo:leftPad(13, 'You\\'re ok ')}");
+            // this expressions will fail: {foo:leftPad("You\", hi!",2)} or {foo:leftPad("(You\")",2)}
+            expect(tpl.getTokens()).toEqual(['foo']);
+
+            var s = tpl.apply(['now']);
+            expect(s).toBe('You\'re ok now');
+        });
+
+        it('should parse more escaped strings', function(){
+            var tpl = new BindTemplate('{foo:leftPad(10, "Y\\"): ")}');
+            // this expression will fail: {foo:date("Y\"",2)}
+            expect(tpl.getTokens()).toEqual(['foo']);
+
+            var s = tpl.apply(['hello']);
+            expect(s).toBe('Y"): hello');
         });
 
         it('should parse arguments', function () {
-            var tpl = new BindTemplate('Hello {foo:number(4)} {bar.foo:date(2,"true")}');
-            var tokens = tpl.getTokens();
+            var tpl = new BindTemplate('Hello {foo:number("0.00")} {bar.foo:number("0,000.00")}');
+            expect(tpl.getTokens()).toEqual(['foo', 'bar.foo']);
 
-            expect(tokens).toEqual(['foo', 'bar.foo']);
-
-            expect(getNumSlots(tpl)).toBe(2);
-
-            var i = 0,
-                slot;
-
-            expect(tpl.buffer[i++]).toBe('Hello ');
-
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('number');
-            expect(slot.scope).toBe(Ext.util.Format);
-            // Remove [0] which is the placeholder for the value and make sure we have
-            // recognized the argument values.
-            expect(slot.args.slice(1)).toEqual([4]);
-
-            expect(tpl.buffer[i++]).toBe(' ');
-
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('date');
-            expect(slot.scope).toBe(Ext.util.Format);
-            // Remove [0] which is the placeholder for the value and make sure we have
-            // recognized the argument values.
-            expect(slot.args.slice(1)).toEqual([2, 'true']);
+            var s = tpl.apply([4554, 4554]);
+            expect(s).toBe('Hello 4554.00 4,554.00');
         });
 
         it('should parse boolean arguments', function () {
-            var tpl = new BindTemplate('Hello {foo:number(false)} {bar.foo:date(null,true)}');
-            var tokens = tpl.getTokens();
+            var tpl = new BindTemplate('Hello {foo:toggle("Flex", false)} {bar.foo:defaultValue(true)}');
+            expect(tpl.getTokens()).toEqual(['foo', 'bar.foo']);
 
-            expect(tokens).toEqual(['foo', 'bar.foo']);
+            var s = tpl.apply(['Flex', undefined]);
+            expect(s).toBe('Hello false true');
+        });
 
-            expect(getNumSlots(tpl)).toBe(2);
+        it('should parse arguments that are functions', function(){
+            var tpl = new BindTemplate('Hello {foo:defaultValue(bar.foo:lowercase)}');
+            expect(tpl.getTokens()).toEqual(['foo', 'bar.foo']);
 
-            var i = 0,
-                slot;
-
-            expect(tpl.buffer[i++]).toBe('Hello ');
-
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('number');
-            expect(slot.scope).toBe(Ext.util.Format);
-            // Remove [0] which is the placeholder for the value and make sure we have
-            // recognized the argument values.
-            expect(slot.args.slice(1)).toEqual([false]);
-
-            expect(tpl.buffer[i++]).toBe(' ');
-
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('date');
-            expect(slot.scope).toBe(Ext.util.Format);
-            // Remove [0] which is the placeholder for the value and make sure we have
-            // recognized the argument values.
-            expect(slot.args.slice(1)).toEqual([null, true]);
+            var s = tpl.apply([undefined, 'THERE']);
+            expect(s).toBe('Hello there');
         });
 
         it('should apply simple formatting', function () {
             var tpl = new BindTemplate('Hello {foo:number} {bar.foo:date("Y-m-d")} '+
-                                       '-- {foo:number("0.00")}');
+                '-- {foo:number("0.00")}');
 
             var s = tpl.apply([123.456, new Date(2013, 2, 2)]);
             expect(s).toBe('Hello 123.456 2013-03-02 -- 123.46');
@@ -199,57 +808,33 @@ describe('Ext.app.bind.Template', function () {
 
     describe('scoped formatters', function () {
         it('should parse', function () {
-            var tpl = new BindTemplate('Hello {foo:this.number} {bar.foo:this.date}');
-            var tokens = tpl.getTokens();
+            var tpl = new BindTemplate('Hello {foo:this.fn} {bar.foo:this.fn2}');
+            expect(tpl.getTokens()).toEqual(['foo', 'bar.foo']);
 
-            expect(tokens).toEqual(['foo', 'bar.foo']);
-
-            expect(getNumSlots(tpl)).toBe(2);
-
-            var i = 0,
-                slot;
-
-            expect(tpl.buffer[i++]).toBe('Hello ');
-
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('number');
-            expect(slot.scope).toBe(undefined);
-
-            expect(tpl.buffer[i++]).toBe(' ');
-
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('date');
-            expect(slot.scope).toBe(undefined);
+            var s = tpl.apply([5, 6], {
+                fn: function(v){
+                    return v + 1;
+                },
+                fn2: function(v){
+                    return v * 2;
+                }
+            });
+            expect(s).toBe('Hello 6 12');
         });
 
         it('should parse arguments', function () {
-            var tpl = new BindTemplate('Hello {foo:this.number(4)} {bar.foo:this.date(2,"true")}');
-            var tokens = tpl.getTokens();
+            var tpl = new BindTemplate('Hello {foo:this.fn(4)} {bar.foo:this.fn2(20)}');
+            expect(tpl.getTokens()).toEqual(['foo', 'bar.foo']);
 
-            expect(tokens).toEqual(['foo', 'bar.foo']);
-
-            expect(getNumSlots(tpl)).toBe(2);
-
-            var i = 0,
-                slot;
-
-            expect(tpl.buffer[i++]).toBe('Hello ');
-
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('number');
-            expect(slot.scope).toBe(undefined);
-            // Remove [0] which is the placeholder for the value and make sure we have
-            // recognized the argument values.
-            expect(slot.args.slice(1)).toEqual([4]);
-
-            expect(tpl.buffer[i++]).toBe(' ');
-
-            slot = tpl.slots[i++];
-            expect(slot.fmt).toBe('date');
-            expect(slot.scope).toBe(undefined);
-            // Remove [0] which is the placeholder for the value and make sure we have
-            // recognized the argument values.
-            expect(slot.args.slice(1)).toEqual([2, 'true']);
+            var s = tpl.apply([5, 6], {
+                fn: function(v, a){
+                    return v + a;
+                },
+                fn2: function(v, a){
+                    return v * a;
+                }
+            });
+            expect(s).toBe('Hello 9 120');
         });
 
         it('should apply simple formatting', function () {
@@ -270,7 +855,7 @@ describe('Ext.app.bind.Template', function () {
             // This template uses a global reference as an argument. Odd but it works in
             // other templates.
             var tpl = new BindTemplate('Hello {foo:number} {bar.foo:date("Y-m-d")} '+
-                '-- {foo:this.thing(Ext.versions.core)}');
+                '-- {foo:this.thing(@Ext.versions.core)}');
 
             var s = tpl.apply([123.456, new Date(2013, 2, 2)], {
                 text: '::',
@@ -280,33 +865,312 @@ describe('Ext.app.bind.Template', function () {
             });
 
             expect(s).toBe('Hello 123.456 2013-03-02 -- ::123.456=' +
-                    Ext.getVersion('core') + '::');
+                Ext.getVersion('core') + '::');
+        });
+
+        it('should apply chained and nested formatting', function(){
+            var tpl = new BindTemplate('Hello {!foo.bar:pick(bar:number, "test"):number(\'0,000.00\')}, this is a {foo.test:this.thing("test", !test:pick("\\"man{}\\"",\'(joe)\'))}!');
+
+            var s = tpl.apply([true, 123.456, 'complex', true], {
+                text: '::',
+                thing: function(v, str, a){
+                    return this.text + v + '=' + str + this.text + ' (' + a + ')';
+                }
+            });
+            expect(s).toBe('Hello 123.46, this is a ::complex=test:: ("man{}")!');
         });
     });
 
-    describe('parseFormat', function () {
-        it('should parse basic formats', function () {
-            var fmt = BindTemplate.prototype.parseFormat('round');
+    describe('syntax errors', function(){
+        it('should fail when there\'s a format fn without prefixed token', function () {
+            var tpl = new BindTemplate('Hello { :number }!');
 
-            var s = fmt.format(3.14);
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
 
-            expect(s).toBe(3);
         });
 
-        it('should parse formats with basic arguments', function () {
-            var fmt = BindTemplate.prototype.parseFormat('round(2)');
+        it('should fail when @ prefixes an ! operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + @!Ext.versions.core}!');
 
-            var s = fmt.format(3.139);
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
 
-            expect(s).toBe(3.14);
         });
 
-        it('should parse formats with string arguments', function () {
-            var fmt = BindTemplate.prototype.parseFormat('date("Y-m-d")');
+        it('should fail when @ prefixes a number', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + @5}!');
 
-            var s = fmt.format(new Date(2013, 2, 2));
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
 
-            expect(s).toBe('2013-03-02');
         });
+
+        it('should fail when @ prefixes a string', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + @"test"}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when @ prefixes other operators', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + @("test"}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when there\'s a missing paran', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + (foo:number}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when specifying an invalid Ext.util.Format fn', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + (foo:justTesting}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when there is an unexpected operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + ! $ (foo:number)}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when there is an unknown operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + dd[foo:number]}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on unexpected . token', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + dd.(foo:number)}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on not defined unary * operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + * 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary in format fn name', function () {
+            var tpl = new BindTemplate('Hello {foo.bar:*number}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when starting with an unknown operator', function () {
+            var tpl = new BindTemplate('Hello { % foo.bar:number }!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when using open curly inside expression', function () {
+            var tpl = new BindTemplate('Hello { { foo.bar:number }!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when using close curly inside expression', function () {
+            var tpl = new BindTemplate('Hello { foo.bar:}number }!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on wrong literals', function () {
+            var tpl = new BindTemplate('Hello { foo.bar:this.test("yep\" it fails") }!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when ending with an operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar:number + }!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary / operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + / 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary * operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + * 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary && operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + && 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary || operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + || 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary > operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + > 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary >= operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + >= 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary < operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + < 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary <= operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + <= 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary == operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + == 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary === operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + === 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary != operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + != 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail on undefined unary !== operator', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + !== 5}!');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
+        it('should fail when the compiled function fails on global objects', function () {
+            var tpl = new BindTemplate('Hello {foo.bar + @Something.b}!');
+
+            expect(tpl.getTokens()).toEqual(['foo.bar']);
+            expect(function() {
+                tpl.apply([3]);
+            }).toThrow();
+
+        });
+
+        it('should fail when the compiled function fails on missing scope function', function () {
+            var tpl = new BindTemplate('Hello {foo.bar:this.test}!');
+
+            expect(tpl.getTokens()).toEqual(['foo.bar']);
+            expect(function() {
+                tpl.apply([3]);
+            }).toThrow();
+
+        });
+
+        it('should fail when ambiguous ternary provided', function () {
+            var tpl = new BindTemplate('Hello {foo ? bar:number : 6}');
+
+            expect(function() {
+                tpl.getTokens();
+            }).toThrow();
+
+        });
+
     });
 });

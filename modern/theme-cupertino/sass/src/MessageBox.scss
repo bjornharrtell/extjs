@@ -3,10 +3,10 @@
  */
 
 .x-msgbox {
-	padding: 0px;
-	margin: 0px;
+	padding: 0;
+	margin: 0;
 	max-width: 19em;
-	border: 0px;
+	border: 0;
 
 	@include background-image(linear-gradient(top, rgba(231, 232, 232, 1) 1%, rgba(216, 221, 222, 1) 25%, rgba(231, 232, 232, 1) 100%));
 
@@ -15,7 +15,7 @@
 		background: #fff;
 	}
 
-	.x-msgbox-warning, x-msgbox-error {
+	.x-msgbox-warning, .x-msgbox-error {
 		.x-button {
 			border-color: $ios7-red;
 			.x-button-label {
@@ -32,7 +32,7 @@
 
 		.x-title {
 			font-size: 1.2em;
-			padding: 0px;
+			padding: 0;
 			// line-height: 1.7em;
 		}
 	}
@@ -62,11 +62,11 @@
 		@include border-radius(0);
 	}
 
-	.x-field-input {
+	.x-input {
 		padding-right: 2.2em;
 	}
 
-	.x-form-field {
+	.x-input-el {
 		min-height: .8em;
 		padding: .3em;
 		padding-right: 0 !important;
@@ -99,17 +99,17 @@
 				background-color: transparent;
 				border: 1px solid #9da1a0;
 
-				border-bottom-width: 0px;
+				border-bottom-width: 0;
 				height: 40px;
 				margin: 0;
 
 				&:first-child {
-					border-left-width: 0px;
+					border-left-width: 0;
 				}
 
 				&:last-child {
-					border-left-width: 0px;
-					border-right-width: 0px;
+					border-left-width: 0;
+					border-right-width: 0;
 				}
 
 				&.x-button-pressing {

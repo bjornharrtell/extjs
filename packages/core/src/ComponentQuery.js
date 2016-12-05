@@ -250,10 +250,13 @@
  * * `not` Negates a selector.
  * * `first` Filters out all except the first matching item for a selector.
  * * `last` Filters out all except the last matching item for a selector.
- * * `focusable` Filters out all except Components which are currently able to recieve
- * focus.
+ * * `focusable` Filters out all except Components which by definition and configuration are
+ *      potentially able to recieve focus, regardless of their current state
+ * * `canfocus` Filters out all except Components which are curently able to recieve focus.
+ *      That is, they are defined and configured focusable, and they are also visible and enabled.
  * * `nth-child` Filters Components by ordinal position in the selection.
  * * `scrollable` Filters out all except Components which are scrollable.
+ * * `visible` Filters out hidden Components. May test deep visibility using `':visible(true)'`
  *
  * These pseudo classes can be used with other matchers or without them:
  *
@@ -264,7 +267,7 @@
  *      Ext.ComponentQuery.query('form[title=Profile] field:last');
  *
  *      // Find first focusable Component in a panel and focus it
- *      panel.down(':focusable').focus();
+ *      panel.down(':canfocus').focus();
  *
  *      // Select any field that is not hidden in a form
  *      form.query('field:not(hiddenfield)');
@@ -367,7 +370,7 @@
  *     var gridsAndTrees = Ext.ComponentQuery.query('gridpanel, treepanel');
  *
  *     // Focus first Component
- *     myFormPanel.child(':focusable').focus();
+ *     myFormPanel.child(':canfocus').focus();
  *
  *     // Retrieve every odd text field in a form
  *     myFormPanel.query('textfield:nth-child(odd)');
@@ -504,7 +507,7 @@ Ext.define('Ext.ComponentQuery', {
                 // If the candidate is a product of the Ext class system, then
                 // use the configurator to call getters to access the property.
                 // CQ can be used to filter raw Objects.
-                config = candidate.getConfigurator && candidate.self.$config.configs[property];
+                config = candidate.self && candidate.self.getConfigurator && candidate.self.$config.configs[property];
                 if (config) {
                     propValue = candidate[config.names.get]();
                 } else if (mustBeOwnProperty && !candidate.hasOwnProperty(property)) {
@@ -544,14 +547,16 @@ Ext.define('Ext.ComponentQuery', {
         },
 
         // Filters the passed candidate array and returns only items which have the specified itemId or id
-        filterById = function(items, id) {
+        filterById = function(items, id, idOnly) {
             var result = [],
                 i = 0,
                 length = items.length,
-                candidate;
+                candidate, check;
+
             for (; i < length; i++) {
                 candidate = items[i];
-                if (candidate.getItemId() === id) {
+                check = idOnly ? candidate.id : candidate.getItemId();
+                if (check === id) {
                     result.push(candidate);
                 }
             }
@@ -738,7 +743,7 @@ Ext.define('Ext.ComponentQuery', {
             return [];
         },
 
-        is: function(component) {
+        is: function(component, root) {
             var operations = this.operations,
                 result = false,
                 len = operations.length,
@@ -751,7 +756,7 @@ Ext.define('Ext.ComponentQuery', {
             for (i = 0; i < len; i++) {
                 op = operations[i];
                 
-                result = this._is(component, op);
+                result = this._is(component, root, op);
                 
                 if (result) {
                     return result;
@@ -761,7 +766,7 @@ Ext.define('Ext.ComponentQuery', {
             return false;
         },
         
-        _is: function(component, operations) {
+        _is: function(component, root, operations) {
             var len = operations.length,
                 active = [component],
                 operation, i, j, mode, items, item;
@@ -786,17 +791,36 @@ Ext.define('Ext.ComponentQuery', {
                     } else {
                         active = getAncestors(active);
                     }
-                    
-                    // After traversing the hierarchy, if we have no items, jump out
-                    if (active.length === 0) {
-                        return false;
-                    }
-                    
                 } else {
                     active = filterItems(active, operation);
-                    if (active.length === 0) {
-                        return false;
-                    }
+                }
+
+                // After traversing the hierarchy, if we have no items, jump out
+                if (active.length === 0) {
+                    return false;
+                }
+            }
+
+            // We don't push these on as operations because we don't want to mutate the
+            // array, but this is essentially a continuation of the loop above.
+            if (root) {
+                if (!mode) {
+                    // Last operation wasn't a mode operation, so navigate up to find
+                    // ancestors
+                    active = getAncestors(active);
+                }
+
+                if (active.length > 0) {
+                    // If we have active items, check the root exists there to ensure we're
+                    // part of the tree
+                    active = filterItems(active, {
+                        method: filterById,
+                        args: [root.id, true]
+                    });
+                }
+
+                if (active.length === 0) {
+                    return false;
                 }
             }
             return true;
@@ -869,6 +893,8 @@ Ext.define('Ext.ComponentQuery', {
                 }
                 return ret;
             },
+            // This filters for components which by definition and configuration are
+            // theoretically focusable. It does not take into account the current app state.
             focusable: function(cmps) {
                 var len = cmps.length,
                     results = [],
@@ -879,6 +905,23 @@ Ext.define('Ext.ComponentQuery', {
                     c = cmps[i];
 
                     if (c.isFocusable && c.isFocusable()) {
+                        results.push(c);
+                    }
+                }
+
+                return results;
+            },
+            // This filters for components which are currently able to recieve focus.
+            canfocus: function(cmps, value) {
+                var len = cmps.length,
+                    results = [],
+                    i = 0,
+                    c;
+
+                for (; i < len; i++) {
+                    c = cmps[i];
+
+                    if (c.canFocus && c.canFocus(false, value)) {
                         results.push(c);
                     }
                 }
@@ -915,6 +958,24 @@ Ext.define('Ext.ComponentQuery', {
 
                     // Note that modern toolkit prefixes with an underscore.
                     if (c.scrollable || c._scrollable) {
+                        results.push(c);
+                    }
+                }
+
+                return results;
+            },
+            visible: function(cmps, deep) {
+                deep = deep === 'true';
+                var len = cmps.length,
+                    results = [],
+                    i = 0,
+                    c;
+
+                for (; i < len; i++) {
+                    c = cmps[i];
+
+                    // Note that modern toolkit prefixes with an underscore.
+                    if (c.isVisible(deep)) {
                         results.push(c);
                     }
                 }
@@ -1077,10 +1138,11 @@ Ext.define('Ext.ComponentQuery', {
          *
          * @param {Ext.Component} component The Component to test
          * @param {String} selector The selector string to test against.
+         * @param {Ext.Component} [root=null] The root component.
          * @return {Boolean} True if the Component matches the selector.
          * @member Ext.ComponentQuery
          */
-        is: function(component, selector) {
+        is: function(component, selector, root) {
             if (!selector) {
                 return true;
             }
@@ -1090,7 +1152,7 @@ Ext.define('Ext.ComponentQuery', {
                 query = cq.cache.add(selector, cq.parse(selector));
             }
             
-            return query.is(component);
+            return query.is(component, root);
         },
 
         parse: function(selector) {

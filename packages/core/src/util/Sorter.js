@@ -1,12 +1,11 @@
 /**
- * 
  * Represents a single sorter that can be used as part of the sorters configuration in Ext.mixin.Sortable.
  *
  * A common place for Sorters to be used are {@link Ext.data.Store Stores}. For example:
  *
  *      @example
  *      var store = Ext.create('Ext.data.Store', {
- *           fields: ['firstName', 'lastName'],
+ *           fields: ['firstName', 'level'],
  *           sorters: 'level',
  *        
  *           data: [
@@ -39,7 +38,7 @@
  *
  *        @example
  *        var store = Ext.create('Ext.data.Store', {
- *           fields: ['firstName', 'lastName'],
+ *           fields: ['firstName', 'spiritAnimal'],
  *            sorters: [
  *                {
  *                    // Sort by first letter of second word of spirit animal, in descending order

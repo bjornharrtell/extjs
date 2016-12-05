@@ -14,33 +14,42 @@ Ext.define('Ext.view.TableLayout', {
             owner = me.owner,
             ownerGrid = owner.ownerGrid,
             partner = owner.lockingPartner,
+            partnerContext = ownerContext.lockingPartnerContext,
+            partnerVisible = partner && partner.grid.isVisible() && !partner.grid.collapsed,
             context = ownerContext.context;
 
-        // Flag whether we need to do row height synchronization
-        ownerContext.doSyncRowHeights = partner && partner.grid.isVisible() && ownerGrid.syncRowHeight;
+        // Flag whether we need to do row height synchronization.
+        // syncRowHeightOnNextLayout is a one time flag used when some code knows it has changed data height
+        // and that the upcoming layout must sync row heights even if the grid is configured not to for
+        // general row rendering.
+        ownerContext.doSyncRowHeights = partnerVisible && (ownerGrid.syncRowHeight || ownerGrid.syncRowHeightOnNextLayout);
 
         if (!me.columnFlusherId) {
             me.columnFlusherId = me.id + '-columns';
             me.rowHeightFlusherId = me.id + '-rows';
         }
 
-        if (me.owner.bufferedRenderer) {
-            me.owner.bufferedRenderer.beforeTableLayout(ownerContext);
-        }
-
         me.callParent([ ownerContext ]);
 
         // If we are in a twinned grid (locked view) then set up bidirectional links with
         // the other side's layout context. If the locked or normal side is hidden then
-        // we should treat it as thoguh we were laying out a single grid, so don't setup the partners.
+        // we should treat it as though we were laying out a single grid, so don't setup the partners.
         // This is typically if a grid is configured with locking but starts with no locked columns.
-        if (ownerContext.doSyncRowHeights) {
-            if (!ownerContext.lockingPartnerContext) {
-                (ownerContext.lockingPartnerContext = context.getCmp(partner)).
-                    lockingPartnerContext = ownerContext;
-            }
+        if (partnerVisible) {
+            if (!partnerContext && partner.componentLayout.isRunning()) {
+                (partnerContext = ownerContext.lockingPartnerContext = context.getCmp(partner)).lockingPartnerContext = ownerContext;
 
-            ownerContext.rowHeightSynchronizer = me.owner.syncRowHeightBegin();
+                // Set up opposite side's link if not already aware.
+                if (!partnerContext.lockingPartnerContext) {
+                    partnerContext.lockingPartnerContext = ownerContext;
+                }
+            }
+            if (ownerContext.doSyncRowHeights) {
+                if (partnerContext && !partnerContext.rowHeightSynchronizer) {
+                    partnerContext.rowHeightSynchronizer = partnerContext.target.syncRowHeightBegin();
+                }
+                ownerContext.rowHeightSynchronizer = me.owner.syncRowHeightBegin();
+            }
         }
 
         // Grab a ContextItem for the header container (and make sure the TableLayout can
@@ -78,6 +87,11 @@ Ext.define('Ext.view.TableLayout', {
             return;
         }
 
+        // BufferedRenderer#beforeTableLayout reads, so call it in a read phase.
+        if (me.calcCount === 1 && me.owner.bufferedRenderer) {
+            me.owner.bufferedRenderer.beforeTableLayout(ownerContext);
+        }
+
         if (columnsChanged === undefined) {
             // We cannot proceed when we have rows but no columnWidths determined...
             me.done = false;
@@ -87,13 +101,15 @@ Ext.define('Ext.view.TableLayout', {
         if (columnsChanged) {
             if (!(columnFlusher = state.columnFlusher)) {
                 // Since the columns have changed, we need to write the widths to the DOM.
+                // Queue (and possibly replace) a pseudo ContextItem, who's flush method
+                // routes back into this class.
                 context.queueFlush(state.columnFlusher = columnFlusher = {
                     ownerContext: ownerContext,
                     columnsChanged: columnsChanged,
                     layout: me,
                     id: me.columnFlusherId,
                     flush: me.flushColumnWidths
-                });
+                }, true);
             }
 
             if (!columnFlusher.flushed) {
@@ -123,6 +139,8 @@ Ext.define('Ext.view.TableLayout', {
                     return;
                 }
 
+                // Queue (and possibly replace) a pseudo ContextItem, who's flush method
+                // routes back into this class.
                 context.queueFlush(state.rowHeightFlusher = rowHeightFlusher = {
                     ownerContext: ownerContext,
                     synchronizer: synchronizer,
@@ -130,7 +148,7 @@ Ext.define('Ext.view.TableLayout', {
                     layout: me,
                     id: me.rowHeightFlusherId,
                     flush: me.flushRowHeights
-                });
+                }, true);
             }
 
             if (!rowHeightFlusher.flushed) {
@@ -158,6 +176,25 @@ Ext.define('Ext.view.TableLayout', {
                 overflowY = bodyHeight > ctSize.height;
             }
             ownerContext.setProp('viewOverflowY', overflowY);
+        }
+
+        // Adjust the presence of X scrollability depending upon whether the headers
+        // overflow, and scrollbars take up space.
+        // This has two purposes.
+        //
+        // For lockable assemblies, if there is horizontal overflow in the normal side,
+        // The locked side (which shrinkwraps the columns) must be set to overflow: scroll
+        // in order that it has acquires a matching horizontal scrollbar.
+        //
+        // If no locking, then if there is no horizontal overflow, we set overflow-x: hidden
+        // This avoids "pantom" scrollbars which are only caused by the presence of another scrollbar.
+        if (me.done && Ext.getScrollbarSize().height) {
+            // No locking sides, ensure X scrolling is on if there is overflow, but not if there is no overflow
+            // This eliminates "phantom" scrollbars which are only caused by other scrollbars.
+            // Locking horizontal scrollbars are handled in Ext.grid.locking.Lockable#afterLayout
+            if (!owner.lockingPartner) {
+                ownerContext.setProp('overflowX', !!ownerContext.headerContext.state.boxPlan.tooNarrow);
+            }
         }
     },
 
@@ -207,6 +244,11 @@ Ext.define('Ext.view.TableLayout', {
             colWidth = column.props.width;
             owner.body.select(owner.getColumnSizerSelector(column.target)).setWidth(colWidth);
 
+            // Allow columns which need to perform layouts on resize queue a layout
+            if (column.target.onCellsResized) {
+                column.target.onCellsResized(colWidth);
+            }
+
             // Enable the next go-round of headerCt's ColumnLayout change check to
             // read true, flushed lastBox widths that are in the Table
             lastBox = column.lastBox;
@@ -245,6 +287,7 @@ Ext.define('Ext.view.TableLayout', {
 
     finishedLayout: function(ownerContext) {
         var me = this,
+            ownerGrid = me.owner.ownerGrid,
             nodeContainer = Ext.fly(me.owner.getNodeContainer());
 
         me.callParent([ ownerContext ]);
@@ -257,5 +300,17 @@ Ext.define('Ext.view.TableLayout', {
         if (me.owner.bufferedRenderer) {
             me.owner.bufferedRenderer.afterTableLayout(ownerContext);
         }
+        
+        if (ownerGrid) {
+            ownerGrid.syncRowHeightOnNextLayout = false;
+        }
+    },
+
+    getLayoutItems: function() {
+        return this.owner.getRefItems();
+    },
+
+    isValidParent: function() {
+        return true;
     }
 });

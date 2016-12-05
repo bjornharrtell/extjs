@@ -86,13 +86,20 @@
     $border-color: darken($color-soft-red, 5%)
 );
 
+
+// TODO: replace this with ui when available
+.x-textfield-light .x-input {
+    border-color: #efefef;
+}
+
+//@include textfield-ui(
+//    $ui: 'light',
+//    $input-border-color: #efefef
+//);
+
 .x-big .x-button-header .x-button-icon {
     font-size: 18px;
     font-weight: normal;
-}
-
-.x-input-el {
-    border: 1px solid $field-border-color;
 }
 
 //---------------------------------------------------------------------------
@@ -201,6 +208,10 @@ a {
 
 .main-toolbar {
     z-index: 1;
+
+    & > .x-inner {
+        padding: 0;
+    }
 }
 
 .main-logo, .main-toolbar {

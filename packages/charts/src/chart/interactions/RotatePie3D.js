@@ -46,7 +46,7 @@ Ext.define('Ext.chart.interactions.RotatePie3D', {
         // interaction.
         for (; i < ln; i++) {
             series = seriesList[i];
-            if (series.isPie3D) {
+            if (series.is3D) {
                 seriesRadius = series.getRadius();
                 if (seriesRadius > radius) {
                     radius = seriesRadius;

@@ -1,0 +1,15 @@
+.stretch-html .x-innerhtml {
+    height: 100%;
+}
+
+.simple-source {
+    width: 130px;
+    height: 130px;
+    padding: 5px;
+    text-align: center;
+    color: #FFF;
+    background-color: #FF5722;
+    @include border-radius(5px);
+    @include user-select(none);
+    cursor: move;
+}

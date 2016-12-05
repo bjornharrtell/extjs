@@ -5,22 +5,10 @@ Ext.define('Ext.chart.overrides.AbstractChart', {
     override: 'Ext.chart.AbstractChart',
 
     updateLegend: function (legend, oldLegend) {
-        var dock;
         this.callParent([legend, oldLegend]);
-        if (legend) {
-            dock = legend.docked;
-            this.addDocked({
-                dock: dock,
-                xtype: 'panel',
-                shrinkWrap: true,
-                scrollable: true,
-                layout: {
-                    type: dock === 'top' || dock === 'bottom' ? 'hbox' : 'vbox',
-                    pack: 'center'
-                },
-                items: legend,
-                cls: Ext.baseCSSPrefix + 'legend-panel'
-            });
+
+        if (legend && legend.isDomLegend) {
+            this.addDocked(legend);
         }
     },
 
@@ -41,9 +29,9 @@ Ext.define('Ext.chart.overrides.AbstractChart', {
         return this.rendered;
     },
 
-    onDestroy: function () {
+    doDestroy: function () {
         this.destroyChart();
-        this.callParent(arguments);
+        this.callParent();
     }
 
 });

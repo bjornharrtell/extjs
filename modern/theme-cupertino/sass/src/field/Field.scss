@@ -32,8 +32,8 @@ $form-clear-size: 2.2em;
 	}
 }
 
-.x-field-input {
-	.x-clear-icon {
+.x-input {
+	.x-cleartrigger .x-icon-el {
 		background: get-image-url('clear_icon') no-repeat;
 		background-position: center center;
 		background-size: 55% 55%;
@@ -49,12 +49,6 @@ $form-clear-size: 2.2em;
 	background-color: #fff;
 }
 
-.x-field-clearable {
-	.x-field-input {
-		padding-right: $form-clear-size;
-	}
-}
-
 .x-input-el {
 	background: transparent;
 	padding: .7em .4em .4em .4em;
@@ -67,8 +61,8 @@ $form-clear-size: 2.2em;
 	background: transparent;
 }
 
-.x-item-disabled {
-	.x-form-label,
+.x-field.x-disabled {
+	.x-label-el,
 	input,
 	.x-input-el,
 	.x-spinner-body,
@@ -80,11 +74,11 @@ $form-clear-size: 2.2em;
 	}
 }
 
-.x-item-disabled .x-form-label {
+.x-field.x-disabled .x-label-el {
 	color: #aaa;
 }
 
-.x-item-disabled .x-form-label:after {
+.x-field.x-disabled .x-label-el:after {
 	color: #666 !important;
 }
 
@@ -92,7 +86,7 @@ $form-clear-size: 2.2em;
 	.x-field {
 		background: transparent;
 
-		.x-component-outer {
+		.x-body-el {
 			padding: .4em .6em 0;
 		}
 
@@ -103,16 +97,12 @@ $form-clear-size: 2.2em;
 		}
 	}
 
-	.x-field-input {
+	.x-input {
 		position: relative;
 		background: #fff;
 	}
 
-	.x-field-clearable .x-field-input {
-		padding-right: 0;
-	}
-
-	.x-clear-icon {
+	.x-cleartrigger .x-icon-el {
 		position: absolute;
 		top: .9em;
 		right: -.7em;

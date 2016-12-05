@@ -38,9 +38,7 @@ Ext.define('KitchenSink.view.charts.column3d.Grouped', {
         store: {
             type: 'two-year-sales'
         },
-        legend: {
-            docked: 'bottom'
-        },
+        legend: true,
         sprites: [{
             type: 'text',
             text: 'Sales in Last Two Years',

@@ -3,67 +3,80 @@
  */
 
 .x-form-fieldset {
-    margin: 1em 1em 1.5em;
+    margin: $fieldset-margin;
 
     .x-form-fieldset-inner {
-        border: $fieldset-border-width solid $fieldset-border-color;
+        @include border($fieldset-border-width, $fieldset-border-style, $fieldset-border-color);
         background: $field-background-color;
-        padding: 0;
-        @if $include-border-radius {
+        padding: $fieldset-padding;
+        @if $enable-border-radius {
             @include border-radius($fieldset-border-radius);
         }
     }
 
-    //Ext.field.Field
     .x-field {
-        border-bottom: 1px solid $field-border-color;
+        // When using a fieldset border the fieldset will use fields
+        @if $fieldset-border-width != null {
+
+            &:first-child {
+                @if $enable-border-radius {
+                    @include border-top-radius($fieldset-border-radius);
+                }
+            }
+
+            &:last-child {
+                border-bottom: 0;
+
+                @if $enable-border-radius {
+                    @include border-bottom-radius($fieldset-border-radius);
+                }
+            }
+        }
         background: transparent;
-
-        &:first-child {
-            @if $include-border-radius {
-              @include border-top-radius($fieldset-border-radius);
-            }
-        }
-
-        &:last-child {
-            border-bottom: 0;
-
-            @if $include-border-radius {
-              @include border-bottom-radius($fieldset-border-radius);
-            }
-        }
     }
 }
 
 .x-form-fieldset-title {
-    margin: 1em .7em .3em;
+    @include font($fieldset-title-font-weight, $fieldset-title-font-size, $fieldset-title-line-height, $fieldset-title-font-family);
+    margin: $fieldset-title-margin;
     color: $fieldset-title-color;
+
+    .#{$prefix}big & {
+        @include font($fieldset-title-font-weight, $fieldset-title-font-size-big, $fieldset-title-line-height-big, $fieldset-title-font-family);
+    }
 }
+
+
 
 .x-form-fieldset-instructions {
-    color: lighten($fieldset-title-color, 30%);
-    margin: 1em .7em .3em;
-    font-size: .8em;
+    @include font($fieldset-instructions-font-weight, $fieldset-instructions-font-size, $fieldset-instructions-line-height, $fieldset-instructions-font-family);
+    color: $fieldset-instructions-color;
+    margin: $fieldset-instructions-margin;
+    text-align: $fieldset-instructions-text-align;
+
+    .#{$prefix}big & {
+        @include font($fieldset-instructions-font-weight, $fieldset-instructions-font-size-big, $fieldset-instructions-line-height-big, $fieldset-instructions-font-family);
+    }
 }
 
-@if $include-border-radius {
-    .x-label-align-left {
+@if $enable-border-radius {
+    .x-field.x-label-align-left {
         &:first-child {
-            .x-form-label {
+            .x-label-el {
                 @include border-top-left-radius($fieldset-border-radius);
             }
         }
 
         &:last-child {
-            .x-form-label {
+            .x-label-el {
                 @include border-bottom-left-radius($fieldset-border-radius);
             }
         }
     }
 
-    .x-label-align-right {
+    .x-field.x-label-align-right {
         &:first-child {
-            .x-form-label {
+            .x-label-el {
               @include border-top-right-radius($fieldset-border-radius);
             }
         }
@@ -71,23 +84,23 @@
         &:last-child {
             border-bottom: 0;
 
-            .x-form-label {
+            .x-label-el {
                 @include border-bottom-right-radius($fieldset-border-radius);
             }
         }
     }
 
-    .x-label-align-top {
+    .x-field.x-label-align-top {
         &:first-child {
-            .x-form-label {
+            .x-label-el {
                 @include border-top-radius($fieldset-border-radius);
             }
         }
     }
 
-    .x-label-align-bottom {
+    .x-field.x-label-align-bottom {
         &:last-child {
-            .x-form-label {
+            .x-label-el {
                 @include border-bottom-radius($fieldset-border-radius);
             }
         }

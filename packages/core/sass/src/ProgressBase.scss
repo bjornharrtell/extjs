@@ -1,5 +1,4 @@
 .#{$prefix}progress {
-    border-style: solid;
     overflow: hidden;
     position: relative;
 }
@@ -9,8 +8,15 @@
     width: 0;
 }
 
-.#{$prefix}progress-text,
+.#{$prefix}progress-text {
+    overflow: hidden;
+}
+
 .#{$prefix}progress-bar {
     overflow: hidden;
     position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
 }

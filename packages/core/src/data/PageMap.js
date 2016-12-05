@@ -340,11 +340,5 @@ Ext.define('Ext.data.PageMap', {
             }
         }
         return result;
-    },
-
-    destroy: function() {
-        this.callParent();
-        this.indexMap = {};
-
     }
 });

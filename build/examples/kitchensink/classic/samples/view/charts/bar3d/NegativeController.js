@@ -3,6 +3,10 @@ Ext.define('KitchenSink.view.charts.bar3d.NegativeController', {
     alias: 'controller.bar-negative-3d',
 
     onDownload: function () {
+        if (Ext.isIE8) {
+            Ext.Msg.alert('Unsupported Operation', 'This operation requires a newer version of Internet Explorer.');
+            return;
+        }
         var chart = this.lookupReference('chart');
 
         if (Ext.os.is.Desktop) {

@@ -129,7 +129,7 @@ Ext.define('Ext.grid.property.Store', {
         return this.source;
     },
 
-    onDestroy: function() {
+    doDestroy: function() {
         Ext.destroy(this.reader, this.proxy);
         this.callParent();
     }

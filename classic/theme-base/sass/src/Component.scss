@@ -13,19 +13,11 @@
 
 .#{$prefix}body {
     margin: 0;
+
     @if $enable-font-smoothing {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
-}
-
-.#{$prefix}no-touch-scroll {
-    // prevents overflowing elements from being scrolled using touch input.  Needed
-    // in browsers that use native scrolling on touch-screen devices (e.g. IE10+ win8)
-    // Without this styling, gesture recognition inside overflowing containers is not
-    // possible.
-    touch-action: none;
-    -ms-touch-action: none; // IE10
 }
 
 @-ms-viewport {
@@ -65,6 +57,13 @@ img {
 
 .#{$prefix}layer {
     position: absolute !important;
+
+    // Ensure floating components begin life at the top
+    // of the viewport. Until explicitly positioned,
+    // they are in the document flow which might cause
+    // overflow and size constraint problems.
+    top: 0;
+    left: 0;
     overflow: hidden;
 }
 
@@ -234,4 +233,11 @@ td.#{$prefix}frame-br {
 // not being properly positioned in IE8/9.
 .#{$prefix}position-relative {
     position: relative !important;
+}
+
+// TAB guards must not affect any layout while remaining accessible.
+// The only thing that counts is their position in the DOM tab sequence.
+.#{$prefix}tab-guard {
+    position: absolute;
+    clip: rect(0, 0, 0, 0);
 }

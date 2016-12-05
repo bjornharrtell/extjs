@@ -3,7 +3,7 @@
  */
 
 .x-list {
-    .x-list-disclosure {
+    .x-listitem-disclosure {
         position: relative;
         overflow: visible;
         background: $base-color;
@@ -26,11 +26,11 @@
         }
     }
 
-    &.x-list-indexed .x-list-disclosure {
+    &.x-indexed-vertical .x-listitem-disclosure {
         margin-right: 1.8em;
     }
 
-    .x-item-selected .x-list-disclosure {
+    .x-listitem.x-selected .x-listitem-disclosure {
         background: $background-color none;
 
         &:before {
@@ -38,34 +38,33 @@
         }
     }
 
-    .x-list-item {
+    .x-listitem {
         color: $primary-text-color;
         font-size: 12pt;
 
-        &.x-item-pressed {
-            &.x-list-item-tpl,
+        &.x-pressed {
+            &.x-simplelistitem,
             .x-dock-horizontal {
                 background-color: $base-color;
             }
         }
 
-        &.x-item-selected .x-dock-horizontal,
-        &.x-item-selected.x-list-item-tpl {
+        &.x-selected .x-dock-horizontal,
+        &.x-selected.x-simplelistitem {
             background-color: $base-color;
         }
 
-				&.x-item-pressed,
-				&.x-item-selected {
+				&.x-pressed,
+				&.x-selected {
 					border-color: $base-color !important;
 				}
 
-        .x-list-item-body,
-        &.x-list-item-tpl .x-innerhtml {
+        .x-listitem-body {
             padding: 12px 5px;
         }
     }
     
-    .x-list-header {
+    .x-itemheader {
         color: $secondary-text-color;
         font-size: 12pt;
         font-weight: bold;
@@ -75,27 +74,27 @@
         padding: 15px 5px 5px;
         @include box-shadow(0 1px 0 darken($background-color, 6));
 
-        &.x-list-item-first {
+        &.x-first {
             padding-top: 5px;
         }
     }
 
-    .x-list-item {
-        &.x-list-item-tpl,
+    .x-listitem {
+        &.x-simplelistitem,
         .x-dock-horizontal {
             border-top: 1px solid darken($background-color, 3);
         }
 
 
-        &.x-list-item-tpl.x-list-footer-wrap,
-        &.x-list-footer-wrap .x-dock-horizontal {
+        &.x-simplelistitem.x-group-last,
+        &.x-group-last .x-dock-horizontal {
             border-bottom: 1px solid darken($background-color, 3);
         }
     }
 }
 
-.x-list .x-list-item-odd {
-    &.x-list-item-tpl,
+.x-list .x-list-item.x-odd {
+    &.x-simplelistitem,
     .x-dock-horizontal {
         background-color: darken($background-color, 3);
     }
