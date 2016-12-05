@@ -16,6 +16,23 @@
  *            fillStyle: '#1F6D91'
  *        }]
  *     });
+ * 
+ * ### Drawing with SVG Paths
+ * You may use special SVG Path syntax to "describe" the drawing path.  Here are the SVG path commands:
+ * 
+ * + M = moveto
+ * + L = lineto
+ * + H = horizontal lineto
+ * + V = vertical lineto
+ * + C = curveto
+ * + S = smooth curveto
+ * + Q = quadratic Bézier curve
+ * + T = smooth quadratic Bézier curveto
+ * + A = elliptical Arc
+ * + Z = closepath
+ * 
+ * **Note:** Capital letters indicate that the item should be absolutely positioned. 
+ * Use lower case letters for relative positioning.
  */
 Ext.define('Ext.draw.sprite.Path', {
     extend: 'Ext.draw.sprite.Sprite',

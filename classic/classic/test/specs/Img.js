@@ -1,5 +1,6 @@
 describe("Ext.Img", function() {
-    var img, defaultFamily;
+    var senchaPng = '../../../../test/local/sencha.png',
+        img, defaultFamily;
 
     function makeBaseImage(cfg) {
         img = new Ext.Img(Ext.apply({
@@ -11,10 +12,6 @@ describe("Ext.Img", function() {
             renderTo: Ext.getBody(),
             alt: 'Image'
         }, cfg));
-    }
-    
-    function expectAria(attr, value) {
-        jasmine.expectAriaAttr(img, attr, value);
     }
 
     beforeEach(function() {
@@ -78,7 +75,7 @@ describe("Ext.Img", function() {
                     glyph: '1234'
                 });
                 
-                expectAria('role', 'img');
+                expect(img).toHaveAttr('role', 'img');
             });
         });
 
@@ -218,8 +215,8 @@ describe("Ext.Img", function() {
             describe("src attribute", function() {
                 it("should be able to set src value", function() {
                     makeBaseImage();
-                    img.setSrc('sencha.png')
-                    expect(img.getSrc()).toBe('sencha.png');
+                    img.setSrc(senchaPng)
+                    expect(img.getSrc()).toBe(senchaPng);
                     
                     // Warning here is expected
                     spyOn(Ext.log, 'warn');
@@ -304,8 +301,8 @@ describe("Ext.Img", function() {
             describe("src attribute",function() {
                 it("should be able to set src value", function() {
                     makeImage();
-                    img.setSrc('sencha.png')
-                    expect(img.getSrc()).toBe('sencha.png');
+                    img.setSrc(senchaPng);
+                    expect(img.getSrc()).toBe(senchaPng);
                     expect(img.el.dom.src.indexOf('sencha.png')).not.toBe(-1);
                 });
             });

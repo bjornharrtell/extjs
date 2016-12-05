@@ -1,0 +1,20 @@
+$content-panel-grid-line: dynamic(if($theme-name == 'theme-material', if($dark-mode, #3a3a3a, #f5f5f5), #f5f5f5));
+$content-panel-grid-background: dynamic(darken($content-panel-grid-line, 5%));
+
+html {
+    --content-panel-grid-line: export;
+    --content-panel-grid-background: export;
+}
+
+.main-nav-inner {
+    background-image: url(get-resource-path('images/square.gif', 'toolkit'));
+    background-image: repeating-linear-gradient(0deg, $content-panel-grid-line, $content-panel-grid-line 1px, transparent 1px, transparent 20px),repeating-linear-gradient(-90deg, $content-panel-grid-line, $content-panel-grid-line 1px, transparent 1px, transparent 20px);
+    background-color: $content-panel-grid-background;
+    .demo-solid-background {
+        background-color: $background-color;
+    }
+}
+
+.ux-code .x-body .x-inner {
+    background-color: white;
+}

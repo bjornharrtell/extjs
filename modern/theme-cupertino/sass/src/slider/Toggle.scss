@@ -2,7 +2,7 @@
  * @class Ext.slider.Toggle
  */
 
-.x-toggle {
+.x-toggleslider {
 	$form-toggle-thumb-size: 22px;
 	$form-toggle-border-size: 2px;
 
@@ -42,7 +42,7 @@
 	}
 }
 
-.x-toggle-on {
+.x-toggleslider.x-on {
 	background-color: $ios7-green;
 	border-color: $ios7-green;
 
@@ -51,7 +51,3 @@
 	}
 }
 
-.x-toggle-off {
-	&:before {
-	}
-}

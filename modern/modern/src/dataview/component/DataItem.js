@@ -98,13 +98,13 @@
  *
  *     dataMap: {
  *         // When the record is updated, get the text configuration, and
- *         // call {@link #setHtml} with the 'text' field of the record.
+ *         // call setHtml with the 'text' field of the record.
  *         getText: {
  *             setHtml: 'text'
  *         },
  *
  *         // When the record is updated, get the userName configuration, and
- *         // call {@link #setHtml} with the 'from_user' field of the record.
+ *         // call setHtml with the 'from_user' field of the record.
  *         getUserName: {
  *             setHtml: 'from_user'
  *         },
@@ -116,14 +116,11 @@
  *         }
  *     }
  */
-
 Ext.define('Ext.dataview.component.DataItem', {
     extend: 'Ext.Container',
     xtype : 'dataitem',
 
     config: {
-        baseCls: Ext.baseCSSPrefix + 'data-item',
-
         defaultType: 'component',
 
         /**
@@ -159,7 +156,8 @@ Ext.define('Ext.dataview.component.DataItem', {
         dataMap: {},
 
         /**
-         * @private dataview
+         * @private
+         * @cfg dataview
          */
         dataview: null,
 
@@ -169,6 +167,8 @@ Ext.define('Ext.dataview.component.DataItem', {
             xtype: 'component'
         }]
     },
+
+    classCls: Ext.baseCSSPrefix + 'dataitem',
 
     updateBaseCls: function(newBaseCls, oldBaseCls) {
         var me = this;

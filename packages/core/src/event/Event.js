@@ -128,8 +128,29 @@ Ext.define('Ext.event.Event', {
      * @property {Event} browserEvent
      * The raw browser event which this object wraps.
      */
+    
+    /**
+     * @property {String} pointerType
+     * The pointer type for this event. May be empty if the event was
+     * not triggered by a pointer. Current available types are:
+     * - `mouse`
+     * - `touch`
+     * - `pen`
+     */
 
-    isStopped: false,
+    /**
+     * @property {Boolean}
+     * `true` if {@link #stopPropagation} has been called on this instance
+     * @private
+     */
+    stopped: false,
+
+    /**
+     * @property {Boolean}
+     * `true` if {@link #claimGesture} has been called on this instance
+     * @private
+     */
+    claimed: false,
 
     /**
      * @property {Boolean}
@@ -217,13 +238,98 @@ Ext.define('Ext.event.Event', {
         // this map allows us to normalize the pointerType for an event
         // http://www.w3.org/TR/pointerevents/#widl-PointerEvent-pointerType
         // http://msdn.microsoft.com/en-us/library/ie/hh772359(v=vs.85).aspx
-        pointerTypes: {
+        pointerTypeMap: {
             2: 'touch',
             3: 'pen',
             4: 'mouse',
             touch: 'touch',
             pen: 'pen',
             mouse: 'mouse'
+        },
+
+        keyFlags: {
+            CTRL: 'ctrlKey',
+            CONTROL: 'ctrlKey',
+            ALT: 'altKey',
+            SHIFT: 'shiftKey',
+            CMD: 'metaKey',
+            COMMAND: 'metaKey',
+            CMDORCTRL: Ext.isMac ? 'metaKey' : 'ctrlKey',
+            COMMANDORCONTROL: Ext.isMac ? 'metaKey' : 'ctrlKey',
+            META: 'metaKey'
+        },
+
+        modifierGlyphs: {
+            ctrlKey: '\u2303',
+            altKey: '\u2325',
+            metaKey: Ext.isMac ? '\u2318' : '\u229e',
+            shiftKey: '\u21E7'
+        },
+
+        specialKeyGlyphs: {
+            BACKSPACE: '\u232B',
+            TAB: '\u21E5',
+            ENTER: '\u23CE',
+            RETURN: '\u23CE',
+            SPACE: '\u2423',
+            PAGE_UP: '\u21DE',
+            PAGE_DOWN: '\u21DF',
+            END: '\u21F2',
+            HOME: '\u2302',
+            LEFT: '\u2190',
+            UP: '\u2191',
+            RIGHT: '\u2192',
+            DOWN: '\u2193',
+            PRINT_SCREEN: '\u2399',
+            INSERT: '\u2380',
+            DELETE: '\u2326',
+            CONTEXT_MENU: '\u2630'
+        },
+
+        /**
+         * Convert a key specification in the form eg: "CTRL+ALT+DELETE" to the glyph sequence
+         * for use in menu items, eg "⌃⌥⌦".
+         * @private
+         */
+        getKeyId: function(keyName) {
+            keyName = keyName.toUpperCase();
+
+            var me = this,
+                parts = keyName.split('+'),
+                numModifiers = parts.length - 1,
+                rawKey = parts[numModifiers],
+                result = [],
+                eventFlag, i;
+
+            //<debug>
+            if (!Ext.event.Event[rawKey]) {
+                Ext.raise('Invalid key name: "' + rawKey + '"');
+            }
+            //</debug>
+
+            for (i = 0; i < numModifiers; i++) {
+                eventFlag = me.keyFlags[parts[i]];
+                //<debug>
+                if (!eventFlag) {
+                    Ext.raise('Invalid key modifier: "' + parts[i] + '"');
+                }
+                //</debug>
+                result[eventFlag] = true;
+            }
+            if (result.ctrlKey) {
+                result.push(me.modifierGlyphs.ctrlKey)
+            }
+            if (result.altKey) {
+                result.push(me.modifierGlyphs.altKey)
+            }
+            if (result.shiftKey) {
+                result.push(me.modifierGlyphs.shiftKey)
+            }
+            if (result.metaKey) {
+                result.push(me.modifierGlyphs.metaKey)
+            }
+            result.push(this.specialKeyGlyphs[rawKey] || rawKey);
+            return result.join('');
         }
     },
 
@@ -239,13 +345,28 @@ Ext.define('Ext.event.Event', {
             type = event.type,
             pointerType, relatedTarget;
 
+        // Do not use event.timeStamp as it is not consistent cross browser (some browsers
+        // use high resolution time stamps, while others use milliseconds)
+        me.timeStamp = me.time = Ext.now();
+
         me.pageX = coordinateOwner.pageX;
         me.pageY = coordinateOwner.pageY;
+        me.clientX = coordinateOwner.clientX;
+        me.clientY = coordinateOwner.clientY;
 
         me.target = me.delegatedTarget = resolveTextNode(event.target);
         relatedTarget = event.relatedTarget;
         if (relatedTarget) {
-            me.relatedTarget = resolveTextNode(relatedTarget);
+            // When leaving the document, the relatedTarget can be incorrect in Gecko
+            if (Ext.isGecko && type === 'dragenter' || type === 'dragleave') {
+                try {
+                    me.relatedTarget = resolveTextNode(relatedTarget);
+                } catch(e) {
+                    me.relatedTarget = null;
+                }
+            } else {
+                me.relatedTarget = resolveTextNode(relatedTarget);
+            }
         }
 
         me.browserEvent = me.event = event;
@@ -270,14 +391,24 @@ Ext.define('Ext.event.Event', {
             me.buttons = 1;
         }
         
-        if (self.forwardTab !== undefined && self.focusEvents[type]) {
-            me.forwardTab = self.forwardTab;
+        if (self.focusEvents[type]) {
+            if (self.forwardTab !== undefined) {
+                me.forwardTab = self.forwardTab;
+            }
+        }
+        else if (type !== 'keydown') {
+            // Normally this property should be cleaned up in keyup handler;
+            // however that one might never come if something prevented default
+            // on the keydown. Make sure the property won't get stuck.
+            delete self.forwardTab;
         }
 
-        if (self.mouseEvents[type] || self.clickEvents[type]) {
+        if (self.mouseEvents[type]) {
             pointerType = 'mouse';
+        } else if (self.clickEvents[type]) {
+            pointerType = self.pointerTypeMap[event.pointerType] || 'mouse';
         } else if (self.pointerEvents[type]) {
-            pointerType = self.pointerTypes[event.pointerType];
+            pointerType = self.pointerTypeMap[event.pointerType];
         } else if (self.touchEvents[type]) {
             pointerType = 'touch';
         }
@@ -286,7 +417,9 @@ Ext.define('Ext.event.Event', {
             me.pointerType = pointerType;
         }
 
-        me.timeStamp = me.time = +(event.timeStamp || new Date());
+        // Is this is not the primary touch for PointerEvents (first touch)
+        // or there are multiples touches for Touch Events
+        me.isMultitouch = event.isPrimary === false || (event.touches && event.touches.length > 1);
     },
 
     /**
@@ -348,8 +481,16 @@ Ext.define('Ext.event.Event', {
      * @return {Ext.util.Point} point
      */
     getPoint: function(){
-        var xy = this.getXY();
-        return new Ext.util.Point(xy[0], xy[1]);
+        var me = this,
+            point = me.point,
+            xy;
+
+        if (!point) {
+            xy = me.getXY();
+            point = me.point = new Ext.util.Point(xy[0], xy[1]);
+        }
+
+        return point;
     },
 
     /**
@@ -367,7 +508,10 @@ Ext.define('Ext.event.Event', {
         var relatedTarget = this.relatedTarget,
             target = null;
 
-        if (relatedTarget) {
+        // In some cases in IE10/11, when the mouse is leaving the document over a scrollbar
+        // the relatedTarget will be an empty object literal. So just check we have an element
+        // looking object here before we proceed.
+        if (relatedTarget && relatedTarget.nodeType) {
             if (selector) {
                 target = Ext.fly(relatedTarget).findParent(selector, maxDepth, returnEl);
             } else {
@@ -420,11 +564,14 @@ Ext.define('Ext.event.Event', {
             event = me.browserEvent,
             dx = 0, dy = 0; // the deltas
 
-        if (Ext.isDefined(event.wheelDeltaX)) { // WebKit has both dimensions
+        if (Ext.isDefined(event.wheelDeltaX)) { // WebKit and Edge have both dimensions
             dx = event.wheelDeltaX;
             dy = event.wheelDeltaY;
         } else if (event.wheelDelta) { // old WebKit and IE
             dy = event.wheelDelta;
+        } else if ('deltaX' in event) { // IE11
+            dx = event.deltaX;
+            dy = -event.deltaY; // backwards
         } else if (event.detail) { // Gecko
             dy = -event.detail; // gecko is backwards
 
@@ -630,9 +777,9 @@ Ext.define('Ext.event.Event', {
             browserEvent = me.browserEvent,
             parentEvent = me.parentEvent;
 
-        // Set isStopped for delegated event listeners.  Dom publisher will check this
+        // Set stopped for delegated event listeners.  Dom publisher will check this
         // property during its emulated propagation phase (see doPublish)
-        me.isStopped = true;
+        me.stopped = true;
 
         // if the event was created by prototype-chaining a new object to an existing event
         // instance, we need to make sure the parent event is stopped.  This feature most
@@ -642,10 +789,10 @@ Ext.define('Ext.event.Event', {
         // create a "chained" copy of the event object before correcting its type back to
         // 'mousedown' and calling the handler.  When propagating the event we look at the
         // original event, not the chained one to determine if propagation should continue,
-        // so the isStopped property must be set on the parentEvent or stopPropagation
+        // so the stopped property must be set on the parentEvent or stopPropagation
         // will not work.
-        if (parentEvent) {
-            parentEvent.isStopped = true;
+        if (parentEvent && !me.isGesture) {
+            parentEvent.stopped = true;
         }
 
         //<feature legacyBrowser>
@@ -659,6 +806,39 @@ Ext.define('Ext.event.Event', {
         // For non-delegated event listeners (those that are directly attached to the
         // DOM element) we need to call the browserEvent's stopPropagation() method.
         browserEvent.stopPropagation();
+
+        return me;
+    },
+
+    /**
+     * Claims this event as the currently active gesture.  Once a gesture is claimed
+     * no other gestures will fire events until after the current gesture has completed.
+     * For example, if `claimGesture()` is invoked on a dragstart or drag event, no
+     * swipestart or swipe events will be fired until the drag gesture completes, even if
+     * the gesture also meets the required duration and distance requirements to be recognized
+     * as a swipe.
+     *
+     * If `claimGesture()` is invoked on a mouse, touch, or pointer event, it will disable
+     * all gesture events until termination of the current gesture is indicated by a
+     * mouseup, touchend, or pointerup event.
+     *
+     * @return {Ext.event.Event}
+     */
+    claimGesture: function() {
+        var me = this,
+            parentEvent = me.parentEvent;
+
+        me.claimed = true;
+
+        if (parentEvent && !me.hasOwnProperty('isGesture')) {
+            parentEvent.claimGesture();
+        } else {
+            // Claiming a gesture should also prevent default browser actions like pan/zoom
+            // if possible (only works on browsers that support touch events - browsers that
+            // use pointer events must declare a CSS touch-action on elements to prevent the
+            // default touch action from occurring.
+            me.preventDefault();
+        }
 
         return me;
     },

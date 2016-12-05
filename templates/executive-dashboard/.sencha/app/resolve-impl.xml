@@ -15,7 +15,7 @@
 
     <target name="-before-web-stop"/>
     <target name="-web-stop">
-        <x-web-server stop="true" port="${build.web.port}"/>
+        <x-server stop="true" port="${build.web.port}"/>
     </target>
     <target name="-after-web-stop"/>
     <target name="web-stop"

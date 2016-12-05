@@ -49,7 +49,8 @@ Ext.define('Ext.draw.sprite.Triangle', {
         var s = attr.size * 2.2,
             x = attr.x,
             y = attr.y;
-        path.fromSvgString('M'.concat(x, ',', y, 'm0-', s * 0.58, 'l', s * 0.5, ',', s * 0.87, '-', s, ',0z'));
+
+        path.fromSvgString('M'.concat(x, ',', y, 'm0-', s * 0.48, 'l', s * 0.5, ',', s * 0.87, '-', s, ',0z'));
     }
 
 });

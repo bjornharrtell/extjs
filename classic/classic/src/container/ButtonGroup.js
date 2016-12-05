@@ -97,6 +97,7 @@ Ext.define('Ext.container.ButtonGroup', {
     noTitleCls: 'notitle',
     
     bodyAriaRole: 'toolbar',
+    focusableContainerEl: 'body',
 
     initComponent: function() {
         // Copy the component's columns config to the layout if specified
@@ -181,10 +182,6 @@ Ext.define('Ext.container.ButtonGroup', {
                 c = this.callParent(arguments);
             }
             return c;
-        },
-        
-        getFocusableContainerEl: function() {
-            return this.body;
         }
     }
 

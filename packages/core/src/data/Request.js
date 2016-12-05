@@ -4,6 +4,8 @@
  * it does not contain any actual logic or perform the request itself.
  */
 Ext.define('Ext.data.Request', {
+    isDataRequest: true,
+    
     config: {
         /**
          * @cfg {String} action

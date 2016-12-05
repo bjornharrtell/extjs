@@ -26,10 +26,14 @@ Ext.define('KitchenSink.view.charts.bar.BasicController', {
     },
 
     onColumnRender: function (v) {
-        return v + '%';
+        return Ext.util.Format.usMoney(v * 1000);
     },
 
     onPreview: function () {
+        if (Ext.isIE8) {
+            Ext.Msg.alert('Unsupported Operation', 'This operation requires a newer version of Internet Explorer.');
+            return;
+        }
         var chart = this.lookupReference('chart');
         chart.preview();
     }

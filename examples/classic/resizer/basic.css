@@ -12,17 +12,15 @@
 #custom-rzwrap{
     z-index: 100;
 }
-#custom-rzwrap .x-resizable-handle{
+#custom-rzwrap .x-resizable-handle {
     width: 11px;
     height: 11px;
-    background: transparent url(square.gif) no-repeat;
-    margin: 0;
-    -moz-border-radius: 0;
-    -webkit-border-radius: 0;
-    -o-border-radius: 0;
-    -ms-border-radius: 0;
-    -khtml-border-radius: 0;
-    border-radius: 0;
+    background-color: #bdE;
+    border: 1px solid #8af;
+    vertical-align: middle;
+}
+#custom-rzwrap .x-resizable-handle:before {
+    display: none;
 }
 
 #custom-rzwrap .x-resizable-handle-west, #custom-rzwrap .x-resizable-handle-east{
@@ -35,7 +33,7 @@
 }
 
 #custom-rzwrap .x-resizable-handle-east, #custom-rzwrap .x-resizable-handle-northeast, #custom-rzwrap .x-resizable-handle-southeast{
-	right: -11px;
+    right: -11px;
 }
 #custom-rzwrap .x-resizable-handle-west, #custom-rzwrap .x-resizable-handle-northwest, #custom-rzwrap .x-resizable-handle-southwest{
     left: -11px;

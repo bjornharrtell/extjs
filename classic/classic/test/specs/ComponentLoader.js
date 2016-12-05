@@ -341,7 +341,7 @@ describe("Ext.ComponentLoader", function(){
                 loader.load();
                 expect(function(){
                     mockComplete('{"html": "foo"}');
-                }).toRaiseExtError('Components can only be loaded into a container');
+                }).toThrow('Components can only be loaded into a container');
             });
             
             it("should add a single item", function(){

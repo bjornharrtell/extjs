@@ -2,7 +2,13 @@ describe("Ext.data.BufferedStore", function() {
     var bufferedStore, captured,
         synchronousLoad = true,
         bufferedStoreLoad = Ext.data.BufferedStore.prototype.load,
-        loadStore;
+        loadStore = function() {
+            bufferedStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
 
     function getData(start, limit) {
         var end = start + limit,
@@ -61,13 +67,7 @@ describe("Ext.data.BufferedStore", function() {
 
     beforeEach(function() {
         // Override so that we can control asynchronous loading
-        loadStore = Ext.data.BufferedStore.prototype.load = function() {
-            bufferedStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        },
+        Ext.data.BufferedStore.prototype.load = loadStore;
 
         Ext.define('spec.ForumThread', {
             extend: 'Ext.data.Model',

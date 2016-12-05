@@ -2,10 +2,7 @@ Ext.define("KitchenSink.store.StockPrice", {
     alias: 'store.StockPrice',
     requires: ['KitchenSink.model.OHLC'],
     extend: 'Ext.data.Store',
-    config: {
-        model: 'KitchenSink.model.OHLC',
-        data: []
-    },
+    model: 'KitchenSink.model.OHLC',
     generateData: (function () {
         var seed = 1.4;
 

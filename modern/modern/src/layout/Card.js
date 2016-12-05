@@ -29,18 +29,18 @@
  *         ]
  *     });
  *
- *     panel.{@link Ext.Container#setActiveItem setActiveItem}(1);
+ *     panel.setActiveItem(1);
  *
  * Here we create a Panel with a Card Layout and later set the second item active (the active item index is zero-based,
  * so 1 corresponds to the second item). Normally you're better off using a {@link Ext.tab.Panel tab panel} or a
  * {@link Ext.carousel.Carousel carousel}.
  */
-
-
 Ext.define('Ext.layout.Card', {
     extend: 'Ext.layout.Default',
 
     alias: 'layout.card',
+
+    type: 'card',
 
     isCard: true,
 
@@ -53,9 +53,9 @@ Ext.define('Ext.layout.Card', {
      * @param {Mixed} oldActiveItem The old active item
      */
         
-    layoutClass: Ext.baseCSSPrefix + 'layout-card',
+    cls: Ext.baseCSSPrefix + 'layout-card',
 
-    itemClass: Ext.baseCSSPrefix + 'layout-card-item',
+    itemCls: Ext.baseCSSPrefix + 'layout-card-item',
 
     requires: [
         'Ext.fx.layout.Card'
@@ -84,7 +84,6 @@ Ext.define('Ext.layout.Card', {
     setContainer: function(container) {
         this.callParent(arguments);
 
-        container.innerElement.addCls(this.layoutClass);
         container.onInitialized('onContainerInitialized', this);
     },
 
@@ -120,7 +119,6 @@ Ext.define('Ext.layout.Card', {
         var container = this.container,
             activeItem = container.getActiveItem();
 
-        item.toggleCls(this.itemClass, isInner);
         item.setLayoutSizeFlags(isInner ? container.LAYOUT_BOTH : 0);
 
         if (isInner) {
@@ -147,8 +145,8 @@ Ext.define('Ext.layout.Card', {
         }
     },
 
-    destroy:  function () {
-        this.callParent();
+    destroy: function() {
         Ext.destroy(this.getAnimation());
+        this.callParent();
     }
 });

@@ -1,3 +1,14 @@
+function toggleExpandedState(el) {
+    var cls = el.className || 'collapsed';
+    el.className = cls.indexOf('collapsed') !== -1?
+        cls.replace('collapsed', 'expanded') :
+        cls.replace('expanded', 'collapsed');
+}
+
+function toggleMenu() {
+    toggleExpandedState(document.getElementById('title-menu'));
+}
+
 window.onload = function() {
     var html = '',
         groups = Ext.samples.samplesCatalog,
@@ -14,32 +25,26 @@ window.onload = function() {
             element.attachEvent('on' + eventName, handler);
         }
     }
-    
+
     for (; i < ln; i++) {
         group = groups[i];
         expanded = (groupIndex < 2);
         html +=
-
             '<div class="group-header ' + (expanded ? 'expanded' : 'collapsed') + '">' +
                 '<div class="wrap">' +
-                    '<div class="group-title">' + group.title + '</div>' +
-                    '<div class="group-action">' +
-                        '<a href="#" class="group-action-icon icon-' + (expanded ? 'minus' : 'plus') + '"></a>' +
-                    '</div>' +
+                    '<a class="group-title" href="javascript:void(0);">' + group.title + '</a>' +
                 '</div>' +
             '</div>' +
             '<div class="group">' +
                 '<div class="wrap">';
                     examples = group.items;
                     exampleLn = examples.length;
-        
+
                     for (j = 0; j < exampleLn; j++) {
                         example = examples[j];
                         html +=
                             '<a class="example" target="_blank" href="' + example.url + '">' +
-                                '<div class="example-icon-wrap icon-border-hexagon">' +
-                                    '<div class="example-icon icon-' + example.icon + '"></div>' +
-                                '</div>' +
+                                '<div class="example-icon icon-' + example.icon + '"></div>' +
                                 '<div class="example-text-wrap">' +
                                     '<div class="example-text-wrap-inner">' +
                                         '<div class="example-title">' + example.text + '</div>' +
@@ -48,20 +53,20 @@ window.onload = function() {
                                 '</div>' +
                             '</a>';
                     }
-        
+
         html +=
                 '</div>' + // end wrap
             '</div>'; // end group
-            
+
         ++groupIndex;
     }
-    
+
     bodyEl.innerHTML = html;
-    
+
     addListener(document.body, 'click', function(e) {
         var target = e.target || e.srcElement,
             groupHeaderClicked = false,
-            expander, className, expanderClassName;
+            className;
 
         while (target) {
             if (target.className && target.className.indexOf('group-header') !== -1) {
@@ -70,31 +75,19 @@ window.onload = function() {
             }
             target = target.parentNode;
         }
-        
+
         if (groupHeaderClicked) {
             // Prevent click handling when fired from <a>
             if (e.preventDefault) {
                 e.preventDefault();
             }
 
-            className = target.className;
-            expander = target.querySelector('.group-action-icon');
-            expanderClassName = expander.className;
-            
-            if (className.indexOf('collapsed') !== -1) {
-                className = className.replace('collapsed', 'expanded');
-                expanderClassName = expanderClassName.replace('plus', 'minus');
-            } else {
-                className = className.replace('expanded', 'collapsed');
-                expanderClassName = expanderClassName.replace('minus', 'plus');
-            }
-            target.className = className;
-            expander.className = expanderClassName;
-            
+            toggleExpandedState(target);
+
             // IE8 needs a repaint of the body el to trigger the stylesheet rules that hide
             // and show the group
             bodyEl.className = bodyEl.className;
-            
+
             return false;
         }
     });

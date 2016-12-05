@@ -1,5 +1,5 @@
 describe("Ext.direct.Provider", function() {
-    var provider, connectSpy, disconnectSpy;
+    var ajaxSpy, provider, connectSpy, disconnectSpy;
     
     function makeProvider(config) {
         provider = new Ext.direct.Provider(config);
@@ -7,7 +7,22 @@ describe("Ext.direct.Provider", function() {
         return provider;
     }
     
+    function makeRequest(config) {
+        var abortSpy = jasmine.createSpy('abort');
+        
+        var request = Ext.apply({
+            id: Ext.id(),
+            abort: abortSpy
+        }, config);
+        
+        return request;
+    }
+    
     beforeEach(function() {
+        ajaxSpy = spyOn(Ext.Ajax, 'request').andCallFake(function(request) {
+            return request;
+        });
+        
         makeProvider();
         
         spyOn(provider, 'doConnect');
@@ -27,7 +42,7 @@ describe("Ext.direct.Provider", function() {
         
         Ext.direct.Manager.clearAllMethods();
         
-        provider = connectSpy = disconnectSpy = null;
+        ajaxSpy = provider = connectSpy = disconnectSpy = null;
     });
     
     describe("ids", function() {
@@ -188,21 +203,69 @@ describe("Ext.direct.Provider", function() {
         });
         
         describe("when subscribers == 0", function() {
-            beforeEach(function() {
-                provider.disconnect();
+            describe("not forced", function() {
+                beforeEach(function() {
+                    provider.disconnect();
+                });
+                
+                it("should not call doDisconnect", function() {
+                    expect(provider.doDisconnect).not.toHaveBeenCalled();
+                });
+                
+                it("should not fire disconnect event", function() {
+                    expect(disconnectSpy).not.toHaveBeenCalled();
+                });
+                
+                it("should not decrement subscribers", function() {
+                    expect(provider.subscribers).toBe(0);
+                });
             });
             
-            it("should not call doDisconnect", function() {
-                expect(provider.doDisconnect).not.toHaveBeenCalled();
+            describe("forced", function() {
+                beforeEach(function() {
+                    provider.disconnect(true);
+                });
+                
+                it("should call doDisconnect", function() {
+                    expect(provider.doDisconnect).toHaveBeenCalled();
+                });
             });
+        });
+    });
+    
+    describe("Ajax requests", function() {
+        var request;
+        
+        beforeEach(function() {
+            provider.doDisconnect.andCallThrough();
             
-            it("should not fire disconnect event", function() {
-                expect(disconnectSpy).not.toHaveBeenCalled();
-            });
+            request = makeRequest();
+            provider.sendAjaxRequest(request);
+        });
+        
+        afterEach(function() {
+            request = null;
+        });
+        
+        it("should add request to pending upon sending", function() {
+            expect(provider.requests[request.id]).toBe(request);
+            expect(Ext.Object.getKeys(provider.requests).length).toBe(1);
+        });
+        
+        it("should remove request from pending when data is received", function() {
+            provider.onData({}, true, { request: request });
             
-            it("should not decrement subscribers", function() {
-                expect(provider.subscribers).toBe(0);
-            });
+            expect(provider.requests[request.id]).not.toBeDefined();
+            expect(Ext.Object.getKeys(provider.requests).length).toBe(0);
+        });
+
+        it("should abort and remove pending requests upon destruction", function() {
+            expect(request.abort).not.toHaveBeenCalled();
+            
+            provider.destroy();
+            
+            expect(Ext.Object.getKeys(provider.requests).length).toBe(0);
+            expect(request.abort).toHaveBeenCalled();
         });
     });
 });

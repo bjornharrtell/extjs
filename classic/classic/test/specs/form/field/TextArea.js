@@ -1,10 +1,6 @@
 describe("Ext.form.field.TextArea", function() {
     var component, makeComponent;
     
-    function expectAria(attr, value) {
-        jasmine.expectAriaAttr(component, attr, value);
-    }
-    
     beforeEach(function() {
         makeComponent = function(config) {
             config = config || {};
@@ -131,11 +127,11 @@ describe("Ext.form.field.TextArea", function() {
         
         describe("ARIA attributes", function() {
             it("should have textbox role", function() {
-                expectAria('role', 'textbox');
+                expect(component).toHaveAttr('role', 'textbox');
             });
             
             it("should have aria-multiline attribute", function() {
-                expectAria('aria-multiline', 'true');
+                expect(component).toHaveAttr('aria-multiline', 'true');
             });
         });
         
@@ -1311,5 +1307,24 @@ describe("Ext.form.field.TextArea", function() {
         makeLayoutSuite(3, false); // shrinkWrap both
         makeLayoutSuite(3, true); // shrinkWrap both, autoFitErrors
     });
-
+    
+    describe("keyboard interaction", function() {
+        it("should stop event propagation on Enter key", function() {
+            makeComponent();
+            
+            var spy = spyOn(component, 'fireKey').andCallThrough();
+            
+            component.render(Ext.getBody());
+            
+            pressKey(component, 'enter');
+            
+            waitForSpy(spy);
+            
+            runs(function() {
+                var args = spy.mostRecentCall.args;
+                
+                expect(args[0].stopped).toBe(true);
+            });
+        });
+    });
 });

@@ -851,6 +851,65 @@ describe("Ext.data.schema.ManyToMany", function() {
         });
     });
 
+    describe("id change", function() {
+        function createSuite(withSession) {
+            describe(withSession ? "with session" : "without session", function() {
+                var session, Group, User;
+
+                beforeEach(function() {
+                    Ext.data.Model.schema.setNamespace('spec');
+                    if (withSession) {
+                        session = new Ext.data.Session();
+                    }
+
+                    Group = Ext.define('spec.Group', {
+                        extend: 'Ext.data.Model',
+                        fields: ['id', 'name'],
+                        manyToMany: 'User'
+                    });
+
+                    User = Ext.define('spec.User', {
+                        extend: 'Ext.data.Model',
+                        fields: ['id', 'name']
+                    });
+                });
+
+                afterEach(function() {
+                    if (withSession) {
+                        session.destroy();
+                    }
+                    Group = User = session = null;
+                    Ext.undefine('spec.Group');
+                    Ext.undefine('spec.User');
+                    Ext.data.Model.schema.clear(true);
+                });
+
+                it("should update the store filter when left is changed", function() {
+                    var group = new Group(null, session),
+                        users = group.users(),
+                        filter = users.getFilters().getAt(0);
+
+                    expect(filter.getValue()).toBe(group.id);
+                    group.setId(100);
+                    expect(filter.getValue()).toBe(100);
+                });
+
+                it("should update the store filter when right is changed", function() {
+                    var user = new User(null, session),
+                        groups = user.groups(),
+                        filter = groups.getFilters().getAt(0);
+
+                    expect(filter.getValue()).toBe(user.id);
+                    user.setId(100);
+                    expect(filter.getValue()).toBe(100);
+                });
+            });
+        }
+
+        createSuite(false);
+        createSuite(true);
+    });
+
     describe("store membership", function() {
         var User, Group, session;
 

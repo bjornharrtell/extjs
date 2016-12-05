@@ -8,23 +8,21 @@
  * The Target modifier figures out which updaters have to be called
  * for the changed set of attributes and makes the sprite and its instances (if any)
  * call them.
- *
  */
 Ext.define('Ext.draw.modifier.Target', {
     requires: ['Ext.draw.Matrix'],
     extend: 'Ext.draw.modifier.Modifier',
     alias: 'modifier.target',
     statics: {
+        /**
+         * @private
+         */
         uniqueId: 0
     },
 
-    /**
-     * @inheritdoc
-     */
     prepareAttributes: function (attr) {
-        var previous = this.getPrevious();
-        if (previous) {
-            previous.prepareAttributes(attr);
+        if (this._lower) {
+            this._lower.prepareAttributes(attr);
         }
         attr.attributeId = 'attribute-' + Ext.draw.modifier.Target.uniqueId++;
         if (!attr.hasOwnProperty('canvasAttributes')) {
@@ -118,20 +116,24 @@ Ext.define('Ext.draw.modifier.Target', {
         sprite.callUpdaters(attr);
     },
 
-    /**
-     * @inheritdoc
-     */
     popUp: function (attr, changes) {
         this.applyChanges(attr, changes);
     },
 
-    /**
-     * @inheritdoc
-     */
     pushDown: function (attr, changes) {
-        var previous = this.getPrevious();
-        if (previous) {
-            changes = previous.pushDown(attr, changes);
+        // Modifier chain looks like this:
+        // Target (sprite.topModifier) <---> postFx <---> Animation (sprite.fx) <---> preFx
+
+        // There can be any number of postFx and preFx modifiers, the difference between them is that:
+        // `preFx` modifier changes are animated.
+        // `postFx` modifier changes are not.
+
+        // preFx modifiers include Highlight (Draw) and Callout (Charts).
+        // There are no postFx modifiers at the moment.
+
+        if (this._lower) {
+            // Without any postFx modifiers, `lower` is going to be Animation.
+            changes = this._lower.pushDown(attr, changes);
         }
         this.applyChanges(attr, changes);
         return changes;

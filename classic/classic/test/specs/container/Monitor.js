@@ -45,9 +45,9 @@ describe("Ext.container.Monitor", function(){
             return root;
         };
         
-        addSpy = jasmine.createSpy();
-        removeSpy = jasmine.createSpy();
-        invalidateSpy = jasmine.createSpy();
+        addSpy = jasmine.createSpy('add');
+        removeSpy = jasmine.createSpy('remove');
+        invalidateSpy = jasmine.createSpy('invalidate');
     });
     
     afterEach(function(){
@@ -247,7 +247,7 @@ describe("Ext.container.Monitor", function(){
             expectNotContains(c1);
         });
         
-        it("should handle the removal of Queryable items that aren't containers", function(){
+        xit("should handle the removal of Queryable items that aren't containers", function(){
             ct.add(new Ext.button.Button({
                 menu: {
                     items: c1

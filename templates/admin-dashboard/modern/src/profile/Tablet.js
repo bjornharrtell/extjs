@@ -1,4 +1,4 @@
-Ext.define('Admin.profile.Tablet', {
+﻿Ext.define('Admin.profile.Tablet', {
     extend: 'Ext.app.Profile',
 
     requires: [

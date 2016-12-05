@@ -20,7 +20,7 @@ describe('Ext.field.Text', function() {
 
     describe("events", function() {
         describe("change", function() {
-            it("should fire when you change the value", function() {
+            it("should fire when you change the value from null", function() {
                 create();
 
                 var fired = false;
@@ -78,7 +78,7 @@ describe('Ext.field.Text', function() {
                 it("should add the name attribute to the inputEl", function() {
                     create(defaultConfig);
                     render();
-                    expect(field.getComponent().input.getAttribute('name')).toEqual('myname');
+                    expect(field.getComponent().inputElement.getAttribute('name')).toEqual('myname');
                 });
             });
 
@@ -89,7 +89,7 @@ describe('Ext.field.Text', function() {
                             create();
                             field.setName('myname');
                             render();
-                            expect(field.getComponent().input.getAttribute('name')).toEqual('myname');
+                            expect(field.getComponent().inputElement.getAttribute('name')).toEqual('myname');
                         });
                     });
 
@@ -98,7 +98,7 @@ describe('Ext.field.Text', function() {
                             create();
                             render();
                             field.setName('myname');
-                            expect(field.getComponent().input.getAttribute('name')).toEqual('myname');
+                            expect(field.getComponent().inputElement.getAttribute('name')).toEqual('myname');
                         });
                     });
                 });
@@ -110,7 +110,7 @@ describe('Ext.field.Text', function() {
                             create(defaultConfig);
                             field.setName(null);
                             render();
-                            expect(field.getComponent().input.getAttribute('name')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('name')).toBeNull();
                         });
 
                     });
@@ -120,7 +120,7 @@ describe('Ext.field.Text', function() {
                             create(defaultConfig);
                             render();
                             field.setName(null);
-                            expect(field.getComponent().input.getAttribute('name')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('name')).toBeNull();
                         });
 
                     });
@@ -137,7 +137,7 @@ describe('Ext.field.Text', function() {
                 it("should add the tabindex attribute to the inputEl", function() {
                     create(defaultConfig);
                     render();
-                    expect(field.getComponent().input.getAttribute('tabindex')).toEqual('10');
+                    expect(field.getComponent().inputElement.getAttribute('tabindex')).toEqual('10');
                 });
             });
 
@@ -148,7 +148,7 @@ describe('Ext.field.Text', function() {
                             create();
                             field.setTabIndex(10);
                             render();
-                            expect(field.getComponent().input.getAttribute('tabindex')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('tabindex')).toEqual('10');
                         });
                     });
 
@@ -157,7 +157,7 @@ describe('Ext.field.Text', function() {
                             create();
                             render();
                             field.setTabIndex(10);
-                            expect(field.getComponent().input.getAttribute('tabindex')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('tabindex')).toEqual('10');
                         });
                     });
                 });
@@ -171,7 +171,7 @@ describe('Ext.field.Text', function() {
                             render();
                             waits(10);
                             runs(function() {
-                                expect(field.getComponent().input.getAttribute('tabindex')).toBeNull();
+                                expect(field.getComponent().inputElement.getAttribute('tabindex')).toBeNull();
                             });
                         });
 
@@ -183,7 +183,7 @@ describe('Ext.field.Text', function() {
                             render();
                             field.setTabIndex(null);
 
-                            expect(field.getComponent().input.getAttribute('tabindex')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('tabindex')).toBeNull();
                         });
 
                     });
@@ -203,7 +203,7 @@ describe('Ext.field.Text', function() {
                 it("should add the maxlength attribute to the inputEl", function() {
                     create(defaultConfig);
                     render();
-                    expect(field.getComponent().input.getAttribute('maxlength')).toEqual('10');
+                    expect(field.getComponent().inputElement.getAttribute('maxlength')).toEqual('10');
                 });
             });
 
@@ -214,7 +214,7 @@ describe('Ext.field.Text', function() {
                             create();
                             field.setMaxLength(10);
                             render();
-                            expect(field.getComponent().input.getAttribute('maxlength')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('maxlength')).toEqual('10');
                         });
                     });
 
@@ -223,7 +223,7 @@ describe('Ext.field.Text', function() {
                             create();
                             render();
                             field.setMaxLength(10);
-                            expect(field.getComponent().input.getAttribute('maxlength')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('maxlength')).toEqual('10');
                         });
                     });
                 });
@@ -235,7 +235,7 @@ describe('Ext.field.Text', function() {
                             create(defaultConfig);
                             field.setMaxLength(null);
                             render();
-                            expect(field.getComponent().input.getAttribute('maxlength')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('maxlength')).toBeNull();
                         });
                     });
 
@@ -244,7 +244,7 @@ describe('Ext.field.Text', function() {
                             create(defaultConfig);
                             render();
                             field.setMaxLength(null);
-                            expect(field.getComponent().input.getAttribute('maxlength')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('maxlength')).toBeNull();
                         });
                     });
 
@@ -262,7 +262,7 @@ describe('Ext.field.Text', function() {
                 it("should add the placeholder attribute to the inputEl", function() {
                     create(defaultConfig);
                     render();
-                    expect(field.getComponent().input.getAttribute('placeholder')).toEqual('testing');
+                    expect(field.getComponent().inputElement.getAttribute('placeholder')).toEqual('testing');
                 });
             });
 
@@ -273,7 +273,7 @@ describe('Ext.field.Text', function() {
                             create();
                             field.setPlaceHolder('testing');
                             render();
-                            expect(field.getComponent().input.getAttribute('placeholder')).toEqual('testing');
+                            expect(field.getComponent().inputElement.getAttribute('placeholder')).toEqual('testing');
                         });
                     });
 
@@ -282,7 +282,7 @@ describe('Ext.field.Text', function() {
                             create();
                             render();
                             field.setPlaceHolder('testing');
-                            expect(field.getComponent().input.getAttribute('placeholder')).toEqual('testing');
+                            expect(field.getComponent().inputElement.getAttribute('placeholder')).toEqual('testing');
                         });
                     });
                 });
@@ -294,7 +294,7 @@ describe('Ext.field.Text', function() {
                             create(defaultConfig);
                             field.setPlaceHolder(null);
                             render();
-                            expect(field.getComponent().input.getAttribute('placeholder')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('placeholder')).toBeNull();
                         });
 
                     });
@@ -304,7 +304,7 @@ describe('Ext.field.Text', function() {
                             create(defaultConfig);
                             render();
                             field.setPlaceHolder(null);
-                            expect(field.getComponent().input.getAttribute('placeholder')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('placeholder')).toBeNull();
                         });
                     });
                 });
@@ -321,7 +321,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocomplete attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('on');
+                        expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('on');
                     });
                 });
 
@@ -332,7 +332,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoComplete('on');
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('on');
                             });
                         });
 
@@ -341,7 +341,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoComplete('on');
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('on');
                             });
                         });
                     });
@@ -353,7 +353,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoComplete(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toBe('off');
                             });
 
                         });
@@ -363,7 +363,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoComplete(null);
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toBe('off');
                             });
                         });
                     });
@@ -379,7 +379,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocomplete attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('on');
+                        expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('on');
                     });
                 });
 
@@ -390,7 +390,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoComplete(true);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('on');
                             });
                         });
 
@@ -399,7 +399,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoComplete(true);
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('on');
                             });
                         });
                     });
@@ -411,7 +411,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoComplete(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toBe('off');
                             });
 
                         });
@@ -421,7 +421,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoComplete(null);
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toBe('off');
                             });
                         });
                     });
@@ -437,7 +437,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocomplete attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('off');
+                        expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('off');
                     });
                 });
 
@@ -448,7 +448,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoComplete('off');
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('off');
                             });
                         });
                         describe("after render", function() {
@@ -456,7 +456,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoComplete('off');
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('off');
                             });
                         });
                     });
@@ -466,7 +466,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoComplete(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toBe('off');
                             });
 
                         });
@@ -475,7 +475,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoComplete(null);
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toBe('off');
                             });
                         });
                     });
@@ -491,7 +491,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocomplete attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('off');
+                        expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('off');
                     });
                 });
 
@@ -502,7 +502,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoComplete(false);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('off');
                             });
                         });
 
@@ -511,7 +511,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoComplete(false);
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toEqual('off');
                             });
                         });
                     });
@@ -523,7 +523,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoComplete(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toBe('off');
                             });
 
                         });
@@ -533,7 +533,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoComplete(null);
-                                expect(field.getComponent().input.getAttribute('autocomplete')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocomplete')).toBe('off');
                             });
                         });
                     });
@@ -551,7 +551,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocapitalize attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('on');
+                        expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('on');
                     });
                 });
 
@@ -562,7 +562,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoCapitalize('on');
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('on');
                             });
                         });
 
@@ -571,7 +571,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoCapitalize('on');
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('on');
                             });
                         });
                     });
@@ -583,7 +583,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoCapitalize(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toBe('off');
                             });
 
                         });
@@ -593,7 +593,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoCapitalize(null);
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toBe('off');
                             });
                         });
                     });
@@ -609,7 +609,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocapitalize attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('on');
+                        expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('on');
                     });
                 });
 
@@ -620,7 +620,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoCapitalize(true);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('on');
                             });
                         });
 
@@ -629,7 +629,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoCapitalize(true);
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('on');
                             });
                         });
                     });
@@ -641,7 +641,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoCapitalize(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toBe('off');
                             });
 
                         });
@@ -651,7 +651,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoCapitalize(null);
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toBe('off');
                             });
                         });
                     });
@@ -667,7 +667,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocapitalize attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('off');
+                        expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('off');
                     });
                 });
 
@@ -678,7 +678,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoCapitalize('off');
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('off');
                             });
                         });
                         describe("after render", function() {
@@ -686,7 +686,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoCapitalize('off');
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('off');
                             });
                         });
                     });
@@ -696,7 +696,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoCapitalize(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toBe('off');
                             });
 
                         });
@@ -705,7 +705,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoCapitalize(null);
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toBe('off');
                             });
                         });
                     });
@@ -721,7 +721,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocapitalize attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('off');
+                        expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('off');
                     });
                 });
 
@@ -732,7 +732,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoCapitalize(false);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('off');
                             });
                         });
 
@@ -741,7 +741,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoCapitalize(false);
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toEqual('off');
                             });
                         });
                     });
@@ -753,7 +753,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoCapitalize(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toBe('off');
                             });
 
                         });
@@ -763,7 +763,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoCapitalize(null);
-                                expect(field.getComponent().input.getAttribute('autocapitalize')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocapitalize')).toBe('off');
                             });
                         });
                     });
@@ -782,7 +782,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocorrect attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('on');
+                        expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('on');
                     });
                 });
 
@@ -793,7 +793,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoCorrect('on');
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('on');
                             });
                         });
 
@@ -802,7 +802,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoCorrect('on');
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('on');
                             });
                         });
                     });
@@ -814,7 +814,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoCorrect(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toBe('off');
                             });
 
                         });
@@ -824,7 +824,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoCorrect(null);
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toBe('off');
                             });
                         });
                     });
@@ -840,7 +840,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocorrect attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('on');
+                        expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('on');
                     });
                 });
 
@@ -851,7 +851,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoCorrect(true);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('on');
                             });
                         });
 
@@ -860,7 +860,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoCorrect(true);
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('on');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('on');
                             });
                         });
                     });
@@ -872,7 +872,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoCorrect(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toBe('off');
                             });
 
                         });
@@ -882,7 +882,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoCorrect(null);
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toBe('off');
                             });
                         });
                     });
@@ -898,7 +898,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocorrect attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('off');
+                        expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('off');
                     });
                 });
 
@@ -909,7 +909,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoCorrect('off');
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('off');
                             });
                         });
                         describe("after render", function() {
@@ -917,7 +917,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoCorrect('off');
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('off');
                             });
                         });
                     });
@@ -927,7 +927,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoCorrect(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toBe('off');
                             });
 
                         });
@@ -936,7 +936,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoCorrect(null);
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toBe('off');
                             });
                         });
                     });
@@ -952,7 +952,7 @@ describe('Ext.field.Text', function() {
                     it("should add the autocorrect attribute to the inputEl", function() {
                         create(defaultConfig);
                         render();
-                        expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('off');
+                        expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('off');
                     });
                 });
 
@@ -963,7 +963,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 field.setAutoCorrect(false);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('off');
                             });
                         });
 
@@ -972,7 +972,7 @@ describe('Ext.field.Text', function() {
                                 create();
                                 render();
                                 field.setAutoCorrect(false);
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toEqual('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toEqual('off');
                             });
                         });
                     });
@@ -984,7 +984,7 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 field.setAutoCorrect(null);
                                 render();
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toBe('off');
                             });
 
                         });
@@ -994,11 +994,36 @@ describe('Ext.field.Text', function() {
                                 create(defaultConfig);
                                 render();
                                 field.setAutoCorrect(null);
-                                expect(field.getComponent().input.getAttribute('autocorrect')).toBe('off');
+                                expect(field.getComponent().inputElement.getAttribute('autocorrect')).toBe('off');
                             });
                         });
                     });
                 });
+            });
+        });
+    });
+
+    describe("methods", function() {
+        describe("reset", function() {
+            beforeEach(function () {
+                create({
+                    value: 'foo'
+                });
+                render();
+                field.setValue('foobar');
+            });
+
+            it("should update the input field element", function () {
+                field.reset();
+
+                expect(field.getComponent().input.dom.value).toBe('foo');
+            });
+
+            it("should synchronize the value of the component with the field", function () {
+                field.reset();
+
+                expect(field.getValue()).toBe('foo');
+                expect(field.getComponent().getValue()).toBe('foo');
             });
         });
     });

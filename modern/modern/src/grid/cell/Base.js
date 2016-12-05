@@ -12,7 +12,7 @@ Ext.define('Ext.grid.cell.Base', {
          * @cfg {"left"/"center"/"right"} align
          * The value for the `text-align` of the cell content.
          */
-        align: 'left',
+        align: null,
 
         /**
          * @cfg {String} cls
@@ -21,18 +21,44 @@ Ext.define('Ext.grid.cell.Base', {
         cls: null,
 
         /**
-         * @cfg {Boolean} hidden
-         * The hidden state of this cell (propagated from the column's hidden state).
-         * @private
-         */
-        hidden: false,
-
-        /**
          * @cfg {String} innerCls
          * An arbitrary CSS class to add to the cell's inner element (the element that
          * typically contains the cell's text).
          */
-        innerCls: null
+        innerCls: null,
+
+        /**
+         * @cfg {String/Object} innerStyle
+         * Additional CSS styles that will be rendered into the cell's inner element (the element
+         * that typically contains the cell's text).
+         *
+         * You can pass either a string syntax:
+         *
+         *     innerStyle: 'background:red'
+         *
+         * Or by using an object:
+         *
+         *     innerStyle: {
+         *         background: 'red'
+         *     }
+         *
+         * When using the object syntax, you can define CSS Properties by using a string:
+         *
+         *     innerStyle: {
+         *         'border-left': '1px solid red'
+         *     }
+         *
+         * Although the object syntax is much easier to read, we suggest you to use the
+         * string syntax for better performance.
+         */
+        innerStyle: null,
+
+        /**
+         * @cfg {String} cellCls
+         *
+         * @protected
+         */
+        cellCls: null
     },
 
     config: {
@@ -42,6 +68,13 @@ Ext.define('Ext.grid.cell.Base', {
          * @readonly
          */
         column: null,
+
+        /**
+         * @cfg {Boolean} hidden
+         * The hidden state of this cell (propagated from the column's hidden state).
+         * @private
+         */
+        hidden: false,
 
         /**
          * @cfg {Ext.data.Model} record
@@ -58,30 +91,44 @@ Ext.define('Ext.grid.cell.Base', {
         value: null
     },
 
-    element: {
-        reference: 'element',
-        cls: Ext.baseCSSPrefix + 'grid-cell',
-        children: [{
+    classCls: Ext.baseCSSPrefix + 'gridcell',
+
+    getTemplate: function() {
+        return [{
             reference: 'innerElement',
-            cls: Ext.baseCSSPrefix + 'grid-cell-inner'
+            cls: Ext.baseCSSPrefix + 'inner-el',
+            // hook for subclasses to add elements inside the inner element
+            // e.g. checkcell, expandercell
+            children: this.innerTemplate
         }]
     },
 
     defaultBindProperty: 'value',
 
-    hiddenCls: Ext.baseCSSPrefix + 'grid-cell-hidden',
+    cellSelector: '.' + Ext.baseCSSPrefix + 'gridcell',
 
     getComputedWidth: function() {
         return this.getHidden() ? 0 : this.getWidth();
     },
 
     updateAlign: function(align, oldAlign) {
-        var prefix  = Ext.baseCSSPrefix + 'grid-cell-align-';
+        var prefix  = Ext.baseCSSPrefix + 'align',
+            element = this.element;
 
-        this.element.replaceCls(prefix + oldAlign, prefix + align);
+        if (oldAlign) {
+            element.removeCls(oldAlign, prefix);
+        }
+
+        if (align) {
+            element.addCls(align, prefix);
+        }
     },
 
     updateCls: function(cls, oldCls) {
+        this.element.replaceCls(oldCls, cls);
+    },
+
+    updateCellCls: function(cls, oldCls) {
         this.element.replaceCls(oldCls, cls);
     },
 
@@ -91,26 +138,27 @@ Ext.define('Ext.grid.cell.Base', {
         }
     },
 
+    updateInnerStyle: function(style){
+        this.innerElement.applyStyles(style);
+    },
+
     updateColumn: function(column) {
         this.dataIndex = column ? column.getDataIndex() : null;
     },
 
-    applyHidden: function(hidden) {
-        return Boolean(hidden);
-    },
-
-    updateHidden: function(hidden) {
-        this.element.toggleCls(this.hiddenCls, hidden);
-    },
-
     updateRecord: function(record) {
         var dataIndex = this.dataIndex;
-        if (record && dataIndex) {
-            this.setValue(record.get(dataIndex));
+
+        if (record) {
+            if (dataIndex) {
+                this.setValue(record.get(dataIndex));
+            } else {
+                this.setValue();
+            }
         }
     },
 
-    destroy: function() {
+    doDestroy: function() {
         this.setColumn(null);
         this.setRecord(null);
         this.callParent();

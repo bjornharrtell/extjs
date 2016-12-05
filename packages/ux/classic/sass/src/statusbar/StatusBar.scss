@@ -7,10 +7,7 @@
 }
 
 .#{$prefix}statusbar .#{$prefix}status-text-panel {
-    border-top: 1px solid;
-    border-right: 1px solid;
-    border-bottom: 1px solid;
-    border-left: 1px solid;
+    border: 0 none;
     padding: 2px 8px 2px 5px;
 }
 
@@ -47,9 +44,6 @@
 
 .#{$prefix}statusbar .#{$prefix}status-busy {
     background-image: theme-background-image('statusbar/loading', 'gif');
-}
-.#{$prefix}statusbar .#{$prefix}status-text-panel {
-    border-color: #99bbe8 #fff #fff #99bbe8;
 }
 
 .#{$prefix}statusbar .#{$prefix}status-error {

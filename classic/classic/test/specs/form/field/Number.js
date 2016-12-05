@@ -1,10 +1,6 @@
 describe("Ext.form.field.Number", function() {
     var component, makeComponent;
     
-    function expectAria(attr, value) {
-        jasmine.expectAriaAttr(component, attr, value);
-    }
-    
     beforeEach(function() {
         makeComponent = function(config) {
             config = config || {};
@@ -73,23 +69,23 @@ describe("Ext.form.field.Number", function() {
             });
             
             it("should have spinbutton role", function() {
-                expectAria('role', 'spinbutton');
+                expect(component).toHaveAttr('role', 'spinbutton');
             });
             
             it("should not have aria-valuemin", function() {
-                expectAria('aria-valuemin', null);
+                expect(component).not.toHaveAttr('aria-valuemin');
             });
             
             it("should not have aria-valuemax", function() {
-                expectAria('aria-valuemax', null);
+                expect(component).not.toHaveAttr('aria-valuemax');
             });
             
             it("should not have aria-valuenow", function() {
-                expectAria('aria-valuenow', null);
+                expect(component).not.toHaveAttr('aria-valuenow');
             });
             
             it("should not have aria-valuetext", function() {
-                expectAria('aria-valuetext', null);
+                expect(component).not.toHaveAttr('aria-valuetext');
             });
         });
     });
@@ -105,15 +101,15 @@ describe("Ext.form.field.Number", function() {
         });
         
         it("should have aria-valuemin", function() {
-            expectAria('aria-valuemin', '1');
+            expect(component).toHaveAttr('aria-valuemin', '1');
         });
         
         it("should have aria-valuemax", function() {
-            expectAria('aria-valuemax', '100');
+            expect(component).toHaveAttr('aria-valuemax', '100');
         });
         
         it("should have aria-valuenow", function() {
-            expectAria('aria-valuenow', '50');
+            expect(component).toHaveAttr('aria-valuenow', '50');
         });
     });
 
@@ -158,7 +154,7 @@ describe("Ext.form.field.Number", function() {
             
             component.setMinValue(-1);
             
-            expectAria('aria-valuemin', '-1');
+            expect(component).toHaveAttr('aria-valuemin', '-1');
         });
     });
     
@@ -182,7 +178,7 @@ describe("Ext.form.field.Number", function() {
         it("should update aria-valuemax", function() {
             component.setMaxValue(25);
             
-            expectAria('aria-valuemax', '25');
+            expect(component).toHaveAttr('aria-valuemax', '25');
         });
     });
 
@@ -222,7 +218,7 @@ describe("Ext.form.field.Number", function() {
             
             component.setValue('fubar');
             
-            expectAria('aria-valuenow', null);
+            expect(component).not.toHaveAttr('aria-valuenow');
         });
     });
 
@@ -425,7 +421,7 @@ describe("Ext.form.field.Number", function() {
             it("should update aria-valuenow", function() {
                 component.onSpinUp();
                 
-                expectAria('aria-valuenow', '7');
+                expect(component).toHaveAttr('aria-valuenow', '7');
             });
         });
 
@@ -462,7 +458,7 @@ describe("Ext.form.field.Number", function() {
             it("should update aria-valuenow", function() {
                 component.onSpinDown();
                 
-                expectAria('aria-valuenow', '3');
+                expect(component).toHaveAttr('aria-valuenow', '3');
             });
         });
     });

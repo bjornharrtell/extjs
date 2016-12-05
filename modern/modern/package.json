@@ -19,7 +19,7 @@
     "summary": "The Modern UI Toolkit",
     "detailedDescription": "UI components for modern browsers",
 
-    "version": "6.0.1.250",
+    "version": "6.2.0.981",
     "compatVersion": "6.0.0",
     "format": "1",
 
@@ -44,10 +44,19 @@
     "overrides": "${package.dir}/overrides",
 
     "subpkgs": [
+        "theme-material",
+        "theme-ios",
+
+        // Deprecated
         "theme-cupertino",
         "theme-mountainview",
-        "theme-neptune",
         "theme-windows",
+
+        "theme-neptune",
         "theme-triton"
-    ]
+    ],
+
+    "buildOptions": {
+        "modern": true
+    }
 }

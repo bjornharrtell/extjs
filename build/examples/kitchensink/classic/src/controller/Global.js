@@ -14,7 +14,7 @@ Ext.define('KitchenSink.controller.Global', {
             'navigation-tree': {
                 selectionchange: 'onTreeNavSelectionChange'
             },
-            'navigation-toolbar breadcrumb': {
+            'navigation-toolbar': {
                 change: 'onBreadcrumbNavSelectionChange'
             },
             'thumbnails': {
@@ -31,7 +31,7 @@ Ext.define('KitchenSink.controller.Global', {
         refs: {
             viewport: 'viewport',
             navigationTree: 'navigation-tree',
-            navigationBreadcrumb: '#navigation-breadcrumb',
+            navigationBreadcrumb: '#navigation-toolbar',
             contentPanel: 'contentPanel,#soloContent',
             descriptionPanel: 'descriptionPanel',
             codePreview: '#codePreview',
@@ -77,11 +77,10 @@ Ext.define('KitchenSink.controller.Global', {
             store = Ext.StoreMgr.get('navigation'),
             node = store.getNodeById(id),
             contentPanel = me.getContentPanel(),
-            profileName = Ext.profileName,
             thumbnails = me.getThumbnails(),
             codePreview = me.getCodePreview(),
             hasTree = navigationTree && navigationTree.isVisible(),
-            cmp, className, ViewClass, clsProto, thumbnailsStore;
+            className, cmp, ViewClass, thumbnailsStore, tier;
 
         Ext.suspendLayouts();
 
@@ -97,39 +96,18 @@ Ext.define('KitchenSink.controller.Global', {
 
             className = Ext.ClassManager.getNameByAlias('widget.' + id);
             ViewClass = Ext.ClassManager.get(className);
-            clsProto = ViewClass.prototype;
-
-            if (clsProto.profiles) {
-                clsProto.profileInfo = clsProto.profiles[profileName];
-
-                if (profileName === 'gray') {
-                    clsProto.profileInfo = Ext.applyIf(clsProto.profileInfo || {}, clsProto.profiles.classic);
-                } else if (profileName !== 'neptune' && profileName !== 'classic') {
-                    if (profileName === 'crisp-touch') {
-                        clsProto.profileInfo = Ext.applyIf(clsProto.profileInfo || {}, clsProto.profiles['neptune-touch']);
-                    }
-                    clsProto.profileInfo = Ext.applyIf(clsProto.profileInfo || {}, clsProto.profiles.neptune);
-                }
-                // <debug warn>
-                // Sometimes we forget to include allowances for other profiles, so issue a warning as a reminder.
-                if (!clsProto.profileInfo) {
-                    Ext.log.warn ( 'Example \'' + className + '\' lacks a profile specification for the selected profile: \'' +
-                        profileName + '\'. Is this intentional?');
-                }
-                // </debug>
-            }
 
             cmp = new ViewClass();
 
             contentPanel.add(cmp);
-            this.setupPreview(clsProto);
+            this.setupPreview(ViewClass.prototype);
 
             this.updateTitle(node);
 
-            Ext.resumeLayouts(true);
-
             if (cmp.floating) {
+                Ext.resumeLayouts(true);
                 cmp.show();
+                Ext.suspendLayouts();
             }
         } else {
             thumbnailsStore = me.getThumbnailsStore();
@@ -146,7 +124,12 @@ Ext.define('KitchenSink.controller.Global', {
             });
             codePreview.tabBar.hide();
             this.updateTitle(node);
-            Ext.resumeLayouts(true);
+        }
+
+        codePreview.removeCls(['in-tier-pro', 'in-tier-premium']);
+        tier = node.get('tier');
+        if (tier === 'pro' || tier === 'premium') {
+            codePreview.addCls('in-tier-' + tier);
         }
 
         // Keep focus available and selections synchronized.
@@ -157,6 +140,9 @@ Ext.define('KitchenSink.controller.Global', {
                     focus: true
                 });
             } else {
+                if (node.parentNode && !node.parentNode.isExpanded()) {
+                    node.parentNode.expand();
+                }
                 navigationTree.ensureVisible(node, {
                     focus: true,
                     select: true
@@ -166,8 +152,9 @@ Ext.define('KitchenSink.controller.Global', {
             navigationBreadcrumb.setSelection(node);
             navigationBreadcrumb.child(':last').focus();
         }
+        Ext.resumeLayouts(true);
     },
-    
+
     updateTitle: function(node) {
         var text = node.get('text'),
             title = node.isLeaf() ? (node.parentNode.get('text') + ' - ' + text) : text,
@@ -180,7 +167,7 @@ Ext.define('KitchenSink.controller.Global', {
         document.title = document.title.split(' - ')[0] + ' - ' + text;
     },
 
-    setupPreview: function(clsProto) {
+    setupPreview: function (clsProto) {
         var me = this,
             preview = me.getCodePreview(),
             otherContent = clsProto.otherContent,
@@ -237,8 +224,11 @@ Ext.define('KitchenSink.controller.Global', {
         preview.activeView = clsProto;
     },
 
+    emptyLineRe: /^\s*$/,
     exampleRe: /^\s*\/\/\s*(\<\/?example\>)\s*$/,
     profileInfoRe: /this\.profileInfo\.(\w+)/g,
+    profilePropRe: /'\$\{(\w+)\}'/g,
+    profilePropsRe: /\$\{(\w+)\}/g,
 
     renderCodeMarkup: function(loader, response) {
         var code = this.processText(response.responseText, loader.profileInfo);
@@ -256,13 +246,17 @@ Ext.define('KitchenSink.controller.Global', {
             len = lines.length,
             exampleRe = this.exampleRe,
             profileInfoRe = this.profileInfoRe,
+            profilePropRe = this.profilePropRe,
+            profilePropsRe = this.profilePropsRe,
             encodeTheme = function (text, match) {
                 return Ext.encode(profileInfo[match]);
             },
-            i, line, code;
+            emptyLineRe = this.emptyLineRe,
+            i, line, code, previous;
 
         for (i = 0; i < len; ++i) {
             line = lines[i];
+
             if (removing) {
                 if (exampleRe.test(line)) {
                     removing = false;
@@ -273,11 +267,22 @@ Ext.define('KitchenSink.controller.Global', {
                 // Replace "this.profileInfo.foo" with the value of "foo" properly encoded
                 // for JavaScript (otherwise strings would not be quoted).
                 line = line.replace(profileInfoRe, encodeTheme);
-                keepLines.push(line);
+                line = line.replace(profilePropRe, encodeTheme);
+                line = line.replace(profilePropsRe, encodeTheme);
+
+                if (emptyLineRe.test(line)) {
+                    line = '';
+                    if (line === previous) {
+                        continue; // collapse multiple blank lines down to one
+                    }
+                }
+
+                keepLines.push(previous = line);
             }
         }
 
-        code = Ext.htmlEncode(keepLines.join('\n'));
+        code = keepLines.join('\n');
+        code = Ext.htmlEncode(code);
         return '<pre class="prettyprint">' + code + '</pre>';
     },
 
@@ -345,6 +350,7 @@ Ext.define('KitchenSink.controller.Global', {
 
     onMaximizeClick: function(){
         var preview = this.getCodePreview(),
+            activeView = preview.activeView,
             w = new Ext.window.Window({
                 rtl: false,
                 maximized: true,
@@ -354,9 +360,10 @@ Ext.define('KitchenSink.controller.Global', {
                 defaultFocus: 'tab',
                 items: {
                     xtype: 'codePreview',
+                    activeTab: activeView ? preview.items.indexOf(preview.getActiveTab()) : 0,
                     tools: [],
                     showTitle: false,
-                    items: preview.activeView ? preview.activeView.codePreviewProcessed : []
+                    items: activeView ? activeView.codePreviewProcessed : []
                 },
                 doClose: function() {
                     w.hide(preview, function() {

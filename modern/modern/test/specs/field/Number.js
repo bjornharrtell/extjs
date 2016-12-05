@@ -1,4 +1,4 @@
-describe('Ext.field.Number', function() {
+describe('Modern form - Ext.field.Number', function() {
     var field,
         createField = function(config) {
             if (field) {

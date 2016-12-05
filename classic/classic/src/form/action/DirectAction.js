@@ -14,8 +14,9 @@ Ext.define('Ext.form.action.DirectAction', {
     resolveMethod: function(type) {
         var me = this,
             form = me.form,
-            api = form.api,
-            fn;
+            api, fn;
+        
+        api = Ext.direct.Manager.resolveApi(form.api, me);
         
         //<debug>
         if (!api) {
@@ -26,19 +27,8 @@ Ext.define('Ext.form.action.DirectAction', {
         
         fn = api[type];
         
-        if (typeof fn !== 'function') {
-            //<debug>
-            var fnName = fn;
-            //</debug>
-            
-            api[type] = fn = Ext.direct.Manager.parseMethod(fn);
-            
-            //<debug>
-            if (!Ext.isFunction(fn)) {
-                Ext.raise("Cannot resolve Ext Direct API method " + fnName +
-                                " for " + type + " action");
-            }
-            //</debug>
+        if (!fn) {
+            Ext.raise("Cannot resolve Ext Direct API method " + fnName + " for " + type + " action");
         }
         
         return fn;

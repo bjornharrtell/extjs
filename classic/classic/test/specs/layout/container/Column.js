@@ -1,4 +1,51 @@
 describe("Ext.layout.container.Column", function() {
+    describe('wrapping with uneven heights', function() {
+        // We must ensure that each row start clears to start of row.
+        // Tall items would block it as below.
+        // "Item 4" requires clear:left to begin at column zero.
+        // +------------------------------- +
+        // |+--------+ +--------+ +--------+|
+        // ||        | |        | |        ||
+        // || Item 1 | | Item 2 | | Item 3 ||
+        // ||        | +--------+ +--------+|
+        // ||        | +--------+           |
+        // |+--------+ |        |           |
+        // |           | Item 4 |           |
+        // |           |        |           |
+        // |           +--------+           |
+        // +--------------------------------+
+        it('should always wrap back to position zero', function() {
+            var container = new Ext.container.Container({
+                renderTo: document.body,
+                width: 300,
+                height: 500,
+                layout: {
+                    type: 'column',
+                    columnCount: 3
+                },
+                defaultType: 'component',
+                defaults: {
+                    columnWidth: 1/3
+                },
+                items: [{
+                    // This is a little taller.
+                    height: 110
+                }, {
+                    height: 100
+                }, {
+                    height: 100
+                }, {
+                    height: 100
+                }]
+            }),
+            item4 = container.items.items[3];
+
+            // Item4 must have wrapped right back to first column
+            expect(item4.getX()).toBe(0);
+            container.destroy();
+        });
+    });
+
     function createSuite(shrinkWrap) {
         var suiteName = 'Ext.layout.container.Column';
 
@@ -6,53 +53,6 @@ describe("Ext.layout.container.Column", function() {
             suiteName += ' (shrinkWrap:true)';
         }
         
-        describe('wrapping with uneven heights', function() {
-            // We must ensure that each row start clears to start of row.
-            // Tall items would block it as below.
-            // "Item 4" requires clear:left to begin at column zero.
-            // +------------------------------- +
-            // |+--------+ +--------+ +--------+|
-            // ||        | |        | |        ||
-            // || Item 1 | | Item 2 | | Item 3 ||
-            // ||        | +--------+ +--------+|
-            // ||        | +--------+           |
-            // |+--------+ |        |           |
-            // |           | Item 4 |           |
-            // |           |        |           |
-            // |           +--------+           |
-            // +--------------------------------+
-            it('should always wrap back to position zero', function() {
-                var container = new Ext.container.Container({
-                    renderTo: document.body,
-                    width: 300,
-                    height: 500,
-                    layout: {
-                        type: 'column',
-                        columnCount: 3
-                    },
-                    defaultType: 'component',
-                    defaults: {
-                        columnWidth: 1/3
-                    },
-                    items: [{
-                        // This is a little taller.
-                        height: 110
-                    }, {
-                        height: 100
-                    }, {
-                        height: 100
-                    }, {
-                        height: 100
-                    }]
-                }),
-                item4 = container.items.items[3];
-
-                // Item4 must have wrapped right back to first column
-                expect(item4.getX()).toBe(0);
-                container.destroy();
-            });
-        });
-
         describe(suiteName, function() {
             var panel,
                 scrollbarSize = Ext.getScrollbarSize(),

@@ -56,7 +56,11 @@ Ext.define('Ext.chart.series.sprite.Bar', {
             labelOverflowPadding = attr.labelOverflowPadding,
             labelDisplay = labelTpl.attr.display,
             labelOrientation = labelTpl.attr.orientation,
-            labelY, halfWidth, labelBBox,
+            isVerticalText = (labelOrientation === 'horizontal' && attr.flipXY) ||
+                             (labelOrientation === 'vertical' && !attr.flipXY) ||
+                             !labelOrientation,
+            calloutLine = labelTpl.getCalloutLine(),
+            labelY, halfText, labelBBox, calloutLineLength,
             changes, hasPendingChanges, params;
 
         // The coordinates below (data point converted to surface coordinates)
@@ -68,6 +72,12 @@ Ext.define('Ext.chart.series.sprite.Bar', {
         // since text can be modified by the renderer.
         labelCfg.x = surfaceMatrix.x(dataX, dataY);
         labelCfg.y = surfaceMatrix.y(dataX, dataY);
+
+        if (calloutLine) {
+            calloutLineLength = calloutLine.length;
+        } else {
+            calloutLineLength = 0;
+        }
 
         // Set defaults
         if (!attr.flipXY) {
@@ -111,30 +121,50 @@ Ext.define('Ext.chart.series.sprite.Bar', {
             labelBBox = me.getMarkerBBox('labels', labelId, true);
         }
 
-        halfWidth = (labelBBox.width / 2 + labelOverflowPadding);
+        if (calloutLineLength > 0) {
+            halfText = calloutLineLength;
+        } else if (calloutLineLength === 0) {
+            halfText = (isVerticalText ? labelBBox.width : labelBBox.height) / 2;
+        } else {
+            halfText = (isVerticalText ? labelBBox.width : labelBBox.height) / 2 + labelOverflowPadding;
+        }
         if (dataStartY > dataY) {
-            halfWidth = -halfWidth;
+            halfText = -halfText;
         }
 
-        if ((labelOrientation === 'horizontal' && attr.flipXY) || (labelOrientation === 'vertical' && !attr.flipXY) || !labelOrientation) {
-            labelY = (labelDisplay === 'insideStart') ? dataStartY + halfWidth : dataY - halfWidth;
+        if (isVerticalText) {
+            labelY = (labelDisplay === 'insideStart') ?
+                dataStartY + halfText :
+                dataY - halfText;
         } else {
-            labelY = (labelDisplay === 'insideStart') ? dataStartY + labelOverflowPadding * 2 : dataY - labelOverflowPadding * 2;
+            labelY = (labelDisplay === 'insideStart') ?
+                dataStartY + labelOverflowPadding * 2 :
+                dataY - labelOverflowPadding * 2;
         }
         labelCfg.x = surfaceMatrix.x(dataX, labelY);
         labelCfg.y = surfaceMatrix.y(dataX, labelY);
 
-        labelY = (labelDisplay === 'insideStart') ? dataStartY - halfWidth : dataY + halfWidth;
-        labelCfg.calloutPlaceX = surfaceMatrix.x(dataX, labelY);
-        labelCfg.calloutPlaceY = surfaceMatrix.y(dataX, labelY);
-
         labelY = (labelDisplay === 'insideStart') ? dataStartY : dataY;
         labelCfg.calloutStartX = surfaceMatrix.x(dataX, labelY);
         labelCfg.calloutStartY = surfaceMatrix.y(dataX, labelY);
-        if (dataStartY > dataY) {
-            halfWidth = -halfWidth;
+
+        labelY = (labelDisplay === 'insideStart') ? dataStartY - halfText : dataY + halfText;
+        labelCfg.calloutPlaceX = surfaceMatrix.x(dataX, labelY);
+        labelCfg.calloutPlaceY = surfaceMatrix.y(dataX, labelY);
+
+        labelCfg.calloutColor = (calloutLine && calloutLine.color) || me.attr.fillStyle;
+        if (calloutLine) {
+            if (calloutLine.width) {
+                labelCfg.calloutWidth = calloutLine.width;
+            }
+        } else {
+            labelCfg.calloutColor = 'none';
         }
-        if (Math.abs(dataY - dataStartY) <= halfWidth * 2 || labelDisplay === 'outside') {
+
+        if (dataStartY > dataY) {
+            halfText = -halfText;
+        }
+        if (Math.abs(dataY - dataStartY) <= halfText * 2 || labelDisplay === 'outside') {
             labelCfg.callout = 1;
         } else {
             labelCfg.callout = 0;
@@ -147,7 +177,7 @@ Ext.define('Ext.chart.series.sprite.Bar', {
         me.putMarker('labels', labelCfg, labelId);
     },
 
-    drawBar: function (ctx, surface, clip, left, top, right, bottom, index) {
+    drawBar: function (ctx, surface, rect, left, top, right, bottom, index) {
         var me = this,
             itemCfg = {},
             renderer = me.attr.renderer,
@@ -170,7 +200,7 @@ Ext.define('Ext.chart.series.sprite.Bar', {
     /**
      * @inheritdoc
      */
-    renderClipped: function (surface, ctx, clip, rect) {
+    renderClipped: function (surface, ctx, rect) {
         if (this.cleanRedraw) {
             return;
         }
@@ -195,8 +225,8 @@ Ext.define('Ext.chart.series.sprite.Bar', {
             surfaceMatrix = me.surfaceMatrix,
             left, right, bottom, top, i, center,
             halfLineWidth = 0.5 * attr.lineWidth,
-            min = Math.min(clip[0], clip[2]),
-            max = Math.max(clip[0], clip[2]),
+            min = Math.min(rect[0], rect[2]),
+            max = Math.max(rect[0], rect[2]),
             start = Math.max(0, Math.floor(min)),
             end = Math.min(dataX.length - 1, Math.ceil(max)),
             isDrawLabels = dataText && me.getMarker('labels'),
@@ -211,7 +241,7 @@ Ext.define('Ext.chart.series.sprite.Bar', {
             right = surface.roundPixel(center + barWidth / 2) - halfLineWidth;
             bottom = surface.roundPixel(yLow * yy + dy + lineWidth);
 
-            me.drawBar(ctx, surface, clip, left, top - halfLineWidth, right, bottom - halfLineWidth, i);
+            me.drawBar(ctx, surface, rect, left, top - halfLineWidth, right, bottom - halfLineWidth, i);
 
             // We want 0 values to be passed to the renderer
             if (isDrawLabels && dataText[i] != null) {

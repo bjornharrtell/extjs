@@ -169,6 +169,7 @@
     .#{$prefix}form-cb-label-#{$ui} {
         margin-top: round(($ui-field-height - $ui-label-line-height) / 2);
         font: $ui-label-font-weight #{$ui-label-font-size}/#{$ui-label-line-height} $ui-label-font-family;
+        color: $ui-label-color;
 
         &.#{$prefix}form-cb-label-before {
             padding-right: $ui-label-spacing + $ui-checkbox-size;

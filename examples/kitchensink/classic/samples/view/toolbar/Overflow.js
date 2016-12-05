@@ -6,15 +6,18 @@
  * overflowing items into view.
  */
 Ext.define('KitchenSink.view.toolbar.Overflow', {
-    extend: 'Ext.panel.Panel',
+    extend: 'Ext.Container',
     xtype: 'toolbar-overflow',
-    id: 'toolbar-overflow',
+
     //<example>
-    exampleTitle: 'Toolbar Overflow Handling',
+    otherContent: [{
+        type: 'Toolbar',
+        path: 'classic/samples/view/toolbar/OverflowBar.js'
+    }],
     profiles: {
         classic: {
             width: 380,
-            height: 190
+            height: 150
         },
         neptune: {
             width: 475,
@@ -22,83 +25,50 @@ Ext.define('KitchenSink.view.toolbar.Overflow', {
         },
         triton: {
             width: 555,
-            height: 305
+            height: 250
         },
         'neptune-touch': {
             width: 620,
-            height: 305
+            height: 250
         }
     },
     //</example>
 
-    html: KitchenSink.DummyText.longText,
-    bodyPadding: 20,
+    width: '${width}',
+    layout: {
+        type: 'vbox',
+        align: 'stretch'
+    },
 
-    initComponent: function() {
-        var buttons = [{
-            xtype: 'splitbutton',
-            text: 'Menu',
-            iconCls: 'toolbar-overflow-list',
-            menu:[{
-                text:'Menu Button 1'
-            }]
-        }, '-', {
-            xtype: 'splitbutton',
-            text: 'Cut',
-            iconCls: 'toolbar-overflow-cut',
-            menu: [{
-                text:'Cut Menu Item'
-            }]
-        }, {
-            iconCls: 'toolbar-overflow-copy',
-            text:'Copy'
-        }, {
-            text: 'Paste',
-            iconCls: 'toolbar-overflow-paste',
-            menu:[{
-                text:'Paste Menu Item'
-            }]
-        }, {
-            iconCls: 'toolbar-overflow-format',
-            text: 'Format'
-        }, {
-            iconCls: 'toolbar-overflow-bold',
-            text: 'Bold'
-        }, {
-            iconCls: 'toolbar-overflow-underline',
-            text: 'Underline',
-            menu: [{
-                text: 'Solid'
-            }, {
-                text: 'Dotted'
-            }, {
-                text: 'Dashed'
-            }]
-        }, {
-            iconCls: 'toolbar-overflow-italic',
-            text: 'Italic'
-        }];
+    defaults: {
+        bodyPadding: 20,
+        html: KitchenSink.DummyText.longText,
+        margin: '10 0 0 0'
+    },
 
-        this.width = this.profileInfo.width;
-        this.height = this.profileInfo.height;
+    items: [{
+        height: 100,
 
-        this.dockedItems = [{
-            xtype: 'toolbar',
+        dockedItems: [{
+            xtype: 'toolbar-overflowbar',
             dock: 'top',
-            overflowHandler: 'menu',
-            items: buttons
-        }, {
-            xtype: 'toolbar',
-            dock: 'bottom',
-            overflowHandler: 'scroller',
-            items: buttons
-        }, {
-            xtype: 'toolbar',
-            dock: 'right',
-            overflowHandler: 'scroller',
-            items: buttons
-        }];
+            overflowHandler: 'menu'
+        }]
+    }, {
+        height: '${height}',
 
-        this.callParent();
-    }
+        dockedItems: [{
+            xtype: 'toolbar-overflowbar',
+            dock: 'right',
+            overflowHandler: 'scroller'
+        }]
+    }, {
+        height: 100,
+
+        dockedItems: [{
+            xtype: 'toolbar-overflowbar',
+            dock: 'bottom',
+            overflowHandler: 'scroller'
+        }]
+    }]
 });

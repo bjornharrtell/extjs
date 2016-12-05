@@ -3,6 +3,7 @@
      * The application's namespace.
      */
     "name": "KitchenSink",
+    "framework": "ext",
 
     /**
      * Comma-separated string with the paths of directories or files to search. Any classes
@@ -10,7 +11,13 @@
      * to "Ext.require". The "app.dir" variable below is expanded to the path where the
      * application resides (the same folder in which this file is located).
      */
-    "classpath": "${app.dir}/app,${app.dir}/${toolkit.name}/src,${app.dir}/${toolkit.name}/samples",
+    "classpath": [
+        "${app.dir}/app",
+        "${app.dir}/ux",
+        "${app.dir}/samples",
+        "${app.dir}/${toolkit.name}/src",
+        "${app.dir}/${toolkit.name}/samples"
+    ],
 
     /**
      * Sass configuration properties.
@@ -25,9 +32,23 @@
          * "KitchenSink.view.Foo" to "sass/src/KitchenSink/view/Foo.scss".
          */
         "namespace": "KitchenSink",
-        "src": "${app.dir}/sass/src,${app.dir}/${toolkit.name}/sass/src",
-        "var": "${app.dir}/sass/var,${app.dir}/${toolkit.name}/sass/var",
-        "etc": "${app.dir}/sass/etc/all.scss,${app.dir}/${toolkit.name}/sass/etc/all.scss"
+
+        "src": [
+            "${app.dir}/sass/src",
+            "${app.dir}/${toolkit.name}/sass/src",
+            "${app.dir}/${theme.name}/sass/src"
+        ],
+
+        "var": [
+            "${app.dir}/sass/var",
+            "${app.dir}/${toolkit.name}/sass/var",
+            "${app.dir}/${theme.name}/sass/var"
+        ],
+
+        "etc": [
+            "${app.dir}/sass/etc/all.scss",
+            "${app.dir}/${toolkit.name}/sass/etc/all.scss"
+        ]
     },
 
     /**
@@ -90,10 +111,6 @@
     "js": [
     	{
             "path": "lib/prettify/prettify.js",
-            "includeInBundle": true
-    	},
-    	{
-            "path": "../classic/shared/examples.js",
             "includeInBundle": true
     	},
         {
@@ -185,6 +202,10 @@
             "mode": "relative"
         },
         {
+            "path": "samples/data/calendar",
+            "mode": "relative"
+        },
+        {
             "path": "lib",
             "mode": "relative"
         },
@@ -236,6 +257,9 @@
      * settings.
      */
     "production": {
+        "compressor": {
+            "type": "yui"
+        },
         "output": {
             "appCache": {
                 "enable": false
@@ -302,6 +326,7 @@
         "page": "index.html",
         "manifest": "${build.id}.json",
         "js": "${build.id}/app.js",
+        "framework": "${build.id}/framework.js",
         "resources": {
             "path": "./${build.id}/resources",
             "images": "./${build.id}/resources/images",
@@ -317,213 +342,105 @@
         }
     },
 
-    /**
-     * Uniquely generated id for this application, used as prefix for localStorage keys.
-     * Normally you should never change this value.
-     */
-    "id": "7f0d3b50-5cb1-47e0-97b7-ffe69d12d49e",
-
-    /**
-     * TODO: https://sencha.jira.com/browse/EXTJS-16742
-     */
-    "locales": [
-        "en",
-        "he"
+    "overrides": [
+        "${app.dir}/overrides",
+        "${app.dir}/locale/${app.locale}",
+        "${app.dir}/${toolkit.name}/overrides",
+        "${app.dir}/${toolkit.name}/locale/${app.locale}"
     ],
 
-    "overrides": "${app.dir}/overrides,${app.dir}/locale/${app.locale},${app.dir}/${toolkit.name}/overrides,${app.dir}/${toolkit.name}/locale/${app.locale}",
+    "requires": [
+        "font-awesome",
+        "ux",
+        "amf",
+        "soap",
+        "pivot",
+        "charts",
+        "d3",
+        "calendar",
+        "pivot-d3"
+    ],
 
-    "framework": "ext",
-    "toolkit": "classic",
+    "classic": {
+        "js": [
+            {
+                "path": "../classic/shared/examples.js",
+                "includeInBundle": true
+            }
+        ],
+        "locales": [
+            "en",
+            "he"
+        ],
+        "requires": [
+            "locale",
+            "font-ext"
+        ]
+    },
 
-    "builds": {
+    "modern": {
+        "slicer": null,
+        "requires": [
+            "google"
+        ],
+        "locales": [
+            "en"
+        ]
+    },
+
+   "builds": {
         "classic": {
             "toolkit": "classic",
-            "requires": [
-                "font-awesome",
-                "locale",
-                "ux",
-                "amf",
-                "soap",
-                "pivot",
-                "charts"
-            ],
-            "locales": [
-                "en",
-                "he"
-            ],
             "theme": "theme-classic"
         },
         "gray": {
             "toolkit": "classic",
-            "requires": [
-                "font-awesome",
-                "locale",
-                "ux",
-                "amf",
-                "soap",
-                "pivot",
-                "charts"
-            ],
-            "locales": [
-                "en",
-                "he"
-            ],
             "theme": "theme-gray"
         },
         "crisp": {
             "toolkit": "classic",
-            "requires": [
-                "font-awesome",
-                "locale",
-                "ux",
-                "amf",
-                "soap",
-                "pivot",
-                "charts"
-            ],
-            "locales": [
-                "en",
-                "he"
-            ],
             "theme": "theme-crisp"
         },
         "crisp-touch": {
             "toolkit": "classic",
-            "requires": [
-                "font-awesome",
-                "locale",
-                "ux",
-                "amf",
-                "soap",
-                "pivot",
-                "charts"
-            ],
-            "locales": [
-                "en",
-                "he"
-            ],
             "theme": "theme-crisp-touch"
         },
         "neptune": {
             "toolkit": "classic",
-            "requires": [
-                "font-awesome",
-                "locale",
-                "ux",
-                "amf",
-                "soap",
-                "pivot",
-                "charts"
-            ],
-            "locales": [
-                "en",
-                "he"
-            ],
             "theme": "theme-neptune"
         },
         "neptune-touch": {
             "toolkit": "classic",
-            "requires": [
-                "font-awesome",
-                "locale",
-                "ux",
-                "amf",
-                "soap",
-                "pivot",
-                "charts"
-            ],
-            "locales": [
-                "en",
-                "he"
-            ],
             "theme": "theme-neptune-touch"
         },
         "triton": {
             "toolkit": "classic",
-            "requires": [
-                "font-awesome",
-                "locale",
-                "ux",
-                "amf",
-                "soap",
-                "pivot",
-                "charts"
-            ],
-            "locales": [
-                "en",
-                "he"
-            ],
             "theme": "theme-triton"
         },
 
         "modern-triton": {
             "toolkit": "modern",
-            "slicer": null,
-            "requires": [
-                "font-awesome",
-                "amf",
-                "soap",
-                "charts"
-            ],
             "theme": "theme-triton"
         },
         "modern-neptune": {
             "toolkit": "modern",
-            "slicer": null,
-            "requires": [
-                "font-awesome",
-                "amf",
-                "soap",
-                "charts"
-            ],
             "theme": "theme-neptune"
         },
-        "blackberry": {
+        "material": {
             "toolkit": "modern",
-            "slicer": null,
-            "requires": [
-                "font-awesome",
-                "amf",
-                "soap",
-                "charts"
-            ],
-            "theme": "theme-blackberry"
+            "material" : {
+                "toolbar": {
+                    "color": "#1976d2",
+                    "dynamic": true
+                }
+            },
+            "theme": "theme-material"
         },
-        "cupertino": {
+        "ios": {
             "toolkit": "modern",
-            "slicer": null,
-            "requires": [
-                "font-awesome",
-                "amf",
-                "soap",
-                "charts"
-            ],
-            "theme": "theme-cupertino"
-        },
-        "mountainview": {
-            "toolkit": "modern",
-            "slicer": null,
-            "requires": [
-                "font-awesome",
-                "amf",
-                "soap",
-                "charts"
-            ],
-            "theme": "theme-mountainview"
-        },
-        "windows": {
-            "toolkit": "modern",
-            "slicer": null,
-            "requires": [
-                "font-awesome",
-                "amf",
-                "soap",
-                "charts"
-            ],
-            "theme": "theme-windows"
+            "theme": "theme-ios"
         }
-    }
+    },
 
 //    "fashion": {
 //        "inliner": {
@@ -535,4 +452,10 @@
 //            ]
 //        }
 //    }
+
+    /**
+     * Uniquely generated id for this application, used as prefix for localStorage keys.
+     * Normally you should never change this value.
+     */
+    "id": "7f0d3b50-5cb1-47e0-97b7-ffe69d12d49e"
 }

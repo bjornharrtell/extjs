@@ -7,6 +7,15 @@ Ext.define('Ext.util.Offset', {
 
     statics: {
         fromObject: function(obj) {
+            if (obj instanceof this) {
+                return obj;
+            }
+            if (typeof obj === 'number') {
+                return new this(obj, obj);
+            }
+            if (obj.length) {
+                return new this(obj[0], obj[1]);
+            }
             return new this(obj.x, obj.y);
         }
     },
@@ -40,7 +49,18 @@ Ext.define('Ext.util.Offset', {
         }
         //</debug>
 
-        return (this.x == offset.x && this.y == offset.y);
+        return (this.x === offset.x && this.y === offset.y);
+    },
+
+    add: function(offset) {
+        //<debug>
+        if(!(offset instanceof this.statics())) {
+            Ext.raise('Offset must be an instance of Ext.util.Offset');
+        }
+        //</debug>
+
+        this.x += offset.x;
+        this.y += offset.y;
     },
 
     round: function(to) {
@@ -55,6 +75,6 @@ Ext.define('Ext.util.Offset', {
     },
 
     isZero: function() {
-        return this.x == 0 && this.y == 0;
+        return this.x === 0 && this.y === 0;
     }
 });

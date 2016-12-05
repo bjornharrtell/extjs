@@ -3,6 +3,10 @@ Ext.define('KitchenSink.view.charts.combination.ParetoController', {
     alias: 'controller.combination-pareto',
 
     onDownload: function () {
+        if (Ext.isIE8) {
+            Ext.Msg.alert('Unsupported Operation', 'This operation requires a newer version of Internet Explorer.');
+            return;
+        }
         var chart = this.lookupReference('chart');
 
         if (Ext.os.is.Desktop) {

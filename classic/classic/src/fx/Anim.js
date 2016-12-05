@@ -64,7 +64,7 @@ Ext.define('Ext.fx.Anim', {
     /**
      * @cfg {Function/String} callback
      * A function to be run after the animation has completed.
-     * @declarativeHandler
+     * @controllable
      */
 
     /**
@@ -485,7 +485,7 @@ Ext.define('Ext.fx.Anim', {
      * animation reaches its final frame, but can also be called manually to preemptively
      * stop and destroy the running animation.
      */
-    end: function() {
+    end: function(suppressEvent) {
         var me = this;
         if (me.endWasCalled++) {
             return;
@@ -495,8 +495,12 @@ Ext.define('Ext.fx.Anim', {
         me.paused = false;
         me.running = false;
         Ext.fx.Manager.removeAnim(me);
-        me.fireEvent('afteranimate', me, me.startTime);
-        Ext.callback(me.callback, me.scope, [me, me.startTime]);
+        
+        if (!suppressEvent) {
+            me.fireEvent('afteranimate', me, me.startTime);
+            Ext.callback(me.callback, me.scope, [me, me.startTime]);
+        }
+        
         if (me.remove) {
             me.target.destroy();
         }

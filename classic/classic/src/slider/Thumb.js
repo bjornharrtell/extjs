@@ -46,10 +46,16 @@ Ext.define('Ext.slider.Thumb', {
     },
 
     onRender: function() {
-        if (this.disabled) {
-            this.disable();
+        var me = this,
+            panDisable = me.slider.vertical ? 'panY' : 'panX',
+            touchAction = {};
+
+        touchAction[panDisable] = false;
+        me.el.setTouchAction(touchAction);
+        if (me.disabled) {
+            me.disable();
         }
-        this.initEvents();
+        me.initEvents();
     },
 
     getElConfig: function() {
@@ -60,8 +66,8 @@ Ext.define('Ext.slider.Thumb', {
         style[slider.vertical ? 'bottom' : slider.horizontalProp] = slider.calculateThumbPosition(slider.normalizeValue(me.value)) + '%';
         return {
             style: style,
-            id  : this.id,
-            cls : this.cls,
+            id  : me.id,
+            cls : me.cls,
             role: 'presentation'
         };
     },

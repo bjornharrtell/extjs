@@ -103,5 +103,34 @@ describe("Ext.util.CSV", function() {
                 [ '3.141592653589793', '1', 'false' ]
             ]);
         });
+
+        it("should return an empty array for null, undefined and empty string", function() {
+            expect(CSV.decode(undefined)).toEqual([]);
+            expect(CSV.decode(null)).toEqual([]);
+            expect(CSV.decode('')).toEqual([]);
+        });
+
+        it("should not create an empty row when a line feed is the last character in the input", function() {
+            var test1 = 'John,Doe,42' + CSV.lineBreak + 'Jane,Henry,31' + CSV.lineBreak + ',,\r\n',
+                test2 = 'John,Doe,42' + CSV.lineBreak + ',,' + CSV.lineBreak + 'Jane,Henry,31\n',
+                test3 = 'John,Doe,42\r';
+
+            // two rows of data, one empty row with \r\n end variant
+            expect(CSV.decode(test1)).toEqual([
+                ['John', 'Doe', '42'],
+                ['Jane', 'Henry', '31'],
+                ['', '', '']
+            ]);
+
+            // one row of data, one empty row, another row of data with \n end variant
+            expect(CSV.decode(test2)).toEqual([
+                ['John', 'Doe', '42'],
+                ['', '', ''],
+                ['Jane', 'Henry', '31']                
+            ]);
+
+            // just one row of data with \r end variant
+            expect(CSV.decode(test3)).toEqual([['John', 'Doe', '42']]);
+        });
     });
 });

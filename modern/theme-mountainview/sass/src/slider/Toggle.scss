@@ -2,7 +2,7 @@
  * @class Ext.slider.Toggle
  */
 
-.x-toggle {
+.x-toggleslider {
     $form-toggle-thumb-width: 45px;
     $form-toggle-thumb-height: 22px;
 
@@ -41,7 +41,7 @@
     }
 }
 
-.x-toggle-on {
+.x-toggleslider.x-on {
     .x-thumb {
         &:after {
             background: $base-color;

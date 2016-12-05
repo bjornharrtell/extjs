@@ -52,11 +52,11 @@ Ext.define('SimpleTasks.ux.StatusColumn', {
 
         if (target.hasCls(cssPrefix + 'grid-statusheader-inner')) {
             if(type === 'mousedown' && e.button === 0) {
-                record = view.panel.store.getAt(recordIndex);
+                record = e.record;
                 dataIndex = me.dataIndex;
                 checked = !record.get(dataIndex);
                 record.set(dataIndex, checked);
-                me.fireEvent('checkchange', me, recordIndex, checked);
+                me.fireEvent('checkchange', me, record, recordIndex, checked);
                 // cancel selection.
                 return false;
             } else if(type === 'mouseover') {

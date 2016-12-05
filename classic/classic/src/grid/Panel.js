@@ -213,7 +213,9 @@ Ext.define('Ext.grid.Panel', {
     requires: ['Ext.view.Table'],
     alias: ['widget.gridpanel', 'widget.grid'],
     alternateClassName: ['Ext.list.ListView', 'Ext.ListView', 'Ext.grid.GridPanel'],
+    
     viewType: 'tableview',
+    ariaRole: 'grid',
 
     lockable: false,
 

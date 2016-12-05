@@ -98,12 +98,6 @@ Ext.define('Ext.Toolbar', {
 
     config: {
         /**
-         * @cfg baseCls
-         * @inheritdoc
-         */
-        baseCls: Ext.baseCSSPrefix + 'toolbar',
-
-        /**
          * @cfg {String/Ext.Title} title
          * The title of the toolbar.
          * @accessor
@@ -160,8 +154,6 @@ Ext.define('Ext.Toolbar', {
          *         ]
          *     });
          *
-         * See the [layouts guide](#!/guides/layouts) for more information
-         *
          * __Note:__ If you set the {@link #docked} configuration to `left` or `right`, the default layout will change from the
          * `hbox` to a `vbox`.
          *
@@ -172,6 +164,10 @@ Ext.define('Ext.Toolbar', {
             align: 'center'
         }
     },
+
+    border: false,
+
+    classCls: Ext.baseCSSPrefix + 'toolbar',
 
     hasCSSMinHeight: true,
 
@@ -195,7 +191,7 @@ Ext.define('Ext.Toolbar', {
         if (typeof title == 'string') {
             title = {
                 title: title,
-                centered : Ext.theme.is.Tizen ? false : true
+                centered : true
             };
         }
 

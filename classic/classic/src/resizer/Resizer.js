@@ -150,6 +150,20 @@ Ext.define('Ext.resizer.Resizer', {
     },
 
     /**
+     * @private
+     */
+    touchActionMap: {
+        n: { panY: false },
+        s: { panY: false },
+        e: { panX: false },
+        w: { panX: false },
+        se: { panX: false, panY: false },
+        sw: { panX: false, panY: false },
+        nw: { panX: false, panY: false },
+        ne: { panX: false, panY: false }
+    },
+
+    /**
      * @cfg {Ext.dom.Element/Ext.Component} target
      * The Element or Component to resize.
      */
@@ -190,11 +204,10 @@ Ext.define('Ext.resizer.Resizer', {
 
     constructor: function(config) {
         var me = this,
-            handles = me.handles,
             unselectableCls = Ext.dom.Element.unselectableCls,
             handleEls = [],
             resizeTarget, handleCls, possibles, tag,
-            len, i, pos, el, box, 
+            len, i, pos, box, handle, handles, handleEl,
             wrapTarget, positioning, targetBaseCls;
             
 
@@ -370,33 +383,26 @@ Ext.define('Ext.resizer.Resizer', {
 
         for (i = 0; i < len; i++){
             // if specified and possible, create
-            if (handles[i] && possibles[handles[i]]) {
-                pos = possibles[handles[i]];
+            handle = handles[i];
+            if (handle && possibles[handle]) {
+                pos = possibles[handle];
 
-                handleEls.push(
-                    '<div id="', me.el.id, '-', pos, '-handle" class="', Ext.String.format(handleCls, pos), ' ', unselectableCls,
-                        '" unselectable="on" role="presentation"',
-                    '></div>'
-                );
-            }
-        }
-        Ext.DomHelper.append(me.el, handleEls.join(''));
+                handleEl = me[pos] = me.el.createChild({
+                    id: me.el.id + '-' + pos + '-handle',
+                    cls: Ext.String.format(handleCls, pos) + ' ' + unselectableCls,
+                    unselectable: 'on',
+                    role: 'presentation'
+                });
 
-        // Let's reuse the handleEls stack to collect the actual els.
-        handleEls.length = 0;
-
-        // store a reference to each handle element in this.east, this.west, etc
-        for (i = 0; i < len; i++){
-            // if specified and possible, create
-            if (handles[i] && possibles[handles[i]]) {
-                pos = possibles[handles[i]];
-                el = me[pos] = me.el.getById(me.el.id + '-' + pos + '-handle');
-                handleEls.push(el);
-                el.region = pos;
+                handleEl.region = pos;
 
                 if (me.transparent) {
-                    el.setOpacity(0);
+                    handleEl.setOpacity(0);
                 }
+
+                handleEl.setTouchAction(me.touchActionMap[handle]);
+
+                handleEls.push(handleEl);
             }
         }
 
@@ -404,10 +410,12 @@ Ext.define('Ext.resizer.Resizer', {
     },
 
     disable: function() {
+        this.disabled = true;
         this.resizeTracker.disable();
     },
 
     enable: function() {
+        this.disabled = false;
         this.resizeTracker.enable();
     },
 
@@ -494,11 +502,10 @@ Ext.define('Ext.resizer.Resizer', {
 
     destroy: function() {
         var me = this,
-            i,
             handles = me.handles,
             len = handles.length,
             positions = me.possiblePositions,
-            handle;
+            handle, pos, i;
 
         me.resizeTracker.destroy();
 
@@ -508,10 +515,14 @@ Ext.define('Ext.resizer.Resizer', {
         }
 
         for (i = 0; i < len; i++) {
-            if ((handle = me[positions[handles[i]]])) {
+            pos = positions[handles[i]];
+            
+            if ((handle = me[pos])) {
                 handle.destroy();
+                me[pos] = null;
             }
         }
+        
         me.callParent();
     }
 });

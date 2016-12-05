@@ -341,7 +341,7 @@ Ext.define('Ext.Media', {
         return this.media.dom.duration;
     },
 
-    destroy: function() {
+    doDestroy: function() {
         var me = this,
             dom  = me.media.dom,
             mediaEvents = me.mediaEvents;

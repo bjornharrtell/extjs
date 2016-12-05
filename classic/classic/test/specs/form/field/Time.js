@@ -295,6 +295,57 @@ describe("Ext.form.field.Time", function() {
                     component.setValue('21');
                     expect(component.inputEl.getValue()).toBe('21');
                 });
+                
+                describe("validating as you type", function(){
+                    it("should validate date format", function() {
+                        var raw, errors;
+                        makeComponent({
+                            renderTo: document.body
+                        });
+                        component.inputEl.dom.value = 'foo';
+                        component.doRawQuery();
+                        
+                        raw = component.getRawValue();
+                        errors = component.getErrors();
+
+                        expect(errors.length).toBe(1);
+                        expect(errors[0]).toBe('foo is not a valid time');
+                    });
+
+                    it("should validate minValue", function() {
+                        var raw, errors;
+                        makeComponent({
+                            minValue : '8:00 AM',
+                            minText : 'too early',
+                            renderTo: document.body
+                        });
+                        component.inputEl.dom.value = 1;
+                        component.doRawQuery();
+                        
+                        raw = component.getRawValue();
+                        errors = component.getErrors();
+
+                        expect(errors.length).toBe(1);
+                        expect(errors[0]).toBe('too early');
+                    });
+
+                    it("should validate maxValue", function() {
+                        var raw, errors;
+                        makeComponent({
+                            maxValue : '8:00 AM',
+                            maxText : 'too late',
+                            renderTo: document.body
+                        });
+                        component.inputEl.dom.value = 9;
+                        component.doRawQuery();
+                        
+                        raw = component.getRawValue();
+                        errors = component.getErrors();
+
+                        expect(errors.length).toBe(1);
+                        expect(errors[0]).toBe('too late');
+                    });
+                });
             });
 
             describe("change event", function () {

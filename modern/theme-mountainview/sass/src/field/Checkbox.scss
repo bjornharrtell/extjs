@@ -30,41 +30,42 @@
     );
 }
 
-.x-field-checkbox .x-field-mask::before,
-.x-field-radio .x-field-mask::before,
-.x-field-radio .x-field-mask::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: 0;
-    margin-top: -10px;
-    height: 20px;
-    width: 20px;
-    border: 1px solid $foreground-color;
-}
-
-.x-field-checkbox .x-field-mask::after {
-    @include checkmark($base-color);
-    visibility: hidden;
-}
-
-.x-input-checkbox,
-.x-input-radio {
-    visibility: hidden;
-}
-
-.x-input-el:checked + .x-field-mask::after {
-    visibility: visible;
-}
-
-.x-item-disabled {
-    &.x-field-checkbox .x-field-mask::before,
-    &.x-field-radio .x-field-mask::before {
-        border-color: $secondary-color;
+.x-checkboxfield {
+    .x-mask-el::before,
+    .x-mask-el::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 0;
+        margin-top: -10px;
+        height: 20px;
+        width: 20px;
+        border: 1px solid $foreground-color;
     }
 
-    &.x-field-checkbox .x-input-el:checked + .x-field-mask::after {
-        text-shadow: none;
-        color: $foreground-color;
+    .x-mask-el::after {
+        @include checkmark($base-color);
+        visibility: hidden;
+    }
+
+    .x-input-el {
+        visibility: hidden;
+
+        &:checked + .x-mask-el::after {
+            visibility: visible;
+        }
+    }
+
+    &.x-disabled {
+        .x-mask-el::before {
+            border-color: $secondary-color;
+        }
+
+        .x-input-el:checked + .x-mask-el::after {
+            text-shadow: none;
+            color: $foreground-color;
+        }
     }
 }
+
+

@@ -46,7 +46,7 @@ $support-for-original-webkit-gradients: false;
         }
     }
 
-    @if not $flat {
+    @if not ($flat or ($bg-color == transparent)) {
         @if type-of($type) == "list" {
             // Color stops provided - no $bg-color required
             @include background-image(linear-gradient($direction, $type));

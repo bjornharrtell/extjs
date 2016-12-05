@@ -51,7 +51,7 @@ Ext.define('KitchenSink.view.direct.Grid', {
             type: 'direct',
             directFn: 'TestAction.getGrid',
             metadata: {
-                table: 'customers'
+                table: 'companies'
             }
         }
     },
@@ -77,11 +77,11 @@ Ext.define('KitchenSink.view.direct.Grid', {
             valueField: 'table',
             forceSelection: true,
             editable: false,
-            value: 'customers',
+            value: 'companies',
             store: {
                 fields: ['table', 'desc'],
                 data: [
-                    { table: 'customers', desc: 'Existing customers' },
+                    { table: 'companies', desc: 'Existing companies' },
                     { table: 'leads',     desc: 'Sales leads' }
                 ]
             },

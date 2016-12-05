@@ -1,3 +1,5 @@
+/* global Ext, jasmine, expect */
+
 describe('Ext.grid.NavigationModel', function() {
     
     // Expect that a row and column are focused.
@@ -170,13 +172,14 @@ describe('Ext.grid.NavigationModel', function() {
             var focusContext = new Ext.grid.CellContext(view).setPosition(0, 0),
                 newCell;
 
-            // Focusing the outer focusEl will delegate to cell (0,) first time in.
+            // Focusing the outer focusEl will delegate to cell (0,0) first time in.
             view.focus();
 
             // Wait until the NavigationModel has processed the onFocusEnter, and synched its position
             waitsFor(function() {
-                return view.getNavigationModel().getPosition().isEqual(focusContext) && Ext.Element.getActiveElement() === focusContext.getCell(true);
-            }, 'for position(0,0) to be focuised');
+                var pos = view.getNavigationModel().getPosition();
+                return pos !== null && pos.isEqual(focusContext) && Ext.Element.getActiveElement() === focusContext.getCell(true);
+            }, 'for position(0,0) to be focused');
 
 
             runs(function() {
@@ -192,6 +195,75 @@ describe('Ext.grid.NavigationModel', function() {
                 return view.getNavigationModel().getPosition().isEqual(focusContext) && Ext.Element.getActiveElement() === newCell;
             }, 'for cell (2,2) to be focused');
         });
+    });
+
+    describe("row removal", function() {
+        var focusAndWait = jasmine.focusAndWait,
+            expectFocused = jasmine.expectFocused;
+
+        function makeRemovalSuite(buffered) {
+            describe(buffered ? "buffered" : "not buffered", function() {
+                describe("without locking", function() {
+                    it("should retain focus", function() {
+                        makeGrid(null, 10, {
+                            bufferedRenderer: buffered
+                        });
+                        var cell = view.getCell(store.getAt(0), colRef[0]);
+                        focusAndWait(cell);
+                        runs(function() {
+                            store.removeAt(1);
+                        });
+                        expectFocused(cell);
+                        runs(function() {
+                            var pos = new Ext.grid.CellContext(view).setPosition(0, 0);
+                            expect(navModel.getPosition().isEqual(pos)).toBe(true);
+                        });
+                    });
+                });
+
+                describe("with locking", function() {
+                    beforeEach(function() {
+                        makeGrid([{
+                            dataIndex: 'field1',
+                            locked: true
+                        }, {
+                            dataIndex: 'field2'
+                        }], 10, {
+                            bufferedRenderer: buffered
+                        });
+                    });
+
+                    it("should retain focus on the locked part", function() {
+                        var cell = view.getCell(store.getAt(0), colRef[0]);
+                        focusAndWait(cell);
+                        runs(function() {
+                            store.removeAt(1);
+                        });
+                        expectFocused(cell);
+                        runs(function() {
+                            var pos = new Ext.grid.CellContext(view).setPosition(0, 0);
+                            expect(navModel.getPosition().isEqual(pos)).toBe(true);
+                        });
+                    });
+
+                    it("should retain focus on the unlocked part", function() {
+                        var cell = view.getCell(store.getAt(0), colRef[1]);
+                        focusAndWait(cell);
+                        runs(function() {
+                            store.removeAt(1);
+                        });
+                        expectFocused(cell);
+                        runs(function() {
+                            var pos = new Ext.grid.CellContext(view).setPosition(0, 1);
+                            expect(navModel.getPosition().isEqual(pos)).toBe(true);
+                        });
+                    });
+                });
+            });
+        }
+
+        makeRemovalSuite(false);
+        makeRemovalSuite(true);
     });
     
     describe('navigation in a locking grid', function() {
@@ -422,15 +494,61 @@ describe('Ext.grid.NavigationModel', function() {
         afterEach(function() {
             grid.destroy();
         });
-        it('should select when clicking a widget is stopSelection is false', function() {
+        it('should select when clicking a widget and stopSelection is false', function() {
             var row0Button = widgetColumn.getWidget(store.getAt(0));
             
             jasmine.fireMouseEvent(row0Button.el, 'click');
 
             // The selection must get set
             waitsFor(function() {
-                return !!pos;
+                pos = grid.getSelectionModel().getPosition();
+                return pos && pos.rowIdx === 0 && pos.colIdx === 1;
             });
+        });
+    });
+
+    describe('With non-focusable column', function() {
+        it('should skip the non-focusable cells', function() {
+            makeGrid(3, 500);
+            colRef[0].cellFocusable = false;
+            view.refreshView();
+
+            colRef[0].focus();
+
+            waitsFor(function() {
+                return colRef[0].containsFocus;
+            }, 'column header 0 to focus');
+
+            // TAB off column header 0
+            runs(function() {
+                jasmine.simulateTabKey(colRef[0].el, true);
+            });
+
+            // Should skip on to column 1
+            waitsFor(function() {
+                return new Ext.grid.CellContext(view).setPosition(0, 1).isEqual(navModel.getPosition());
+            }, 'cell 0,1 to focus');
+
+            // RIGHT to column 2
+            runs(function() {
+                // Sort ascending
+                jasmine.fireKeyEvent(Ext.Element.getActiveElement(), 'keydown', Ext.event.Event.RIGHT);
+            });
+            
+            waitsFor(function() {
+                return new Ext.grid.CellContext(view).setPosition(0, 2).isEqual(navModel.getPosition());
+            }, 'cell 0,2 to focus');
+
+            // RIGHT again should wrap
+            runs(function() {
+                // Sort ascending
+                jasmine.fireKeyEvent(Ext.Element.getActiveElement(), 'keydown', Ext.event.Event.RIGHT);
+            });
+
+            // But skip column 0, and go to 1,1
+            waitsFor(function() {
+                return new Ext.grid.CellContext(view).setPosition(1, 1).isEqual(navModel.getPosition());
+            }, 'cell 1,1 to focus');
         });
     });
 

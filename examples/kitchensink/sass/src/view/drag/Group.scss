@@ -1,0 +1,98 @@
+.stretch-html .x-innerhtml {
+    height: 100%;
+}
+
+.group-source, .group-target {
+    width: 100px;
+    height: 100px;
+    padding: 5px;
+    text-align: center;
+    color: #FFF;
+    position: absolute;
+    @include border-radius(5px);
+    @include user-select(none);
+
+    .x-phone & {
+        width: 28vw;
+    }
+}
+
+.group-source {
+    cursor: move;
+}
+
+.group-target {
+    color: #000;
+    border: 2px dashed #37474F;
+}
+
+.group-proxy {
+    color: #000;
+    padding: 5px;
+    width: 80px;
+    height: 80px;
+    background-color: #FFEB3B;
+    border: 5px dotted #FFEB3B;
+    @include border-radius(5px);
+}
+
+.group-proxy-valid {
+    color: #FFF;
+    background-color: #8BC34A;
+    border-color: #8BC34A;
+}
+
+.group-proxy-invalid {
+    color: #FFF;
+    background-color: #C62828;
+    border-color: #C62828;
+}
+
+.group-source-group1 {
+    background-color: #FF5722;
+    left: 10px; 
+    top: 10px;
+}
+
+.group-source-group2 {
+    background-color: #9C27B0;
+    left: 125px; 
+    top: 10px;
+
+    .x-phone & {
+        left: 35vw;
+    }
+}
+
+.group-source-both {
+    background-color: #039BE5;
+    left: 240px; 
+    top: 10px;
+
+    .x-phone & {
+        left: 67vw;
+    }
+}
+
+.group-target-group1 {
+    left: 10px; 
+    top: 170px;
+}
+
+.group-target-group2 {
+    left: 125px; 
+    top: 170px;
+
+    .x-phone & {
+        left: 35vw;
+    }
+}
+
+.group-target-both {
+    left: 240px; 
+    top: 170px;
+
+    .x-phone & {
+        left: 67vw;
+    }
+}

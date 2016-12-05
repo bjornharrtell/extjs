@@ -177,7 +177,8 @@ Ext.define('Ext.form.field.Radio', {
 
     /**
      * @property {Boolean} isRadio
-     * `true` in this class to identify an object as an instantiated Radio, or subclass thereof.
+     * The value `true` to identify an object as an instance of this or derived class.
+     * @readonly
      */
     isRadio: true,
 
@@ -187,11 +188,6 @@ Ext.define('Ext.form.field.Radio', {
      */
 
     inputType: 'radio',
-    ariaRole: 'radio',
-    
-    // Radios are naturally focusable but they need to participate in RadioGroups
-    // which are focusable containers; we set tabIndex to >= 0 here to make that work
-    tabIndex: 0,
     
     formId: null,
 
@@ -204,18 +200,7 @@ Ext.define('Ext.form.field.Radio', {
         return selected ? selected.inputValue : null;
     },
 
-    /**
-     * @private
-     * Handle click on the radio button
-     */
-    onBoxClick: function() {
-        var me = this;
-        if (!me.disabled && !me.readOnly) {
-            this.setValue(true);
-        }
-    },
-    
-    onRemoved: function(){
+    onRemoved: function() {
         this.callParent(arguments);
         this.formId = null;
     },
@@ -238,6 +223,7 @@ Ext.define('Ext.form.field.Radio', {
                 active.setValue(true);
             }
         }
+
         return me;
     },
 
@@ -249,31 +235,31 @@ Ext.define('Ext.form.field.Radio', {
         return this.checked ? this.inputValue : null;
     },
 
-    getModelData: function() {
-        var o = this.callParent(arguments);
-        if (o) {
-            o[this.getName()] = this.getSubmitValue();
-        }
-        return o;
-    },
-
     onChange: function(newVal, oldVal) {
         var me = this,
+            ownerCt = me.ownerCt,
             r, rLen, radio, radios;
 
         me.callParent(arguments);
-
+        
+        // Standard compliant browsers only fire change event on the radio button
+        // that became checked so we need to update other buttons in the group.
+        // See also IE8 override.
         if (newVal) {
             radios = me.getManager().getByName(me.name, me.getFormId()).items;
-            rLen   = radios.length;
+            rLen = radios.length;
 
             for (r = 0; r < rLen; r++) {
                 radio = radios[r];
 
                 if (radio !== me) {
-                    radio.setValue(false);
+                    radio.updateValueFromDom();
                 }
             }
+        }
+
+        if (ownerCt && ownerCt.isRadioGroup && ownerCt.simpleValue) {
+            ownerCt.checkChange();
         }
     },
 

@@ -113,7 +113,7 @@ describe("Ext.data.writer.Json", function(){
                 writer.write(new Ext.data.Request({
                     operation: makeOperation(buildRecords([simpleData]))
                 }));
-            }).toRaiseExtError();
+            }).toThrow();
         });
         
         it("should write the data to the request params", function(){

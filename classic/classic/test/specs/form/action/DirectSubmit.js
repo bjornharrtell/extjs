@@ -1,14 +1,14 @@
 describe("Ext.form.action.DirectSubmit", function() {
-    var api, provider, action, loadSpy, submitSpy;
+    var provider, action, loadSpy, submitSpy;
     
     function makeApi(cfg) {
-        api = Ext.apply({
+        cfg = Ext.apply({
             "namespace": "spec",
             type: "remoting",
             url: "fake"
         }, cfg);
         
-        provider = Ext.direct.Manager.addProvider(api);
+        provider = Ext.direct.Manager.addProvider(cfg);
     }
 
     function makeSpy(name) {
@@ -78,17 +78,16 @@ describe("Ext.form.action.DirectSubmit", function() {
     afterEach(function() {
         if (provider) {
             Ext.direct.Manager.removeProvider(provider);
+            provider.destroy();
         }
         
         Ext.direct.Manager.clearAllMethods();
         
-        try {
-            delete window.spec;
-        } catch (e) {
-            window.spec = null;
+        if (action) {
+            action.destroy();
         }
         
-        loadSpy = submitSpy = null;
+        loadSpy = submitSpy = action = provider = window.spec = null;
     });
 
     it("should be registered in the action manager under the alias 'formaction.directsubmit'", function() {
@@ -110,15 +109,33 @@ describe("Ext.form.action.DirectSubmit", function() {
             expect(Ext.isFunction(action.form.api.submit)).toBeTruthy();
         });
         
+        it("should resolve prefixed 'submit' method", function() {
+            createAction({
+                form: {
+                    api: {
+                        prefix: 'spec.TestDirect',
+                        load: 'load',
+                        submit: 'submit'
+                    }
+                }
+            });
+            
+            action.run();
+            
+            expect(submitSpy).toHaveBeenCalled();
+        });
+        
         it("should raise an error if it cannot resolve 'submit' method", function() {
             spec = null;
             
             createAction();
             
-            expect(function() { action.run(); }).toThrow(
-                "Cannot resolve Ext Direct API method spec.TestDirect.submit " +
-                "for submit action"
-            );
+            var ex = "Cannot resolve Direct API method 'spec.TestDirect.load' for " +
+                     "load action in Ext.form.action.DirectSubmit instance with id: unknown";
+            
+            expect(function() {
+                action.run();
+            }).toThrow(ex);
         });
         
         it("should invoke the 'submit' function in the BasicForm's 'api' config", function() {
@@ -279,7 +296,6 @@ describe("Ext.form.action.DirectSubmit", function() {
         });
     });
 
-
     describe("submit failure", function() {
         //causes
         it("should fail if the callback is passed an exception with type=Ext.direct.Manager.exceptions.SERVER", function() {
@@ -317,7 +333,6 @@ describe("Ext.form.action.DirectSubmit", function() {
         });
     });
 
-
     describe("submit success", function() {
         beforeEach(function() {
             createActionWithCallbackArgs({}, {success: true}, {});
@@ -333,5 +348,4 @@ describe("Ext.form.action.DirectSubmit", function() {
             expect(action.form.afterAction).toHaveBeenCalledWith(action, true);
         });
     });
-
 });

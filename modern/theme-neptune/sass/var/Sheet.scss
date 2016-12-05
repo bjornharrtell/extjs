@@ -6,7 +6,7 @@
  * @var {color} $sheet-background-color
  * Background-color for action sheets.
  */
-$sheet-background-color: dynamic(#fff);
+$sheet-background-color: dynamic($background-color);
 
 /**
  * @var {color} $sheet-border-color

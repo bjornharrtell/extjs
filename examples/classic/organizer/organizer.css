@@ -42,6 +42,12 @@ select{
 .x-image-view .x-item-selected .thumb {
     background:#8db2e3;
 }
+.x-image-view .thumb-wrap img{
+    user-drag: none;
+    -webkit-user-drag: none;
+    -moz-user-drag: none;
+    -ms-user-drag: none;
+}
 .x-image-view .loading-indicator {
     font-size:8pt;
     background-image:url(../../resources/images/default/grid/loading.gif);

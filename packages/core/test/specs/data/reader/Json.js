@@ -1424,17 +1424,19 @@ describe("Ext.data.reader.Json", function() {
 
         beforeEach(function() {
             //We have five models - User, Address, Order, OrderItem and Product
-            Ext.define("spec.User", {
+            Ext.define('spec.User', {
                 extend: 'Ext.data.Model',
                 fields: [
                     'id', 'name'
                 ],
 
-                hasMany: [
-                    {model: 'spec.Order', name: 'orders'},
-                    {model: 'spec.Address', name: 'addresses'}
-                ],
-
+                hasMany: [{
+                    type: 'spec.Order', 
+                    role: 'orders'
+                }, {
+                    type: 'spec.Address', 
+                    role: 'addresses'
+                }],
                 proxy: {
                     type: 'rest',
                     reader: {
@@ -1450,37 +1452,43 @@ describe("Ext.data.reader.Json", function() {
                 extend: 'Ext.data.Model',
                 fields: [
                     'id', 'line1', 'line2', 'town'
-                ],
-
-                belongsTo: 'spec.User'
+                ]
             });
 
-            Ext.define("spec.Order", {
+            Ext.define('spec.Order', {
                 extend: 'Ext.data.Model',
                 fields: [
                     'id', 'total'
                 ],
 
-                hasMany  : {model: 'spec.OrderItem', name: 'orderItems', associationKey: 'order_items'},
-                belongsTo: 'spec.User'
+                hasMany  : {
+                    type: 'spec.OrderItem', 
+                    role: 'orderItems', 
+                    associationKey: 'order_items'
+                }
             });
 
-            Ext.define("spec.OrderItem", {
+            Ext.define('spec.OrderItem', {
                 extend: 'Ext.data.Model',
                 fields: [
                     'id', 'price', 'quantity', 'order_id', 'product_id'
-                ],
-
-                belongsTo: ['spec.Order', {model: 'spec.Product', getterName: 'getProduct', associationKey: 'product'}]
+                ]
             });
 
-            Ext.define("spec.Product", {
+            Ext.define('spec.Product', {
                 extend: 'Ext.data.Model',
                 fields: [
                     'id', 'name'
                 ],
 
-                hasMany: {model: 'spec.OrderItem', name: 'orderItems'}
+                hasMany: {
+                    type: 'spec.OrderItem', 
+                    role: 'orderItems',
+                    inverse: {
+                        getterName: 'getProduct', 
+                        associationKey: 'product'
+                    }
+                }
             });
             
             // Created in global beforeEach
@@ -1671,6 +1679,12 @@ describe("Ext.data.reader.Json", function() {
                     reader.on('exception', spy);
                     doRead(badResponse);
                     expect(spy.callCount).toBe(1);
+                });
+            });
+
+            describe("if the responseText is empty", function() {
+                it("should return the null result set", function() {
+                    expect(doRead({responseText: ''})).toBe(reader.getNullResultSet());
                 });
             });
         });

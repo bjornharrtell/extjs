@@ -104,6 +104,12 @@ $breadcrumb-leaf-glyph-color: dynamic($breadcrumb-glyph-color);
 $breadcrumb-arrow-glyph: dynamic($fa-var-angle-right $breadcrumb-glyph-font-size $font-icon-font-family);
 
 /**
+ * @var {string/list}
+ * Glyph for the "arrow" icon when {@link Global_CSS#$enable-font-icons} is `true` and rtl is `true`.
+ */
+$breadcrumb-arrow-glyph-rtl: dynamic($fa-var-angle-left $breadcrumb-glyph-font-size $font-icon-font-family);
+
+/**
  * @var {color}
  * The color to use for the "arrow" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */

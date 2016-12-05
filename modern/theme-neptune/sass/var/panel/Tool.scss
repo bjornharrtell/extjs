@@ -175,6 +175,12 @@ $panel-tool-plus-icon: dynamic($fa-var-plus $font-icon-font-family);
 
 /**
  * @var {string/list}
+ * The "menu" tool icon
+ */
+$panel-tool-menu-icon: dynamic($fa-var-bars $font-icon-font-family);
+
+/**
+ * @var {string/list}
  * The "minus" tool icon
  */
 $panel-tool-minus-icon: dynamic($fa-var-minus $font-icon-font-family);

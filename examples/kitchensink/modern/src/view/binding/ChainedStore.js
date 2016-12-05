@@ -1,7 +1,7 @@
 Ext.define('KitchenSink.view.binding.ChainedStore', {
     extend: 'Ext.Container',
 
-    //<example>
+    // <example>
     requires: ['Ext.grid.Grid'],
     otherContent: [{
         type: 'ViewModel',
@@ -10,13 +10,16 @@ Ext.define('KitchenSink.view.binding.ChainedStore', {
         type: 'Model',
         path: 'modern/src/model/Person.js'
     }],
-    //</example>
+    // </example>
 
     layout: {
         type: 'vbox',
         align: 'stretch'
     },
     scrollable: true,
+
+    shadow: true,
+    cls: 'demo-solid-background',
 
     referenceHolder: true,
 

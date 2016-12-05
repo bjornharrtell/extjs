@@ -71,13 +71,11 @@ Ext.define('Ext.Container', {
     alternateClassName: ['Ext.lib.Container', 'Ext.container.Container'],
 
     requires: [
-        'Ext.layout.*',
-        'Ext.util.ItemCollection',
-        'Ext.Mask'
+        'Ext.util.ItemCollection'
     ],
 
     xtype: 'container',
-    
+
     mixins: [
         'Ext.mixin.Queryable',
         'Ext.mixin.Container'
@@ -174,9 +172,8 @@ Ext.define('Ext.Container', {
          *         ]
          *     });
          *
-         * See the [Layouts Guide](#!/guide/layouts) for more information.
-         *
          * @accessor
+         * @cmd-auto-dependency { aliasPrefix : "layout."}
          */
         layout: 'default',
 
@@ -203,7 +200,7 @@ Ext.define('Ext.Container', {
          * called with scope: `this` (e.g. `this` is the Container instance).
          *
          */
-        control: {},
+        control: null,
 
         /**
          * @cfg {Object} defaults A set of default configurations to apply to all child Components in this Container.
@@ -288,25 +285,10 @@ Ext.define('Ext.Container', {
          *     });
          *
          * @accessor
+         * @cmd-auto-dependency {defaultType: "Ext.Mask"}
          */
-        masked: null,
-
-        /**
-         * @cfg {Boolean} modal `true` to make this Container modal. This will create a mask underneath the Container
-         * that covers its parent and does not allow the user to interact with any other Components until this
-         * Container is dismissed.
-         * @accessor
-         */
-        modal: null,
-
-        /**
-         * @cfg {Boolean} hideOnMaskTap When using a {@link #modal} Component, setting this to `true` will hide the modal
-         * mask and the Container when the mask is tapped on.
-         * @accessor
-         */
-        hideOnMaskTap: null
+        masked: null
     },
-
 
     /**
      * @cfg {Boolean}
@@ -315,6 +297,8 @@ Ext.define('Ext.Container', {
      * items will collapse where they meet to avoid duplicated borders.
      */
     manageBorders: false,
+
+    classCls: Ext.baseCSSPrefix + 'container',
 
     constructor: function(config) {
         var me = this;
@@ -335,18 +319,28 @@ Ext.define('Ext.Container', {
     },
 
     initialize: function() {
-        this.callParent();
+        var me = this,
+            classClsList = me.classClsList,
+            i, ln;
+
+        me.callParent();
 
         // Ensure the container's layout instance is created, even if the container
         // has no items.  This ensures border management is handled correctly on empty
         // panels.
-        this.getLayout();
+        me.getLayout();
+
+        if (classClsList) {
+            for (i = 0, ln = classClsList.length; i < ln; i++) {
+                me.innerElement.addCls(classClsList[i], null, 'inner');
+            }
+        }
     },
 
     getElementConfig: function() {
         return {
             reference: 'element',
-            classList: ['x-container', 'x-unsized'],
+            cls: 'x-unsized',
             children: [{
                 reference: 'innerElement',
                 className: 'x-inner'
@@ -370,7 +364,7 @@ Ext.define('Ext.Container', {
             isVisible = false;
         }
 
-        currentMask = Ext.factory(masked, Ext.Mask, this.getMasked());
+        currentMask = Ext.factory(masked, Ext['Mask'], this.getMasked());
 
         if (currentMask) {
             this.add(currentMask);
@@ -404,18 +398,9 @@ Ext.define('Ext.Container', {
     },
 
     onAdded: function(parent, instanced) {
-        var me = this,
-            modal;
+        this.callParent([parent, instanced]);
 
-        me.callParent([parent, instanced]);
-
-        me.containerOnAdded(parent, instanced);
-
-        modal = me.getModal();
-        if (modal) {
-            parent.insertBefore(modal, me);
-            modal.setZIndex(me.getZIndex() - 1);
-        }
+        this.containerOnAdded(parent, instanced);
     },
 
     onRemoved: function(destroying) {
@@ -423,77 +408,38 @@ Ext.define('Ext.Container', {
         this.callParent([destroying]);
     },
 
-    applyModal: function(modal, currentModal) {
-        var isVisible = true;
+    afterItemShow: function(item) {
+        var layout;
 
-        if (modal === false) {
-            modal = true;
-            isVisible = false;
-        }
-
-        currentModal = Ext.factory(modal, Ext.Mask, currentModal);
-
-        if (currentModal) {
-            currentModal.setVisibility(isVisible);
-        }
-
-        return currentModal;
-    },
-
-    updateModal: function(modal) {
-        var container = this.getParent();
-
-        if (container) {
-            if (modal) {
-                container.insertBefore(modal, this);
-                modal.setZIndex(this.getZIndex() - 1);
-            }
-            else {
-                container.remove(modal);
-            }
+        if (item.getDocked()) {
+            layout = this.getLayout();
+            this.items.generation++;
+            layout.handleDockedItemBorders();
         }
     },
 
-    updateHideOnMaskTap : function(hide) {
-        var mask = this.getModal();
+    afterItemHide: function(item) {
+        var layout;
 
-        if (mask) {
-            mask[hide ? 'on' : 'un'].call(mask, 'tap', 'hide', this);
-        }
-    },
-
-    updateZIndex: function(zIndex) {
-        var modal = this.getModal();
-
-        this.callParent(arguments);
-
-        if (modal) {
-            modal.setZIndex(zIndex - 1);
+        if (item.getDocked()) {
+            layout = this.getLayout();
+            this.items.generation++;
+            layout.handleDockedItemBorders();
         }
     },
 
     updateBaseCls: function(newBaseCls, oldBaseCls) {
         var me = this,
-            element = me.element,
-            ui = me.getUi();
+            innerElement = me.innerElement;
+
+        me.callParent([newBaseCls, oldBaseCls]);
 
         if (oldBaseCls) {
-            element.removeCls(oldBaseCls);
-            me.innerElement.removeCls(newBaseCls, null, 'inner');
-
-            if (ui) {
-                element.removeCls(me.currentUi);
-            }
+            innerElement.removeCls(oldBaseCls, null, 'inner');
         }
 
         if (newBaseCls) {
-            element.addCls(newBaseCls);
-            me.innerElement.addCls(newBaseCls, null, 'inner');
-
-            if (ui) {
-                element.addCls(newBaseCls, null, ui);
-                me.currentUi = newBaseCls + '-' + ui;
-            }
+            innerElement.addCls(newBaseCls, null, 'inner');
         }
     },
 
@@ -523,27 +469,27 @@ Ext.define('Ext.Container', {
     /**
      * @private
      */
-     applyControl: function(selectors) {
-         var selector, key, listener, listeners;
+    applyControl: function(selectors) {
+        var selector, key, listener, listeners;
 
-         for (selector in selectors) {
-             listeners = selectors[selector];
+        for (selector in selectors) {
+            listeners = selectors[selector];
 
-             for (key in listeners) {
-                 listener = listeners[key];
+            for (key in listeners) {
+                listener = listeners[key];
 
-                 if (Ext.isObject(listener)) {
-                     listener.delegate = selector;
-                 }
-             }
+                if (Ext.isObject(listener)) {
+                    listener.delegate = selector;
+                }
+            }
 
-             listeners.delegate = selector;
+            listeners.delegate = selector;
 
-             this.addListener(listeners);
-         }
+            this.addListener(listeners);
+        }
 
-         return selectors;
-     },
+        return selectors;
+    },
 
     /**
      * Initialize layout and event listeners the very first time an item is added
@@ -551,7 +497,7 @@ Ext.define('Ext.Container', {
      */
     onFirstItemAdd: function() {
         var me = this;
-        
+
         delete me.onItemAdd;
 
         if (me.innerHtmlElement && !me.getHtml()) {
@@ -559,7 +505,10 @@ Ext.define('Ext.Container', {
             delete me.innerHtmlElement;
         }
 
-        me.on('innerstatechange', 'onItemInnerStateChange', me, {
+        me.on({
+            innerstatechange: 'onItemInnerStateChange',
+            floatedchange: 'onItemFloatedChange',
+            scope: me,
             delegate: '> component'
         });
 
@@ -610,7 +559,9 @@ Ext.define('Ext.Container', {
      * child component.
      *
      * It applies {@link #cfg-defaults} applied for contained child items - that is items
-     * which are not {@link Ext.Component#cfg-floating floating} or {@link Ext.Component#cfg-docked docked}.
+     * which are not positiond using {@link Ext.Component#cfg-left left},  {@link Ext.Component#cfg-top top},
+     * {@link Ext.Component#cfg-bottom bottom}, {@link Ext.Component#cfg-right right},
+     * {@link Ext.Component#cfg-centered centered} or {@link Ext.Component#cfg-docked docked}.
      *
      * Derived classes can override this method to process context appropriate short-hands
      * such as {@link Ext.Toolbar} and "->" to insert a spacer.
@@ -693,7 +644,7 @@ Ext.define('Ext.Container', {
             addingArray = true,
             addedItems = [],
             i, ln, item, newActiveItem, instanced;
-        
+
         if (!Ext.isArray(newItems)) {
             newItems = [newItems];
             addingArray = false;
@@ -701,21 +652,28 @@ Ext.define('Ext.Container', {
 
         for (i = 0, ln = newItems.length; i < ln; i++) {
             item = newItems[i];
-            instanced = item.isWidget;
-            
-            if (!instanced) {
-                item.$initParent = me;
+            if (item) {
+                instanced = item.isWidget;
+
+                if (!instanced) {
+                    item.$initParent = me;
+                }
+
+                item = me.factoryItem(item);
+                me.doAdd(item, instanced);
+                delete item.$initParent;
+
+                if (!newActiveItem && !me.getActiveItem() && me.innerItems.length > 0 && item.isInnerItem()) {
+                    newActiveItem = item;
+                }
+
+                addedItems.push(item);
             }
-            
-            item = me.factoryItem(item);
-            me.doAdd(item, instanced);
-            delete item.$initParent;
-            
-            if (!newActiveItem && !me.getActiveItem() && me.innerItems.length > 0 && item.isInnerItem()) {
-                newActiveItem = item;
+            //<debug>
+            else {
+                Ext.raise('Invalid item passed to add');
             }
-            
-            addedItems.push(item);
+            //</debug>
         }
 
         if (newActiveItem) {
@@ -758,13 +716,13 @@ Ext.define('Ext.Container', {
      *
      * @return {Ext.Component} The Component that was removed.
      */
-    remove: function(item, destroy) {
+    remove: function(component, destroy) {
         var me = this,
             index, innerItems;
-        
-        item = me.getComponent(item);
-        
-        index = me.indexOf(item);
+
+        component = me.getComponent(component);
+
+        index = me.indexOf(component);
         innerItems = me.getInnerItems();
 
         if (destroy === undefined) {
@@ -772,26 +730,26 @@ Ext.define('Ext.Container', {
         }
 
         if (index !== -1) {
-            if (!me.removingAll && innerItems.length > 1 && item === me.getActiveItem()) {
+            if (!me.removingAll && innerItems.length > 1 && component === me.getActiveItem()) {
                 me.on({
                     activeitemchange: 'doRemove',
                     scope: me,
                     single: true,
                     order: 'after',
-                    args: [item, index, destroy]
+                    args: [component, index, destroy]
                 });
 
-                me.doResetActiveItem(innerItems.indexOf(item));
+                me.doResetActiveItem(innerItems.indexOf(component));
             }
             else {
-                me.doRemove(item, index, destroy);
+                me.doRemove(component, index, destroy);
                 if (innerItems.length === 0) {
                     me.setActiveItem(null);
                 }
             }
         }
 
-        return item;
+        return component;
     },
 
     doResetActiveItem: function(innerIndex) {
@@ -827,7 +785,7 @@ Ext.define('Ext.Container', {
      * @param {Boolean} destroy If `true`, {@link Ext.Component#method-destroy destroys}
      * each removed Component.
      * @param {Boolean} everything If `true`, completely remove all items including
-     * docked / centered and floating items.
+     * docked / centered and positioned items.
      *
      * @return {Ext.Component[]} Array of the removed Components
      */
@@ -855,7 +813,7 @@ Ext.define('Ext.Container', {
                 i--;
                 ln--;
             }
-            
+
             removed.push(item);
         }
         this.setActiveItem(null);
@@ -1135,7 +1093,7 @@ Ext.define('Ext.Container', {
         var layout = this.getLayout();
 
         if (this.isRendered() && item.setRendered(true)) {
-            item.fireAction('renderedchange', [this, item, true], 'onItemAdd', layout, { args: [item, index] });
+            item.fireAction('renderedchange', [this, item, true], 'onItemAdd', layout, {args: [item, index]});
         } else {
             layout.onItemAdd(item, index);
         }
@@ -1161,7 +1119,7 @@ Ext.define('Ext.Container', {
         var layout = this.getLayout();
 
         if (this.isRendered() && item.setRendered(false)) {
-            item.fireAction('renderedchange', [this, item, false], 'onItemRemove', layout, { args: [item, index, destroying] });
+            item.fireAction('renderedchange', [this, item, false], 'onItemRemove', layout, {args: [item, index, destroying]});
         }
         else {
             layout.onItemRemove(item, index, destroying);
@@ -1205,9 +1163,15 @@ Ext.define('Ext.Container', {
         layout.onItemInnerStateChange.apply(layout, arguments);
     },
 
+    onItemFloatedChange: function(item, floated) {
+        var layout = this.getLayout();
+
+        layout.onItemFloatedChange(item, floated);
+    },
+
     /**
      * Returns all inner {@link #property-items} of this container. `inner` means that the item is not `docked` or
-     * `floating`.
+     * `positioned`.
      * @return {Array} The inner items of this container.
      */
     getInnerItems: function() {
@@ -1265,7 +1229,7 @@ Ext.define('Ext.Container', {
                 item = me.child(activeItem);
 
                 activeItem = {
-                    xtype : activeItem
+                    xtype: activeItem
                 };
             }
 
@@ -1335,40 +1299,6 @@ Ext.define('Ext.Container', {
         }
     },
 
-    show:function(){
-        this.callParent(arguments);
-
-        var modal = this.getModal();
-
-        if (modal) {
-            modal.setHidden(false);
-        }
-
-        return this;
-    },
-
-    hide:function(){
-        this.callParent(arguments);
-
-        var modal = this.getModal();
-
-        if (modal) {
-            modal.setHidden(true);
-        }
-
-        return this;
-    },
-
-    updateHidden: function(hidden) {
-        var modal = this.getModal();
-
-        if (modal && (modal.getHidden() !== hidden)) {
-            modal.setHidden(hidden);
-        }
-
-        this.callParent(arguments);
-    },
-
     /**
      * @private
      */
@@ -1377,7 +1307,7 @@ Ext.define('Ext.Container', {
             var items = this.items.items,
                 i, ln;
 
-            for (i = 0,ln = items.length; i < ln; i++) {
+            for (i = 0, ln = items.length; i < ln; i++) {
                 items[i].setRendered(rendered);
             }
 
@@ -1395,11 +1325,12 @@ Ext.define('Ext.Container', {
      * that are not contained in items. For example `dockedItems`, `menu`, etc
      */
     getRefItems: function(deep) {
-        var items = this.getItems().items.slice(),
-            ln = items.length,
+        var items = this.getItems().items,
+            ln = items && items.length,
             i, item;
 
-        if (deep) {
+        if (items && deep) {
+            items = items.slice();
             for (i = 0; i < ln; i++) {
                 item = items[i];
 
@@ -1429,7 +1360,7 @@ Ext.define('Ext.Container', {
         if (typeof component === 'number') {
             return this.getItems().getAt(component);
         }
-        
+
         if (Ext.isObject(component)) {
             component = component.getItemId();
         }
@@ -1466,26 +1397,18 @@ Ext.define('Ext.Container', {
         return false;
     },
 
-    destroy: function() {
-        var me = this,
-            modal = me.getModal();
-
-        if (modal) {
-            modal.destroy();
-        }
+    doDestroy: function() {
+        var me = this;
 
         me.removeAll(true, true);
+        me.items = Ext.destroy(me.items);
 
         me.callParent();
-        
-        Ext.destroy(me.items);
-        
-        me.items = null;
     },
 
     privates: {
-        applyReference: function (reference) {
-          // Need to call like this because applyReference from container comes via a mixin
+        applyReference: function(reference) {
+            // Need to call like this because applyReference from container comes via a mixin
             return this.setupReference(reference);
         },
 
@@ -1495,13 +1418,52 @@ Ext.define('Ext.Container', {
          * prior to the lookup.
          * @private
          */
-        getFirstReferences: function () {
+        getFirstReferences: function() {
             var me = this;
 
             delete me.getReferences;
             me.getItems(); // create our items if we haven't yet
 
             return me.getReferences.apply(me, arguments);
+        },
+
+        syncUiCls: function() {
+            var me = this,
+                ui = me.getUi(),
+                currentInnerUiCls = me.currentInnerUiCls,
+                innerElement = me.innerElement,
+                baseCls = me.getBaseCls(),
+                classClsList = me.classClsList,
+                uiCls = [],
+                uiSuffix, i, ln, j, jln;
+
+            if (currentInnerUiCls) {
+                innerElement.removeCls(currentInnerUiCls);
+            }
+
+            if (ui) {
+                ui = ui.split(' ');
+
+                for (i = 0, ln = ui.length; i < ln; i++) {
+                    uiSuffix = '-inner-' + ui[i];
+
+                    if (baseCls && (baseCls !== me.classCls)) {
+                        uiCls.push(baseCls + uiSuffix);
+                    }
+
+                    if (classClsList) {
+                        for (j = 0, jln = classClsList.length; j < jln; j++) {
+                            uiCls.push(classClsList[j] + uiSuffix);
+                        }
+                    }
+                }
+
+                innerElement.addCls(uiCls);
+
+                me.currentInnerUiCls = uiCls;
+            }
+
+            me.callParent();
         }
     }
 

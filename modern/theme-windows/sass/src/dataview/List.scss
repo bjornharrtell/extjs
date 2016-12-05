@@ -3,7 +3,7 @@
  */
 
 .x-list {
-    .x-list-item {
+    .x-listitem {
         line-height: 42px;
         color: color-by-background($background-color);
         font-size: $font-size-medium;
@@ -12,32 +12,32 @@
             border-top: 0;
         }
 			
-        &.x-item-selected {
+        &.x-selected {
             .x-dock-horizontal,
-            &.x-list-item-tpl .x-innerhtml {
+            &.x-simplelistitem .x-innerhtml {
                 background-color: $base-color;
                 color: color-by-background($base-color);
             }
         }
 
-				&.x-item-pressed {
-					.x-dock-horizontal,
-					&.x-list-item-tpl .x-innerhtml {
-						background-color: #ccc;
-						color: color-by-background($background-color);
-					}
-				}
+        &.x-pressed {
+            .x-dock-horizontal,
+            &.x-simplelistitem .x-innerhtml {
+                background-color: #ccc;
+                color: color-by-background($background-color);
+            }
+        }
     }
 
-    .x-list-item-odd {
-        &.x-list-item-tpl,
+    .x-list-item.x-odd {
+        &.x-simplelistitem,
         .x-dock-horizontal {
             background-color: darken($base-color, 5%);
             border-bottom: 1px solid darken($base-color, 5%);
         }
     }
 
-    .x-list-header {
+    .x-itemheader {
         background-color: $background-color;
         border: 0;
         padding: 0.1em 1.02em 0.2em 0.65em;
@@ -57,7 +57,7 @@
     }
 
     // Disclosure
-    .x-list-disclosure {
+    .x-listitem-disclosure {
         border: 0;
         background: $base-color;
         width: 29px;
@@ -72,7 +72,7 @@
         }
     }
 
-    .x-item-selected .x-list-disclosure {
+    .x-list-item.x-selected .x-listitem-disclosure {
         &:before {
             color: $base-color;
         }

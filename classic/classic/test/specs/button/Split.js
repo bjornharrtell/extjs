@@ -1,6 +1,5 @@
 describe("Ext.button.Split", function() {
-    var focusAndWait = jasmine.focusAndWait,
-        button;
+    var button;
     
     function makeButton(config) {
         config = Ext.apply({
@@ -9,22 +8,6 @@ describe("Ext.button.Split", function() {
         }, config);
         
         return button = new Ext.button.Split(config);
-    }
-    
-    function expectMainAria(attr, value) {
-        return jasmine.expectAriaAttr(button, attr, value);
-    }
-    
-    function expectNoMainAria(attr) {
-        return jasmine.expectNoAriaAttr(button, attr);
-    }
-    
-    function expectArrowAria(attr, value) {
-        return jasmine.expectAriaAttr(button.arrowEl, attr, value);
-    }
-    
-    function expectNoArrowAria(attr) {
-        return jasmine.expectNoAriaAttr(button.arrowEl, attr);
     }
     
     afterEach(function() {
@@ -36,12 +19,18 @@ describe("Ext.button.Split", function() {
     });
     
     describe("arrowEl", function() {
-        beforeEach(function() {
-            makeButton();
-        });
-        
         it("should render arrowEl", function() {
+            makeButton();
             expect(button.arrowEl.dom.nodeName).toBe('SPAN');
+            expect(button.arrowEl.isVisible()).toBe(true);
+        });
+
+        it("should hide arrowEl when arrowVisible:false", function() {
+            makeButton({
+                arrowVisible: false
+            });
+            expect(button.arrowEl.dom.nodeName).toBe('SPAN');
+            expect(button.arrowEl.isVisible()).toBe(false);
         });
     });
     
@@ -53,11 +42,11 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it('should have tabindex="0" on the main el', function() {
-                    expectMainAria('tabIndex', '0');
+                    expect(button).toHaveAttr('tabIndex', '0');
                 });
                 
                 it('should have tabindex="0" on the arrowEl', function() {
-                    expectArrowAria('tabIndex', '0');
+                    expect(button.arrowEl).toHaveAttr('tabIndex', '0');
                 });
             });
             
@@ -67,11 +56,11 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it('should have tabindex="-10" on the main el', function() {
-                    expectMainAria('tabIndex', '-10');
+                    expect(button).toHaveAttr('tabIndex', '-10');
                 });
                 
                 it('should have tabindex="-10" on the arrowEl', function() {
-                    expectArrowAria('tabIndex', '-10');
+                    expect(button.arrowEl).toHaveAttr('tabIndex', '-10');
                 });
             });
             
@@ -80,14 +69,12 @@ describe("Ext.button.Split", function() {
                     makeButton({ disabled: true });
                 });
                 
-                // TODO Enable this and in enabling/disabling below when 
-                // https://github.com/extjs/SDK/pull/15682 is merged
-                xit('should have no tabindex on the main el', function() {
-                    expectNoMainAria('tabIndex');
+                it('should have no tabindex on the main el', function() {
+                    expect(button).not.toHaveAttr('tabIndex');
                 });
                 
                 it("should have no tabindex on the arrowEl", function() {
-                    expectNoArrowAria('tabIndex');
+                    expect(button.arrowEl).not.toHaveAttr('tabIndex');
                 });
             });
             
@@ -98,11 +85,11 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it('should have tabindex="42" on the main el', function() {
-                    expectMainAria('tabIndex', '42');
+                    expect(button).toHaveAttr('tabIndex', '42');
                 });
                 
                 it('should have tabindex="42" on the arrowEl', function() {
-                    expectArrowAria('tabIndex', '42');
+                    expect(button.arrowEl).toHaveAttr('tabIndex', '42');
                 });
             });
             
@@ -112,12 +99,12 @@ describe("Ext.button.Split", function() {
                     button.disable();
                 });
                 
-                xit("should have tabindex removed from the main el", function() {
-                    expectNoMainAria('tabIndex');
+                it("should have tabindex removed from the main el", function() {
+                    expect(button).not.toHaveAttr('tabIndex');
                 });
                 
                 it("should have tabindex removed from the arrowEl", function() {
-                    expectNoArrowAria('tabIndex');
+                    expect(button.arrowEl).not.toHaveAttr('tabIndex');
                 });
                 
                 describe("enabling", function() {
@@ -126,11 +113,11 @@ describe("Ext.button.Split", function() {
                     });
                     
                     it('should have tabindex="99" on the main el', function() {
-                        expectMainAria('tabIndex', '99');
+                        expect(button).toHaveAttr('tabIndex', '99');
                     });
                     
                     it('should have tabindex="99" on the arrowEl', function() {
-                        expectArrowAria('tabIndex', '99');
+                        expect(button.arrowEl).toHaveAttr('tabIndex', '99');
                     });
                 });
             });
@@ -142,11 +129,11 @@ describe("Ext.button.Split", function() {
             });
             
             it("should have button role on the main el", function() {
-                expectMainAria('role', 'button');
+                expect(button).toHaveAttr('role', 'button');
             });
             
             it("should have button role on the arrowEl", function() {
-                expectArrowAria('role', 'button');
+                expect(button.arrowEl).toHaveAttr('role', 'button');
             });
         });
         
@@ -157,11 +144,11 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it("should be set to false on the main el", function() {
-                    expectMainAria('aria-hidden', 'false');
+                    expect(button).toHaveAttr('aria-hidden', 'false');
                 });
                 
                 it("should be set to false on the arrowEl", function() {
-                    expectArrowAria('aria-hidden', 'false');
+                    expect(button.arrowEl).toHaveAttr('aria-hidden', 'false');
                 });
                 
                 describe("hiding", function() {
@@ -170,11 +157,11 @@ describe("Ext.button.Split", function() {
                     });
                     
                     it("should be set to true on the main el", function() {
-                        expectMainAria('aria-hidden', 'true');
+                        expect(button).toHaveAttr('aria-hidden', 'true');
                     });
                     
                     it("should be set to true on the arrowEl", function() {
-                        expectArrowAria('aria-hidden', 'true');
+                        expect(button.arrowEl).toHaveAttr('aria-hidden', 'true');
                     });
                     
                     describe("showing", function() {
@@ -183,11 +170,11 @@ describe("Ext.button.Split", function() {
                         });
                         
                         it("should be set to false on the main el", function() {
-                            expectMainAria('aria-hidden', 'false');
+                            expect(button).toHaveAttr('aria-hidden', 'false');
                         });
                         
                         it("should be set to false on the arrowEl", function() {
-                            expectArrowAria('aria-hidden', 'false');
+                            expect(button.arrowEl).toHaveAttr('aria-hidden', 'false');
                         });
                     });
                 });
@@ -199,11 +186,11 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it("should be set to true on the main el", function() {
-                    expectMainAria('aria-hidden', 'true');
+                    expect(button).toHaveAttr('aria-hidden', 'true');
                 });
                 
                 it("should be set to true on the arrowEl", function() {
-                    expectArrowAria('aria-hidden', 'true');
+                    expect(button.arrowEl).toHaveAttr('aria-hidden', 'true');
                 });
             });
         });
@@ -215,11 +202,11 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it("should be set to false on the main el", function() {
-                    expectMainAria('aria-disabled', 'false');
+                    expect(button).toHaveAttr('aria-disabled', 'false');
                 });
                 
                 it("should be set to false on the arrowEl", function() {
-                    expectArrowAria('aria-disabled', 'false');
+                    expect(button.arrowEl).toHaveAttr('aria-disabled', 'false');
                 });
                 
                 describe("disabling", function() {
@@ -228,11 +215,11 @@ describe("Ext.button.Split", function() {
                     });
                     
                     it("should be set to true on the main el", function() {
-                        expectMainAria('aria-disabled', 'true');
+                        expect(button).toHaveAttr('aria-disabled', 'true');
                     });
                     
                     it("should be set to true on the arrowEl", function() {
-                        expectArrowAria('aria-disabled', 'true');
+                        expect(button.arrowEl).toHaveAttr('aria-disabled', 'true');
                     });
                     
                     describe("enabling", function() {
@@ -241,11 +228,11 @@ describe("Ext.button.Split", function() {
                         });
                         
                         it("should be set to false on the main el", function() {
-                            expectMainAria('aria-disabled', 'false');
+                            expect(button).toHaveAttr('aria-disabled', 'false');
                         });
                         
                         it("should be set to false on the arrowEl", function() {
-                            expectArrowAria('aria-disabled', 'false');
+                            expect(button.arrowEl).toHaveAttr('aria-disabled', 'false');
                         });
                     });
                 });
@@ -257,11 +244,11 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it("should be set to true on the main el", function() {
-                    expectMainAria('aria-disabled', 'true');
+                    expect(button).toHaveAttr('aria-disabled', 'true');
                 });
                 
                 it("should be set to true on the arrowEl", function() {
-                    expectArrowAria('aria-disabled', 'true');
+                    expect(button.arrowEl).toHaveAttr('aria-disabled', 'true');
                 });
             });
         });
@@ -273,11 +260,11 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it("should have aria-label", function() {
-                    expectArrowAria('aria-label', 'fee fie foe foo');
+                    expect(button.arrowEl).toHaveAttr('aria-label', 'fee fie foe foo');
                 });
                 
                 it("should not have aria-labelledby", function() {
-                    expectNoArrowAria('aria-labelledby');
+                    expect(button.arrowEl).not.toHaveAttr('aria-labelledby');
                 });
             });
             
@@ -287,11 +274,11 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it("should have aria-labelledby", function() {
-                    expectArrowAria('aria-labelledby', button.el.id);
+                    expect(button.arrowEl).toHaveAttr('aria-labelledby', button.el.id);
                 });
                 
                 it("should not have aria-label", function() {
-                    expectNoArrowAria('aria-label');
+                    expect(button.arrowEl).not.toHaveAttr('aria-label');
                 });
             });
         });
@@ -537,7 +524,7 @@ describe("Ext.button.Split", function() {
             });
             
             it("should remove tabindex from arrowEl", function() {
-                expectNoArrowAria('tabIndex');
+                expect(button.arrowEl).not.toHaveAttr('tabIndex');
             });
             
             it("should set display:none on arrowEl", function() {
@@ -556,7 +543,7 @@ describe("Ext.button.Split", function() {
                 });
                 
                 it("should add tabindex to arrowEl", function() {
-                    expectArrowAria('tabIndex', '1');
+                    expect(button.arrowEl).toHaveAttr('tabIndex', '1');
                 });
                 
                 it("should remove display:none from arrowEl", function() {
@@ -597,7 +584,7 @@ describe("Ext.button.Split", function() {
                 it("should stop the keydown event", function() {
                     var args = enterSpy.mostRecentCall.args;
                     
-                    expect(args[0].isStopped).toBe(true);
+                    expect(args[0].stopped).toBe(true);
                 });
                 
                 it("should return false to stop propagation", function() {
@@ -617,7 +604,7 @@ describe("Ext.button.Split", function() {
                 it("should stop the keydown event", function() {
                     var args = enterSpy.mostRecentCall.args;
                     
-                    expect(args[0].isStopped).toBeTruthy();
+                    expect(args[0].stopped).toBeTruthy();
                 });
                 
                 it("should return false to stop propagation", function() {
@@ -637,7 +624,7 @@ describe("Ext.button.Split", function() {
                 it("should NOT stop the keydown event", function() {
                     var args = downSpy.mostRecentCall.args;
                     
-                    expect(args[0].isStopped).toBeFalsy();
+                    expect(args[0].stopped).toBeFalsy();
                 });
                 
                 it("should NOT return false to stop propagation", function() {

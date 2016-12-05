@@ -35,6 +35,51 @@
      */
     me.userAgent = userAgent;
 
+    /**
+     * A "hybrid" property, can be either accessed as a method call, for example:
+     *
+     *     if (Ext.browser.is('IE')) {
+     *         // ...
+     *     }
+     *
+     * Or as an object with Boolean properties, for example:
+     *
+     *     if (Ext.browser.is.IE) {
+     *         // ...
+     *     }
+     *
+     * Versions can be conveniently checked as well. For example:
+     *
+     *     if (Ext.browser.is.IE10) {
+     *         // Equivalent to (Ext.browser.is.IE && Ext.browser.version.equals(10))
+     *     }
+     *
+     * __Note:__ Only {@link Ext.Version#getMajor major component}  and {@link Ext.Version#getShortVersion simplified}
+     * value of the version are available via direct property checking.
+     *
+     * Supported values are:
+     *
+     * - IE
+     * - Firefox
+     * - Safari
+     * - Chrome
+     * - Opera
+     * - WebKit
+     * - Gecko
+     * - Presto
+     * - Trident
+     * - WebView
+     * - Other
+     *
+     * @param {String} name The OS name to check.
+     * @return {Boolean}
+     */
+    this.is = function (name) {
+        // Since this function reference also acts as a map, we do not want it to be
+        // shared between instances, so it is defined here, not on the prototype.
+        return !!this.is[name];
+    };
+
     // Edge has a userAgent with All browsers so we manage it separately
     // "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.10240"
     if (/Edge\//.test(userAgent)) {
@@ -214,6 +259,14 @@
     /**
      * @property isIE11p
      * True if the detected browser is Internet Explorer 11.x or higher.
+     * @readonly
+     * @type Boolean
+     * @member Ext
+     */
+
+    /**
+     * @property isEdge
+     * True if the detected browser is Edge.
      * @readonly
      * @type Boolean
      * @member Ext
@@ -476,49 +529,6 @@ Ext.env.Browser.prototype = {
     },
 
     // scope: Ext.env.Browser.prototype
-
-    /**
-     * A "hybrid" property, can be either accessed as a method call, for example:
-     *
-     *     if (Ext.browser.is('IE')) {
-     *         // ...
-     *     }
-     *
-     * Or as an object with Boolean properties, for example:
-     *
-     *     if (Ext.browser.is.IE) {
-     *         // ...
-     *     }
-     *
-     * Versions can be conveniently checked as well. For example:
-     *
-     *     if (Ext.browser.is.IE10) {
-     *         // Equivalent to (Ext.browser.is.IE && Ext.browser.version.equals(10))
-     *     }
-     *
-     * __Note:__ Only {@link Ext.Version#getMajor major component}  and {@link Ext.Version#getShortVersion simplified}
-     * value of the version are available via direct property checking.
-     *
-     * Supported values are:
-     *
-     * - IE
-     * - Firefox
-     * - Safari
-     * - Chrome
-     * - Opera
-     * - WebKit
-     * - Gecko
-     * - Presto
-     * - Trident
-     * - WebView
-     * - Other
-     *
-     * @param {String} name The OS name to check.
-     * @return {Boolean}
-     */
-    is: function (name) {
-        return !!this.is[name];
-    },
 
     /**
      * The full name of the current browser.

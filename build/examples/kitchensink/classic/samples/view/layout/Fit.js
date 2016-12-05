@@ -22,7 +22,7 @@ Ext.define('KitchenSink.view.layout.Fit', {
         title: 'Inner Panel',
         html: '<p>This panel is fit within its container.</p>',
         bodyPadding: 15,
-        ui: Ext.profileName == 'neptune' ? 'light' : 'default',
+        ui: KitchenSink.profileName == 'neptune' ? 'light' : 'default',
         border: true
     }
 

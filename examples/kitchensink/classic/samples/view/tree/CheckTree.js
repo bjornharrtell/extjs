@@ -17,10 +17,16 @@ Ext.define('KitchenSink.view.tree.CheckTree', {
         type: 'Controller',
         path: 'classic/samples/view/tree/CheckTreeController.js'
     }, {
+        type: 'Store',
+        path: 'classic/samples/store/CheckTree.js'
+    }, {
         type: 'Data',
         path: 'data/tree/check-nodes.json'
     }],
     //</example>
+
+    // Checking propagates up and down
+    checkPropagation: 'both',
     controller: 'check-tree',
     store: 'CheckTree',
     rootVisible: false,

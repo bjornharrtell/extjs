@@ -137,6 +137,7 @@ $dark-form-toggle-disabled-thumb-background-color: dynamic(#6C6C6C);
 $background-color: dynamic(if($dark-theme, $dark-background-color, $light-background-color));
 $foreground-color: dynamic(if($dark-theme, $dark-foreground-color, $light-foreground-color));
 $inactive-color: dynamic(if($dark-theme, $dark-inactive-color, $light-inactive-color));
+$color: $foreground-color;
 
 // Form fields
 $field-background-color: dynamic(if($dark-theme, $dark-field-background-color, $light-field-background-color));

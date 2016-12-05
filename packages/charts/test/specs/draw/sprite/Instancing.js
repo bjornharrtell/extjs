@@ -23,6 +23,47 @@ describe("Ext.draw.sprite.Instancing", function () {
         });
     });
 
+    describe("'instances' config", function () {
+        it("should create instances of the template from array of config objects", function () {
+            var template = new Ext.draw.sprite.Circle({
+                    cx: 200,
+                    r: 60,
+                    fillStyle: '#00ff00'
+                }),
+                instancing = new Ext.draw.sprite.Instancing({
+                    template: template,
+                    instances: [
+                        {
+                            cy: 150,
+                            r: 30,
+                            fillStyle: '#ff0000'
+                        },
+                        {
+                            cy: 300
+                        }
+                    ]
+                });
+
+            expect(instancing.getCount()).toBe(2);
+            expect(instancing.get(0).cx).toBe(200);
+            expect(instancing.get(0).r).toBe(30);
+            expect(instancing.get(1).fillStyle).toBe('#00ff00');
+
+            instancing.destroy();
+        });
+
+        it("should destroy the template when destroyed", function () {
+            var template = new Ext.draw.sprite.Rect(),
+                instancing = new Ext.draw.sprite.Instancing({
+                    template: template
+                });
+
+            instancing.destroy();
+
+            expect(instancing.isDestroyed).toBe(true);
+        });
+    });
+
     describe("hitTest", function () {
         var sprite, instancingSprite, surface, container;
 
@@ -53,12 +94,12 @@ describe("Ext.draw.sprite.Instancing", function () {
             "'instance' property set to the attributes of the instance, " +
             "'index' property set to the index of the instance, " +
             "and 'isInstance' property set to true", function () {
-            instancingSprite.createInstance({
+            instancingSprite.add({
                 r: 50,
                 cx: 300,
                 cy: 300
             });
-            instancingSprite.createInstance({
+            instancingSprite.add({
                 r: 100,
                 cx: 100,
                 cy: 100
@@ -72,7 +113,7 @@ describe("Ext.draw.sprite.Instancing", function () {
         });
 
         it("should return null for hidden instances", function () {
-            instancingSprite.createInstance({
+            instancingSprite.add({
                 r: 100,
                 cx: 100,
                 cy: 100,

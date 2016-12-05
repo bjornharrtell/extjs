@@ -9,10 +9,6 @@ describe("Ext.form.FieldSet", function() {
         });
         component = new Ext.form.FieldSet(config);
     }
-    
-    function expectAria(attr, value) {
-        jasmine.expectAriaAttr(component, attr, value);
-    }
 
     afterEach(function() {
         if (component) {
@@ -162,7 +158,7 @@ describe("Ext.form.FieldSet", function() {
                     xtype: 'fieldset',
                     title: '<div style="width: 180px;">a</div>',
                     collapsed: true
-                }],
+                }]
             });
             var fs = ct.items.first(),
                 legend = fs.legend;
@@ -218,15 +214,15 @@ describe("Ext.form.FieldSet", function() {
         });
         
         it("should have the group role", function() {
-            expectAria('role', 'group');
+            expect(component).toHaveAttr('role', 'group');
         });
         
         it("should have aria-label", function() {
-            expectAria('aria-label', 'foo field set');
+            expect(component).toHaveAttr('aria-label', 'foo field set');
         });
         
         it("should have aria-expanded", function() {
-            expectAria('aria-expanded', 'true');
+            expect(component).toHaveAttr('aria-expanded', 'true');
         });
     });
 
@@ -394,22 +390,41 @@ describe("Ext.form.FieldSet", function() {
                 });
                 expect(component.legend.down('checkboxfield').getValue()).toBeFalsy();
             });
+
+            it("should default the checkbox value to 'on' when checked", function() {
+                makeComponent({
+                    checkboxToggle: true
+                });
+
+                expect(component.checkboxCmp.getSubmitValue()).toBe('on');
+            });
+
+            it("should be able to configure the values of the checkbox", function() {
+                makeComponent({
+                    checkboxToggle: true,
+                    collapsed: true,
+                    checkbox: {
+                        uncheckedValue: 'foo',
+                        inputValue: 'bar'
+                    }
+                });
+                
+                expect(component.checkboxCmp.getSubmitValue()).toBe('foo');
+                component.expand();
+                expect(component.checkboxCmp.getSubmitValue()).toBe('bar');
+            });
             
             it("should set checkbox aria-label", function() {
                 makeComponent({ checkboxToggle: true });
                 
                 var cb = component.legend.down('checkboxfield');
                 
-                jasmine.expectAriaAttr(cb, 'aria-label', 'Expand field set');
+                expect(cb).toHaveAttr('aria-label', 'Expand field set');
             });
         });
         
         describe("toggle tool", function() {
             var tool;
-            
-            function expectAria(attr, value) {
-                jasmine.expectAriaAttr(tool, attr, value);
-            }
             
             beforeEach(function() {
                 makeComponent({
@@ -425,21 +440,21 @@ describe("Ext.form.FieldSet", function() {
             });
             
             it("should have checkbox role", function() {
-                expectAria('role', 'checkbox');
+                expect(tool).toHaveAttr('role', 'checkbox');
             });
             
             it("should have aria-label", function() {
-                expectAria('aria-label', 'Expand field set');
+                expect(tool).toHaveAttr('aria-label', 'Expand field set');
             });
             
             it("should have aria-checked", function() {
-                expectAria('aria-checked', 'true');
+                expect(tool).toHaveAttr('aria-checked', 'true');
             });
             
             it("should update aria-checked when fieldset is collapsed", function() {
                 component.collapse();
                 
-                expectAria('aria-checked', 'false');
+                expect(tool).toHaveAttr('aria-checked', 'false');
             });
         });
 
@@ -502,7 +517,7 @@ describe("Ext.form.FieldSet", function() {
             makeComponent({ collapsed: false });
             component.collapse();
             
-            expectAria('aria-expanded', 'false');
+            expect(component).toHaveAttr('aria-expanded', 'false');
         });
     });
 
@@ -529,7 +544,7 @@ describe("Ext.form.FieldSet", function() {
             makeComponent({ collapsed: true });
             component.expand();
             
-            expectAria('aria-expanded', 'true');
+            expect(component).toHaveAttr('aria-expanded', 'true');
         });
     });
 
@@ -584,6 +599,36 @@ describe("Ext.form.FieldSet", function() {
             makeComponent({title: 'Old and busted'});
             component.setTitle('New hotness');
             expect(component.titleCmp.el.dom).hasHTML('New hotness');
+        });
+    });
+
+    describe("session", function() {
+        it("should get the schema from the parent session when it has a title and is being created and added", function() {
+            Ext.define('spec.TestSchema', {
+                extend: 'Ext.data.schema.Schema',
+                alias: 'schema.test',
+
+                namespace: 'spec'
+            });
+
+            makeComponent({
+                session: true,
+                title: 'Title'
+            }, true);        
+
+            var ct = new Ext.container.Container({
+                session: {
+                    schema: 'test'
+                },
+                renderTo: Ext.getBody()
+            });  
+
+            ct.add(component);
+            expect(component.getSession().getSchema()).toBe(ct.getSession().getSchema());
+            ct.destroy();  
+
+            Ext.undefine('spec.TestSchema');
+            Ext.data.schema.Schema.clearInstance('test');
         });
     });
 

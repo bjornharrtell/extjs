@@ -72,7 +72,7 @@ Ext.define('Ext.chart.Markers', {
             me.setAttributesFor(categoryInstances[index], attr, bypassNormalization);
         } else {
             categoryInstances[index] = me.getCount(); // get the index of the instance created on next line
-            me.createInstance(attr, bypassNormalization);
+            me.add(attr, bypassNormalization);
         }
         instance = me.get(categoryInstances[index]);
         if (instance) {
@@ -100,29 +100,32 @@ Ext.define('Ext.chart.Markers', {
 
     getBBox: function () { return null; },
 
-    render: function (surface, ctx, clipRect) {
+    render: function (surface, ctx, rect) {
         var me = this,
+            surfaceRect = surface.getRect(),
             revisions = me.revisions,
             mat = me.attr.matrix,
             template = me.getTemplate(),
             templateAttr = template.attr,
-            instance, i, ln;
+            ln = me.instances.length,
+            instance, i;
 
         mat.toContext(ctx);
-        template.preRender(surface, ctx, clipRect);
-        template.useAttributes(ctx, clipRect);
+        template.preRender(surface, ctx, rect);
+        template.useAttributes(ctx, surfaceRect);
 
-        for (i = 0, ln = me.instances.length; i < ln; i++) {
+        for (i = 0; i < ln; i++) {
             instance = me.get(i);
             if (instance.hidden || instance.revision !== revisions[instance.category]) {
                 continue;
             }
             ctx.save();
             template.attr = instance;
-            template.useAttributes(ctx, clipRect);
-            template.render(surface, ctx, clipRect);
+            template.useAttributes(ctx, surfaceRect);
+            template.render(surface, ctx, rect);
             ctx.restore();
         }
+
         template.attr = templateAttr;
     }
 });

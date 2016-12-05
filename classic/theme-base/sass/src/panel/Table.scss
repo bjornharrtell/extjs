@@ -25,6 +25,9 @@
 .#{$prefix}grid-item {
     table-layout: fixed;
     outline: none;
+    // grid item needs to be the offset parent otherwise celleditors will get 
+    // misaligned when rows above it are de-rendered by the bufferedRenderer
+    position: relative;
 }
 
 .#{$prefix}grid-row {

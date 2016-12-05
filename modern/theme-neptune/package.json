@@ -13,15 +13,16 @@
 
     "framework": "ext",
     "toolkit": "modern",
-    //"requires": [
-    //    ...
-    //],
+    "requires": [
+        "font-awesome",
+        "font-ext"
+    ],
 
     "creator": "Sencha",
     "summary": "Ext JS Modern Neptune Theme",
     "detailedDescription": "The Neptune theme provides a mostly flat/borderless look.",
 
-    "version": "6.0.1.250",
+    "version": "6.2.0.981",
     "compatVersion": "6.0.0",
     "format": "1",
 

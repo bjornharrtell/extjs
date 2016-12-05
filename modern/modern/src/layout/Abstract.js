@@ -49,7 +49,7 @@ Ext.define('Ext.layout.Abstract', {
 
     onItemCenteredChange: Ext.emptyFn,
 
-    onItemFloatingChange: Ext.emptyFn,
+    onItemPositionedChange: Ext.emptyFn,
 
     onItemDockedChange: Ext.emptyFn,
 

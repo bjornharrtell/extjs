@@ -18,6 +18,17 @@ Ext.define('KitchenSink.view.chart.Bar', {
         }
     },
 
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    },{
+        type: 'Store',
+        path: 'modern/src/store/Pie.js'
+    }],
+    // </example>
+
+    shadow: true,
     layout: 'fit',
     items: [{
         xtype: 'toolbar',
@@ -32,20 +43,19 @@ Ext.define('KitchenSink.view.chart.Bar', {
         }, {
             iconCls: 'x-fa fa-refresh',
             text: 'Refresh',
-            handler: function() {
-                Ext.getStore('Pie').generateData(15);
-            }
-        }, {
-            text: 'Reset',
-            handler: 'onReset'
+            handler: 'onRefresh'
         }]
     }, {
         xtype: 'cartesian',
-        store: 'Pie',
+        store: {
+            type: 'pie',
+            numRecords: 15
+        },
         background: 'white',
         flipXY: true,
         interactions: [{
-            type: 'panzoom'
+            type: 'panzoom',
+            zoomOnPanGesture: true
         }, {
             type: 'itemhighlight'
         }],
@@ -91,10 +101,11 @@ Ext.define('KitchenSink.view.chart.Bar', {
 
     initialize: function() {
         this.callParent();
-        Ext.getStore('Pie').generateData(15);
+        
         var toolbar = Ext.ComponentQuery.query('toolbar', this)[0],
             interaction = Ext.ComponentQuery.query('interaction', this)[0];
-        if (toolbar && interaction && !interaction.isMultiTouch()) {
+        
+        if (toolbar && interaction) {
             toolbar.add(interaction.getModeToggleButton());
         }
     },

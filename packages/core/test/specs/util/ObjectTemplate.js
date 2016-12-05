@@ -187,7 +187,7 @@ describe('Ext.util.ObjectTemplate', function () {
             it('should apply XTemplate', function () {
                 expect(output.object.items[2].s).toBe('-- Don');
             });
-            it('should pass through numbers', function () {
+            it('should pass through functions', function () {
                 expect(output.object.items[2].innerFn).toBe(fn4);
             });
         });

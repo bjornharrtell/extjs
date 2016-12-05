@@ -2,7 +2,6 @@
  * @class Ext.Panel
  */
 
-.x-form.x-floating,
 .x-panel.x-floating,
 .x-msgbox {
     background-color: #fff;
@@ -15,7 +14,7 @@
             color: #000;
         }
 
-        .x-item-disabled {
+        .x-disabled {
             .x-input-el {
                 color: $light-field-disabled-color;
             }
@@ -23,36 +22,36 @@
 
         .x-input-el:-ms-input-placeholder { color: $light-field-placeholder-color; }
         .x-input-el::-webkit-input-placeholder { color: $light-field-placeholder-color; }
-        .x-item-disabled .x-input-el::-webkit-input-placeholder { color: $light-field-disabled-placeholder-color; }
-        .x-item-disabled .x-input-el:-ms-input-placeholder { color: $light-field-disabled-placeholder-color; }
+        .x-disabled .x-input-el::-webkit-input-placeholder { color: $light-field-disabled-placeholder-color; }
+        .x-disabled .x-input-el:-ms-input-placeholder { color: $light-field-disabled-placeholder-color; }
 
         // Label
-        .x-form-label {
+        .x-field .x-label-el {
             color: $light-foreground-color;
         }
 
-        .x-field-text,
-        .x-field-textarea,
-        .x-field-search,
-        .x-spinner,
-        .x-field-select {
-            .x-clear-icon,
-            .x-component-outer .x-input-el {
+        .x-textfield,
+        .x-textareafield,
+        .x-searchfield,
+        .x-spinnerfield,
+        .x-pickerfield {
+            .x-cleartrigger .x-icon-el,
+            .x-body-el .x-input-el {
                 background-color: $light-field-background-color;
                 border-color: $light-field-border-color;
             }
 
-            &.x-field-focused {
-                .x-clear-icon,
-                .x-component-outer .x-input-el {
+            &.x-focused {
+                .x-cleartrigger .x-icon-el,
+                .x-body-el .x-input-el {
                     background-color: $light-field-focus-background-color;
                     border-color: $light-field-focus-border-color;
                 }
             }
 
-            &.x-item-disabled {
-                .x-clear-icon,
-                .x-component-outer .x-input-el {
+            &.x-disabled {
+                .x-cleartrigger .x-icon-el,
+                .x-body-el .x-input-el {
                     background-color: $light-field-disabled-background-color;
                     border-color: $light-field-disabled-border-color;
                 }
@@ -60,36 +59,38 @@
         }
 
         // checkboxfield + radiofield
-        .x-field-checkbox .x-field-mask,
-        .x-field-radio .x-field-mask {
+        .x-checkboxfield .x-mask-el,
+        .x-radiofield .x-mask-el {
             &:before {
                 background-color: $light-field-background-color;
                 border-color: $light-field-border-color;
             }
         }
 
-        .x-item-disabled {
-            &.x-field-checkbox .x-field-mask,
-            &.x-field-radio .x-field-mask {
+        .x-checkboxfield.x-disabled {
+            .x-mask-el,
+            .x-mask-el {
                 &:before {
                     background-color: $light-field-disabled-background-color;
                     border-color: $light-field-disabled-border-color;
                 }
             }
 
-            .x-input-checkbox:checked ~ .x-field-mask:after {
+            .x-input-el:checked ~ .x-mask-el:after {
                 color: $light-field-disabled-color;
             }
+        }
 
-            .x-input-radio:checked ~ .x-field-mask:after {
+        .x-radiofield.x-disabled {
+            .x-input-el:checked ~ .x-mask-el:after {
                 background-color: $light-field-disabled-color;
             }
         }
 
         // Ext.field.Spinner
-        .x-spinner {
-            &.x-item-disabled {
-                .x-field-input:before,
+        .x-spinnerfield {
+            &.x-disabled {
+                .x-input:before,
                 .x-spinner-button {
                     color: $light-field-disabled-color !important;
                     border-color: $light-field-disabled-border-color !important;
@@ -119,7 +120,7 @@
         }
     }
 
-    .x-slider.x-item-disabled {
+    .x-slider.x-disabled {
         &:before {
             background-color: $light-form-slider-disabled-background-color;
         }
@@ -142,7 +143,7 @@
     }
 
     // togglefield
-    .x-toggle {
+    .x-toggleslider {
         border-color: $light-form-toggle-border-color;
 
         .x-thumb {
@@ -156,7 +157,7 @@
         background-color: $light-form-toggle-background-color;
     }
 
-    .x-item-disabled .x-toggle {
+    .x-disabled .x-toggleslider {
         border-color: $light-form-toggle-disabled-border-color;
 
         .x-thumb {
@@ -178,10 +179,9 @@
 .x-sheet,
 .x-sheet-action,
 .x-msgbox,
-.x-panel.x-floating,
-.x-form.x-floating {
+.x-panel.x-floating {
     .x-button,
-    .x-clear-icon,
+    .x-cleartrigger .x-icon-el,
     .x-input-el {
         border-color: #000 !important;
         background-color: #fff !important;
@@ -190,7 +190,7 @@
             color: #000 !important;
         }
 
-        &.x-item-disabled {
+        &.x-disabled {
             border-color: #bbb !important;
 
             .x-button-label {
@@ -207,7 +207,7 @@
         }
     }
 
-    .x-list-item {
+    .x-listitem {
         color: #000;
     }
 }
@@ -242,25 +242,25 @@
     }
 
     // Lists
-    .x-list-item-body {
+    .x-listitem-body {
         color: #fff;
     }
 
-    .x-item-pressed {
+    .x-pressed {
         .x-dock-horizontal .x-dock-body {
             background-color: rgba(255,255,255,.1) !important;
 
-            .x-list-item-body {
+            .x-listitem-body {
                 color: #fff !important;
             }
         }
     }
 
-    .x-item-selected {
+    .x-listitem.x-selected {
         .x-dock-horizontal .x-dock-body {
             background-color: #fff !important;
 
-            .x-list-item-body {
+            .x-listitem-body {
                 color: $base-color !important;
             }
         }

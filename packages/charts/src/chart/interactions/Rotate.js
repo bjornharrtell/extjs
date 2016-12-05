@@ -116,6 +116,8 @@ Ext.define('Ext.chart.interactions.Rotate', {
             radius = me.getRadius(e),
             eventRadius = me.getEventRadius(e);
 
+        e.claimGesture();
+
         if (radius >= eventRadius) {
             me.lockEvents('drag');
             me.angle = me.getAngle(e);

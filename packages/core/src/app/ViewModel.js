@@ -40,13 +40,15 @@
  * 
  *   * `'Hello {user.name}!'`
  *   * `'You have selected "{selectedItem.text}".'`
+ *   * `'{!isDisabled}'`
+ *   * `'{a > b ? "Bigger" : "Smaller"}'`
  *   * `'{user.groups}'`
  *
- * The first two bindings are `{@link Ext.app.bind.TemplateBinding template bindings}`
+ * All except the last are `{@link Ext.app.bind.TemplateBinding template bindings}`
  * which use the familiar `Ext.Template` syntax with some slight differences. For more on
  * templates see `{@link Ext.app.bind.Template}`.
  *
- * The third bind descriptor is called a "direct bind descriptor". This special form of
+ * The last descriptor is called a "direct bind descriptor". This special form of
  * bind maps one-to-one to some piece of data in the `ViewModel` and is managed by the
  * `{@link Ext.app.bind.Binding}` class.
  *
@@ -55,7 +57,7 @@
  * A direct bind descriptor may be able to write back a value to the `ViewModel` as well
  * as retrieve one. When this is the case, they are said to be "two-way". For example:
  *
- *      var binding = viewModel.bind('{s}', function(x) { console.log('s=' + s); });
+ *      var binding = viewModel.bind('{s}', function(s) { console.log('s=' + s); });
  *
  *      binding.setValue('abc');
  *
@@ -325,18 +327,18 @@
  * are automatically determined so that the formula will not be processed until the required
  * data is present.
  *
- *    var viewModel = new Ext.app.ViewModel({
- *        formulas: {
- *            fullName: function(get) {
- *                return get('firstName') + ' ' + get('lastName');
- *            }
- *        },
- *        data: {firstName: 'John', lastName: 'Smith'}
- *    });
+ *     var viewModel = new Ext.app.ViewModel({
+ *         formulas: {
+ *             fullName: function(get) {
+ *                 return get('firstName') + ' ' + get('lastName');
+ *             }
+ *         },
+ *         data: {firstName: 'John', lastName: 'Smith'}
+ *     });
  *
- *    viewModel.bind('{fullName}', function(v) {
- *        console.log(v);
- *    });
+ *     viewModel.bind('{fullName}', function(v) {
+ *         console.log(v);
+ *     });
  *
  * See {@link #formulas} for more detail.
  */
@@ -369,7 +371,7 @@ Ext.define('Ext.app.ViewModel', {
 
     collectTimeout: 100,
 
-    expressionRe: /^(?:\{[!]?(?:(\d+)|([a-z_][\w\-\.]*))\})$/i,
+    expressionRe: /^(?:\{(?:(\d+)|([a-z_][\w\-\.]*))\})$/i,
 
     $configStrict: false, // allow "formulas" to be specified on derived class body
     config: {
@@ -558,7 +560,6 @@ Ext.define('Ext.app.ViewModel', {
     },
 
     constructor: function (config) {
-        this.hadValue = {};
         // Used to track non-stub bindings
         this.bindings = {};
         /*
@@ -640,7 +641,7 @@ Ext.define('Ext.app.ViewModel', {
             scheduler.destroy();
         }
 
-        me.hadValue = me.children = me.storeInfo = me._session = me._view = me._scheduler =
+        me.children = me.storeInfo = me._session = me._view = me._scheduler =
                       me.bindings = me._root = me._parent = me.formulaFn = me.$formulaData = null;
 
         me.destroying = false;
@@ -685,7 +686,8 @@ Ext.define('Ext.app.ViewModel', {
      */
     bind: function (descriptor, callback, scope, options) {
         var me = this,
-            binding, track;
+            track = true,
+            binding;
 
         scope = scope || me;
 
@@ -696,14 +698,13 @@ Ext.define('Ext.app.ViewModel', {
 
         if (!Ext.isString(descriptor)) {
             binding = new Ext.app.bind.Multi(descriptor, me, callback, scope, options);
-            track = true;
         } else if (me.expressionRe.test(descriptor)) {
             // If we have '{foo}' alone it is a literal
             descriptor = descriptor.substring(1, descriptor.length - 1);
             binding = me.bindExpression(descriptor, callback, scope, options);
+            track = false;
         } else {
             binding = new Ext.app.bind.TemplateBinding(descriptor, me, callback, scope, options);
-            track = true;
         }
 
         if (track) {
@@ -811,7 +812,10 @@ Ext.define('Ext.app.ViewModel', {
      * of all bindings.
      */
     notify: function () {
-        this.getScheduler().notify();
+        var scheduler = this.getScheduler();
+        if (!scheduler.firing) {
+            scheduler.notify();
+        }
     },
 
     /**
@@ -926,23 +930,9 @@ Ext.define('Ext.app.ViewModel', {
             return record;
         },
 
-        notFn: function (v) {
-            return !v;
-        },
-
         bindExpression: function (descriptor, callback, scope, options) {
-            var ch = descriptor.charAt(0),
-                not = (ch === '!'),
-                path = not ? descriptor.substring(1) : descriptor,
-                stub = this.getStub(path),
-                binding;
-
-            binding =  stub.bind(callback, scope, options);
-            if (not) {
-                binding.transform = this.notFn;
-            }
-
-            return binding;
+            var stub = this.getStub(descriptor);
+            return stub.bind(callback, scope, options);
         },
 
         applyScheduler: function (scheduler) {
@@ -1093,7 +1083,7 @@ Ext.define('Ext.app.ViewModel', {
         applyStores: function(stores) {
             var me = this,
                 root = me.getRoot(),
-                key, cfg, storeBind, stub, listeners, isStatic;
+                key, cfg, storeBind, stub, listeners;
             
             me.storeInfo = {};
             me.listenerScopeFn = function() {
@@ -1163,20 +1153,27 @@ Ext.define('Ext.app.ViewModel', {
                 store;
 
             cfg = Ext.apply({}, cfg);
+
             if (cfg.session) {
                 cfg.session = session;
             }
             if (cfg.source) {
                 cfg.type = cfg.type || 'chained';
             }
+
             // Restore the listeners from applyStores here
             cfg.listeners = listeners;
+            // Ensure events fired by ctor can find their target:
+            cfg.resolveListenerScope = this.listenerScopeFn;
+
             store = Ext.Factory.store(cfg);
             store.$binding = binding;
+
             this.setupStore(store, key);
         },
 
-        setupStore: function(store, key) {
+        setupStore: function (store, key) {
+            // May have been given a store instance
             store.resolveListenerScope = this.listenerScopeFn;
             this.storeInfo[key] = store;
             this.set(key, store);

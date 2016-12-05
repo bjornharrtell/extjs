@@ -264,13 +264,28 @@ Ext.define('Ext.direct.RemotingProvider', {
     constructor: function(config) {
         var me = this;
 
-        me.callParent(arguments);
+        me.callParent([config]);
 
         me.namespace = (Ext.isString(me.namespace)) ? Ext.ns(me.namespace) : me.namespace || Ext.global;
-        me.transactions = new Ext.util.MixedCollection();
         me.callBuffer = [];
     },
     
+    /**
+     * @inheritdoc
+     */
+    connect: function() {
+        var me = this;
+
+        //<debug>
+        if (!me.url) {
+            Ext.raise('Error initializing RemotingProvider "' + me.id +
+                            '", no url configured.');
+        }
+        //</debug>
+        
+        me.callParent();
+    },
+
     doConnect: function() {
         if (!this.apiCreated) {
             this.initAPI();
@@ -376,19 +391,11 @@ Ext.define('Ext.direct.RemotingProvider', {
      */
     createHandler: function(action, method) {
         var me = this,
-            slice = Array.prototype.slice,
             handler;
         
-        if (!method.formHandler) {
-            handler = function() {
-                me.configureRequest(action, method, slice.call(arguments, 0));
-            };
-        }
-        else {
-            handler = function() {
-                me.configureFormRequest(action, method, slice.call(arguments, 0));
-            };
-        }
+        handler = function() {
+            me.invokeFunction(action, method, Array.prototype.slice.call(arguments, 0));
+        };
         
         handler.name = handler.$name = action + '.' + method.name;
         handler.$directFn = true;
@@ -402,114 +409,213 @@ Ext.define('Ext.direct.RemotingProvider', {
     },
     
     /**
-     * @inheritdoc
+     * Invoke a Direct function call
+     *
+     * @param {String} action The action being executed
+     * @param {Object} method The method being executed
+     *
+     * @private
      */
-    connect: function() {
-        var me = this;
+    invokeFunction: function(action, method, args) {
+        var me = this,
+            transaction, form, isUpload, postParams;
+        
+        transaction = me.configureTransaction(action, method, args);
 
+        if (me.fireEvent('beforecall', me, transaction, method) !== false) {
+            Ext.direct.Manager.addTransaction(transaction);
+            
+            if (transaction.isForm) {
+                form = transaction.form;
+                
+                isUpload = String(form.getAttribute("enctype")).toLowerCase() === 'multipart/form-data';
+                
+                postParams = {
+                    extTID: transaction.id,
+                    extAction: action,
+                    extMethod: method.name,
+                    extType: 'rpc',
+                    extUpload: String(isUpload)
+                };
+                
+                if (transaction.metadata) {
+                    postParams.extMetadata = Ext.JSON.encode(transaction.metadata);
+                }
+                
+                Ext.apply(transaction, {
+                    form: form,
+                    isUpload: isUpload,
+                    params: postParams
+                });
+            }
+
+            me.queueTransaction(transaction);
+            me.fireEvent('call', me, transaction, method);
+        }
+    },
+    
+    /**
+     * Configure a transaction for a Direct request
+     *
+     * @param {String} action The action being executed
+     * @param {Object} method The method being executed
+     * @param {Array} args Method invocation arguments
+     * @param {Boolean} isForm True for a form submit
+     *
+     * @return {Object} Transaction object
+     *
+     * @private
+     */
+    configureTransaction: function(action, method, args) {
+        var data, cb, scope, options, params;
+        
+        data = method.getCallData(args);
+        
+        cb = data.callback;
+        scope = data.scope;
+        options = data.options;
+        
         //<debug>
-        if (!me.url) {
-            Ext.raise('Error initializing RemotingProvider "' + me.id +
-                            '", no url configured.');
+        if (cb && !Ext.isFunction(cb)) {
+            Ext.raise("Callback argument is not a function " +
+                            "for Ext Direct method " +
+                            action + "." + method.name);
         }
         //</debug>
         
-        me.callParent();
+        // Callback might be unspecified for a notification
+        // that does not expect any return value
+        cb = cb && scope ? Ext.Function.bind(cb, scope) : cb;
+        
+        params = Ext.apply({}, {
+            provider: this,
+            args: args,
+            action: action,
+            method: method.name,
+            form: data.form,
+            data: data.data,
+            metadata: data.metadata,
+            callbackOptions: options,
+            callback: cb,
+            isForm: !!method.formHandler,
+            disableBatching: method.disableBatching
+        });
+        
+        if (options && options.timeout != null) {
+            params.timeout = options.timeout;
+        }
+        
+        return new Ext.direct.Transaction(params);
     },
-
+    
     /**
-     * Run any callbacks related to the transaction.
+     * Add a new transaction to the queue
      *
      * @param {Ext.direct.Transaction} transaction The transaction
-     * @param {Ext.direct.Event} event The event
      *
      * @private
      */
-    runCallback: function(transaction, event) {
-        var success = !!event.status,
-            funcName = success ? 'success' : 'failure',
-            callback, options, result;
-        
-        if (transaction && transaction.callback) {
-            callback = transaction.callback;
-            options  = transaction.callbackOptions;
-            result   = typeof event.result !== 'undefined' ? event.result : event.data;
-
-            if (Ext.isFunction(callback)) {
-                callback(result, event, success, options);
-            }
-            else {
-                Ext.callback(callback[funcName], callback.scope, [result, event, success, options]);
-                Ext.callback(callback.callback,  callback.scope, [result, event, success, options]);
-            }
-        }
-    },
-    
-    /**
-     * React to the ajax request being completed
-     *
-     * @private
-     */
-    onData: function(options, success, response) {
+    queueTransaction: function(transaction) {
         var me = this,
-            i, len, events, event, transaction, transactions;
-            
-        if (success) {
-            events = me.createEvents(response);
+            callBuffer = me.callBuffer,
+            enableBuffer = me.enableBuffer;
+        
+        if (transaction.isForm || enableBuffer === false || transaction.disableBatching ||
+            transaction.timeout != null) {
+            me.sendTransaction(transaction);
+            return;
+        }
+        
+        callBuffer.push(transaction);
 
-            for (i = 0, len = events.length; i < len; ++i) {
-                event = events[i];
-                transaction = me.getTransaction(event);
-                me.fireEvent('data', me, event);
-
-                if (transaction && me.fireEvent('beforecallback', me, event, transaction) !== false) {
-                    me.runCallback(transaction, event, true);
-                }
-                
-                Ext.direct.Manager.removeTransaction(transaction);
+        if (enableBuffer && callBuffer.length < me.bufferLimit) {
+            if (!me.callTask) {
+                me.callTask = new Ext.util.DelayedTask(me.combineAndSend, me);
             }
+
+            me.callTask.delay(Ext.isNumber(enableBuffer) ? enableBuffer : 10);
         }
         else {
-            transactions = [].concat(options.transaction);
-            
-            for (i = 0, len = transactions.length; i < len; ++i) {
-                transaction = me.getTransaction(transactions[i]);
-
-                if (transaction && transaction.retryCount < me.maxRetries) {
-                    transaction.retry();
-                }
-                else {
-                    event = new Ext.direct.ExceptionEvent({
-                        data: null,
-                        transaction: transaction,
-                        code: Ext.direct.Manager.exceptions.TRANSPORT,
-                        message: 'Unable to connect to the server.',
-                        xhr: response
-                    });
-
-                    me.fireEvent('data', me, event);
-
-                    if (transaction && me.fireEvent('beforecallback', me, event, transaction) !== false) {
-                        me.runCallback(transaction, event, false);
-                    }
-                    
-                    Ext.direct.Manager.removeTransaction(transaction);
-                }
-            }
+            me.combineAndSend();
         }
     },
     
     /**
-     * Get transaction from XHR options
-     *
-     * @param {Object} options The options sent to the Ajax request
-     *
-     * @return {Ext.direct.Transaction} The transaction, null if not found
+     * Combine any buffered requests and send them off
      *
      * @private
      */
-    getTransaction: function(options) {
-        return options && options.tid ? Ext.direct.Manager.getTransaction(options.tid) : null;
+    combineAndSend: function() {
+        var me = this,
+            buffer = me.callBuffer,
+            len = buffer.length;
+            
+        if (len > 0) {
+            me.sendTransaction(len === 1 ? buffer[0] : buffer);
+            me.callBuffer = [];
+        }
+    },
+    
+    /**
+     * Create an Ajax request out of transaction and send it to the server
+     *
+     * @param {Object/Array} transaction The transaction(s) to send
+     *
+     * @private
+     */
+    sendTransaction: function(transaction) {
+        var me = this,
+            request, callData, params,
+            enableUrlEncode = me.enableUrlEncode,
+            payload, i, len;
+
+        request = {
+            url: me.url,
+            callback: me.onData,
+            scope: me,
+            transaction: transaction,
+            headers: me.getHeaders()
+        };
+
+        // Explicitly specified timeout for Ext Direct call overrides defaults
+        if (transaction.timeout != null) {
+            request.timeout = transaction.timeout;
+        }
+        else if (me.timeout != null) {
+            request.timeout = me.timeout;
+        }
+
+        if (transaction.isForm) {
+            Ext.apply(request, {
+                params: transaction.params,
+                form: transaction.form,
+                isUpload: transaction.isUpload
+            });
+        }
+        else {
+            if (Ext.isArray(transaction)) {
+                callData = [];
+    
+                for (i = 0, len = transaction.length; i < len; ++i) {
+                    payload = me.getPayload(transaction[i]);
+                    callData.push(payload);
+                }
+            }
+            else {
+                callData = me.getPayload(transaction);
+            }
+    
+            if (enableUrlEncode) {
+                params = {};
+                params[Ext.isString(enableUrlEncode) ? enableUrlEncode : 'data'] = Ext.encode(callData);
+                request.params = params;
+            }
+            else {
+                request.jsonData = callData;
+            }
+        }
+        
+        return me.sendAjaxRequest(request);
     },
     
     /**
@@ -538,247 +644,114 @@ Ext.define('Ext.direct.RemotingProvider', {
     },
     
     /**
-     * Sends a request to the server
-     *
-     * @param {Object/Array} transaction The transaction(s) to send
+     * React to the ajax request being completed
      *
      * @private
      */
-    sendRequest: function(transaction) {
+    onData: function(options, success, response) {
         var me = this,
-            request, callData, params,
-            enableUrlEncode = me.enableUrlEncode,
-            payload, i, len;
+            i, len, events, event, transaction, transactions;
+        
+        // Success in this context means lack of communication failure,
+        // i.e. that we have successfully connected to the server and
+        // received a valid HTTP response. This does not imply that
+        // the server returned valid JSON data, or that individual
+        // function invocations were also successful.
+        events = success && me.createEvents(response);
+        
+        // Redefine success: if parsing failed, createEvents() will return
+        // only one event object, and it will be a parsing error exception.
+        success = events && events.length && !events[0].parsingError;
+        
+        if (success) {
+            for (i = 0, len = events.length; i < len; ++i) {
+                event = events[i];
+                
+                me.fireEvent('data', me, event);
+                transaction = me.getTransaction(event);
 
-        request = {
-            url: me.url,
-            callback: me.onData,
-            scope: me,
-            transaction: transaction,
-            timeout: me.timeout
-        };
-
-        // Explicitly specified timeout for Ext Direct call overrides defaults
-        if (transaction.timeout) {
-            request.timeout = transaction.timeout;
-        }
-
-        if (Ext.isArray(transaction)) {
-            callData = [];
-
-            for (i = 0, len = transaction.length; i < len; ++i) {
-                payload = me.getPayload(transaction[i]);
-                callData.push(payload);
+                if (transaction) {
+                    if (me.fireEvent('beforecallback', me, event, transaction) !== false) {
+                        me.runCallback(transaction, event, true);
+                    }
+                    
+                    Ext.direct.Manager.removeTransaction(transaction);
+                }
             }
         }
         else {
-            callData = me.getPayload(transaction);
-        }
+            transactions = [].concat(options.transaction);
+            
+            event = events[0] ||
+                new Ext.direct.ExceptionEvent({
+                    data: null,
+                    transaction: transaction,
+                    code: Ext.direct.Manager.exceptions.TRANSPORT,
+                    message: 'Unable to connect to the server.',
+                    xhr: response
+                });
+            
+            for (i = 0, len = transactions.length; i < len; ++i) {
+                transaction = me.getTransaction(transactions[i]);
 
-        if (enableUrlEncode) {
-            params = {};
-            params[Ext.isString(enableUrlEncode) ? enableUrlEncode : 'data'] = Ext.encode(callData);
-            request.params = params;
-        }
-        else {
-            request.jsonData = callData;
-        }
+                if (transaction && transaction.retryCount < me.maxRetries) {
+                    transaction.retry();
+                }
+                else {
+                    me.fireEvent('data', me, event);
+                    me.fireEvent('exception', me, event);
 
-        Ext.Ajax.request(request);
+                    if (transaction && me.fireEvent('beforecallback', me, event, transaction) !== false) {
+                        me.runCallback(transaction, event, false);
+                    }
+                    
+                    Ext.direct.Manager.removeTransaction(transaction);
+                }
+            }
+        }
+        
+        me.callParent([options, success, response]);
     },
     
     /**
-     * Add a new transaction to the queue
+     * Get transaction from XHR options
+     *
+     * @param {Object} options The options sent to the Ajax request
+     *
+     * @return {Ext.direct.Transaction} The transaction, null if not found
+     *
+     * @private
+     */
+    getTransaction: function(options) {
+        return options && options.tid ? Ext.direct.Manager.getTransaction(options.tid) : null;
+    },
+    
+    /**
+     * Run any callbacks related to the transaction.
      *
      * @param {Ext.direct.Transaction} transaction The transaction
+     * @param {Ext.direct.Event} event The event
      *
      * @private
      */
-    queueTransaction: function(transaction) {
-        var me = this,
-            callBuffer = me.callBuffer,
-            enableBuffer = me.enableBuffer;
+    runCallback: function(transaction, event) {
+        var success = !!event.status,
+            funcName = success ? 'success' : 'failure',
+            callback, options, result;
         
-        if (transaction.form) {
-            me.sendFormRequest(transaction);
-            return;
-        }
+        if (transaction && transaction.callback) {
+            callback = transaction.callback;
+            options  = transaction.callbackOptions;
+            result   = typeof event.result !== 'undefined' ? event.result : event.data;
 
-        if (enableBuffer === false || transaction.disableBatching ||
-            typeof transaction.timeout !== 'undefined') {
-            me.sendRequest(transaction);
-            return;
-        }
-        
-        callBuffer.push(transaction);
-
-        if (enableBuffer && callBuffer.length < me.bufferLimit) {
-            if (!me.callTask) {
-                me.callTask = new Ext.util.DelayedTask(me.combineAndSend, me);
+            if (Ext.isFunction(callback)) {
+                callback(result, event, success, options);
             }
-
-            me.callTask.delay(Ext.isNumber(enableBuffer) ? enableBuffer : 10);
-        }
-        else {
-            me.combineAndSend();
-        }
-    },
-    
-    /**
-     * Combine any buffered requests and send them off
-     *
-     * @private
-     */
-    combineAndSend : function() {
-        var me = this,
-            buffer = me.callBuffer,
-            len = buffer.length;
-            
-        if (len > 0) {
-            me.sendRequest(len === 1 ? buffer[0] : buffer);
-            me.callBuffer = [];
-        }
-    },
-    
-    /**
-     * Configure a transaction for a Direct request
-     *
-     * @param {String} action The action being executed
-     * @param {Object} method The method being executed
-     * @param {Array} args Method invocation arguments
-     * @param {Boolean} isForm True for a form submit
-     *
-     * @return {Object} Transaction object
-     *
-     * @private
-     */
-    configureTransaction: function(action, method, args, isForm) {
-        var data, cb, scope, options, params;
-        
-        data = method.getCallData(args);
-        
-        cb      = data.callback;
-        scope   = data.scope;
-        options = data.options;
-        
-        //<debug>
-        if (cb && !Ext.isFunction(cb)) {
-            Ext.raise("Callback argument is not a function " +
-                            "for Ext Direct method " +
-                            action + "." + method.name);
-        }
-        //</debug>
-        
-        // Callback might be unspecified for a notification
-        // that does not expect any return value
-        cb = cb && scope ? Ext.Function.bind(cb, scope) : cb;
-        
-        params = Ext.apply({}, {
-            provider: this,
-            args: args,
-            action: action,
-            method: method.name,
-            form: data.form,
-            data: data.data,
-            metadata: data.metadata,
-            callbackOptions: options,
-            callback: cb,
-            isForm: isForm,
-            disableBatching: method.disableBatching
-        });
-        
-        if (options && options.timeout != null) {
-            params.timeout = options.timeout;
-        }
-        
-        return new Ext.direct.Transaction(params);
-    },
-    
-    /**
-     * Configure a direct request
-     *
-     * @param {String} action The action being executed
-     * @param {Object} method The method being executed
-     *
-     * @private
-     */
-    configureRequest: function(action, method, args) {
-        var me = this,
-            transaction;
-        
-        transaction = me.configureTransaction(action, method, args);
-
-        if (me.fireEvent('beforecall', me, transaction, method) !== false) {
-            Ext.direct.Manager.addTransaction(transaction);
-            me.queueTransaction(transaction);
-            me.fireEvent('call', me, transaction, method);
-        }
-    },
-    
-    /**
-     * Configure a form submission request
-     *
-     * @param {String} action The action being executed
-     * @param {Object} method The method being executed
-     * @param {Array} args Method invocation arguments
-     *
-     * @private
-     */
-    configureFormRequest: function(action, method, args) {
-        var me = this,
-            transaction, form, isUpload, postParams;
-        
-        transaction = me.configureTransaction(action, method, args, true);
-        
-        if (me.fireEvent('beforecall', me, transaction, method) !== false) {
-            Ext.direct.Manager.addTransaction(transaction);
-            
-            form = transaction.form;
-            
-            isUpload = String(form.getAttribute("enctype")).toLowerCase() === 'multipart/form-data';
-            
-            postParams = {
-                extTID: transaction.id,
-                extAction: action,
-                extMethod: method.name,
-                extType: 'rpc',
-                extUpload: String(isUpload)
-            };
-            
-            if (transaction.metadata) {
-                postParams.extMetadata = Ext.JSON.encode(transaction.metadata);
+            else {
+                Ext.callback(callback[funcName], callback.scope, [result, event, success, options]);
+                Ext.callback(callback.callback,  callback.scope, [result, event, success, options]);
             }
-            
-            Ext.apply(transaction, {
-                form: form,
-                isUpload: isUpload,
-                params: postParams
-            });
-
-            me.sendFormRequest(transaction);
-            me.fireEvent('call', me, transaction, method);
         }
-    },
-    
-    /**
-     * Sends a form request
-     *
-     * @param {Ext.direct.Transaction} transaction The transaction to send
-     *
-     * @private
-     */
-    sendFormRequest: function(transaction) {
-        var me = this;
-
-        Ext.Ajax.request({
-            url: me.url,
-            params: transaction.params,
-            callback: me.onData,
-            scope: me,
-            form: transaction.form,
-            isUpload: transaction.isUpload,
-            transaction: transaction
-        });
     },
     
     inheritableStatics: {

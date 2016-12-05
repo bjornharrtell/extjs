@@ -74,6 +74,7 @@ Ext.define('Ext.draw.sprite.Rect', {
 
     updatePlainBBox: function (plain) {
         var attr = this.attr;
+
         plain.x = attr.x;
         plain.y = attr.y;
         plain.width = attr.width;
@@ -89,7 +90,8 @@ Ext.define('Ext.draw.sprite.Rect', {
             y = attr.y,
             width = attr.width,
             height = attr.height,
-            radius = Math.min(attr.radius, Math.abs(attr.height) * 0.5, Math.abs(attr.width) * 0.5);
+            radius = Math.min(attr.radius, Math.abs(height) * 0.5, Math.abs(width) * 0.5);
+
         if (radius === 0) {
             path.rect(x, y, width, height);
         } else {

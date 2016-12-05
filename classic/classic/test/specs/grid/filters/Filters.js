@@ -1,11 +1,9 @@
 // TODO: Add specs for locked grid and removing stores from other parts of the app.
 // TODO: Add specs for making sure that new filters replace existing filters with same dataIndex.
 // TODO: Add specs for addFilter(), making sure that only one filter store is ever created per dataIndex.
-describe('Ext.grid.filters.Filters', function () {
+describe("Ext.grid.filters.Filters", function () {
     var grid, tree, store, filtersPlugin, data,
-        synchronousLoad = false,
-        storeFlushLoad,
-        storeLoad;
+        synchronousLoad = false;
 
     function completeWithData(theData) {
         Ext.Ajax.mockComplete({
@@ -29,6 +27,22 @@ describe('Ext.grid.filters.Filters', function () {
             fields: ['name', 'email', 'phone', 'age', 'dob'],
             data: data
         }, storeCfg));
+        Ext.override(store, {
+            load: function() {
+                this.callParent(arguments);
+                if (synchronousLoad) {
+                    this.flushLoad.apply(this, arguments);
+                }
+                return this;
+            },
+
+            flushLoad: function() {
+                if (!this.destroyed) {
+                    this.flushCallCount = (this.flushCallCount || 0) + 1;
+                    this.callParent();
+                }
+            }
+        });
 
         // Note: lower the updateBuffer (defaults to 500ms) which is what determines the delay between onStateChange
         // being called and reload, which removes/adds store filters and sends a request for remote filtering.
@@ -84,6 +98,22 @@ describe('Ext.grid.filters.Filters', function () {
                 }]
             }
         }, storeCfg));
+        Ext.override(store, {
+            load: function() {
+                this.callParent(arguments);
+                if (synchronousLoad) {
+                    this.flushLoad.apply(this, arguments);
+                }
+                return this;
+            },
+
+            flushLoad: function() {
+                if (!this.destroyed) {
+                    this.flushCallCount = (this.flushCallCount || 0) + 1;
+                    this.callParent();
+                }
+            }
+        });
 
         tree = new Ext.tree.Panel(Ext.apply({
             columns: [{
@@ -107,25 +137,6 @@ describe('Ext.grid.filters.Filters', function () {
     }
 
     beforeEach(function() {
-        storeFlushLoad = Ext.data.Store.prototype.flushLoad;
-        storeLoad = Ext.data.Store.prototype.load;
-        Ext.data.Store.override({
-            load: function() {
-                this.callParent(arguments);
-                if (synchronousLoad) {
-                    this.flushLoad.apply(this, arguments);
-                }
-                return this;
-            },
-
-            flushLoad: function() {
-                if (!this.destroyed) {
-                    this.flushCallCount = (this.flushCallCount || 0) + 1;
-                    this.callParent();
-                }
-            }
-        });
-
         MockAjaxManager.addMethods();
         data = [
             { name: 'Jimmy Page', email: 'jimmy@page.com', phone: '555-111-1224', age: 69, dob: new Date('1/22/1944')},
@@ -140,22 +151,18 @@ describe('Ext.grid.filters.Filters', function () {
     });
 
     afterEach(function () {
-        // Undo the overrides.
-        Ext.data.Store.prototype.load = storeLoad;
-        Ext.data.Store.prototype.flushLoad = storeFlushLoad;
-
         MockAjaxManager.removeMethods();
         grid = tree = filtersPlugin = Ext.destroy(grid, tree);
         store = Ext.destroy(store);
     });
 
-    describe('initializing', function () {
-        it('should set "local" to be true', function () {
+    describe("initializing", function () {
+        it("should set 'local' to be true", function () {
             createGrid();
             expect(filtersPlugin.local).toBe(true);
         });
 
-        it('should create a filter when the data index does not map to an actual column', function () {
+        it("should create a filter when the data index does not map to an actual column", function () {
             createGrid({}, {
                 columns: [{
                     dataIndex: 'bogus',
@@ -166,7 +173,7 @@ describe('Ext.grid.filters.Filters', function () {
             expect(grid.columnManager.getHeaderByDataIndex('bogus').filter).toBeDefined();
         });
 
-        describe('the store', function () {
+        describe("the store", function () {
             beforeEach(function () {
                 createGrid({}, {
                     columns: [
@@ -180,27 +187,27 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            it('should bind the store to the feature', function () {
+            it("should bind the store to the feature", function () {
                 expect(filtersPlugin.store).toBeDefined();
                 expect(filtersPlugin.store).toBe(store);
             });
 
-            it('should be a pointer to the grid store', function () {
+            it("should be a pointer to the grid store", function () {
                 expect(filtersPlugin.store).toBe(filtersPlugin.grid.store);
             });
 
-            it('should create a store filter on creation for each active filter (has a "value" property)', function () {
+            it("should create a store filter on creation for each active filter (has a 'value' property)", function () {
                 // There are two column filters and one store filter was created.
                 expect(store.getFilters().getCount()).toBe(1);
             });
 
-            it('should create a store filter id for each active filter', function () {
+            it("should create a store filter id for each active filter", function () {
                 expect(store.getFilters().getAt(0).getId()).toBe('x-gridfilter-email');
             });
         });
 
-        describe('filter creation', function () {
-            it('should be the type it was configured with', function () {
+        describe("filter creation", function () {
+            it("should be the type it was configured with", function () {
                 createGrid({}, {
                     columns: [
                         { header: 'Name',  dataIndex: 'name', width: 100,
@@ -219,7 +226,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(grid.columnManager.getHeaderByDataIndex('dob').filter.type).toBe('date');
             });
 
-            it('should be inactive if not filtered (no "value" property)', function () {
+            it("should be inactive if not filtered (no 'value' property)", function () {
                 createGrid({}, {
                     columns: [
                         { header: 'Name',  dataIndex: 'name', width: 100, filter: true }
@@ -229,7 +236,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(grid.columnManager.getHeaderByDataIndex('name').filter.active).toBe(false);
             });
 
-            it('should be active if filtered (has a "value" property)', function () {
+            it("should be active if filtered (has a 'value' property)", function () {
                 createGrid({}, {
                     columns: [
                         { header: 'Name',  dataIndex: 'name', width: 100,
@@ -243,7 +250,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(grid.columnManager.getHeaderByDataIndex('name').filter.active).toBe(true);
             });
 
-            describe('when filter = true', function () {
+            describe("when filter = true", function () {
                 var colMgr;
 
                 beforeEach(function () {
@@ -261,15 +268,46 @@ describe('Ext.grid.filters.Filters', function () {
                     colMgr = null;
                 });
 
-                it('should create an inactive filter', function () {
+                it("should create an inactive filter", function () {
                     expect(colMgr.getHeaderByDataIndex('dob').filter.active).toBe(false);
                 });
 
                 // TODO: Update the specs to show that a filter type can be gleaned from the data field.
-                it('should create a default String filter type', function () {
+                it("should create a default String filter type", function () {
                     expect(colMgr.getHeaderByDataIndex('dob').filter.type).toBe('string');
                 });
             });
+        });
+    });
+
+    describe("column menu influence", function () {
+        var cols;
+
+        afterEach(function () {
+            cols = null;
+        });
+
+        it("should set requiresMenu: true on column when column is not configured with menuDisabled: true", function () {
+            createGrid(null, {
+                columns: [{
+                    dataIndex: 'dob',
+                    menuDisabled: true,
+                    filter: {
+                        type: 'date'
+                    }
+                }, {
+                    dataIndex: 'phone',
+                    menuDisabled: false,
+                    filter: {
+                        type: 'string'
+                    }
+                }]
+            });
+
+            cols = grid.getColumnManager().getColumns();
+
+            expect(cols[0].requiresMenu).toBeFalsy();
+            expect(cols[1].requiresMenu).toBe(true);
         });
     });
 
@@ -281,7 +319,7 @@ describe('Ext.grid.filters.Filters', function () {
             cols = null;
         });
 
-        describe('works for both non-nested and nested columns', function () {
+        describe("works for both non-nested and nested columns", function () {
             it("should add the cls for columns configured with a value", function () {
                 createGrid(null, {
                     columns: [{
@@ -431,14 +469,14 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 
-    describe('store filtering', function () {
+    describe("store filtering", function () {
         var columnFilter;
 
         afterEach(function () {
             columnFilter = null;
         });
 
-        it('should not clear any filters added directly by the store when removing a feature filter', function () {
+        it("should not clear any filters added directly by the store when removing a feature filter", function () {
             var re = /scofield/,
                 filters;
 
@@ -469,7 +507,7 @@ describe('Ext.grid.filters.Filters', function () {
             expect(filters.getAt(0).getValue()).toBe(re);
         });
 
-        describe('filtering the store', function () {
+        describe("filtering the store", function () {
             function makeStoreFilterGrid(withFilter) {
                 createGrid({}, {
                     columns: [{
@@ -481,7 +519,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             }
 
-            it('should not throw an error when removing a non-header filter', function() {
+            it("should not throw an error when removing a non-header filter", function() {
                 makeStoreFilterGrid(true);
 
                 var f = new Ext.util.Filter({
@@ -498,7 +536,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(store.getCount()).toBe(current);
             });
 
-            it('should not throw an error when removing a filter for a grid column that does not have a filter UI', function() {
+            it("should not throw an error when removing a filter for a grid column that does not have a filter UI", function() {
                 makeStoreFilterGrid(false);
 
                 var f = new Ext.util.Filter({
@@ -517,10 +555,10 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 
-    describe('autoLoad on gridpanel (defaults to true)', function () {
-        describe('local filtering', function () {
-            describe('initializing', function () {
-                it('should keep local as `true`', function () {
+    describe("autoLoad on gridpanel (defaults to true)", function () {
+        describe("local filtering", function () {
+            describe("initializing", function () {
+                it("should keep local as `true`", function () {
                     createGrid({
                         data: null,
                         proxy: {
@@ -549,8 +587,8 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('if true', function () {
-                it('should not make more than one request when filtering on an autoLoad store and autoLoad gridpanel', function () {
+            describe("if true", function () {
+                it("should not make more than one request when filtering on an autoLoad store and autoLoad gridpanel", function () {
                     // Note that this is verifying that an old bug that sent out multiple requests isn't recurring.
                     // Configuring a filter with a value property will make a network request unless suppressed.
                     // Also, note that it ignores the store config in favor of the default panel config.
@@ -582,7 +620,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(store.flushCallCount).toBe(1);
                 });
 
-                it('should not send filter data in the params for any active filter', function () {
+                it("should not send filter data in the params for any active filter", function () {
                     createGrid({
                         data: null,
                         proxy: {
@@ -616,7 +654,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(filter).not.toBeDefined();
                 });
 
-                it('should not send filter data in the params of any inactive filter', function () {
+                it("should not send filter data in the params of any inactive filter", function () {
                     createGrid({
                         data: null,
                         proxy: {
@@ -645,8 +683,8 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('if false on the grid store', function () {
-                it('should still make a request if any filter has a "value" property', function () {
+            describe("if false on the grid store", function () {
+                it("should still make a request if any filter has a 'value' property", function () {
                     // Note that this is verifying that the store config is in favor of the default panel config.
                     createGrid({
                         autoLoad: false,
@@ -679,9 +717,9 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 
-    describe('remote filtering', function () {
-        describe('initializing', function () {
-            it('should set "local" to `false`', function () {
+    describe("remote filtering", function () {
+        describe("initializing", function () {
+            it("should set 'local' to `false`", function () {
                 createGrid({
                     remoteFilter: true
                 }, {}, {
@@ -693,9 +731,9 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('autoLoad', function () {
-            describe('if true', function () {
-                it('should not make more than one request when filtering on an autoLoad store and autoLoad gridpanel', function () {
+        describe("autoLoad", function () {
+            describe("if true", function () {
+                it("should not make more than one request when filtering on an autoLoad store and autoLoad gridpanel", function () {
                     // Note that it ignores the store config in favor of the default panel config.
                     createGrid({
                         remoteFilter: true,
@@ -724,7 +762,7 @@ describe('Ext.grid.filters.Filters', function () {
 
                     waitsFor(function() {
                         return store.flushCallCount > 0;
-                    })
+                    });
 
                     runs(function () {
                         // Wait for autoLoad to trigger
@@ -733,7 +771,43 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should send filter data in the params for any active filter', function () {
+                it("should not load the store again when expanding the headerCt menu", function() {
+                    var spy = jasmine.createSpy();
+
+                    createGrid({
+                        remoteFilter: true,
+                        autoLoad: true,
+                        data: null,
+                        proxy: {
+                            type: 'ajax',
+                            url: '/grid/filters/Feature/remoteFiltering'
+                        }
+                    }, {
+                        columns: [
+                            { header: 'Name',  dataIndex: 'name', width: 100,
+                                filter: {
+                                    type: 'list',
+                                    options: [
+                                        ['Jimmy Page', 'John Scofield', 'Robben Ford', 'Alex Lifeson']
+                                    ],
+                                    value: 'Robben Ford'
+                                }
+                            },
+                            { header: 'Email', dataIndex: 'email', width: 100 },
+                            { header: 'Phone', dataIndex: 'phone', width: 100
+                            }
+                        ]
+                    });
+                    completeWithData();
+                    store.on('load', spy);
+                    jasmine.fireMouseEvent(grid.columnManager.getColumns()[0].triggerEl.dom, 'click');
+                    completeWithData();
+                    
+                    expect(spy.callCount).toBe(0);
+                    expect(store.filters.length).toBe(1);
+                });
+
+                it("should send filter data in the params for any active filter", function () {
                     // Note that it ignores the store config in favor of the default panel config.
                     createGrid({
                         remoteFilter: true,
@@ -777,7 +851,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not send filter data in the params for any inactive filter', function () {
+                it("should not send filter data in the params for any inactive filter", function () {
                     // Note that it ignores the store config in favor of the default panel config.
                     createGrid({
                         remoteFilter: true,
@@ -813,47 +887,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            // See EXTJS-15348.
-            describe("if false", function() {
-                it('should not cause the store to load', function () {
-                    var proto = Ext.data.ProxyStore.prototype;
-
-                    spyOn(proto, 'flushLoad').andCallThrough;
-
-                    createGrid({
-                        remoteFilter: true,
-                        autoLoad: false,
-                        data: null,
-                        proxy: {
-                            type: 'ajax',
-                            url: '/grid/filters/Feature/remoteFiltering'
-                        }
-                    }, {
-                        columns: [
-                            { header: 'Name',  dataIndex: 'name', width: 100,
-                                filter: {
-                                    type: 'string',
-                                    value: 'stevie ray'
-                                }
-                            },
-                            { header: 'Email', dataIndex: 'email', width: 100 },
-                            { header: 'Phone', dataIndex: 'phone', width: 100,
-                                filter: {
-                                    type: 'string'
-                                }
-                            }
-                        ]
-                    });
-
-                    // Store must now have a pending load. It's going
-                    // to load at the next tick. The autoLoad, and the addition
-                    // of the filter both required a load be scheduled.
-                    expect(store.hasPendingLoad()).toBe(true);
-                    expect(proto.flushLoad).not.toHaveBeenCalled();
-                });
-            });
-
-            describe('applying state, normal grid', function () {
+            describe("applying state, normal grid", function () {
                 beforeEach(function () {
                     new Ext.state.Provider();
 
@@ -885,7 +919,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not make more than one request when applying state', function () {
+                it("should not make more than one request when applying state", function () {
                     grid.saveState();
 
                     Ext.destroy(grid, store);
@@ -922,7 +956,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('locked grid', function () {
+            describe("locked grid", function () {
                 beforeEach(function () {
                     new Ext.state.Provider();
 
@@ -954,7 +988,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not make more than one request when applying state', function () {
+                it("should not make more than one request when applying state", function () {
                     grid.saveState();
 
                     Ext.destroy(grid, store);
@@ -990,7 +1024,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(store.flushCallCount).toBe(1);
                 });
 
-                it('should include all filters from locking partners in the request', function () {
+                it("should include all filters from locking partners in the request", function () {
                     var filters = getFilters();
                     expect(filters.length).toBe(2);
                     completeWithData();
@@ -998,9 +1032,48 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('no autoLoad', function () {
+        describe("no autoLoad", function () {
+            // See EXTJS-15348.
+            it("should not cause the store to load", function () {
+                var proto = Ext.data.ProxyStore.prototype;
+
+                spyOn(proto, 'flushLoad').andCallThrough();
+
+                createGrid({
+                    remoteFilter: true,
+                    autoLoad: false,
+                    data: null,
+                    proxy: {
+                        type: 'ajax',
+                        url: '/grid/filters/Feature/remoteFiltering'
+                    }
+                }, {
+                    columns: [
+                        { header: 'Name',  dataIndex: 'name', width: 100,
+                            filter: {
+                                type: 'string',
+                                value: 'stevie ray'
+                            }
+                        },
+                        { header: 'Email', dataIndex: 'email', width: 100 },
+                        { header: 'Phone', dataIndex: 'phone', width: 100,
+                            filter: {
+                                type: 'string'
+                            }
+                        }
+                    ]
+                });
+
+                // Store must now have a pending load. It's going
+                // to load at the next tick. The autoLoad, and the addition
+                // of the filter both required a load be scheduled.
+                expect(store.hasPendingLoad()).toBe(true);
+
+                // The createGrid function explicitly flushes an loads.
+                expect(proto.flushLoad.callCount).toBe(1);
+            });
             // Note that for all specs it ignores the store config in favor of the default panel config.
-            it('should not send multiple requests', function () {
+            it("should not send multiple requests", function () {
                 createGrid({
                     remoteFilter: true,
                     autoLoad: false,
@@ -1034,7 +1107,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('applying state, normal grid', function () {
+            describe("applying state, normal grid", function () {
                 beforeEach(function () {
                     new Ext.state.Provider();
 
@@ -1067,7 +1140,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not make more than one request when applying state', function () {
+                it("should not make more than one request when applying state", function () {
                     grid.saveState();
 
                     Ext.destroy(grid, store);
@@ -1108,7 +1181,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('locked grid', function () {
+            describe("locked grid", function () {
                 beforeEach(function () {
                     new Ext.state.Provider();
 
@@ -1141,7 +1214,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not make more than one request when applying state', function () {
+                it("should not make more than one request when applying state", function () {
                     grid.saveState();
 
                     Ext.destroy(grid, store);
@@ -1186,15 +1259,15 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 
-    describe('adding filters', function () {
+    describe("adding filters", function () {
         var column, columnFilter, columnName, columnValue, filters;
 
         afterEach(function () {
             column = columnFilter = columnName = columnValue = filters = null;
         });
 
-        describe('addFilter - single', function () {
-            it('should add a single filter', function () {
+        describe("addFilter - single", function () {
+            it("should add a single filter", function () {
                 columnName = 'name';
                 createGrid();
                 column = grid.columnManager.getHeaderByDataIndex(columnName);
@@ -1204,7 +1277,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(column.filter.isGridFilter).toBe(true);
             });
 
-            it('should turn the filter config into a filter instance', function () {
+            it("should turn the filter config into a filter instance", function () {
                 columnName = 'dob';
                 createGrid();
 
@@ -1212,7 +1285,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(grid.columnManager.getHeaderByDataIndex(columnName).filter.isGridFilter).toBe(true);
             });
 
-            it('should not add if it does not map to an exiting column (filter config)', function () {
+            it("should not add if it does not map to an exiting column (filter config)", function () {
                 createGrid();
 
                 filtersPlugin.addFilter({dataIndex: 'vanhalen', value: 'jimmy'});
@@ -1220,7 +1293,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(store.getFilters().getCount()).toBe(0);
             });
 
-            it('should not add if it does not map to an exiting column (filter instance)', function () {
+            it("should not add if it does not map to an exiting column (filter instance)", function () {
                 createGrid();
                 filters = grid.getStore().getFilters();
 
@@ -1229,7 +1302,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(filters.getCount()).toBe(0);
             });
 
-            describe('replacing a filter', function () {
+            describe("replacing a filter", function () {
                 beforeEach(function () {
                     createGrid(null, {
                         columns: [
@@ -1238,7 +1311,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should work, replacing once', function () {
+                it("should work, replacing once", function () {
                     var oldFilter, newFilter;
 
                     filters = grid.getStore().getFilters();
@@ -1257,7 +1330,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(newFilter).not.toBe(oldFilter);
                 });
 
-                it('should work, replacing more than once', function () {
+                it("should work, replacing more than once", function () {
                     // This fixes a bug where the store filter wasn't being destroyed
                     // when the column filter was replaced more than once when .addFilter
                     // was called programatically. See EXTJS-13741.
@@ -1291,7 +1364,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(newFilter).not.toBe(oldFilter);
                 });
 
-                it('should remove the reference to the old menu on the Filters menuItem', function () {
+                it("should remove the reference to the old menu on the Filters menuItem", function () {
                     // See EXTJS-13717.
                     var column = grid.columnManager.getColumns()[0];
 
@@ -1311,7 +1384,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(grid.headerCt.menu.items.getByKey('filters').menu).toBeNull();
                 });
 
-                it('should replace the reference to the old menu with the new menu', function () {
+                it("should replace the reference to the old menu with the new menu", function () {
                     // See EXTJS-13717.
                     var column = grid.columnManager.getColumns()[0],
                         menuItem, oldMenu, newMenu;
@@ -1335,7 +1408,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('remote filtering', function () {
+            describe("remote filtering", function () {
                 beforeEach(function () {
                     createGrid({
                         remoteFilter: true,
@@ -1352,7 +1425,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should send a network request when adding an active filter config', function () {
+                it("should send a network request when adding an active filter config", function () {
                     filtersPlugin.addFilter({dataIndex: 'email', value: 'albuquerque@newmexico.com'});
 
                     waitsFor(function() {
@@ -1364,7 +1437,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not send a network request when adding an inactive filter', function () {
+                it("should not send a network request when adding an inactive filter", function () {
                     filtersPlugin.addFilter({dataIndex: 'email'});
 
                     // Need to waits() because we're checking something doesn't happen
@@ -1375,7 +1448,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not send a network request when adding an inactive filter instance', function () {
+                it("should not send a network request when adding an inactive filter instance", function () {
                     filtersPlugin.addFilter(Ext.grid.filters.filter.String({dataIndex: 'email'}));
 
                     // Need to waits() because we're checking something doesn't happen
@@ -1388,14 +1461,14 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('addFilters - batch', function () {
+        describe("addFilters - batch", function () {
             var columnManager, col1, col2, col3;
 
             afterEach(function () {
                 columnManager = col1 = col2 = col3 = null;
             });
 
-            it('should add a multiple filters configs', function () {
+            it("should add a multiple filters configs", function () {
                 createGrid();
 
                 columnManager = grid.columnManager;
@@ -1414,7 +1487,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(col3.filter.isGridFilter).toBe(true);
             });
 
-            it('should not add duplicate filters configs to store filters collection', function () {
+            it("should not add duplicate filters configs to store filters collection", function () {
                 columnName = 'email';
                 createGrid();
 
@@ -1432,7 +1505,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(column.filter.value).toBe('toll@sencha.com');
             });
 
-            it('should not add column filters that do not map to a column', function () {
+            it("should not add column filters that do not map to a column", function () {
                 columnName = 'foo';
                 createGrid();
                 column = grid.columnManager.getHeaderByDataIndex(columnName);
@@ -1442,7 +1515,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(column).toBeNull();
             });
 
-            it('should not add store filters when data index does not map to a column', function () {
+            it("should not add store filters when data index does not map to a column", function () {
                 columnName = 'foo';
                 createGrid();
                 filters = grid.store.filters;
@@ -1452,7 +1525,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(filters.getCount()).toBe(0);
             });
 
-            it('should not add column filters that do not map to a column (mixed with legitimate data indices)', function () {
+            it("should not add column filters that do not map to a column (mixed with legitimate data indices)", function () {
                 columnName = 'foo';
                 createGrid();
                 column = grid.columnManager.getHeaderByDataIndex(columnName);
@@ -1462,7 +1535,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(column).toBeNull();
             });
 
-            it('should add column filters that do map to a column (mixed with illegitimate data indices)', function () {
+            it("should add column filters that do map to a column (mixed with illegitimate data indices)", function () {
                 columnName = 'phone';
                 createGrid();
                 column = grid.columnManager.getHeaderByDataIndex(columnName);
@@ -1472,7 +1545,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(column.filter.isGridFilter).toBe(true);
             });
 
-            it('should not add store filters that do not map to a column (mixed with legitimate data indices)', function () {
+            it("should not add store filters that do not map to a column (mixed with legitimate data indices)", function () {
                 columnValue = '717-737-8879';
                 createGrid();
                 filters = grid.getStore().getFilters();
@@ -1483,7 +1556,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(filters.getAt(0).getValue()).toBe(columnValue);
             });
 
-            it('should turn the filter config into a filter instance', function () {
+            it("should turn the filter config into a filter instance", function () {
                 columnName = 'age';
                 createGrid();
                 column = grid.columnManager.getHeaderByDataIndex('age');
@@ -1493,7 +1566,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(column.filter.isGridFilter).toBe(true);
             });
 
-            it('should replace existing filters', function () {
+            it("should replace existing filters", function () {
                 var oldFilter, oldFilter2, newFilter, newFilter2;
 
                 createGrid(null, {
@@ -1527,7 +1600,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(newFilter2).not.toBe(oldFilter2);
             });
 
-            it('should call the addFilter() implementation', function () {
+            it("should call the addFilter() implementation", function () {
                 createGrid();
                 spyOn(filtersPlugin, 'addFilter');
                 filtersPlugin.addFilters([{dataIndex: 'name'}, {dataIndex: 'email'}, {dataIndex: 'phone'}]);
@@ -1535,7 +1608,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(filtersPlugin.addFilter).toHaveBeenCalled();
             });
 
-            describe('remote filtering', function () {
+            describe("remote filtering", function () {
                 beforeEach(function () {
                     createGrid({
                         remoteFilter: true,
@@ -1547,7 +1620,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should send a network request when adding at least one active filter config', function () {
+                it("should send a network request when adding at least one active filter config", function () {
                     filtersPlugin.addFilters([{dataIndex: 'name'}, {dataIndex: 'email', value: 'jack'}, {dataIndex: 'phone'}]);
 
                     waitsFor(function() {
@@ -1559,7 +1632,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should send only one network request no matter how many active filters configs are added', function () {
+                it("should send only one network request no matter how many active filters configs are added", function () {
                     filtersPlugin.addFilters([{dataIndex: 'name', value: 'ginger'}, {dataIndex: 'email', value: 'suzy'}, {dataIndex: 'phone', value: '717'}]);
 
                     waitsFor(function() {
@@ -1571,7 +1644,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not send a network request when not adding an active filter config', function () {
+                it("should not send a network request when not adding an active filter config", function () {
                     filtersPlugin.addFilters([{dataIndex: 'name'}, {dataIndex: 'email'}, {dataIndex: 'phone'}]);
 
                     // Need to waits because we're checking something doesn't happen
@@ -1585,14 +1658,14 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 
-    describe('adding to headerCt', function () {
+    describe("adding to headerCt", function () {
         var column, columnFilter, columnName, columnValue, filters;
 
         afterEach(function () {
             column = columnFilter = columnName = columnValue = filters = null;
         });
 
-        describe('normal grid', function () {
+        describe("normal grid", function () {
             beforeEach(function () {
                 createGrid({}, {
                     columns: [
@@ -1618,7 +1691,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            it('should create a column filter instance with a default `String` type when no type is given', function () {
+            it("should create a column filter instance with a default `String` type when no type is given", function () {
                 columnName = 'dob';
 
                 grid.headerCt.add({
@@ -1626,7 +1699,7 @@ describe('Ext.grid.filters.Filters', function () {
                     text: 'DOB',
                     filter: {
                         value: {
-                            on: new Date('8/8/1992')
+                            eq: new Date('8/8/1992')
                         }
                     }
                 });
@@ -1634,7 +1707,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(grid.columnManager.getHeaderByDataIndex(columnName).filter.type).toBe('string');
             });
 
-            it('should create a column filter instance with the specified filter type when a type is given', function () {
+            it("should create a column filter instance with the specified filter type when a type is given", function () {
                 columnName = 'dob';
 
                 grid.headerCt.add({
@@ -1643,7 +1716,7 @@ describe('Ext.grid.filters.Filters', function () {
                     filter: {
                         type: 'date',
                         value: {
-                            on: new Date('8/8/1992')
+                            eq: new Date('8/8/1992')
                         }
                     }
                 });
@@ -1651,7 +1724,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(grid.columnManager.getHeaderByDataIndex(columnName).filter.type).toBe('date');
             });
 
-            it('should create a column filter instance when adding a new column with a "filter" config', function () {
+            it("should create a column filter instance when adding a new column with a 'filter' config", function () {
                 columnName = 'dob';
 
                 grid.headerCt.add({
@@ -1659,7 +1732,7 @@ describe('Ext.grid.filters.Filters', function () {
                     text: 'DOB',
                     filter: {
                         value: {
-                            on: new Date('8/8/1992')
+                            eq: new Date('8/8/1992')
                         }
                     }
                 });
@@ -1667,7 +1740,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(grid.columnManager.getHeaderByDataIndex(columnName).filter.isGridFilter).toBe(true);
             });
 
-            it('should not create a column filter instance when adding a new column without a "filter" config', function () {
+            it("should not create a column filter instance when adding a new column without a 'filter' config", function () {
                 columnName = 'dob';
 
                 grid.headerCt.add({
@@ -1679,7 +1752,7 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('remote filtering', function () {
+        describe("remote filtering", function () {
             beforeEach(function () {
                 createGrid({
                     remoteFilter: true,
@@ -1698,7 +1771,7 @@ describe('Ext.grid.filters.Filters', function () {
                 completeWithData();
             });
 
-            it('should make a request that includes the new filter when adding a column with an active filter', function () {
+            it("should make a request that includes the new filter when adding a column with an active filter", function () {
                 grid.headerCt.add({
                     dataIndex: 'age',
                     text: 'Age',
@@ -1716,8 +1789,8 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('locked grid', function () {
-            describe('local filtering', function () {
+        describe("locked grid", function () {
+            describe("local filtering", function () {
                 beforeEach(function () {
                     createGrid({}, {
                         columns: [
@@ -1727,7 +1800,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should add a new store filter when called on a locking partner (lockedGrid)', function () {
+                it("should add a new store filter when called on a locking partner (lockedGrid)", function () {
                     var filters = grid.getStore().getFilters();
 
                     expect(filters.getCount()).toBe(0);
@@ -1745,7 +1818,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(filters.getCount()).toBe(1);
                 });
 
-                it('should add a new store filter when called on a locking partner (normalGrid)', function () {
+                it("should add a new store filter when called on a locking partner (normalGrid)", function () {
                     var filters = grid.getStore().getFilters();
 
                     expect(filters.getCount()).toBe(0);
@@ -1763,7 +1836,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(filters.getCount()).toBe(1);
                 });
 
-                it('should filter if the filter config contains a "value" property', function () {
+                it("should filter if the filter config contains a 'value' property", function () {
                     var filters = grid.getStore().getFilters();
 
                     grid.lockedGrid.headerCt.add({
@@ -1806,7 +1879,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('remote filtering', function () {
+            describe("remote filtering", function () {
                 beforeEach(function () {
                     createGrid({
                         remoteFilter: true,
@@ -1824,8 +1897,8 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                describe('normalGrid', function () {
-                    it('should not make a request when adding a column with an inactive filter', function () {
+                describe("normalGrid", function () {
+                    it("should not make a request when adding a column with an inactive filter", function () {
                         var initialFlushCallCount = store.flushCallCount;
 
                         filtersPlugin.grid.normalGrid.headerCt.add({
@@ -1839,7 +1912,7 @@ describe('Ext.grid.filters.Filters', function () {
                         expect(store.flushCallCount).toBe(initialFlushCallCount);
                     });
 
-                    it('should make a request that includes the new filter when adding a column with an active filter', function () {
+                    it("should make a request that includes the new filter when adding a column with an active filter", function () {
                         var initialFlushCallCount = store.flushCallCount;
 
                         filtersPlugin.grid.normalGrid.headerCt.add({
@@ -1857,8 +1930,8 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                describe('lockedGrid', function () {
-                    it('should not make a request when adding a column with an inactive filter', function () {
+                describe("lockedGrid", function () {
+                    it("should not make a request when adding a column with an inactive filter", function () {
                         var initialFlushCallCount = store.flushCallCount;
 
                         filtersPlugin.grid.lockedGrid.headerCt.add({
@@ -1873,7 +1946,7 @@ describe('Ext.grid.filters.Filters', function () {
                         expect(store.flushCallCount).toBe(initialFlushCallCount);
                     });
 
-                    it('should make a request that includes the new filter when adding a column with an active filter', function () {
+                    it("should make a request that includes the new filter when adding a column with an active filter", function () {
                         filtersPlugin.grid.lockedGrid.headerCt.add({
                             dataIndex: 'age',
                             text: 'Age',
@@ -1893,21 +1966,21 @@ describe('Ext.grid.filters.Filters', function () {
         });
 
         // TODO
-        describe('stateful', function () {
+        describe("stateful", function () {
         });
     });
 
     // The intent of this describe block is primarily to demonstrate what happens when setActive() is
     // called for both local and remote filtering. In order to do this, we must toggle setActive() to
     // achieve our goals.
-    describe('setActive', function () {
+    describe("setActive", function () {
         var storeFilters, columnFilter;
 
         afterEach(function () {
             storeFilters = columnFilter = null;
         });
 
-        describe('local filtering', function () {
+        describe("local filtering", function () {
             beforeEach(function () {
                 createGrid({
                     remoteFilter: false,
@@ -1928,8 +2001,8 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('when setting active to `false`', function () {
-                it('should filter the store', function () {
+            describe("when setting active to `false`", function () {
+                it("should filter the store", function () {
                     storeFilters = store.getFilters();
 
                     // We're just demonstrating here that the store has one filter.
@@ -1943,7 +2016,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(storeFilters.getCount()).toBe(0);
                 });
 
-                it('should not send a network request', function () {
+                it("should not send a network request", function () {
                     grid.columnManager.getHeaderByDataIndex('name').setActive(false);
                     completeWithData();
                     // Note that the load count would be 2 if setActive(false) had initiated another request.
@@ -1951,8 +2024,8 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('when setting active to `true`', function () {
-                it('should filter the store', function () {
+            describe("when setting active to `true`", function () {
+                it("should filter the store", function () {
                     columnFilter = grid.columnManager.getHeaderByDataIndex('name').filter;
 
                     // Start out with it filtered and toggle.
@@ -1972,7 +2045,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(storeFilters.getCount()).toBe(1);
                 });
 
-                it('should not send a network request', function () {
+                it("should not send a network request", function () {
                     filtersPlugin.addFilter({dataIndex: 'age', type: 'numeric'});
                     grid.columnManager.getHeaderByDataIndex('age').setActive(true);
 
@@ -1988,7 +2061,7 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('remote filtering', function () {
+        describe("remote filtering", function () {
             var columnFilter;
 
             beforeEach(function () {
@@ -2014,13 +2087,13 @@ describe('Ext.grid.filters.Filters', function () {
                 completeWithData();
             });
 
-            describe('when setting active to `false`', function () {
-                it('should not send the filter data in the request', function () {
+            describe("when setting active to `false`", function () {
+                it("should not send the filter data in the request", function () {
                     grid.columnManager.getHeaderByDataIndex('name').filter.setActive(false);
                     expect(getFilters()).toBeUndefined();
                 });
 
-                it('should filter the store', function () {
+                it("should filter the store", function () {
                     var filters = store.getFilters();
 
                     expect(filters.getCount()).toBe(1);
@@ -2031,8 +2104,8 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('when setting active to `true`', function () {
-                it('should send the filter data in the request', function () {
+            describe("when setting active to `true`", function () {
+                it("should send the filter data in the request", function () {
                     filtersPlugin.addFilter({dataIndex: 'age', type: 'numeric'});
 
                     columnFilter = grid.columnManager.getHeaderByDataIndex('age').filter;
@@ -2045,7 +2118,7 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(getFilters().length).toBe(2);
                 });
 
-                it('should filter the store', function () {
+                it("should filter the store", function () {
                     var filters = store.getFilters();
 
                     expect(filters.getCount()).toBe(1);
@@ -2064,8 +2137,8 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 
-    describe('getting the column filter', function () {
-        it('should get the specified filter', function () {
+    describe("getting the column filter", function () {
+        it("should get the specified filter", function () {
             createGrid({}, {
                 columns: [
                     { header: 'Name',  dataIndex: 'name', filter: true, width: 100 },
@@ -2087,7 +2160,7 @@ describe('Ext.grid.filters.Filters', function () {
             expect(grid.columnManager.getHeaderByDataIndex('name').filter).toBeDefined();
         });
 
-        describe('locked grid', function () {
+        describe("locked grid", function () {
             beforeEach(function () {
                 createGrid({}, {
                     columns: [
@@ -2113,21 +2186,21 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            it('should get the specified filter', function () {
+            it("should get the specified filter", function () {
                 expect(grid.columnManager.getHeaderByDataIndex('phone').filter.isGridFilter).toBe(true);
             });
         });
     });
 
-    describe('locked grid', function () {
+    describe("locked grid", function () {
         var column, columnFilter, filters;
 
         afterEach(function () {
             column = columnFilter = filters = null;
         });
 
-        describe('initialization', function () {
-            it('should create an "isLocked" property', function () {
+        describe("initialization", function () {
+            it("should create an 'isLocked' property", function () {
                 createGrid({}, {
                     columns: [{ header: 'Name',  dataIndex: 'name', locked: true, width: 100 }]
                 });
@@ -2136,8 +2209,8 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('the store', function () {
-            it('should bind the grid store to the feature', function () {
+        describe("the store", function () {
+            it("should bind the grid store to the feature", function () {
                 createGrid({}, {
                     columns: [{ header: 'Name',  dataIndex: 'name', locked: true, width: 100 }]
                 });
@@ -2145,7 +2218,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(filtersPlugin.store).toBe(store);
             });
 
-            it('should add each filter to the store', function () {
+            it("should add each filter to the store", function () {
                 createGrid({}, {
                     columns: [
                         { header: 'Name',  dataIndex: 'name', width: 100,
@@ -2173,7 +2246,7 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('adding filters', function () {
+        describe("adding filters", function () {
             beforeEach(function () {
                 createGrid({}, {
                     columns: [
@@ -2184,8 +2257,8 @@ describe('Ext.grid.filters.Filters', function () {
                 }, {});
             });
 
-            describe('addFilter - single', function () {
-                it('should work', function () {
+            describe("addFilter - single", function () {
+                it("should work", function () {
                     column = grid.columnManager.getHeaderByDataIndex('name');
 
                     expect(column.filter).toBeUndefined();
@@ -2193,39 +2266,39 @@ describe('Ext.grid.filters.Filters', function () {
                     expect(column.filter).toBeDefined();
                 });
 
-                it('should not add a new filter to the store if not configured with a "value" property', function () {
+                it("should not add a new filter to the store if not configured with a 'value' property", function () {
                     filtersPlugin.addFilter({dataIndex: 'name'});
 
                     expect(store.getFilters().getCount()).toBe(0);
                 });
 
-                it('should add the filter to the store if config has a "value" property', function () {
+                it("should add the filter to the store if config has a 'value' property", function () {
                     filtersPlugin.addFilter({dataIndex: 'name', value: 'jimmy'});
 
                     expect(store.getFilters().getCount()).toBe(1);
                 });
 
-                it('should not add if it does not map to an exiting column (filter config)', function () {
+                it("should not add if it does not map to an exiting column (filter config)", function () {
                     filtersPlugin.addFilter({dataIndex: 'vanhalen', value: 'jimmy', locked: true});
 
                     expect(store.getFilters().getCount()).toBe(0);
                 });
             });
 
-            describe('addFilters - batch', function () {
-                it('should not add the store filters to the store (no "value" property)', function () {
+            describe("addFilters - batch", function () {
+                it("should not add the store filters to the store (no 'value' property)", function () {
                     filtersPlugin.addFilters([{dataIndex: 'name'}, {dataIndex: 'email'}, {dataIndex: 'phone'}]);
 
                     expect(filtersPlugin.store.getFilters().getCount()).toBe(0);
                 });
 
-                it('should add the filters to their store if configured with a "value" property', function () {
+                it("should add the filters to their store if configured with a 'value' property", function () {
                     filtersPlugin.addFilters([{dataIndex: 'name', value: 'john'}, {dataIndex: 'email', value: 'utley'}, {dataIndex: 'phone', value: '717-555-1212'}]);
 
                     expect(filtersPlugin.store.getFilters().getCount()).toBe(3);
                 });
 
-                it('should not add any filters to their store that do not map to a column', function () {
+                it("should not add any filters to their store that do not map to a column", function () {
                     filtersPlugin.addFilters([{dataIndex: 'ledzeppelin', value: 'john'}, {dataIndex: 'rush', value: 'utley'}, {dataIndex: 'phone', value: '717-555-1212'}]);
 
                     expect(filtersPlugin.store.getFilters().getCount()).toBe(1);
@@ -2233,16 +2306,16 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('setActive', function () {
+        describe("setActive", function () {
             var storeFilters;
 
             afterEach(function () {
                 storeFilters = null;
             });
 
-            describe('local filtering', function () {
-                describe('when setting active to `false`', function () {
-                    it('should filter the store, locked grid', function () {
+            describe("local filtering", function () {
+                describe("when setting active to `false`", function () {
+                    it("should filter the store, locked grid", function () {
                         createGrid({}, {
                             columns: [{ header: 'Name', filter: { value: 'ford' }, dataIndex: 'name', locked: true, width: 100 }]
                         });
@@ -2259,8 +2332,8 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                describe('when setting active to `true`', function () {
-                    it('should filter the store', function () {
+                describe("when setting active to `true`", function () {
+                    it("should filter the store", function () {
                         // Start out with it filtered and toggle.
                         createGrid({}, {
                             columns: [
@@ -2289,7 +2362,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('remote filtering', function () {
+            describe("remote filtering", function () {
                 beforeEach(function () {
                     createGrid({
                         remoteFilter: true,
@@ -2312,16 +2385,16 @@ describe('Ext.grid.filters.Filters', function () {
                     completeWithData();
                 });
 
-                describe('when setting active to `false`', function () {
-                    it('should not send the filter data in the request', function () {
+                describe("when setting active to `false`", function () {
+                    it("should not send the filter data in the request", function () {
                         grid.columnManager.getHeaderByDataIndex('name').filter.setActive(false);
 
                         expect(getFilters()).toBeUndefined();
                     });
                 });
 
-                describe('when setting active to `true`', function () {
-                    it('should send the filter data in the request', function () {
+                describe("when setting active to `true`", function () {
+                    it("should send the filter data in the request", function () {
                         filtersPlugin.addFilter({dataIndex: 'email', value: 'ben'});
 
                         expect(getFilters().length).toBe(2);
@@ -2330,8 +2403,8 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('no autoLoad', function () {
-            it('should not send multiple requests', function () {
+        describe("no autoLoad", function () {
+            it("should not send multiple requests", function () {
                 createGrid({
                     remoteFilter: true,
                     autoLoad: false,
@@ -2366,7 +2439,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            it('should include all the store filters from both locking partners in the request', function () {
+            it("should include all the store filters from both locking partners in the request", function () {
                 createGrid({
                     remoteFilter: true,
                     autoLoad: false,
@@ -2410,7 +2483,7 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 
-    describe('stateful', function () {
+    describe("stateful", function () {
         var columns, columnFilter;
 
         afterEach(function () {
@@ -2418,9 +2491,9 @@ describe('Ext.grid.filters.Filters', function () {
             columns = columnFilter = null;
         });
 
-        describe('remoteFilter', function () {
-            describe('if `true`', function () {
-                it('should still make a network request if it has state information and the grid store autoLoad = false', function () {
+        describe("remoteFilter", function () {
+            describe("if `true`", function () {
+                it("should still make a network request if it has state information and the grid store autoLoad = false", function () {
                     // Note that the store config is ignored in favor of the panel config.
                     createGrid({
                         autoLoad: false,
@@ -2475,7 +2548,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not make more than one network request if it has state information', function () {
+                it("should not make more than one network request if it has state information", function () {
                     createGrid({
                         remoteFilter: true,
                         data: null,
@@ -2528,8 +2601,8 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            describe('if `false`', function () {
-                it('should not make a network request if it has state information and autoLoad = false on the grid store', function () {
+            describe("if `false`", function () {
+                it("should not make a network request if it has state information and autoLoad = false on the grid store", function () {
                     // Note that the store config is ignored in favor of the panel config.
                     createGrid({
                         autoLoad: false,
@@ -2576,7 +2649,7 @@ describe('Ext.grid.filters.Filters', function () {
                     });
                 });
 
-                it('should not make more than one network request if it has state information and autoLoad = true on the grid store', function () {
+                it("should not make more than one network request if it has state information and autoLoad = true on the grid store", function () {
                     // Note that the store config is ignored in favor of the panel config.
                     createGrid({
                         autoLoad: true,
@@ -2626,10 +2699,8 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('initialization', function () {
-            it('should not save state information for any initialized active filters', function () {
-                var state;
-
+        describe("initialization", function () {
+            it("should not save state information for any initialized active filters", function () {
                 createGrid({}, {
                     columns: [
                         { header: 'Name',  dataIndex: 'name', width: 100,
@@ -2653,7 +2724,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(grid.getState().storeFilters).toBeUndefined();
             });
 
-            it('should replace any existing values when setting value', function () {
+            it("should replace any existing values when setting value", function () {
                 var columns = [
                         { header: 'Name',  dataIndex: 'name', width: 100,
                             filter: {
@@ -2697,8 +2768,8 @@ describe('Ext.grid.filters.Filters', function () {
             });
         });
 
-        describe('changing filter values', function () {
-            it('should retain proper filtering when setting active', function () {
+        describe("changing filter values", function () {
+            it("should retain proper filtering when setting active", function () {
                 var columns = [
                     { header: 'Name',  dataIndex: 'name', filter: true, width: 100 },
                     { header: 'Email', dataIndex: 'email', width: 100 },
@@ -2745,7 +2816,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            it('should update state information when setting active', function () {
+            it("should update state information when setting active", function () {
                 var columns = [
                     { header: 'Name',  dataIndex: 'name', filter: true, width: 100 },
                     { header: 'Email', dataIndex: 'email', width: 100 },
@@ -2791,7 +2862,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            it('should retain proper filtering when setting inactive', function () {
+            it("should retain proper filtering when setting inactive", function () {
                 var columns = [
                     { header: 'Name',  dataIndex: 'name', width: 100,
                         filter: {
@@ -2835,7 +2906,7 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            it('should update state information when setting inactive', function () {
+            it("should update state information when setting inactive", function () {
                 var columns = [
                     { header: 'Name',  dataIndex: 'name', width: 100,
                         filter: {
@@ -2879,14 +2950,14 @@ describe('Ext.grid.filters.Filters', function () {
                 });
             });
 
-            it('should keep track of state information when changing values', function () {
+            it("should keep track of state information when changing values", function () {
                 var columns = [
                     { header: 'Name',  dataIndex: 'name', filter: true, width: 100 },
                     { header: 'DOB', dataIndex: 'dob', width: 100,
                         filter: {
                             type: 'date',
                             value: {
-                                before: new Date('8/8/1992')
+                                lt: new Date('8/8/1992')
                             }
                         }
                     }
@@ -2926,12 +2997,38 @@ describe('Ext.grid.filters.Filters', function () {
         });
 
         // TODO
-        describe('locked grid', function () {
+        describe("locked grid", function () {
         });
     });
 
-    describe('showing the headerCt menu', function () {
+    describe("showing the headerCt menu", function () {
         beforeEach(function () {
+            createGrid({}, {
+                columns: [
+                    { header: 'Name',  dataIndex: 'name', width: 100,
+                        filter: {
+                            type: 'string',
+                            value: 'ben'
+                        }
+                    },
+                    { header: 'Email',  dataIndex: 'email', width: 100 }
+                ]
+            });
+        });
+
+        it("should create the 'Filters' menuItem", function () {
+            jasmine.fireMouseEvent(grid.columnManager.getColumns()[0].triggerEl.dom, 'click');
+            expect(grid.headerCt.menu.items.getByKey('filters')).toBeDefined();
+        });
+
+        it("should create the column filter menu", function () {
+            jasmine.fireMouseEvent(grid.columnManager.getColumns()[0].triggerEl.dom, 'click');
+            expect(grid.headerCt.menu.items.getByKey('filters').menu).toBeDefined();
+        });
+    });
+
+    describe("headerCt menu separator", function () {
+        it("should add menu separator if other menu items exist", function () {
             createGrid({}, {
                 columns: [
                     { header: 'Name',  dataIndex: 'name', width: 100,
@@ -2945,26 +3042,41 @@ describe('Ext.grid.filters.Filters', function () {
             });
 
             jasmine.fireMouseEvent(grid.columnManager.getColumns()[0].triggerEl.dom, 'click');
+
+            expect(filtersPlugin.sep).toBeDefined();
+            // next to last item should be a menu separator, and it should be filters.sep
+            expect(grid.headerCt.menu.items.getAt(4).id).toEqual(filtersPlugin.sep.id);
         });
 
-        it('should create the "Filters" menuItem', function () {
-            expect(grid.headerCt.menu.items.getByKey('filters')).toBeDefined();
-        });
+        it("should not add menu separator if no other menu items exist", function () {
+            createGrid({}, {
+                enableColumnHide: false,
+                sortableColumns: false,
+                columns: [
+                    { header: 'Name',  dataIndex: 'name', width: 100,
+                        filter: {
+                            type: 'string',
+                        }
+                    }
+                ]
+            });
 
-        it('should create the column filter menu', function () {
-            expect(grid.headerCt.menu.items.getByKey('filters').menu).toBeDefined();
+            jasmine.fireMouseEvent(grid.columnManager.getColumns()[0].triggerEl.dom, 'click');
+            expect(filtersPlugin.sep).not.toBeDefined();
+            // first item should be the filters item
+            expect(grid.headerCt.menu.items.getAt(0).itemId).toBe('filters');
         });
     });
 
     // TODO: this should be in TriFilter specs.
-    xdescribe('hasActiveFilter', function () {
-        it('should return false if there are no active filters', function () {
+    xdescribe("hasActiveFilter", function () {
+        it("should return false if there are no active filters", function () {
             createGrid();
 
             expect(filtersPlugin.hasActiveFilter()).toBe(false);
         });
 
-        it('should return true if there are active filters', function () {
+        it("should return true if there are active filters", function () {
             createGrid({}, {
                 columns: [
                     { header: 'Name',  dataIndex: 'name', width: 100,
@@ -2980,8 +3092,8 @@ describe('Ext.grid.filters.Filters', function () {
             expect(filtersPlugin.hasActiveFilter()).toBe(true);
         });
 
-        describe('locked grid', function () {
-            it('should return false if there are no active filters', function () {
+        describe("locked grid", function () {
+            it("should return false if there are no active filters", function () {
                 createGrid({}, {
                     columns: [
                         { header: 'Name',  dataIndex: 'name', locked: true, width: 100 },
@@ -2992,7 +3104,7 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(filtersPlugin.hasActiveFilter()).toBe(false);
             });
 
-            it('should return true if there are active filters', function () {
+            it("should return true if there are active filters", function () {
                 createGrid({}, {
                     columns: [
                         { header: 'Name',  dataIndex: 'name', locked: true, width: 100,
@@ -3011,10 +3123,10 @@ describe('Ext.grid.filters.Filters', function () {
     });
 
     // TODO
-    describe('buffered store', function () {
+    describe("buffered store", function () {
     });
 
-    describe('reconfigure', function () {
+    describe("reconfigure", function () {
         var newStore, column;
 
         beforeEach(function () {
@@ -3035,10 +3147,10 @@ describe('Ext.grid.filters.Filters', function () {
             newStore = column = Ext.destroy(newStore);
         });
 
-        describe('should work', function () {
-            describe('the Filters menu item', function () {
-                describe('removing the reference to the old menu on the Filters menu item', function () {
-                    it('should work for normal grids', function () {
+        describe("should work", function () {
+            describe("the Filters menu item", function () {
+                describe("removing the reference to the old menu on the Filters menu item", function () {
+                    it("should work for normal grids", function () {
                         createGrid(null, {
                             columns: [{
                                 dataIndex: 'name',
@@ -3054,12 +3166,12 @@ describe('Ext.grid.filters.Filters', function () {
                         expect(grid.headerCt.menu.items.getByKey('filters').menu).toBeDefined();
 
                         // Now, let's reconfigure.
-                        grid.reconfigure(newStore);
+                        grid.reconfigure(null, []);
 
                         expect(grid.headerCt.menu.items.getByKey('filters').menu).toBe(null);
                     });
 
-                    it('should work for locking grids', function () {
+                    it("should work for locking grids", function () {
                         var lockedGrid, lockedHeader, normalGrid, normalHeader, filterMenuItem,
                             lockedHeaderMenu, normalHeaderMenu;
 
@@ -3095,17 +3207,46 @@ describe('Ext.grid.filters.Filters', function () {
                         expect(filterMenuItem[normalGrid.id].menu).toBe(normalHeaderMenu.down('#filters').menu);
 
                         // Now, let's reconfigure.
-                        grid.reconfigure(newStore);
+                        grid.reconfigure(null, []);
 
                         expect(lockedHeaderMenu.items.getByKey('filters').menu).toBe(null);
                         expect(normalHeaderMenu.items.getByKey('filters').menu).toBe(null);
+                    });
+
+                    it("should work with nested columns", function() {
+                        var columns = [{
+                            text: 'Name',
+                            dataIndex: 'name'
+                        }, {
+                            text: 'Contact',
+                            columns: [{
+                                text: 'E-Mail',
+                                dataIndex: 'email',
+                                filter: 'string'
+                            },{
+                                text: 'Phone',
+                                dataIndex: 'phone',
+                                filter: 'string'
+                            }]
+                        }];
+
+                        createGrid(null, {
+                            columns: columns
+                        });
+                        
+                        grid.reconfigure(store, columns);
+
+                        column = grid.getColumnManager().getColumns()[1];
+                        jasmine.fireMouseEvent(column.triggerEl.dom, 'click');
+
+                        expect(filtersPlugin.filterMenuItem[grid.id].menu).toBeDefined();
                     });
                 });
             });
         });
 
-        describe('stores', function () {
-            it('should bind the new store to the plugin', function () {
+        describe("stores", function () {
+            it("should bind the new store to the plugin", function () {
                 createGrid(null, {
                     columns: [{
                         dataIndex: 'name',
@@ -3120,8 +3261,8 @@ describe('Ext.grid.filters.Filters', function () {
                 expect(filtersPlugin.store).toBe(newStore);
             });
 
-            describe('store only', function () {
-                it('should have filters react when the store is changed', function () {
+            describe("store only", function () {
+                it("should have filters react when the store is changed", function () {
                     createGrid(null, {
                         columns: [{
                             dataIndex: 'name',
@@ -3135,15 +3276,101 @@ describe('Ext.grid.filters.Filters', function () {
                     grid.columnManager.getHeaderByDataIndex('name').filter.setValue('B');
                     expect(newStore.getCount()).toBe(2);
                 });
+
+                it("should remove any active grid filters from the old store", function() {
+                    createGrid(null, {
+                        columns: [{
+                            dataIndex: 'string1',
+                            itemId: 'string1',
+                            filter: {
+                                type: 'string'
+                            }
+                        }, {
+                            dataIndex: 'name2',
+                            filter: {
+                                type: 'string'
+                            }
+                        }, {
+                            dataIndex: 'number1',
+                            itemId: 'number1',
+                            filter: {
+                                type: 'number'
+                            }
+                        }, {
+                            dataIndex: 'string2',
+                            filter: {
+                                type: 'number'
+                            }
+                        }]
+                    });
+
+                    store.getFilters().add({
+                        property: 'xxx',
+                        value: 100
+                    });
+
+                    grid.down('#string1').filter.setValue('foo');
+                    grid.down('#number1').filter.setValue({
+                        eq: 1
+                    });
+
+                    store.setAutoDestroy(false);
+
+                    expect(store.getFilters().getCount()).toBe(3);
+
+                    grid.reconfigure(newStore);
+
+                    expect(store.getFilters().getCount()).toBe(1);
+                    expect(store.getFilters().getAt(0).getProperty()).toBe('xxx');
+                });
+
+                it("should add any active filters to the new store", function() {
+                    createGrid(null, {
+                        columns: [{
+                            dataIndex: 'string1',
+                            itemId: 'string1',
+                            filter: {
+                                type: 'string'
+                            }
+                        }, {
+                            dataIndex: 'name2',
+                            filter: {
+                                type: 'string'
+                            }
+                        }, {
+                            dataIndex: 'number1',
+                            itemId: 'number1',
+                            filter: {
+                                type: 'number'
+                            }
+                        }, {
+                            dataIndex: 'string2',
+                            filter: {
+                                type: 'number'
+                            }
+                        }]
+                    });
+
+                    grid.down('#string1').filter.setValue('foo');
+                    grid.down('#number1').filter.setValue({
+                        eq: 1
+                    });
+
+                    grid.reconfigure(newStore);
+
+                    expect(newStore.getFilters().getCount()).toBe(2);
+                    expect(newStore.getFilters().getAt(0).getProperty()).toBe('string1');
+                    expect(newStore.getFilters().getAt(1).getProperty()).toBe('number1');
+                });
             });
         });
 
 
-        describe('columns', function () {
+        describe("columns", function () {
             function runSpecs(locked) {
-                describe(locked ? 'locking grid' : 'non-locking grid', function () {
-                    describe('with a store', function () {
-                        it('should filter the store if configured with a filter.value', function () {
+                describe(locked ? "locking grid" : "non-locking grid", function () {
+                    describe("with a store", function () {
+                        it("should filter the store if configured with a filter.value", function () {
                             createGrid(null, {
                                 columns: [{
                                     dataIndex: 'name',
@@ -3170,8 +3397,8 @@ describe('Ext.grid.filters.Filters', function () {
                         });
                     });
 
-                    describe('null store', function () {
-                        it('should filter the store if configured with a filter.value', function () {
+                    describe("null store", function () {
+                        it("should filter the store if configured with a filter.value", function () {
                             createGrid(null, {
                                 columns: [{
                                     dataIndex: 'name',
@@ -3203,7 +3430,7 @@ describe('Ext.grid.filters.Filters', function () {
                             expect(store.isFiltered()).toBe(true);
                         });
 
-                        it('should not react', function () {
+                        it("should not react", function () {
                             var counter;
 
                             createGrid(null, {
@@ -3240,7 +3467,7 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 
-    describe('treepanel', function () {
+    describe("treepanel", function () {
         function showMenu() {
             var headerCt = tree.headerCt,
                 header = tree.getColumnManager().getLast();
@@ -3249,7 +3476,7 @@ describe('Ext.grid.filters.Filters', function () {
             headerCt.showMenuBy(null, header.triggerEl.dom, header);
         }
 
-        it('should not throw when showing the header menu', function () {
+        it("should not throw when showing the header menu", function () {
             // See EXTJS-14812.
             createTree();
 
@@ -3259,7 +3486,7 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 
-    describe('onCheckChange', function () {
+    describe("onCheckChange", function () {
         var header;
 
         function showMenu(header) {
@@ -3271,10 +3498,10 @@ describe('Ext.grid.filters.Filters', function () {
             header = null;
         });
 
-        describe('looking up headerCt', function () {
-            describe('grids', function () {
+        describe("looking up headerCt", function () {
+            describe("grids", function () {
                 function lockGrid(locked) {
-                    it('should not throw, locking = ' + locked, function () {
+                    it("should not throw, locking = " + locked, function () {
                         createGrid(null, {
                             columns: [
                                 { header: 'Name',  dataIndex: 'name', locked: locked, filter: true, width: 100 },
@@ -3295,9 +3522,9 @@ describe('Ext.grid.filters.Filters', function () {
                 lockGrid(false);
             });
 
-            describe('trees', function () {
+            describe("trees", function () {
                 function lockTree(locked) {
-                    it('should not throw, locking = ' + locked, function () {
+                    it("should not throw, locking = " + locked, function () {
                         createTree(null, {
                             columns: [{
                                 header: 'Name',
@@ -3330,4 +3557,3 @@ describe('Ext.grid.filters.Filters', function () {
         });
     });
 });
-

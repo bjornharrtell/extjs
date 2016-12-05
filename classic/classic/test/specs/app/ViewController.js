@@ -106,7 +106,7 @@ describe("Ext.app.ViewController", function() {
             });
 
             doBeforeInit = function(ctrl) {
-                wasCalled = !!called
+                wasCalled = !!called;
             };
 
             var c = new C({
@@ -523,6 +523,36 @@ describe("Ext.app.ViewController", function() {
         });
         
         describe("on the event bus", function() {
+            describe("widgets", function() {
+                beforeEach(function() {
+                    Ext.define('spec.Foo', {
+                        extend: 'Ext.Widget',
+                        xtype: 'specfoo'
+                    });
+                });
+
+                afterEach(function() {
+                    Ext.undefine('spec.Foo');
+                });
+
+                it("should react to widgets", function() {
+                    ct = new spec.Foo({
+                        controller: {
+                            type: 'test1',
+                            control: {
+                                specfoo: {
+                                    custom: 'method1'
+                                }
+                            }
+                        }
+                    });
+                    controller = ct.getController();
+                    spyOn(controller, 'method1');
+                    ct.fireEvent('custom');
+                    expect(controller.method1).toHaveBeenCalled();
+                });
+            });
+
             it("should react to matching selectors", function() {
                 makeContainer({
                     controller: {

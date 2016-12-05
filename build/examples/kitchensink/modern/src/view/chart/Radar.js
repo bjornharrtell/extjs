@@ -17,7 +17,19 @@ Ext.define('KitchenSink.view.chart.Radar', {
         type: 'chart'
     },
 
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/OrderItems.js' 
+    }],
+    // </example>
+    
     layout: 'fit',
+    shadow: true,
+
     items: [{
         xtype: 'toolbar',
         docked: 'top',
@@ -31,13 +43,14 @@ Ext.define('KitchenSink.view.chart.Radar', {
         }, {
             iconCls: 'x-fa fa-refresh',
             text: 'Refresh',
-            handler: function() {
-                Ext.getStore('OrderItems').generateData(10 + 10 * Math.random());
-            }
+            handler: 'onRefresh'
         }]
     }, {
         xtype: 'polar',
-        store: 'OrderItems',
+        store: {
+            type: 'orderitems',
+            numRecords: 15
+        },
         background: 'white',
         interactions: 'rotate',
         legend: {
@@ -114,10 +127,5 @@ Ext.define('KitchenSink.view.chart.Radar', {
                 }
             }]
         }]
-    }],
-
-    initialize: function() {
-        this.callParent();
-        Ext.getStore('OrderItems').generateData(10 + 10 * Math.random());
-    }
+    }]
 });

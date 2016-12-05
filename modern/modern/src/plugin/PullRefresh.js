@@ -78,13 +78,6 @@ Ext.define('Ext.plugin.PullRefresh', {
         lastUpdatedText: 'Last Updated:&nbsp;',
 
         /**
-         * @cfg {Boolean} scrollerAutoRefresh Determines whether the attached scroller should automatically track size changes of its container.
-         * Enabling this will have performance impacts but will be necessary if your list size changes dynamically. For example if your list contains images
-         * that will be loading and have unspecified heights.
-         */
-        scrollerAutoRefresh: false,
-
-        /**
          * @cfg {Boolean} autoSnapBack Determines whether the pulldown should automatically snap back after data has been loaded.
          * If false call {@link #snapBack}() to manually snap the pulldown back.
          */
@@ -196,11 +189,9 @@ Ext.define('Ext.plugin.PullRefresh', {
             list = me.getList(),
             scroller = list.getScrollable();
 
-        if (!scroller || !scroller.isTouchScroller) {
+        if (!scroller) {
             return;
         }
-
-        scroller.setAutoRefresh(me.getScrollerAutoRefresh());
 
         me.lastUpdated = new Date();
 
@@ -307,7 +298,7 @@ Ext.define('Ext.plugin.PullRefresh', {
 
     /**
      * Snaps the List back to the top after a pullrefresh is complete
-     * @param {Boolean=} force Force the snapback to occur regardless of state {optional}
+     * @param {Boolean} force Force the snapback to occur regardless of state {optional}
      */
     snapBack: function(force) {
         var me = this,
@@ -335,7 +326,8 @@ Ext.define('Ext.plugin.PullRefresh', {
         var list = this.getList(),
             scroller = list.getScrollable();
 
-        scroller.setMinUserPosition({x:0, y:0});
+        // TODO
+        //scroller.setMinUserPosition({x:0, y:0});
         this.setState('pull');
         this.setIsSnappingBack(false);
     },
@@ -400,8 +392,10 @@ Ext.define('Ext.plugin.PullRefresh', {
 
         me.setState('loading');
 
+        /*
+        TODO
         scroller.setMinUserPosition({
-            x: 0, 
+            x: 0,
             y: -pullHeight
         });
 
@@ -411,6 +405,7 @@ Ext.define('Ext.plugin.PullRefresh', {
                 duration: me.getOverpullSnapBackDuration()
             }
         }, true);
+        */
     },
 
     /**

@@ -1,19 +1,90 @@
+/* global expect, jasmine, Ext, spyOn, xdescribe, describe, it */
+
 describe("Ext.menu.Menu", function() {
-    var pressArrow = jasmine.pressArrowKey,
-        waitForFocus = jasmine.waitForFocus,
-        menu, itGoodBrowsers = Ext.isWebKit || Ext.isGecko ? it : xit;
+    var menu;
 
     function makeMenu(cfg) {
         menu = new Ext.menu.Menu(cfg || {});
         return menu;
     }
 
+    function doItemMouseover(item) {
+        var x = item.el.getX() + item.el.getWidth() / 2,
+            y = item.el.getY() + item.el.getHeight() / 2;
+
+        if (Ext.supports.TouchEvents) {
+            Ext.testHelper.touchStart(item.el, { x: x, y: y });
+            Ext.testHelper.touchEnd(item.el, { x: x, y: y });
+        } else {
+            jasmine.fireMouseEvent(item.el, 'mouseover');
+        }
+    }
+
+    function doItemClick(item) {
+        var x = item.el.getX() + item.el.getWidth() / 2,
+            y = item.el.getY() + item.el.getHeight() / 2;
+
+        if (Ext.supports.TouchEvents) {
+            Ext.testHelper.touchStart(item.el, { x: x, y: y });
+            Ext.testHelper.touchEnd(item.el, { x: x, y: y });
+        } else {
+            jasmine.fireMouseEvent(item.el, 'click');
+        }
+    }
+
+    function doElementMousedown(el) {
+        el = Ext.get(el);
+
+        var x = el.getX() + el.getWidth() / 2,
+            y = el.getY() + el.getHeight() / 2;
+
+        if (Ext.supports.TouchEvents) {
+            Ext.testHelper.touchStart(el, { x: x, y: y });
+        } else {
+            jasmine.fireMouseEvent(el, 'mousedown');
+        }
+    }
+
     afterEach(function() {
-        if (menu) {
+        if (menu && !menu.destroyed) {
             menu.hide();
             Ext.destroy(menu);
-            menu = null;
         }
+
+        menu = null;
+    });
+
+    describe("defaultType", function() {
+        it("should be menuitem", function() {
+            makeMenu({
+                items: [{}, {}]
+            });
+            expect(menu.items.getAt(0).$className).toBe('Ext.menu.Item');
+            expect(menu.items.getAt(1).$className).toBe('Ext.menu.Item');
+        });
+
+        it("should create a check item if there is a checked property and no xtype", function() {
+            makeMenu({
+                items: [{
+                    checked: true
+                }, {
+                    xtype: 'menuitem',
+                    checked: false
+                }]
+            });
+            expect(menu.items.getAt(0).$className).toBe('Ext.menu.CheckItem');
+            expect(menu.items.getAt(1).$className).toBe('Ext.menu.Item');
+        });
+
+        it("should allow a custom default", function() {
+            makeMenu({
+                defaultType: 'menucheckitem',
+                items: [{}, {}, {checked: true}]
+            });
+            expect(menu.items.getAt(0).$className).toBe('Ext.menu.CheckItem');
+            expect(menu.items.getAt(1).$className).toBe('Ext.menu.CheckItem');
+            expect(menu.items.getAt(2).$className).toBe('Ext.menu.CheckItem');
+        });
     });
 
     describe('dockedItems', function () {
@@ -31,7 +102,6 @@ describe("Ext.menu.Menu", function() {
             menu.show();
 
             var bodyXY = menu.body.getXY();
-            var menuXY = menu.el.getXY();
             var title = menu.dockedItems.items[0];
             var titleHeight = title.el.getHeight();
             var titleXY = title.el.getXY();
@@ -96,91 +166,164 @@ describe("Ext.menu.Menu", function() {
         });
     });
     
-    describe("MenuManager hideAll", function() {
-        it("should hide a single menu", function() {
-            makeMenu({
-                items: {
-                    text: 'Foo'
-                }
+    describe("MenuManager", function() {
+        describe("hideAll", function() {
+            it("should hide a single menu", function() {
+                makeMenu({
+                    items: {
+                        text: 'Foo'
+                    }
+                });
+                menu.show();
+                expect(menu.isVisible()).toBe(true);
+                Ext.menu.Manager.hideAll();
+                expect(menu.isVisible()).toBe(false);
             });
-            menu.show();
-            expect(menu.isVisible()).toBe(true);
-            Ext.menu.Manager.hideAll();
-            expect(menu.isVisible()).toBe(false);
-        });
-
-        it("should hide multiple menus", function() {
-            var m1 = makeMenu({items: {text: 'M1'}, allowOtherMenus: true}),
-                m2 = makeMenu({items: {text: 'M2'}, allowOtherMenus: true}),
-                m3 = makeMenu({items: {text: 'M3'}, allowOtherMenus: true});
-
-            m1.show();
-            m2.show();
-            m3.show();
-
-            expect(m1.isVisible()).toBe(true);
-            expect(m2.isVisible()).toBe(true);
-            expect(m3.isVisible()).toBe(true);
-
-            Ext.menu.Manager.hideAll();
-
-            expect(m1.isVisible()).toBe(false);
-            expect(m2.isVisible()).toBe(false);
-            expect(m3.isVisible()).toBe(false);
-
-            Ext.destroy(m1, m2, m3);
-        });
-
-        it("should hide a menu and submenus", function() {
-            makeMenu({
-                items: {
-                    text: 'Foo',
-                    menu: {
-                        items: {
-                            text: 'Bar'
+    
+            it("should hide multiple menus", function() {
+                var m1 = makeMenu({items: {text: 'M1'}, allowOtherMenus: true}),
+                    m2 = makeMenu({items: {text: 'M2'}, allowOtherMenus: true}),
+                    m3 = makeMenu({items: {text: 'M3'}, allowOtherMenus: true});
+    
+                m1.show();
+                m2.show();
+                m3.show();
+    
+                expect(m1.isVisible()).toBe(true);
+                expect(m2.isVisible()).toBe(true);
+                expect(m3.isVisible()).toBe(true);
+    
+                Ext.menu.Manager.hideAll();
+    
+                expect(m1.isVisible()).toBe(false);
+                expect(m2.isVisible()).toBe(false);
+                expect(m3.isVisible()).toBe(false);
+    
+                Ext.destroy(m1, m2, m3);
+            });
+    
+            it("should hide a menu and submenus", function() {
+                makeMenu({
+                    items: {
+                        text: 'Foo',
+                        menu: {
+                            items: {
+                                text: 'Bar'
+                            }
                         }
                     }
-                }
+                });
+    
+                menu.show();
+                var item = menu.items.first();
+                item.activated = true;
+                item.expandMenu(null, 0);
+    
+                expect(menu.isVisible()).toBe(true);
+                expect(item.getMenu().isVisible()).toBe(true);
+    
+                Ext.menu.Manager.hideAll();
+    
+                expect(menu.isVisible()).toBe(false);
+                expect(item.getMenu().isVisible()).toBe(false);
             });
-
-            menu.show();
-            var item = menu.items.first();
-            item.activated = true;
-            item.expandMenu(null, 0);
-
-            expect(menu.isVisible()).toBe(true);
-            expect(item.getMenu().isVisible()).toBe(true);
-
-            Ext.menu.Manager.hideAll();
-
-            expect(menu.isVisible()).toBe(false);
-            expect(item.getMenu().isVisible()).toBe(false);
-        });
-
-        it("should only hide menus visible at the time of being called", function() {
-            var m1 = makeMenu({allowOtherMenus: true, items: {text: 'Foo'}}),
-                m2 = makeMenu({allowOtherMenus: true, items: {text: 'Bar'}}),
-                m3 = makeMenu({allowOtherMenus: true, items: {text: 'Baz'}});
-
-            m1.show();
-            m2.show();
-
-            m1.on('hide', function() {
-                m3.show();
+    
+            it("should only hide menus visible at the time of being called", function() {
+                var m1 = makeMenu({allowOtherMenus: true, items: {text: 'Foo'}}),
+                    m2 = makeMenu({allowOtherMenus: true, items: {text: 'Bar'}}),
+                    m3 = makeMenu({allowOtherMenus: true, items: {text: 'Baz'}});
+    
+                m1.show();
+                m2.show();
+    
+                m1.on('hide', function() {
+                    m3.show();
+                });
+    
+                expect(m1.isVisible()).toBe(true);
+                expect(m2.isVisible()).toBe(true);
+                expect(m3.isVisible()).toBe(false);
+    
+                Ext.menu.Manager.hideAll();
+    
+                expect(m1.isVisible()).toBe(false);
+                expect(m2.isVisible()).toBe(false);
+                expect(m3.isVisible()).toBe(true);
+    
+                Ext.destroy(m1, m2, m3);
             });
-
-            expect(m1.isVisible()).toBe(true);
-            expect(m2.isVisible()).toBe(true);
-            expect(m3.isVisible()).toBe(false);
-
-            Ext.menu.Manager.hideAll();
-
-            expect(m1.isVisible()).toBe(false);
-            expect(m2.isVisible()).toBe(false);
-            expect(m3.isVisible()).toBe(true);
-
-            Ext.destroy(m1, m2, m3);
         });
+        
+        describe("handling active menus", function() {
+            // https://sencha.jira.com/browse/EXTJS-17844
+            it("should not hide submenu when parent menu item is clicked", function() {
+                makeMenu({
+                    items: [{
+                        menuExpandDelay: 0,
+                        text: 'Menu Item 1',
+                        menu: {
+                            items: [{
+                                text: 'sub-Menu Item 1'
+                            }, {
+                                text: 'sub-Menu Item 2'
+                            }]
+                        }
+                    }, {
+                        text: 'Menu Item 2',
+                        menu: {
+                            items: [{
+                                text: 'sub-Menu Item 1'
+                            }, {
+                                text: 'sub-Menu Item 2'
+                            }]
+                        }
+                    }]
+                });
+                menu.show();
+                
+                var item = menu.down('[text="Menu Item 1"]');
+
+                // Expand the sub-menu
+                doItemMouseover(item);
+
+                waitsFor(function() {
+                    return item.menu.isVisible();
+                });
+                
+                runs(function() {
+                    jasmine.fireMouseEvent(item.el, 'click');
+                
+                    // Manager acts on global mousedown with no delays
+                    expect(item.menu.isVisible()).toBe(true);
+                });
+            });
+        });
+    });
+    
+    describe('Touch events', function() {
+        // https://sencha.jira.com/browse/EXTJS-20372
+        if (Ext.supports.TouchEvents) {
+            it("should not expand submenu when parent item is touched", function() {
+                makeMenu({
+                    items: [{
+                        xtype: 'datefield'
+                    }]
+                });
+
+                menu.show();
+
+                var field = menu.down('datefield'),
+                    trigger = field.triggerEl.item(0),
+                    x = trigger.getX() + trigger.getWidth() / 2,
+                    y = trigger.getY() + trigger.getHeight() / 2;
+
+                // Touch start must not focus the field
+                Ext.testHelper.touchStart(trigger.dom, { x: x, y: y });
+                Ext.testHelper.touchEnd(trigger.dom, { x: x, y: y });
+
+                expect(field.getPicker().isVisible()).toBe(true);
+            });
+        }
     });
 
     describe("moving menu", function() {
@@ -214,7 +357,9 @@ describe("Ext.menu.Menu", function() {
                 item.setMenu(menu);
 
                 other.show();
+                
                 jasmine.focusAndWait(item);
+                
                 runs(function() {
                     item.activated = true;
                     item.expandMenu(null, 0);
@@ -249,7 +394,9 @@ describe("Ext.menu.Menu", function() {
                 item = other.items.getAt(0);
 
                 other.show();
+                
                 jasmine.focusAndWait(item);
+                
                 runs(function() {
                     item.activated = true;
                     item.expandMenu(null, 0);
@@ -363,7 +510,7 @@ describe("Ext.menu.Menu", function() {
                 }]
             });
             menu.show();
-            jasmine.fireMouseEvent(field.inputEl, 'mousedown');
+            doElementMousedown(field.inputEl);
             expect(menu.isVisible()).toBe(false);
             field.destroy();
         });
@@ -383,7 +530,7 @@ describe("Ext.menu.Menu", function() {
                 }]
             });
             menu.show();
-            jasmine.fireMouseEvent(el, 'mousedown');
+            doElementMousedown(el);
             expect(menu.isVisible()).toBe(false);
             el.destroy();
         });
@@ -399,7 +546,7 @@ describe("Ext.menu.Menu", function() {
             m1.showAt(100, 100);
             m2.showAt(100, 150);
 
-            jasmine.fireMouseEvent(field.inputEl, 'mousedown');
+            doElementMousedown(field.inputEl);
             expect(m1.isVisible()).toBe(false);
             expect(m2.isVisible()).toBe(false);
             Ext.destroy(field, m1, m2);
@@ -658,7 +805,7 @@ describe("Ext.menu.Menu", function() {
                 }]
             });
 
-            jasmine.fireMouseEvent(menu.items.getAt(0).itemEl.dom, 'click');
+            doItemClick(menu.items.getAt(0));
 
             // since hashchange happens asynchronously the only way to test that it did not
             // happen is to wait a bit
@@ -671,14 +818,6 @@ describe("Ext.menu.Menu", function() {
     });
     
     describe("ARIA attributes", function() {
-        function expectAria(attr, value) {
-            jasmine.expectAriaAttr(menu, attr, value);
-        }
-        
-        function expectNoAria(attr) {
-            jasmine.expectNoAriaAttr(menu, attr);
-        }
-        
         describe("floating", function() {
             beforeEach(function() {
                 makeMenu();
@@ -688,15 +827,21 @@ describe("Ext.menu.Menu", function() {
                 menu.hide();
             });
             
+            describe("tabIndex", function() {
+                it("should be present on main el", function() {
+                    expect(menu.el).toHaveAttr('tabIndex', '-1');
+                });
+            });
+            
             describe("aria-expanded", function() {
                 it("should be false when hidden", function() {
-                    expectAria('aria-expanded', 'false');
+                    expect(menu).toHaveAttr('aria-expanded', 'false');
                 });
                 
                 it("should be true after showing", function() {
                     menu.show();
                     
-                    expectAria('aria-expanded', 'true');
+                    expect(menu).toHaveAttr('aria-expanded', 'true');
                 });
             });
         });
@@ -710,16 +855,17 @@ describe("Ext.menu.Menu", function() {
             });
             
             it("should not have aria-expanded attribute", function() {
-                expectNoAria('aria-expanded');
+                expect(menu).not.toHaveAttr('aria-expanded');
+            });
+            
+            it("should not have tabIndex on main el", function() {
+                expect(menu.el).not.toHaveAttr('tabIndex');
             });
         });
     });
     
-    describe("focus anchor", function() {
-        var focusAndWait = jasmine.focusAndWait,
-            expectFocused = jasmine.expectFocused,
-            pressTab = jasmine.simulateTabKey,
-            foo, bar, item;
+    describe("focus reversion", function() {
+        var foo, bar, item, activeMenu;
         
         function showItem(level, text) {
             var tempMenu, tempItem;
@@ -743,6 +889,7 @@ describe("Ext.menu.Menu", function() {
             
             if (item) {
                 item.focus();
+                activeMenu = item.ownerCt;
             }
             
             return item;
@@ -751,7 +898,39 @@ describe("Ext.menu.Menu", function() {
         beforeEach(function() {
             foo = new Ext.button.Button({
                 renderTo: Ext.getBody(),
-                text: 'foo'
+                text: 'foo',
+                menu: makeMenu({
+                    itemId: 'topMenu',
+                    defaults: {
+                        hideOnClick: false
+                    },
+
+                    items: [{
+                        text: 'item 1'
+                    }, {
+                        text: 'item 2'
+                    }, {
+                        text: 'submenu 1',
+                        menu: {
+                            itemId: 'submenu1',
+                            items: [{
+                                text: 'item 1'
+                            }, {
+                                text: 'item 2'
+                            }, {
+                                text: 'submenu 2', 
+                                menu: {
+                                    itemId: 'submenu2',
+                                    items: [{
+                                        text: 'item 1'
+                                    }, {
+                                        text: 'should be enough'
+                                    }]
+                                }
+                            }]
+                        }
+                    }]
+                })
             });
             
             bar = new Ext.button.Button({
@@ -759,78 +938,102 @@ describe("Ext.menu.Menu", function() {
                 text: 'bar'
             });
             
-            makeMenu({
-                defaults: {
-                    hideOnClick: false
-                },
-                
-                items: [{
-                    text: 'item 1'
-                }, {
-                    text: 'item 2',
-                }, {
-                    text: 'submenu 1',
-                    menu: [{
-                        text: 'item 1'
-                    }, {
-                        text: 'item 2'
-                    }, {
-                        text: 'submenu 2', 
-                        menu: [{
-                            text: 'item 1'
-                        }, {
-                            text: 'should be enough'
-                        }]
-                    }]
-                }]
-            });
+            pressKey(foo, 'down');
             
-            focusAndWait(foo);
-            
-            runs(function() {
-                menu.show();
-            });
+            waitsFor(function() {
+                return menu.isVisible() && menu.items.items[0].hasFocus;
+            }, 'menu to show and gain focus', 1000);
         });
         
         afterEach(function() {
             Ext.destroy(foo, bar);
             foo = bar = item = null;
         });
-        
+
         it("should capture focus anchor when opening", function() {
-            expect(menu.focusAnchor).toBe(foo.el.dom);
+            runs(function() {
+                showItem(2, "should be enough");
+            });
+            
+            waitsFor(function() {
+                return item.hasFocus;
+            });
+            
+            runs(function() {
+                expect(menu.getInherited().topmostFocusEvent.relatedTarget).toBe(foo.el.dom);
+                expect(menu.down('#submenu1').getInherited().topmostFocusEvent.relatedTarget).toBe(foo.el.dom);
+                expect(menu.down('#submenu2').getInherited().topmostFocusEvent.relatedTarget).toBe(foo.el.dom);
+            });
+        });
+
+        it("should be able to find its owning focusable", function() {
+            runs(function() {
+                menu.hide();
+            });
+            
+            expectFocused(foo);
         });
         
         it("should tab from 1st level menu to bar", function() {
-            showItem(0, 'item 1');
+            runs(function() {
+                showItem(0, 'item 1');
+            });
             
-            pressTab(item, true);
+            waitsFor(function() {
+                return item.hasFocus;
+            });
+
+            runs(function() {
+                simulateTabKey(item, true);
+            });
             
             expectFocused(bar);
         });
         
         it("should shift-tab from 1st level menu to foo", function() {
-            menu.focusAnchor = bar.el.dom;
+            runs(function() {
+                showItem(0, 'item 2');
+            });
             
-            showItem(0, 'item 2');
-            
-            pressTab(item, false);
+            waitsFor(function() {
+                return item.hasFocus;
+            });
+
+            runs(function() {
+                simulateTabKey(item, false);
+            });
             
             expectFocused(foo);
         });
         
         it("should tab from 2nd level menu to bar", function() {
-            showItem(1, 'item 1');
+            runs(function() {
+                showItem(1, 'item 1');
+            });
             
-            pressTab(item, true);
+            waitsFor(function() {
+                return item.hasFocus;
+            });
+
+            runs(function() {
+                simulateTabKey(item, true);
+            });
             
             expectFocused(bar);
         });
         
         it("should tab from 3rd level menu to bar", function() {
-            showItem(2, "should be enough");
+            runs(function() {
+                showItem(2, "should be enough");
+            });
             
-            pressTab(item, true);
+            waitsFor(function() {
+                return item.hasFocus;
+            });
+
+            runs(function() {
+                simulateTabKey(item, true);
+            });
             
             expectFocused(bar);
         });
@@ -861,27 +1064,32 @@ describe("Ext.menu.Menu", function() {
         });
     });
 
-    describe('hide on click', function() {
-        var testWindow,
+    describe('Multi level menus', function() {
+        var testContainer,
             button,
+            secondButton,
             topMenu,
             topMenuItem,
             menu2,
             menu2Item,
             menu3,
             menu3Item,
+            menu3Item1,
             clicked;
 
         beforeEach(function() {
-            testWindow = new Ext.window.Window({
+            testContainer = new Ext.container.Container({
                 renderTo: Ext.getBody(),
                 width: 300,
-                tbar: [button = new Ext.button.Button({
+                items: [{
+                        xtype: 'button',
+                        text: 'A Button'
+                    }, button = new Ext.button.Button({
                     xtype: 'button',
                     text: 'Foo',
                     menu: topMenu = new Ext.menu.Menu({
                         onBeforeShow: function() {
-                            return true
+                            return true;
                         },
                         items: topMenuItem = new Ext.menu.Item({
                             text: 'Top menu item',
@@ -889,48 +1097,60 @@ describe("Ext.menu.Menu", function() {
                                 items: menu2Item = new Ext.menu.Item({
                                     text: 'Second level menu item',
                                     menu: menu3 = new Ext.menu.Menu({
-                                        items: menu3Item = new Ext.menu.Item({
-                                            text: 'Third level menu',
-                                            handler: function() {
-                                                clicked = true;
-                                            }
-                                        })
+                                        items: [
+                                            // First item is disabled.
+                                            // http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#menu
+                                            // It should still receive focus
+                                            menu3Item = new Ext.menu.Item({
+                                                text: 'Third level menu',
+                                                disabled: true
+                                            }), menu3Item1 = new Ext.menu.Item({
+                                                text: 'Third level second item',
+                                                handler: function() {
+                                                    clicked = true;
+                                                }
+                                            })
+                                        ]
                                     })
                                 })
                             })
                         })
                     })
+                }), secondButton = new Ext.button.Button({
+                    text: 'Bar'
                 })]
             });
-            testWindow.show();
-        });
-        afterEach(function() {
-            testWindow.destroy();
-        });
-        itGoodBrowsers('should hide on click, and on reshow of parent, should not show again', function() {
-            button.el.focus();
             
-            waitsFor(function() {
-                return button.hasFocus;
-            }, 'button to recieve focus');
-            runs(function() {
-                jasmine.fireMouseEvent(button.el, 'click');
-                jasmine.fireKeyEvent(button.el, 'keydown', Ext.event.Event.DOWN);
-            });
+            testContainer.show();
+        });
+        
+        afterEach(function() {
+            testContainer.destroy();
+        });
+        
+        it('should hide on click, and on reshow of parent, should not show again', function() {
+            pressKey(button, 'down');
+            
             waitsFor(function() {
                 return topMenu.isVisible() && topMenuItem.hasFocus;
             }, 'topMenuItem to recieve focus');
+            
             runs(function() {
-                jasmine.fireKeyEvent(topMenuItem.el, 'keydown', Ext.event.Event.RIGHT);
+                pressKey(topMenuItem, 'right');
             });
+            
             waitsFor(function() {
                 return menu2.isVisible() && menu2Item.hasFocus;
             }, 'menu2Item to recieve focus');
+            
             runs(function() {
-                jasmine.fireKeyEvent(menu2Item.el, 'keydown', Ext.event.Event.RIGHT);
+                pressKey(menu2Item, 'right');
             });
+
+            // http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#menu
+            // "Disabled menu items receive focus but have no action when Enter or Left Arrow/Right Arrow is pressed. It is important that the state of the menu item be clearly communicated to the user."
             waitsFor(function() {
-                return menu3.isVisible && menu3Item.hasFocus;
+                return menu3.isVisible() && menu3Item.hasFocus && menu3Item.activated && menu3Item.hasCls(menu3Item.activeCls);
             }, 'menu3Item to recieve focus');
 
             runs(function() {
@@ -940,7 +1160,7 @@ describe("Ext.menu.Menu", function() {
                 expect(menu3.isVisible()).toBe(true);
 
                 // click the last menu item
-                jasmine.fireMouseEvent(menu3Item.el, 'click');
+                doItemClick(menu3Item1);
             });
 
             // All menus must have hidden and focus must revert to the button
@@ -949,20 +1169,115 @@ describe("Ext.menu.Menu", function() {
             }, 'all menus to hide');
             
             runs(function() {
-                jasmine.fireMouseEvent(button.el, 'click');
+                doItemClick(button);
             });
+            
             waitsFor(function() {
                 return topMenu.isVisible();
             }, 'topMenu to show for the second time');
+            
             runs(function() {
                 expect(menu2.isVisible()).toBe(false);
                 expect(menu3.isVisible()).toBe(false);
             });
         });
+
+        it('should revert focus to owning static component upon TAB out of a descendant.', function() {
+            pressKey(button, 'down');
+            
+            waitsFor(function() {
+                return topMenu.isVisible() && topMenuItem.hasFocus;
+            }, 'topMenuItem to recieve focus');
+            
+            runs(function() {
+                pressKey(topMenuItem, 'right');
+            });
+            
+            waitsFor(function() {
+                return menu2.isVisible() && menu2Item.hasFocus;
+            }, 'menu2Item to recieve focus');
+            
+            runs(function() {
+                pressKey(menu2Item, 'right');
+            });
+
+            // http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#menu
+            // "Disabled menu items receive focus but have no action when Enter or Left Arrow/Right Arrow is pressed. It is important that the state of the menu item be clearly communicated to the user."
+            waitsFor(function() {
+                return menu3.isVisible() && menu3Item.hasFocus && menu3Item.activated && menu3Item.hasCls(menu3Item.activeCls);
+            }, 'menu3Item to recieve focus');
+
+            runs(function() {
+                // All three menus must be visible
+                expect(topMenu.isVisible()).toBe(true);
+                expect(menu2.isVisible()).toBe(true);
+                expect(menu3.isVisible()).toBe(true);
+
+                // TAB off the last menu item. Do not use jasmine.pressTabKey() here
+                // because we want synchronous processing
+                simulateTabKey();
+            });
+            
+            // All menus must have hidden and focus must revert to the button, but allowing the TAB default action to then
+            // focus the second button
+            waitsFor(function() {
+                return !topMenu.isVisible() && !menu2.isVisible() && !menu3.isVisible() && secondButton.hasFocus;
+            }, 'all menus to hide and owning button to be focused');
+        });
+
+        it('should revert focus to relative owning static component upon TAB out of a descendant if owning component was hidden.', function() {
+            pressKey(button, 'down');
+            
+            waitsFor(function() {
+                return topMenu.isVisible() && topMenuItem.hasFocus;
+            }, 'topMenuItem to recieve focus');
+            
+            runs(function() {
+                pressKey(topMenuItem, 'right');
+            });
+            
+            waitsFor(function() {
+                return menu2.isVisible() && menu2Item.hasFocus;
+            }, 'menu2Item to recieve focus');
+            
+            runs(function() {
+                pressKey(menu2Item, 'right');
+            });
+
+            // http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#menu
+            // "Disabled menu items receive focus but have no action when Enter or Left Arrow/Right Arrow is pressed. It is important that the state of the menu item be clearly communicated to the user."
+            waitsFor(function() {
+                return menu3.isVisible() && menu3Item.hasFocus && menu3Item.activated && menu3Item.hasCls(menu3Item.activeCls);
+            }, 'menu3Item to recieve focus');
+
+            runs(function() {
+                // All three menus must be visible
+                expect(topMenu.isVisible()).toBe(true);
+                expect(menu2.isVisible()).toBe(true);
+                expect(menu3.isVisible()).toBe(true);
+
+                // This is the crucial step.
+                // This is the default focus target on reversion.
+                // It should go to the following sibling.
+                button.hide();
+
+                // TAB off the last menu item. Do not use jasmine.pressTabKey() here
+                // because we want synchronous processing
+                simulateTabKey();
+            });
+
+            // All menus must have hidden and focus must revert to the second button
+            // because the owning button has been hidden.
+            // The way it will work is  that focus reversion will focus the 'A Button'
+            // button because it will avoid the hidden one. Then natural TAB will occur.
+            waitsFor(function() {
+                return !topMenu.isVisible() && !menu2.isVisible() && !menu3.isVisible() && secondButton.hasFocus;
+            }, 'all menus to hide and second button to be focused');
+        });
     });
     
     describe("keyboard interaction", function() {
-        var item, submenu, subitem;
+        var item, submenu, subitem1, subitem2;
         
         beforeEach(function() {
             makeMenu({
@@ -971,18 +1286,63 @@ describe("Ext.menu.Menu", function() {
                 }, {
                     text: 'submenu',
                     menu: [{
-                        text: 'subitem'
+                        text: 'subitem 1'
+                    }, {
+                        text: 'subitem 2'
                     }]
                 }]
             });
             
             item = menu.down('[text=item]');
             submenu = menu.down('[text=submenu]');
-            subitem = submenu.menu.down('[text=subitem]');
+            subitem1 = submenu.menu.down('[text="subitem 1"]');
+            subitem2 = submenu.menu.down('[text="subitem 2"]');
         });
         
         afterEach(function() {
-            item = submenu = subitem = null;
+            item = submenu = subitem1 = subitem2 = null;
+        });
+        
+        describe("opening", function() {
+            var submenuSpy;
+            
+            beforeEach(function() {
+                submenuSpy = jasmine.createSpy('submenu show');
+                
+                submenu.menu.on('show', submenuSpy);
+                
+                menu.show();
+            });
+            
+            afterEach(function() {
+                submenuSpy = null;
+            });
+            
+            it("should focus the first subitem", function() {
+                pressKey(submenu, 'right');
+                
+                runs(function() {
+                    expectFocused(subitem1, true);
+                });
+            });
+            
+            it("should focus the first subitem again", function() {
+                pressKey(submenu, 'right');
+                
+                waitForSpy(submenuSpy, 5000);
+                
+                runs(function() {
+                    expectFocused(subitem1, true);
+                    pressKey(subitem1, 'down');
+                    pressKey(subitem2, 'esc');
+                });
+                
+                pressKey(submenu, 'right');
+                
+                runs(function() {
+                    expectFocused(subitem1);
+                });
+            });
         });
         
         // Unfortunately we cannot test that the actual problem is solved,
@@ -1007,7 +1367,7 @@ describe("Ext.menu.Menu", function() {
             });
             
             it("should preventDefault on the Up arrow key", function() {
-                pressArrow(submenu, 'up');
+                pressKey(submenu, 'up');
                 
                 waitForFocus(item);
                 
@@ -1017,7 +1377,7 @@ describe("Ext.menu.Menu", function() {
             });
             
             it("should preventDefault on the Down arrow key", function() {
-                pressArrow(item, 'down');
+                pressKey(item, 'down');
                 
                 waitForFocus(submenu);
                 
@@ -1027,10 +1387,10 @@ describe("Ext.menu.Menu", function() {
             });
             
             it("should preventDefault on the Right key", function() {
-                pressArrow(submenu, 'right');
+                pressKey(submenu, 'right');
                 
                 runs(function() {
-                    waitForFocus(subitem);
+                    waitForFocus(subitem1);
                 });
                 
                 runs(function() {
@@ -1045,7 +1405,7 @@ describe("Ext.menu.Menu", function() {
                     submenu.activated = true;
                     submenu.expandMenu(null, 0);
                     
-                    pressArrow(subitem, 'left');
+                    pressKey(subitem1, 'left');
                 });
                 
                 waitForFocus(submenu);
@@ -1054,6 +1414,130 @@ describe("Ext.menu.Menu", function() {
                     expect(leftSpy.mostRecentCall.args[0].defaultPrevented).toBe(true);
                 });
             });
+        });
+    });
+    
+    describe("shortcut keys", function() {
+        it("should not throw exception when there are no menu items", function() {
+            makeMenu();
+            menu.show();
+            
+            // There's something really weird going on with catching exceptions
+            // in event handlers, so call the relevant method directly
+            expect(function() {
+                var event = new Ext.event.Event({
+                    type: 'keydown',
+                    charCode: 65, // char 'A'
+                    target: menu.el.dom
+                });
+                menu.onShortcutKey(65, event);
+            }).not.toThrow();
+        });
+    });
+    
+    describe('document scrolling', function() {
+        it('should not hide when the document scrolls', function() {
+            var stretcher = Ext.getBody().createChild({
+                style: 'position:absolute;height:1px;width:1px;top:10000px'
+            });
+
+            makeMenu();
+            menu.show();
+            Ext.scroll.Scroller.getScrollingElement().scrollTop = 10000;
+
+            // We must wait for a possibly asynchronous scroll event to happen.
+            waits(100);
+            runs(function() {
+                expect(menu.isVisible()).toBe(true);
+                stretcher.destroy();
+            });
+        });
+    });
+
+    // https://sencha.jira.com/browse/EXTJS-20962
+    describe("adding separator by shortcut to menu that has defaults", function () {
+        beforeEach(function () {
+            makeMenu({
+                defaults: {
+                    iconCls: 'x-fa fa-truck'
+                },
+                items: [{
+                    text: 'Item 1'
+                }, '-', {
+                    text: 'Item 2'
+                }]
+            });
+        });
+
+        it("should not apply defaults to separator", function () {
+            expect(menu.items.getAt(0).iconCls).toBe('x-fa fa-truck');
+            expect(menu.items.getAt(1).iconCls).toBeUndefined();
+            expect(menu.items.getAt(2).iconCls).toBe('x-fa fa-truck');
+        });
+
+        it("should successfully add an instance of Ext.menu.Separator", function () {
+            expect(menu.items.getAt(1).getXType()).toBe('menuseparator');
+        });
+    });
+
+    describe("static, inside an accordion layout", function() {
+        var oldOnError = window.onerror;
+        
+        afterEach(function() {
+            window.onerror = oldOnError;
+        });
+        it('should not throw an error on mousedown of the header', function() {
+            var header, onErrorSpy = jasmine.createSpy();
+
+            function getSampleMenuItems () {
+                return [
+                    { text: 'Menu Item 1' },
+                    { text: 'Menu Item 2' },
+                    { text: 'Menu Item 3' },
+                    { text: 'Menu Item 4' }
+                ];
+            }
+
+            menu = Ext.widget('panel', {
+                title: 'Accordion Panel',
+                width: 300,
+                height: 500,
+                renderTo: Ext.getBody(),
+                layout: 'accordion',
+                items: [{
+                    xtype: 'menu',
+                    floating: false,
+                    title: 'Menu 1 Title (Throws Exception)',
+                        items: getSampleMenuItems()
+                }, {
+                    xtype: 'menu',
+                    floating: false,
+                    title: 'Menu 2 Title (Throws Exception)',
+                        items: getSampleMenuItems()
+                }, {
+                    xtype: 'panel',
+                    title: 'Panel w/ Fit Menu (Works)',
+                    layout: 'fit',
+                    items: [{
+                        xtype: 'menu',
+                        floating: false,
+                        items: getSampleMenuItems()
+                    }]
+                }]
+            });
+
+            window.onerror = onErrorSpy.andCallFake(function() {
+                if (oldOnError) {
+                    oldOnError();
+                }
+            });
+
+            header = menu.down('menu').header;
+            header.titleCmp.focus();
+            jasmine.fireMouseEvent(header.el, 'mousedown');
+
+            // Must not have thrown an error
+            expect(onErrorSpy).not.toHaveBeenCalled();
         });
     });
 });

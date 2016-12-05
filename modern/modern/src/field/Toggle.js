@@ -55,28 +55,10 @@ Ext.define('Ext.field.Toggle', {
     alternateClassName: 'Ext.form.Toggle',
     requires: ['Ext.slider.Toggle'],
 
-    /**
-     * @event change
-     * Fires when the value changes.
-     * @param {Ext.field.Slider} me
-     * @param {Boolean} newValue The new value.
-     * @param {Boolean} oldValue The old value.
-     */
-
     config: {
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        cls: 'x-toggle-field',
-
-        /**
-         * @cfg {String} labelAlign
-         * The position to render the label relative to the field input.
-         * Available options are: 'top', 'left', 'bottom' and 'right'
-         * @accessor
-         */
-        labelAlign: 'left',
+        component: {
+            xtype: 'toggleslider'
+        },
 
         /**
          * @cfg {String} activeLabel The label to add to the toggle field when it is toggled on.
@@ -99,6 +81,8 @@ Ext.define('Ext.field.Toggle', {
          */
         value: false
     },
+
+    classCls: Ext.baseCSSPrefix + 'togglefield',
 
     /**
      * @event change
@@ -133,26 +117,10 @@ Ext.define('Ext.field.Toggle', {
     * @event dragend
     * @hide
     */
-
-    proxyConfig: {
-        /**
-         * @cfg {String} minValueCls See {@link Ext.slider.Toggle#minValueCls}
-         * @accessor
-         */
-        minValueCls: Ext.baseCSSPrefix + 'toggle-off',
-
-        /**
-         * @cfg {String} maxValueCls  See {@link Ext.slider.Toggle#maxValueCls}
-         * @accessor
-         */
-        maxValueCls: Ext.baseCSSPrefix + 'toggle-on'
-    },
-
-    /**
-     * @private
-     */
-    applyComponent: function(config) {
-        return Ext.factory(config, Ext.slider.Toggle);
+   
+   initialize: function() {
+        this.callParent();
+        this.publishState('value', this.getValue());
     },
 
     /**
@@ -161,7 +129,6 @@ Ext.define('Ext.field.Toggle', {
     updateActiveLabel: function(newActiveLabel, oldActiveLabel) {
         this.getComponent().element.dom.setAttribute('data-activelabel', newActiveLabel);
     },
-
     /**
      * @private
      */

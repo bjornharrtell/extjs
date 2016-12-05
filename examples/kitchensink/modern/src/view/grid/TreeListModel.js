@@ -20,8 +20,11 @@ Ext.define('KitchenSink.view.grid.TreeListModel', {
     stores: {
         navItems: {
             type: 'tree',
+            rootVisible: true,
             root: {
                 expanded: true,
+                text: 'All',
+                iconCls: 'x-fa fa-sitemap',
                 children: [{
                     text: 'Home',
                     iconCls: 'x-fa fa-home',

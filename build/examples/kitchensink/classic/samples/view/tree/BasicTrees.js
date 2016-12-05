@@ -6,6 +6,19 @@ Ext.define('KitchenSink.view.tree.BasicTrees', {
     xtype: 'basic-trees',
     width: 640,
 
+    //<example>
+    otherContent: [{
+        type: 'Store',
+        path: 'classic/samples/store/Files.js'
+    }],
+    profiles: {
+        classic: {
+        },
+        neptune: {
+        }
+    },
+    //</example>
+
     layout: {
         type: 'table',
         columns: 2,
@@ -20,35 +33,15 @@ Ext.define('KitchenSink.view.tree.BasicTrees', {
         // Sharing the store synchronizes the views:
         store: 'Files'
     },
-    //<example>
-    otherContent: [{
-        type: 'Store',
-        path: 'classic/samples/store/Files.js'
-    }],
-    profiles: {
-        classic: {
-        },
-        neptune: {
-        }
-    },
-    //</example>
-    
-    initComponent: function() {
-        this.items = [
-            {
-                title: 'Tree'
-            },
-            {
-                title: 'Tree with No Lines',
-                lines: false
-            },
-            {
-                title: 'Tree with Arrows',
-                useArrows: true,
-                colspan: 2
-            }
-        ];
 
-        this.callParent();
-    }
+    items: [{
+        title: 'Tree'
+    }, {
+        title: 'Tree with No Lines',
+        lines: false
+    }, {
+        title: 'Tree with Arrows',
+        useArrows: true,
+        colspan: 2
+    }]
 });

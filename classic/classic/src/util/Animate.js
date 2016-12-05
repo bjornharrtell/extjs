@@ -201,10 +201,10 @@ Ext.define('Ext.util.Animate', {
     mixinId: 'animate',
 
     requires: [
-        'Ext.fx.Manager', 
+        'Ext.fx.Manager',
         'Ext.fx.Anim'
     ],
-    
+
     isAnimate: true,
 
     /**
@@ -228,6 +228,8 @@ Ext.define('Ext.util.Animate', {
      *   - `width` - The Component's `width` value in pixels.
      *
      *   - `height` - The Component's `height` value in pixels.
+     *
+     * The following property may be set on the animation config root:
      *
      *   - `dynamic` - Specify as true to update the Component's layout (if it is a Container) at every frame of the animation.
      *     *Use sparingly as laying out on every intermediate size change is an expensive operation.*
@@ -301,7 +303,7 @@ Ext.define('Ext.util.Animate', {
             paused: true
         }, config);
     },
-    
+
     /**
      * @private
      * Get animation properties
@@ -309,7 +311,7 @@ Ext.define('Ext.util.Animate', {
     getAnimationProps: function() {
         var me = this,
             layout = me.layout;
-        
+
         return layout && layout.animate ? layout.animate : {};
     },
 
@@ -327,8 +329,8 @@ Ext.define('Ext.util.Animate', {
      * that haven't started yet.
      * @return {Ext.dom.Element} The Element
      */
-    stopAnimation: function() {
-        Ext.fx.Manager.stopAnimation(this.id);
+    stopAnimation: function(/* private */ suppressEvent) {
+        Ext.fx.Manager.stopAnimation(this.id, suppressEvent);
         return this;
     },
 

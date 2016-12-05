@@ -1,0 +1,64 @@
+.stretch-html .x-innerhtml {
+    height: 100%;
+}
+
+.data-source {
+    width: 120px;
+    height: 120px;
+    text-align: center;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    color: #FFF;
+    @include border-radius(5px);
+    @include user-select(none);
+
+    background-color: #FF5722;
+    top: 10px;
+    left: 10px;
+
+    .handle {
+        cursor: move;
+        background-color: #43A047;
+        @include border-radius(5px);
+        padding: 3px;
+        width: 90px;
+        margin: 10px 0 10px 15px;
+    }
+
+    .x-phone & {
+        max-width: 120px;
+        width: 40vw;
+    }
+}
+
+.data-target {
+    width: 200px;
+    height: 120px;
+    left: 200px;
+    top: 10px;
+    position: absolute;
+    padding: 5px;
+    border: 5px dotted #2196F3;
+    @include user-select(none);
+
+    .x-phone & {
+        left: 40vw;
+        margin-left: 10px;
+        width: 55vw;
+    }
+}
+
+.data-target-valid {
+    background-color: #FFF59D;
+}
+
+.data-proxy {
+    color: #FFF;
+    text-align: center;
+    width: 70px;
+    height: 70px;
+    background-color: #43A047;
+    padding: 5px;
+    @include border-radius(5px);
+}

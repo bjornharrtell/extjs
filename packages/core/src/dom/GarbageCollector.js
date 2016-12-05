@@ -1,10 +1,10 @@
 /**
- * @private
  * Garbage collector for Ext.dom.Element instances.  Automatically cleans up Elements
  * that are no longer in the dom, but were not properly destroyed using
  * {@link Ext.dom.Element#destroy destroy()}.  Recommended practice is for Components to
  * clean up their own elements, but the GarbageCollector runs on regularly scheduled
  * intervals to attempt to clean up orphaned Elements that may have slipped through the cracks.
+ * @private
  */
 Ext.define('Ext.dom.GarbageCollector', {
     singleton: true,
@@ -20,8 +20,10 @@ Ext.define('Ext.dom.GarbageCollector', {
 
     constructor: function() {
         var me = this;
-        me.collect = Ext.Function.bind(me.collect, me);
+
         me.lastTime = Ext.now();
+        me.onTick = me.onTick.bind(me);
+
         me.resume();
     },
 
@@ -41,7 +43,6 @@ Ext.define('Ext.dom.GarbageCollector', {
         //<debug>
         var collectedIds = [];
         //</debug>
-        
 
         for (eid in cache) {
             if (!cache.hasOwnProperty(eid)) {
@@ -114,24 +115,41 @@ Ext.define('Ext.dom.GarbageCollector', {
         //</debug>
     },
 
+    onTick: function () {
+        this.timerId = null;
+
+        if (Ext.enableGarbageCollector) {
+            this.collect();
+        }
+
+        this.resume();
+    },
+
     /**
      * Pauses the timer and stops garbage collection
      */
     pause: function() {
-        clearTimeout(this.timerId);
+        var timerId = this.timerId;
+
+        if (timerId) {
+            this.timerId = null;
+            clearTimeout(timerId);
+        }
     },
 
     /**
      * Resumes garbage collection at the specified {@link #interval}
      */
-    resume: function() {
+    resume: function () {
         var me = this,
             lastTime = me.lastTime;
 
-        if (Ext.enableGarbageCollector && (Ext.now() - lastTime > me.interval)) {
+        if (Ext.enableGarbageCollector && (Ext.now() - lastTime) > me.interval) {
             me.collect();
         }
 
-        me.timerId = Ext.interval(me.collect, me.interval);
+        if (!me.timerId) {
+            me.timerId = Ext.defer(me.onTick, me.interval);
+        }
     }
 });

@@ -1,104 +1,57 @@
-/**
- * @class Ext.field.Field
- */
+@include field-ui(
+    $background-color: $field-background-color,
+    $focused-background-color: $field-focused-background-color,
+    $invalid-background-color: $field-invalid-background-color,
+    $disabled-background-color: $field-disabled-background-color,
+    $label-color: $field-label-color,
+    $focused-label-color: $field-focused-label-color,
+    $invalid-label-color: $field-invalid-label-color,
+    $disabled-label-color: $field-disabled-label-color,
+    $label-background-color: $field-label-background-color,
+    $focused-label-background-color: $field-focused-label-background-color,
+    $invalid-label-background-color: $field-invalid-label-background-color,
+    $disabled-label-background-color: $field-disabled-label-background-color,
+    $label-padding: $field-label-padding,
+    $label-padding-big: $field-label-padding-big,
+    $label-font-weight: $field-label-font-weight,
+    $label-font-size: $field-label-font-size,
+    $label-font-size-big: $field-label-font-size-big,
+    $label-line-height: $field-label-line-height,
+    $label-line-height-big: $field-label-line-height-big,
+    $label-font-family: $field-label-font-family,
+    $disabled-opacity: $field-disabled-opacity,
+    $required-indicator-font-weight: $field-required-indicator-font-weight,
+    $required-indicator-font-size: $field-required-indicator-font-size,
+    $required-indicator-line-height: $field-required-indicator-line-height,
+    $required-indicator-font-family: $field-required-indicator-font-family,
+    $required-indicator-margin: $field-required-indicator-margin,
+    $required-indicator-margin-big: $field-required-indicator-margin-big
+);
 
-.x-field {
-    background: $field-background-color;
+.#{$prefix}field {
+    &.#{$prefix}layout-auto-item,
+    &.#{$prefix}layout-vbox-item {
+        // the bottom spacing is implemented as padding so that when you are using
+        // fieldSeparators: true and inputBorders:false, each field's content appears
+        // centered vertically between the separators
+        @if $field-vertical-spacing != null {
+            margin-top: $field-vertical-spacing / 2;
+            padding-bottom: $field-vertical-spacing / 2;
+        }
 
-    &:last-child {
-        border-bottom: 0;
-    }
-}
-
-.x-form-label {
-    color: $field-label-color;
-    background-color: $field-label-background-color;
-
-    padding: $field-label-padding;
-    @include font($field-label-font-weight, $field-label-font-size, $field-label-line-height, $field-label-font-family);
-    min-height: calc(#{$field-label-line-height} + #{vertical($field-label-padding)});
-
-    @if $enable-big {
-        .x-big & {
-            @if $field-label-padding-big != $field-label-padding {
-                padding: $field-label-padding-big;
-            }
-            @if $field-label-font-size-big != $field-label-font-size {
-                font-size: $field-label-font-size-big;
-            }
-            @if $field-label-line-height-big != $field-label-line-height {
-                line-height: $field-label-line-height-big;
+        @if $enable-big and $field-vertical-spacing-big != null {
+            .#{$prefix}big & {
+                margin-top: $field-vertical-spacing-big / 2;
+                padding-bottom: $field-vertical-spacing-big / 2;
             }
         }
-    }
-}
 
-.x-field-input {
-    .x-clear-icon {
-        width: $textfield-clear-icon-size;
-        height: $textfield-clear-icon-size;
-        top: 50%;
-        right: .4em;
-        color: $textfield-clear-icon-color;
-        margin-top: -($textfield-clear-icon-size / 2);
-        @include font-icon($textfield-clear-icon);
-    }
-}
+        &:first-child {
+            margin-top: 0;
+        }
 
-.x-field-clearable,
-.x-field-revealable {
-    .x-input-el {
-        padding-right: calc(#{$textfield-clear-icon-font-size} + .6em);
-
-        @if $enable-big {
-            .x-big & {
-                padding-right: calc(#{$textfield-clear-icon-font-size-big} + .6em);
-            }
+        &:last-child {
+            padding-bottom: 0;
         }
     }
-}
-
-.x-input-el {
-    background-color: $textfield-input-background-color;
-    padding: $textfield-input-padding;
-    @include font($textfield-input-font-weight, $textfield-input-font-size, $textfield-input-line-height, $textfield-input-font-family);
-    min-height: calc(#{$textfield-input-line-height} + #{vertical($textfield-input-padding)});
-
-    @if $enable-big {
-        .x-big & {
-            @if $textfield-input-padding-big != $textfield-input-padding {
-                padding: $textfield-input-padding-big;
-            }
-            @if $textfield-input-font-size-big != $textfield-input-font-size {
-                font-size: $textfield-input-font-size-big;
-            }
-            @if $textfield-input-line-height-big != $textfield-input-line-height {
-                line-height: $textfield-input-line-height-big;
-            }
-        }
-    }
-
-    border-width: 0;
-    -webkit-appearance: none;
-}
-
-.x-item-disabled {
-  .x-form-label,
-  input,
-  .x-input-el,
-  .x-spinner-body,
-  select,
-  textarea,
-  .x-field-clear-container {
-    color: #b3b3b3;
-    pointer-events: none;
-  }
-}
-
-.x-item-disabled .x-form-label {
-    color: #aaa;
-}
-
-.x-item-disabled .x-form-label:after {
-    color: #666 !important;
 }

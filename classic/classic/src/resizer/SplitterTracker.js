@@ -69,6 +69,26 @@ Ext.define('Ext.resizer.SplitterTracker', {
         return box;
     },
 
+    onMouseDown: function(e, target) {
+        // Logic to resize components. If this splitter has an iframe on either side, 
+        // dragging over it will make us not detect startDrag, so we need to cover all iframes and
+        // this has to be done before triggerStart or onStart. We cannot do this in
+        // general (meaning adding this to Ext.dd.DragTracker) because other draggable things cannot 
+        // assume that mouseDown is safe for this purpose. In particular ComponentDragger on a maximizable window will
+        // get tricked by the maximize button onMouseDown and mask everything but will
+        // never get the onMouseUp to unmask the iframes.
+        this.callParent([e, target]);
+
+        if (this.mouseIsDown && this.getSplitter().el.dom === target) {
+            Ext.dom.Element.maskIframes();
+        }
+    },
+
+    onMouseUp: function(e) {
+        this.callParent([e]);
+        Ext.dom.Element.unmaskIframes();
+    },
+
     // We move the splitter el. Add the proxy class.
     onStart: function(e) {
         var splitter = this.getSplitter();

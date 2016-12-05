@@ -1,6 +1,6 @@
-//<example>
+// <example>
 Ext.require('KitchenSink.model.Person', function() {
-//</example>
+// </example>
 Ext.define('KitchenSink.view.binding.AssociationModel', {
     extend: 'Ext.app.ViewModel',
     alias: 'viewmodel.binding-association',
@@ -21,6 +21,6 @@ Ext.define('KitchenSink.view.binding.AssociationModel', {
         }
     }
 });
-//<example>
+// <example>
 });
-//</example>
+// </example>

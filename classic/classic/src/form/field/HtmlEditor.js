@@ -216,9 +216,24 @@ Ext.define('Ext.form.field.HtmlEditor', {
     /**
      * @cfg {String} defaultButtonUI
      * A default {@link Ext.Component#ui ui} to use for the HtmlEditor's toolbar
-     * {@link Ext.button.Button Buttons}
+     * {@link Ext.button.Button buttons}.
      */
     defaultButtonUI: 'default-toolbar',
+    
+    /**
+     * @cfg {Object} buttonDefaults
+     * A config object to apply to the toolbar's {@link Ext.button.Button buttons} to affect how they operate, eg:
+     *
+     *    buttonDefaults: {
+     *        tooltip: {
+     *            align: 't-b',
+     *            anchor: true
+     *        }
+     *    }
+     *
+     * @since 6.2.0
+     */
+    buttonDefaults: null,
 
     /**
      * @private
@@ -350,7 +365,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
         return {
             flex: 1,
             xtype: 'component',
-            tpl: me.getTpl('componentTpl'),
+            tpl: me.lookupTpl('componentTpl'),
             childEls: ['iframeEl', 'textareaEl'],
             id: id, 
             cls: Ext.baseCSSPrefix + 'html-editor-input',
@@ -377,7 +392,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
             fontSelectItem, undef;
 
         function btn(id, toggle, handler){
-            return {
+            return Ext.merge({
                 itemId: id,
                 cls: baseCSSPrefix + 'btn-icon',
                 iconCls: baseCSSPrefix + 'edit-'+id,
@@ -385,10 +400,10 @@ Ext.define('Ext.form.field.HtmlEditor', {
                 scope: me,
                 handler:handler||me.relayBtnCmd,
                 clickEvent: 'mousedown',
-                tooltip: tipsEnabled ? me.buttonTips[id] || undef : undef,
+                tooltip: tipsEnabled ? me.buttonTips[id] : undef,
                 overflowText: me.buttonTips[id].title || undef,
                 tabIndex: -1
-            };
+            }, me.buttonDefaults);
         }
 
 
@@ -452,7 +467,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
 
         if (me.enableColors) {
             items.push(
-                '-', {
+                '-', Ext.merge({
                     itemId: 'forecolor',
                     cls: baseCSSPrefix + 'btn-icon',
                     iconCls: baseCSSPrefix + 'edit-forecolor',
@@ -475,7 +490,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
                             }
                         }]
                     })
-                }, {
+                }, me.buttonDefaults), Ext.merge({
                     itemId: 'backcolor',
                     cls: baseCSSPrefix + 'btn-icon',
                     iconCls: baseCSSPrefix + 'edit-backcolor',
@@ -505,7 +520,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
                             }
                         }]
                     })
-                }
+                }, me.buttonDefaults)
             );
         }
 
@@ -1126,7 +1141,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
             }
 
             // We need to be sure we remove all our events from the iframe on unload or we're going to LEAK!
-            Ext.getWin().on('beforeunload', me.beforeDestroy, me);
+            Ext.getWin().on('unload', me.destroyEditor, me);
             doc.editorInitialized = true;
 
             me.initialized = true;
@@ -1139,7 +1154,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
     /**
      * @private
      */
-    beforeDestroy: function(){
+    destroyEditor: function(){
         var me = this,
             monitorTask = me.monitorTask,
             doc, prop;
@@ -1148,7 +1163,7 @@ Ext.define('Ext.form.field.HtmlEditor', {
             Ext.TaskManager.stop(monitorTask);
         }
         if (me.rendered) {
-            Ext.getWin().un(me.beforeDestroy, me);
+            Ext.getWin().un('unload', me.destroyEditor, me);
 
             doc = me.getDoc();
             if (doc) {
@@ -1178,7 +1193,14 @@ Ext.define('Ext.form.field.HtmlEditor', {
             delete me.toolbar;
             delete me.inputCmp;
         }
-        me.callParent();
+    },
+
+    /**
+     * @private
+     */
+    doDestroy: function() {
+        this.destroyEditor();
+        this.callParent();
     },
 
     /**

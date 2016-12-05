@@ -85,7 +85,7 @@ describe("Ext.layout.container.Dashboard", function() {
             expect(! items[6].isSplitter).toBe(true);
         });
 
-        it("should update splitters on add", function() {
+        it("should update splitters on add to three columns", function() {
             makePanel(parentConfig, [
                 { height: 80, columnWidth: .25 },
                 // splitter
@@ -112,7 +112,7 @@ describe("Ext.layout.container.Dashboard", function() {
             expect(! items[6].isSplitter).toBe(true);
         });
 
-        it("should update splitters on add", function() {
+        it("should update splitters on add to four columns", function() {
             makePanel(parentConfig, [
                 { height: 80, columnWidth: .25 },
                 // splitter

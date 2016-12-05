@@ -6,8 +6,17 @@
 Ext.define('KitchenSink.view.panel.FramedPanels', {
     extend: 'Ext.Container',
     xtype: 'framed-panels',
-    width: 660,
 
+    //<example>
+    profiles: {
+        classic: {
+        },
+        neptune: {
+        }
+    },
+    //</example>
+
+    width: 660,
     layout: {
         type: 'table',
         columns: 3,
@@ -21,45 +30,29 @@ Ext.define('KitchenSink.view.panel.FramedPanels', {
         bodyPadding: 10,
         frame: true
     },
-    //<example>
-    profiles: {
-        classic: {
-        },
-        neptune: {
-        }
-    },
-    //</example>
 
-    initComponent: function () {
-        this.items = [
-            {
-                html: KitchenSink.DummyText.mediumText
-            },
-            {
-                title: 'Title',
-                html: KitchenSink.DummyText.mediumText
-            },
-            {
-                title: 'Collapsible',
-                collapsible: true,
-                html: KitchenSink.DummyText.mediumText
-            },
-            {
-                title: 'Tools',
-                collapsed: true,
-                collapsible: true,
-                width: 640,
-                html: KitchenSink.DummyText.mediumText,
-                tools: [
-                    { type:'pin' },
-                    { type:'refresh' },
-                    { type:'search' },
-                    { type:'save' }
-                ],
-                colspan: 3
-            }
-        ];
+    items: [{
+        html: KitchenSink.DummyText.mediumText
+    }, {
+        title: 'Title',
+        html: KitchenSink.DummyText.mediumText
+    }, {
+        title: 'Collapsible',
+        collapsible: true,
+        html: KitchenSink.DummyText.mediumText
+    }, {
+        title: 'Tools',
+        colspan: 3,
+        collapsed: true,
+        collapsible: true,
+        width: 640,
+        html: KitchenSink.DummyText.mediumText,
 
-        this.callParent();
-    }
+        tools: [
+            { type:'pin' },
+            { type:'refresh' },
+            { type:'search' },
+            { type:'save' }
+        ]
+    }]
 });

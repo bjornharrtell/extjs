@@ -8,14 +8,13 @@ Ext.define('Ext.layout.Fit', {
 
     alias: 'layout.fit',
 
-    layoutClass: 'x-layout-fit',
+    cls: Ext.baseCSSPrefix + 'layout-fit',
 
-    itemClass: 'x-layout-fit-item',
+    itemCls: Ext.baseCSSPrefix + 'layout-fit-item',
 
     setContainer: function(container) {
         this.callParent(arguments);
 
-        container.innerElement.addCls(this.layoutClass);
         this.onContainerSizeFlagsChange();
         this.monitorSizeFlagsChange();
     },
@@ -39,7 +38,6 @@ Ext.define('Ext.layout.Fit', {
 
     onItemInnerStateChange: function(item, isInner) {
         this.callParent(arguments);
-        item.toggleCls(this.itemClass, isInner);
         item.setLayoutSizeFlags(isInner ? this.container.getSizeFlags() : 0);
     }
 });

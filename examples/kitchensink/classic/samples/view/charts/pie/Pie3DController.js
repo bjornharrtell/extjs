@@ -34,6 +34,22 @@ Ext.define('KitchenSink.view.charts.pie.Pie3DController', {
         chart.redraw();
     },
 
+    onDownload: function() {
+        if (Ext.isIE8) {
+            Ext.Msg.alert('Unsupported Operation', 'This operation requires a newer version of Internet Explorer.');
+            return;
+        }
+        var chart = this.lookupReference('chart');
+
+        if (Ext.os.is.Desktop) {
+            chart.download({
+                filename: 'Mobile OS Marketshare'
+            });
+        } else {
+            chart.preview();
+        }
+    },
+
     onThicknessChange: function (slider, value) {
         var chart = this.lookupReference('chart'),
             series = chart.getSeries()[0];

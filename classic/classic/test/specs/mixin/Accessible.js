@@ -1,6 +1,5 @@
 describe("Ext.mixin.Accessible", function() {
-    var expectAria = jasmine.expectAriaAttr,
-        c, cnt;
+    var c, cnt;
     
     function makeComponent(config) {
         config = Ext.apply({
@@ -67,17 +66,17 @@ describe("Ext.mixin.Accessible", function() {
         it("should support single reference", function() {
             var want = qux.ariaEl.id;
             
-            expectAria(bar, 'aria-labelledby', want);
+            expect(bar).toHaveAttr('aria-labelledby', want);
         });
         
         it("should support array of references", function() {
             var want = foo.ariaEl.id + ' ' + bar.ariaEl.id;
             
-            expectAria(qux, 'aria-describedby', want);
+            expect(qux).toHaveAttr('aria-describedby', want);
         });
         
         it("should support function", function() {
-            expectAria(foo, 'aria-labelledby', 'foo');
+            expect(foo).toHaveAttr('aria-labelledby', 'foo');
         });
     });
 });

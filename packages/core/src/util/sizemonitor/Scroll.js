@@ -57,5 +57,12 @@ Ext.define('Ext.util.sizemonitor.Scroll', {
             shrinkMonitor.scrollLeft = end;
             shrinkMonitor.scrollTop = end;
         }
+    },
+    
+    destroy: function() {
+        // This is a closure so Base destructor won't null it
+        this.onScroll = null;
+        
+        this.callParent();
     }
 });

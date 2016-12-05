@@ -25,11 +25,16 @@ Ext.define('Ext.util.GroupCollection', {
 
     observerPriority: -100,
 
+    constructor: function(config) {
+        this.callParent([config]);
+        this.on('remove', 'onGroupRemove', this);
+    },
+
     //-------------------------------------------------------------------------
     // Calls from the source Collection:
 
     onCollectionAdd: function (source, details) {
-        this.addItemsToGroups(source, details.items);
+        this.addItemsToGroups(source, details.items, details.at);
     },
 
     onCollectionBeforeItemChange: function (source, details) {
@@ -132,17 +137,17 @@ Ext.define('Ext.util.GroupCollection', {
     //-------------------------------------------------------------------------
     // Private
 
-    addItemsToGroups: function (source, items) {
-        this.groupItems(source, items, true);
+    addItemsToGroups: function (source, items, at) {
+        this.groupItems(source, items, true, at);
     },
 
-    groupItems: function (source, items, adding) {
+    groupItems: function (source, items, adding, at) {
         var me = this,
             byGroup = {},
             entries = [],
             grouper = source.getGrouper(),
             groupKeys = me.itemGroupKeys,
-            entry, group, groupKey, i, item, itemKey, len, newGroups;
+            sourceStartIndex, entry, group, groupKey, i, item, itemKey, len, newGroups;
 
         for (i = 0, len = items.length; i < len; ++i) {
             groupKey = grouper.getGroupString(item = items[i]);
@@ -168,9 +173,14 @@ Ext.define('Ext.util.GroupCollection', {
             entry.items.push(item);
         }
 
+        if (adding && me.length > 1 && at) {
+            sourceStartIndex = source.indexOf(entries[0].group.getAt(0));
+            at = Math.max(at - sourceStartIndex, 0);
+        }
+
         for (i = 0, len = entries.length; i < len; ++i) {
             entry = entries[i];
-            entry.group.add(entry.items);
+            entry.group.insert(at != null ? at : group.items.length, entry.items);
         }
 
         if (newGroups) {
@@ -187,12 +197,14 @@ Ext.define('Ext.util.GroupCollection', {
             groupKey = grouper.getGroupString(item),
             removeGroups = 0,
             index = -1,
+            findKey = itemKey,
             addGroups, group, oldGroup, oldGroupKey,
             firstIndex;
 
-        if (oldKey) {
+        if (oldKey || oldKey === 0) {
             oldGroupKey = itemGroupKeys[oldKey];
             delete itemGroupKeys[oldKey];
+            findKey = oldKey;
         } else {
             oldGroupKey = itemGroupKeys[itemKey];
         }
@@ -206,7 +218,7 @@ Ext.define('Ext.util.GroupCollection', {
 
         // This checks whether or not the item is in the collection.
         // Short optimization instead of calling contains since we already have the key here.
-        if (group.get(itemKey) !== item) {
+        if (group.get(findKey) !== item) {
             if (group.getCount() > 0 && source.getSorters().getCount() === 0) {
                 // We have items in the group & it's not sorted, so find the
                 // correct position in the group to insert.
@@ -223,7 +235,7 @@ Ext.define('Ext.util.GroupCollection', {
                 group.insert(index, item);
             }
         } else {
-            group.itemChanged(item);
+            group.itemChanged(item, null, oldKey);
         }
 
         if (groupKey !== oldGroupKey && (oldGroupKey === 0 || oldGroupKey)) {
@@ -282,10 +294,23 @@ Ext.define('Ext.util.GroupCollection', {
 
     destroy: function() {
         this.$groupable = null;
+        
+        // Ensure group objects get destroyed, they may have
+        // added listeners to the main collection sorters.
+        this.destroyGroups(this.items);
         this.callParent();
     },
 
     privates: {
+        destroyGroups: function(groups) {
+            var len = groups.length,
+                i;
+
+            for (i = 0; i < len; ++i) {
+                groups[i].destroy();
+            }
+        },
+
         findGroupForItem: function(item) {
             var items = this.items,
                 len = items.length,
@@ -297,6 +322,10 @@ Ext.define('Ext.util.GroupCollection', {
                     return group;
                 }
             }
+        },
+
+        onGroupRemove: function(collection, info) {
+            this.destroyGroups(info.items);
         }
     }
 });

@@ -148,7 +148,7 @@ Ext.define('Ext.promise.Deferred', {
                 throw new TypeError('A Promise cannot be resolved with itself.');
             }
 
-            if ((Ext.isObject(value) || Ext.isFunction(value)) &&
+            if (value != null && (typeof value === 'object' || Ext.isFunction(value)) &&
                         Ext.isFunction(thenFn = value.then)) {
                 isHandled = false;
 
@@ -165,9 +165,9 @@ Ext.define('Ext.promise.Deferred', {
                         }
                     });
                 }
-                catch (e) {
+                catch (e1) {
                     if (!isHandled) {
-                        me.reject(e);
+                        me.reject(e1);
                     }
                 }
             }
@@ -175,8 +175,8 @@ Ext.define('Ext.promise.Deferred', {
                 me.complete('fulfill', value);
             }
         }
-        catch (e) {
-            me.reject(e);
+        catch (e2) {
+            me.reject(e2);
         }
     },
 

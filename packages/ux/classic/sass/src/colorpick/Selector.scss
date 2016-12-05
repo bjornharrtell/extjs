@@ -59,6 +59,10 @@
 
 .#{$prefix}colorpicker-draghandle-container {
     width: 20px;
+
+    .#{$prefix}autocontainer-outerCt {
+        height: 100%;
+    }
 }
 
 .#{$prefix}colorpicker-draghandle {
@@ -88,8 +92,8 @@
 }
 
 .#{$prefix}colorpicker-saturation {
-    > .#{$prefix}colorpicker-draghandle-container {
-        background : -mox-linear-gradient(top, #ffffff 0%, #000000 100%); /* FF3.6+ */
+    .#{$prefix}colorpicker-draghandle-container {
+        background : -moz-linear-gradient(top, #ffffff 0%, #000000 100%); /* FF3.6+ */
         background : -webkit-linear-gradient(top, #ffffff 0%,#000000 100%); /* Chrome10+,Safari5.1+ */
         background : -o-linear-gradient(top, #ffffff 0%,#000000 100%); /* Opera 11.10+ */
         background : -ms-linear-gradient(top, #ffffff 0%,#000000 100%); /* IE10+ */
@@ -99,8 +103,8 @@
 }
 
 .#{$prefix}colorpicker-value {
-    > .#{$prefix}colorpicker-draghandle-container {
-        background : -mox-linear-gradient(top, #ff0000 0%, #000000 100%); /* FF3.6+ */
+    .#{$prefix}colorpicker-draghandle-container {
+        background : -moz-linear-gradient(top, #ff0000 0%, #000000 100%); /* FF3.6+ */
         background : -webkit-linear-gradient(top, #ff0000 0%,#000000 100%); /* Chrome10+,Safari5.1+ */
         background : -o-linear-gradient(top, #ff0000 0%,#000000 100%); /* Opera 11.10+ */
         background : -ms-linear-gradient(top, #ff0000 0%,#000000 100%); /* IE10+ */
@@ -110,7 +114,7 @@
 }
 
 .#{$prefix}colorpicker-alpha {
-    > .#{$prefix}colorpicker-draghandle-container {
+    .#{$prefix}colorpicker-draghandle-container {
         background-image: theme-background-image('colorpick/checkerboard', 'png');
     }
 }

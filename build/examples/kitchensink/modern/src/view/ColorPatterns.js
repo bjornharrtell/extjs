@@ -1,6 +1,6 @@
 Ext.define('KitchenSink.view.ColorPatterns', {
     singleton: true,
-    requires: ['Ext.draw.Color'],
+    requires: ['Ext.util.Color'],
     colors: ["#115fa6", "#94ae0a", "#a61120", "#ff8809", "#ffd13e", "#a61187", "#24ad9a", "#7c7474", "#a66111"],
 
     getBaseColors: function (index) {
@@ -18,14 +18,14 @@ Ext.define('KitchenSink.view.ColorPatterns', {
             deltaL = deltaHSL.l,
             colors = [], i, hsl;
         for (i = 0; i < this.colors.length; i++) {
-            hsl = Ext.draw.Color.create(this.colors[i]).getHSL();
-            colors.push(Ext.draw.Color.fromHSL(hsl[0] + deltaH, hsl[1] + deltaS, hsl[2] + deltaL));
+            hsl = Ext.util.Color.create(this.colors[i]).getHSL();
+            colors.push(Ext.util.Color.fromHSL(hsl[0] + deltaH, hsl[1] + deltaS, hsl[2] + deltaL));
         }
         return colors;
     },
 
     getGradientColorsHSL: function (baseColor, from, to, number) {
-        baseColor = Ext.draw.Color.create(baseColor);
+        baseColor = Ext.util.Color.create(baseColor);
         var hsl = baseColor.getHSL(),
             fromH = 'h' in from ? from.h : hsl[0],
             fromS = 's' in from ? from.s : hsl[1],
@@ -38,7 +38,7 @@ Ext.define('KitchenSink.view.ColorPatterns', {
             deltaS = (toS - fromS) / number,
             deltaL = (toL - fromL) / number;
         for (i = 0; i <= number; i++) {
-            colors.push(Ext.draw.Color.fromHSL(
+            colors.push(Ext.util.Color.fromHSL(
                 fromH + deltaH * i,
                 fromS + deltaS * i,
                 fromL + deltaL * i
@@ -49,10 +49,10 @@ Ext.define('KitchenSink.view.ColorPatterns', {
 
     getGradientColors: function (fromColor, toColor, number) {
         var colors = [],
-            temp = new Ext.draw.Color(),
+            temp = new Ext.util.Color(),
             i;
-        fromColor = Ext.draw.Color.create(fromColor);
-        toColor = Ext.draw.Color.create(toColor);
+        fromColor = Ext.util.Color.create(fromColor);
+        toColor = Ext.util.Color.create(toColor);
         for (i = 0; i <= number; i++) {
             temp.r = fromColor.r * (1 - i / number) + toColor.r * i / number;
             temp.g = fromColor.g * (1 - i / number) + toColor.g * i / number;
@@ -64,10 +64,10 @@ Ext.define('KitchenSink.view.ColorPatterns', {
     },
 
     getGradientColorsByBrightness: function (baseColor, fromBrightness, toBrightness, number) {
-        baseColor = Ext.draw.Color.create(baseColor);
+        baseColor = Ext.util.Color.create(baseColor);
         var hsl = baseColor.getHSL(), colors = [], i;
         for (i = 0; i <= number; i++) {
-            colors.push(Ext.draw.Color.fromHSL(hsl[0], hsl[1], fromBrightness * (1 - i / number) + toBrightness * i / number).toString());
+            colors.push(Ext.util.Color.fromHSL(hsl[0], hsl[1], fromBrightness * (1 - i / number) + toBrightness * i / number).toString());
         }
         return colors;
     }

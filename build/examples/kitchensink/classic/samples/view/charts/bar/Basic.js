@@ -113,7 +113,7 @@ Ext.define('KitchenSink.view.charts.bar.Basic', {
             },
             items: [
                 { text: 'Country', dataIndex: 'country' },
-                { text: 'IE', dataIndex: 'ind', renderer: 'onColumnRender' }
+                { text: 'Industry size', dataIndex: 'ind', renderer: 'onColumnRender', width: 200 }
             ]
         },
         store: {

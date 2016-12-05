@@ -1,0 +1,32 @@
+@include extjs-tip-ui(
+    $ui: 'd3-treemap',
+    $ui-border-color: #747474,
+    $ui-background-color: #e67e22
+);
+
+.tip {
+    .#{$prefix}tip-body {
+        padding: 10px;
+        white-space: nowrap;
+    }
+}
+
+.tip-title {
+    padding: 8px;
+    border-radius: 8px;
+    margin-top: 5px;
+    margin-bottom: 8px;
+    background: #d35400;
+    font-size: 16px;
+    height: 30px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.tip-symbol {
+    font-weight: bold;
+}
+
+.tip-company {
+    font-weight: bold;
+}

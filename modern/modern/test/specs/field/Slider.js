@@ -31,7 +31,7 @@ describe('Ext.field.Slider', function() {
 
             component.onTap();
 
-            expect(component.fireAction).wasNotCalled();
+            expect(component.fireAction).not.toHaveBeenCalled();
         });
     });
 });

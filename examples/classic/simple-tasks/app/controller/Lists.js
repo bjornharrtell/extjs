@@ -311,7 +311,7 @@ Ext.define('SimpleTasks.controller.Lists', {
             i = 0;
 
         // build an array of all the list_id's in the hierarchy of the selected list
-        list.cascadeBy(function(list) {
+        list.cascade(function(list) {
             listIds.push(list.get('id'));
         });
 

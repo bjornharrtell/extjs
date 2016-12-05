@@ -36,7 +36,7 @@ Ext.define('Ext.tab.Bar', {
          */
         layout: {
             type: 'hbox',
-            align: 'middle'
+            align: 'stretch'
         }
     },
 

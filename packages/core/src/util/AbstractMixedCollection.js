@@ -21,7 +21,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * @private
      */
     generation: 0,
-    
+
     /**
      * Mutation counter for the index map which is synchronized with the collection's mutation counter
      * when the index map is interrogated and found to be out of sync and needed a rebuild.
@@ -29,7 +29,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * @private
      */
     indexGeneration: 0,
-    
+
     constructor: function(allowFunctions, keyFn) {
         var me = this;
 
@@ -79,7 +79,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
          * @param {Object} new The new item.
          * @since 1.1.0
          */
-       
+
         /**
          * @event remove
          * Fires when an item is removed from the collection.
@@ -90,12 +90,12 @@ Ext.define('Ext.util.AbstractMixedCollection', {
 
         me.mixins.observable.constructor.call(me);
     },
-    
+
     destroy: function() {
         var me = this;
-        
+
         me.items = me.map = me.keys = me.indexMap = null;
-        
+
         me.callParent();
     },
 
@@ -132,7 +132,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
     add : function(key, obj) {
         var len = this.length,
             out;
-        
+
         if (arguments.length === 1) {
             out = this.insert(len, key);
         } else {
@@ -145,12 +145,12 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * A function which will be called, passing a newly added object
      * when the object is added without a separate id.  The function
      * should yield the key by which that object will be indexed.
-     * 
+     *
      * If no key is yielded, then the object will be added, but it
      * cannot be accessed or removed quickly. Finding it in this
      * collection for interrogation or removal will require a linear
      * scan of this collection's items.
-     * 
+     *
      * The default implementation simply returns `item.id` but you can
      * provide your own implementation to return a different value as
      * in the following examples:
@@ -182,12 +182,12 @@ Ext.define('Ext.util.AbstractMixedCollection', {
     /**
      * Replaces an item in the collection. Fires the {@link #event-replace} event when complete.
      * @param {String} key The key associated with the item to replace, or the replacement item.
-     * 
+     *
      * If you supplied a {@link #getKey} implementation for this MixedCollection, or if the key
      * of your stored items is in a property called *`id`*, then the MixedCollection
      * will be able to <i>derive</i> the key of the replacement item. If you want to replace an item
      * with one having the same key value, then just pass the replacement item in this parameter.
-     * 
+     *
      * @param o {Object} o (optional) If the first parameter passed was a key, the item to associate
      * with that key.
      * @return {Object}  The new item.
@@ -215,12 +215,21 @@ Ext.define('Ext.util.AbstractMixedCollection', {
         }
         return o;
     },
-    
+
     /**
      * Reorders each of the items based on a mapping from old index to new index. Internally this
-     * just translates into a sort. The 'sort' event is fired whenever reordering has 
+     * just translates into a sort. The 'sort' event is fired whenever reordering has
      * occurred.
      * @param {Object} mapping Mapping from old item index to new item index
+     *
+     *     // example of moving the last of 4 items to the front of the collection
+     *     // and moving each one before it forward one
+     *     collection.reorder({
+     *         0: 1,
+     *         1: 2,
+     *         2: 3,
+     *         3: 0,
+     *     });
      */
     reorder: function(mapping) {
         var me = this,
@@ -424,7 +433,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
         }
         return out;
     },
- 
+
     // Private multi insert implementation.
     doInsert : function(index, keys, objects) {
         var me = this,
@@ -558,7 +567,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      * @return {Ext.util.MixedCollection} this object
      */
     removeAll : function(items) {
-        var me = this, 
+        var me = this,
             i;
 
         if (items || me.hasListeners.remove) {
@@ -580,7 +589,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
             me.indexGeneration = me.generation;
         }
     },
-    
+
     /**
      * Remove an item from a specified index in the collection. Fires the {@link #event-remove} event when complete.
      * @param {Number} index The index within the collection of the item to remove.
@@ -649,7 +658,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
             }
             // Last item encountered
             o = me.items[i - 1];
-            
+
             me.length -= removeCount;
             me.generation++;
             if (syncIndices) {
@@ -750,7 +759,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
         }
         return this.indexMap[key];
     },
-    
+
     rebuildIndexMap: function() {
         var me = this,
             indexMap = me.indexMap = {},
@@ -821,7 +830,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
             // Fallback: Use linear search
             return Ext.Array.indexOf(this.items, o) !== -1;
         }
-        
+
         return false;
     },
 
@@ -975,7 +984,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
         if (len < 1) {
             return range;
         }
-        
+
         if (start > end) {
             reverse = true;
             tmp = start;
@@ -986,11 +995,11 @@ Ext.define('Ext.util.AbstractMixedCollection', {
         if (start < 0) {
             start = 0;
         }
-        
+
         if (end == null || end >= len) {
-            end = len - 1;    
+            end = len - 1;
         }
-        
+
         range = items.slice(start, end + 1);
         if (reverse && range.length) {
             range.reverse();
@@ -1012,7 +1021,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
      *         {id: 3, age: 24, name: 'Arne'},
      *         {id: 4, age: 26, name: 'Aaron'}
      *     ]);
-     *    
+     *
      *     //a new MixedCollection containing only the items where age == 24
      *     var middleAged = people.filter('age', 24);
      *
@@ -1165,7 +1174,7 @@ Ext.define('Ext.util.AbstractMixedCollection', {
             copy = new me.self(me.initialConfig);
 
         copy.add(me.keys, me.items);
-        
+
         // The add using external keys will make the clone think that keys cannot be reliably extracted
         // from objects, so that an indexOf call will always have to do a linear search.
         // If the flag is not set in this object, we know that the clone will not need it either.

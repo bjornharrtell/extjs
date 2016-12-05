@@ -23,7 +23,7 @@ this file in most cases.
 
         <property name="environment.dir" value="${package.dir}"/>
         <property name="cmd-test.specs.dir" value="${environment.dir}/test/specs"/>
-        <property name="cmd-test.specs.test-json" value="${cmd-test.specs.dir}/test.json"/>
+        <property name="cmd-test.specs.test-json" value="${cmd-test.specs.dir}/../test.json"/>
         <available file="${cmd-test.specs.test-json}" property="cmd-test.available"/>
     </target>
     <target name="-after-test-init"/>
@@ -72,6 +72,7 @@ this file in most cases.
         <local name="local.runner.dir"/>
         <local name="console.runner.dir"/>
         <local name="specfiles.list"/>
+        <local name="specfiles.start-test"/>
         <local name="base.path"/>
 
         <property name="local.runner.dir" value="${environment.dir}/test/local"/>
@@ -83,21 +84,22 @@ this file in most cases.
         <x-bootstrap file="${base.path}/../bootstrap.js"
                      basedir="${base.path}"
                      coreFilesFile="${base.path}/../bootstrap-files.js"
+                     classMetadataFile="${base.path}/../bootstrap-data.js"
+                     overridesFile="${base.path}/../bootstrap-data.js"
                      includeBoot="true"
                      includeManifest="true"
                      includeCoreFiles="true"
                      appendCoreFiles="false"
                      includeMetadata="false"
                      appendClassMetadata="false"
-                     includeOverrides="false"
+                     appendOverrides="true"
                      overrideExcludeTags="">
 <![CDATA[
 Ext.Boot.loadSync([
-    "../bootstrap-files.js"
+    "../bootstrap-files.js",
+    "../bootstrap-data.js"
 ]);
-Ext.Boot.load([
-    "../bootstrap-launch.js"
-]);
+Ext.Boot.load("../bootstrap-launch.js");
 ]]>
          </x-bootstrap>
 
@@ -109,6 +111,8 @@ Ext.Boot.load([
             <attribute name="base"/>
             <attribute name="property"/>
             <attribute name="configprop"/>
+            <attribute name="startscriptprop"/>
+            <attribute name="startscriptpath"/>
             <script src="${cmd.dir}/ant/ant-util.js"/>
             <![CDATA[
                     importPackage(com.sencha.util);
@@ -118,7 +122,7 @@ Ext.Boot.load([
                     propName = attributes.get("property") + '',
                     basePath = attributes.get("base") + '',
                     configPropName = attributes.get("configprop"),
-                    config = readConfig(joinPath(specDir, 'test.json')),
+                    config = readConfig(joinPath(specDir, '../test.json')),
                     getScriptFiles = function(path, basePath) {
                         var converted = [],
                             files = FileUtil.getAllFilesByExtension(path, ".js"),
@@ -154,6 +158,7 @@ Ext.Boot.load([
                     relPath,
                     converted = [],
                     shuffled = [];
+                    
                     for(f = 0; f < len; f++) {
                         file = files[f];
                         if(!PathUtil.isAbsolute(file)) {
@@ -170,10 +175,25 @@ Ext.Boot.load([
                     });
                     shuffled = shuffle(converted, shuffleFactor);
                     project.setNewProperty(propName, StringUtil.join(shuffled, ',\n'));
+                    
+                    var frameworkDir = project.getProperty('framework.dir'),
+                        startScriptProp = attributes.get('startscriptprop'),
+                        startScriptPath = attributes.get('startscriptpath');
+                    
+                    relPath = PathUtil.getRelativePath(basePath, frameworkDir + '/' + startScriptPath);
+                    relPath = PathUtil.convertPathCharsToUnix(relPath);
+                    
+                    project.setNewProperty(startScriptProp, relPath);
                 ]]>
         </x-script-def>
-        <x-load-specs base="${local.runner.dir}" property="specfiles.list" configprop="specs"/>
-<echo file="${local.runner.dir}/${bootstrap.specs.file}"><![CDATA[
+        
+        <!-- startscriptpath is relative to framework root -->
+        <x-load-specs base="${local.runner.dir}" property="specfiles.list" configprop="specs"
+                      startscriptprop="specfiles.start-test"
+                      startscriptpath="test/shared/start-tests.js"/>
+        
+        <echo file="${local.runner.dir}/${bootstrap.specs.file}">
+<![CDATA[
 (function() {
     var url = [
 ${specfiles.list}
@@ -187,12 +207,12 @@ ${specfiles.list}
         charset: "UTF-8",
         url: url,
         success: function() {
-            Ext.Boot.load('../start-tests.js');
+            Ext.Boot.load("${specfiles.start-test}");
         }
     });
 })();
 ]]>
-</echo>
+        </echo>
     </target>
     <target name="-after-test-bootstrap"/>
     <target name="test-bootstrap"

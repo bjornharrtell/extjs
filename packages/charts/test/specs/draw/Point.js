@@ -91,7 +91,7 @@ describe('Ext.draw.Point', function () {
 
             expect(clone.x).toEqual(p.x);
             expect(clone.y).toEqual(p.y);
-            expect(clone).toNotBe(p);
+            expect(clone).not.toBe(p);
         });
     });
 
@@ -104,7 +104,7 @@ describe('Ext.draw.Point', function () {
 
             expect(p.x).toEqual(-2);
             expect(p.y).toEqual(8);
-            expect(p).toNotBe(p1);
+            expect(p).not.toBe(p1);
         });
     });
 
@@ -118,7 +118,7 @@ describe('Ext.draw.Point', function () {
 
             expect(p.x).toEqual(6);
             expect(p.y).toEqual(-2);
-            expect(p).toNotBe(p1);
+            expect(p).not.toBe(p1);
         });
     });
 
@@ -130,7 +130,7 @@ describe('Ext.draw.Point', function () {
 
             expect(mp.x).toEqual(6);
             expect(mp.y).toEqual(9);
-            expect(mp).toNotBe(p);
+            expect(mp).not.toBe(p);
         });
     });
 
@@ -142,7 +142,7 @@ describe('Ext.draw.Point', function () {
 
             expect(dp.x).toEqual(1);
             expect(dp.y).toEqual(1.5);
-            expect(dp).toNotBe(p);
+            expect(dp).not.toBe(p);
         });
     });
 
@@ -156,7 +156,7 @@ describe('Ext.draw.Point', function () {
 
             expect(dot_p_op).toEqual(0);
             expect(dot_p_p1).toEqual(6);
-            expect(dot_p_p1).toNotBe(p);
+            expect(dot_p_p1).not.toBe(p);
         });
     });
 
@@ -214,19 +214,68 @@ describe('Ext.draw.Point', function () {
     describe('normalize', function () {
         it('should return a new vector with the length of 1 and the same angle', function () {
             var p = new Ext.draw.Point(5, 5),
+                sin = Math.sin(Math.PI / 4),
                 cos = Math.cos(Math.PI / 4),
                 np = p.normalize(),
                 np5 = p.normalize(5);
 
             expect(np.x).toBeCloseTo(cos, precision);
-            expect(np.y).toBeCloseTo(cos, precision);
+            expect(np.y).toBeCloseTo(sin, precision);
             expect(np.length).toBeCloseTo(1, precision);
             expect(np.angle).toBeCloseTo(45, precision);
 
             expect(np5.x).toBeCloseTo(5 * cos, precision);
-            expect(np5.y).toBeCloseTo(5 * cos, precision);
+            expect(np5.y).toBeCloseTo(5 * sin, precision);
             expect(np5.length).toBeCloseTo(5, precision);
             expect(np5.angle).toBeCloseTo(45, precision);
+
+            p = new Ext.draw.Point(-5, -5);
+            np = p.normalize();
+            np5 = p.normalize(5);
+            sin = Math.sin(-3 * Math.PI / 4);
+            cos = Math.cos(-3 * Math.PI / 4);
+
+            expect(np.x).toBeCloseTo(cos, precision);
+            expect(np.y).toBeCloseTo(sin, precision);
+            expect(np.length).toBeCloseTo(1, precision);
+            expect(np.angle).toBeCloseTo(-135, precision);
+
+            expect(np5.x).toBeCloseTo(5 * cos, precision);
+            expect(np5.y).toBeCloseTo(5 * sin, precision);
+            expect(np5.length).toBeCloseTo(5, precision);
+            expect(np5.angle).toBeCloseTo(-135, precision);
+
+            p = new Ext.draw.Point(5, -5);
+            np = p.normalize();
+            np5 = p.normalize(5);
+            sin = Math.sin(-Math.PI / 4);
+            cos = Math.cos(-Math.PI / 4);
+
+            expect(np.x).toBeCloseTo(cos, precision);
+            expect(np.y).toBeCloseTo(sin, precision);
+            expect(np.length).toBeCloseTo(1, precision);
+            expect(np.angle).toBeCloseTo(-45, precision);
+
+            expect(np5.x).toBeCloseTo(5 * cos, precision);
+            expect(np5.y).toBeCloseTo(5 * sin, precision);
+            expect(np5.length).toBeCloseTo(5, precision);
+            expect(np5.angle).toBeCloseTo(-45, precision);
+
+            p = new Ext.draw.Point(-5, 5);
+            np = p.normalize();
+            np5 = p.normalize(5);
+            sin = Math.sin(3 * Math.PI / 4);
+            cos = Math.cos(3 * Math.PI / 4);
+
+            expect(np.x).toBeCloseTo(cos, precision);
+            expect(np.y).toBeCloseTo(sin, precision);
+            expect(np.length).toBeCloseTo(1, precision);
+            expect(np.angle).toBeCloseTo(135, precision);
+
+            expect(np5.x).toBeCloseTo(5 * cos, precision);
+            expect(np5.y).toBeCloseTo(5 * sin, precision);
+            expect(np5.length).toBeCloseTo(5, precision);
+            expect(np5.angle).toBeCloseTo(135, precision);
         });
     });
 

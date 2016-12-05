@@ -23,7 +23,8 @@ describe("Ext.data.proxy.WebStorage", function() {
             fields: [
                 {name: 'id',   type: 'int'},
                 {name: 'name', type: 'string'},
-                {name: 'age', type: 'int'}
+                {name: 'age', type: 'int'},
+                {name: 'hired', type: 'date', dateFormat: 'd/m/Y'}
             ]
         });
         
@@ -216,7 +217,7 @@ describe("Ext.data.proxy.WebStorage", function() {
 
             describe("getStorageObject", function(){
                 it("should throw an error on getStorageObject", function() {
-                    expect(Ext.data.proxy.WebStorage.prototype.getStorageObject).toRaiseExtError();
+                    expect(Ext.data.proxy.WebStorage.prototype.getStorageObject).toThrow();
                 });
             });
         });
@@ -622,69 +623,57 @@ describe("Ext.data.proxy.WebStorage", function() {
         var record, recordKey, encodedData;
 
         beforeEach(function() {
-
-            spyOn(fakeStorageObject, 'setItem').andReturn();
-            spyOn(fakeStorageObject, 'removeItem').andReturn();
-            
             proxy = new spec.Storage({
                 model: spec.User,
                 id: 'someId'
             });
 
-            record = new spec.User({id: 100, name: 'Ed'});
-            recordKey = 'someId-100';
-            encodedData = 'some encoded data';
-
-            spyOn(Ext, 'encode').andReturn(encodedData);
-
-            spyOn(record, 'set').andCallThrough();
-            spyOn(proxy, 'getRecordKey').andReturn(recordKey);
+            record = new spec.User({id: 100, name: 'Ed', hired: '31/05/2010'});
         });
 
         describe("if a new id is passed", function() {
             it("should set the id on the record", function() {
                 proxy.setRecord(record, 20);
-
-                expect(record.set).toHaveBeenCalledWith('id', 20, { commit: true });
+                expect(record.getId()).toBe(20);
             });
         });
 
         describe("if a new id is not passed", function() {
             it("should get the id from the record", function() {
-                spyOn(record, 'getId').andCallThrough();
-
                 proxy.setRecord(record);
-
-                expect(record.getId).toHaveBeenCalled();
+                expect(record.getId()).toBe(100);
             });
         });
 
         it("should get the record key for the model instance", function() {
             proxy.setRecord(record);
-
-            expect(proxy.getRecordKey).toHaveBeenCalledWith(100);
-        });
-
-        it("should remove the item from the storage object before adding it again", function() {
-            proxy.setRecord(record);
-
-            expect(fakeStorageObject.removeItem).toHaveBeenCalledWith(recordKey);
+            expect(proxy.getRecordKey(100)).toBe('someId-100');
         });
 
         it("should add the item to the storage object", function() {
             proxy.setRecord(record);
 
-            expect(fakeStorageObject.setItem).toHaveBeenCalledWith(recordKey, encodedData);
+            expect(fakeStorageObject.getItem(proxy.getRecordKey(100))).not.toBeNull();
+        });
+
+        it("should convert dates using dateFormar", function() {
+            proxy.setRecord(record);
+            expect(proxy.getRecord(100).hired).toBe('31/05/2010');
         });
 
         it("should json encode the data", function() {
-            var data = Ext.clone(record.data);
-
+            var data = Ext.clone(record.data),
+                decodedData;
+            delete data.id; 
+            
             proxy.setRecord(record);
+            decodedData = Ext.decode(fakeStorageObject.getItem(proxy.getRecordKey(100)));
 
-            delete data.id;
-
-            expect(Ext.encode).toHaveBeenCalledWith(data);
+            expect(decodedData).toEqual({
+                name: 'Ed',
+                age: 0,
+                hired: '31/05/2010'
+            });
         });
     });
 

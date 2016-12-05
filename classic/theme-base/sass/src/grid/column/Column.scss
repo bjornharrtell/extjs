@@ -45,8 +45,16 @@
     white-space: nowrap;
 }
 
+// Make the text a block element, so the checkbox wraps
+// If there is NO text, hide the empty text element
 .#{$prefix}column-header-text-inner {
     background-repeat: no-repeat;
+}
+.#{$prefix}column-header-inner-empty .#{$prefix}column-header-text-inner {
+    display: none;
+}
+.#{$prefix}column-header-inner-empty .#{$prefix}column-header-text-container {
+    line-height: 0;
 }
 
 @if $include-ie and $include-rtl {

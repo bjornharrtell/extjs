@@ -15,7 +15,7 @@ Ext.define('KitchenSink.view.charts.scatter.BubbleController', {
         chart.setAnimation(true);
         // We want the maximum to be derived from the store (series data).
         leftAxis.setMaximum(NaN);
-        me.fromHSL = Ext.draw.Color.fly('blue').getHSL();
+        me.fromHSL = Ext.util.Color.fly('blue').getHSL();
         store.setData(me.createData(50));
     },
 
@@ -29,7 +29,7 @@ Ext.define('KitchenSink.view.charts.scatter.BubbleController', {
             easing: 'bounceOut',
             duration: 1000
         });
-        me.fromHSL = Ext.draw.Color.fly('cyan').getHSL();
+        me.fromHSL = Ext.util.Color.fly('cyan').getHSL();
         // Fix the maximum for a nice bubble drop animation.
         leftAxis.setMaximum(leftAxis.getRange()[1]);
         store.setData(me.createData(50, true));
@@ -59,8 +59,8 @@ Ext.define('KitchenSink.view.charts.scatter.BubbleController', {
 
         store.setData(me.createData(50));
 
-        me.fromHSL = Ext.draw.Color.fly('blue').getHSL();
-        me.toHSL = Ext.draw.Color.fly('red').getHSL();
+        me.fromHSL = Ext.util.Color.fly('blue').getHSL();
+        me.toHSL = Ext.util.Color.fly('red').getHSL();
         me.fromHSL[2] = 0.3;
     },
 
@@ -84,7 +84,7 @@ Ext.define('KitchenSink.view.charts.scatter.BubbleController', {
             fromHSL = me.fromHSL,
             toHSL = me.toHSL;
 
-        return Ext.draw.Color.fly(0, 0, 0, 0).setHSL(
+        return Ext.util.Color.fly(0, 0, 0, 0).setHSL(
             me.interpolate(lambda, minSrc, maxSrc, fromHSL[0], toHSL[0]),
             me.interpolate(lambda, minSrc, maxSrc, fromHSL[1], toHSL[1]),
             me.interpolate(lambda, minSrc, maxSrc, fromHSL[2], toHSL[2])

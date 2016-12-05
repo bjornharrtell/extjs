@@ -225,11 +225,12 @@ Ext.define('SimpleTasks.view.tasks.Grid', {
      * Handles a "checkchange" event on the "done" column
      * @private
      * @param {SimpleTasks.ux.StatusColumn} column
+     * @param {Ext.data.Model} record
      * @param {Number} rowIndex
      * @param {Boolean} checked
      */
-    handleCheckChange: function(column, rowIndex, checked) {
-        this.fireEvent('recordedit', this.store.getAt(rowIndex));
+    handleCheckChange: function(column, record, rowIndex, checked) {
+        this.fireEvent('recordedit', record);
     },
 
     /**

@@ -76,6 +76,28 @@ Ext.define('Ext.dataview.element.Container', {
      * @param {Ext.event.Event} e The event object
      */
 
+    /**
+     * @event mouseover
+     * Fires whenever the a mouseover event is received on an item
+     * @param {Ext.dataview.element.Container} this
+     * @param {Ext.dom.Element} item The item
+     * @param {Number} index The index of the item
+     * @param {Ext.event.Event} e The event object
+     */
+
+    /**
+     * @event mouseout
+     * Fires whenever a mouseout event is received on an item
+     * @param {Ext.dataview.element.Container} this
+     * @param {Ext.dom.Element} item The item
+     * @param {Number} index The index of the item
+     * @param {Ext.event.Event} e The event object
+     */
+
+    classCls: Ext.baseCSSPrefix + 'dataview-container',
+
+    itemSelector: '.' + Ext.baseCSSPrefix + 'dataview-container > div',
+
     doInitialize: function() {
         this.element.on({
             touchstart: 'onItemTouchStart',
@@ -86,6 +108,8 @@ Ext.define('Ext.dataview.element.Container', {
             singletap: 'onItemSingleTap',
             doubletap: 'onItemDoubleTap',
             swipe: 'onItemSwipe',
+            mouseover: 'onItemMouseOver',
+            mouseout: 'onItemMouseOut',
             delegate: '> div',
             scope: this
         });
@@ -97,12 +121,6 @@ Ext.define('Ext.dataview.element.Container', {
     initialize: function() {
         this.callParent();
         this.doInitialize();
-    },
-
-    updateBaseCls: function(newBaseCls, oldBaseCls) {
-        var me = this;
-
-        me.callParent([newBaseCls + '-container', oldBaseCls]);
     },
 
     onItemTouchStart: function(e) {
@@ -178,6 +196,22 @@ Ext.define('Ext.dataview.element.Container', {
             index = me.getViewItems().indexOf(target);
 
         me.fireEvent('itemswipe', me,  Ext.get(target), index, e);
+    },
+
+    onItemMouseOver: function(e) {
+        var me = this,
+            target = e.currentTarget,
+            index = me.getViewItems().indexOf(target);
+
+        me.fireEvent('itemmouseover', me, Ext.get(target), index, e);
+    },
+
+    onItemMouseOut: function(e) {
+        var me = this,
+            target = e.currentTarget,
+            index = me.getViewItems().indexOf(target);
+
+        me.fireEvent('itemmouseout', me, Ext.get(target), index, e);
     },
 
     updateListItem: function(record, item) {
@@ -311,7 +345,7 @@ Ext.define('Ext.dataview.element.Container', {
         this.moveItemsFromCache([record]);
     },
 
-    destroy: function() {
+    doDestroy: function() {
         var elements = this.getViewItems(),
             ln = elements.length,
             i = 0;

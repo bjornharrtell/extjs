@@ -6,9 +6,9 @@ Ext.define('KitchenSink.view.binding.ChildSessionModel', {
     alias: 'viewmodel.binding.childsession',
 
     stores: {
-        // Define a store of Customer records that links to the Session.
-        customers: {
-            model: 'Customer',
+        // Define a store of Company records that links to the Session.
+        companies: {
+            model: 'Company',
             autoLoad: true,
             session: true
         }

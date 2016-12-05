@@ -449,7 +449,7 @@ Ext.define('SimpleTasks.controller.Tasks', {
      * @param {Ext.EventObject} e
      */
     filterAll: function(button, e) {
-        this.getTasksStore().clearFilter();
+        this.getTasksStore().removeFilter('done');
         this.refreshListTree();
     },
 

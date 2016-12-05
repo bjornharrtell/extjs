@@ -56,9 +56,9 @@ Ext.onReady(function() {
     });
     customEl.hide();
 
-    Ext.get('showMe').on('click', function(){
-        customEl.center();
+    Ext.get('showMe').on('click', function(e, btn) {
         customEl.show(true);
+        customEl.alignTo(Ext.fly(btn), 'l-r', [300, 0]);
     });
 
     var dwrapped = Ext.create('Ext.resizer.Resizer', {

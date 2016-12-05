@@ -181,7 +181,8 @@ Ext.define('Ext.dd.DropZone', {
      * underlying {@link Ext.dd.StatusProxy} can be updated
      * @template
      */
-    notifyEnter : function(dd, e, data){
+    notifyEnter : function(dd, e, data) {
+        this.callParent([dd, e, data]);
         return this.dropNotAllowed;
     },
 
@@ -231,8 +232,9 @@ Ext.define('Ext.dd.DropZone', {
      * @param {Object} data An object containing arbitrary data supplied by the drag zone
      * @template
      */
-    notifyOut : function(dd, e, data){
-        if(this.lastOverNode){
+    notifyOut : function(dd, e, data) {
+        this.callParent([dd, e, data]);
+        if (this.lastOverNode){
             this.onNodeOut(this.lastOverNode, dd, e, data);
             this.lastOverNode = null;
         }

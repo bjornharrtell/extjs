@@ -1,0 +1,9 @@
+.#{$prefix}calendar-panel-sheet {
+    border: none !important;
+}
+
+@media screen and (max-height: 480px) {
+    .profile-side-icon {
+        display: none;
+    }
+}

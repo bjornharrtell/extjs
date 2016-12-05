@@ -139,6 +139,11 @@ Ext.define('Ext.grid.ColumnManager', {
             len = columns.length,
             i, header;
             
+        // don't match on ambiguous empty or null values (e.g., template columns)
+        if (Ext.isEmpty(dataIndex)) {
+            return null;
+        }
+
         for (i = 0; i < len; ++i) {
             header = columns[i];
             if (header.dataIndex === dataIndex) {

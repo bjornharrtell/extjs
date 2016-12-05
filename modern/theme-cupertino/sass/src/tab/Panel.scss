@@ -21,7 +21,7 @@
 
 .x-tab {
 	&.x-tab-active {
-		x-button-label {
+		.x-button-label {
 			color: $ios7-blue;
 		}
 
@@ -57,7 +57,7 @@
 	}
 
 	.x-badge {
-		top: 0px;
+		top: 0;
 		left: 55%;
 		right: auto;
 		max-width: 55%;
@@ -75,8 +75,6 @@ $tabbar-tab-radius: 4px;
 		min-width: 3.3em;
 		height: inherit;
 		background-color: transparent;
-		border: 0;
-		padding: 3px;
 		margin: 0;
 		border: 1px solid darken($ios7-blue, 1);
 		color: #fff;
@@ -100,12 +98,12 @@ $tabbar-tab-radius: 4px;
 		}
 
 		&:first-child {
-			border-radius: $tabbar-tab-radius 0px 0px $tabbar-tab-radius;
+			border-radius: $tabbar-tab-radius 0 0 $tabbar-tab-radius;
 			border-right: 0;
 		}
 
 		&:last-child {
-			border-radius: 0px $tabbar-tab-radius $tabbar-tab-radius 0px;
+			border-radius: 0 $tabbar-tab-radius $tabbar-tab-radius 0;
 			border-left: 0;
 		}
 

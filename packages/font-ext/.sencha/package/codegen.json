@@ -34,7 +34,7 @@
         "pkgName": "font-ext",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/etc/all.scss": {
@@ -45,7 +45,7 @@
         "pkgName": "font-ext",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/example/custom.js": {
@@ -56,7 +56,7 @@
         "pkgName": "font-ext",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/example/fashion.html": {
@@ -67,7 +67,7 @@
         "pkgName": "font-ext",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     "sass/example/theme.html": {
@@ -78,7 +78,7 @@
         "pkgName": "font-ext",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     ".sencha/package/build.properties": {
@@ -89,7 +89,7 @@
         "pkgName": "font-ext",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     ".sencha/package/sencha.cfg": {
@@ -100,7 +100,7 @@
         "pkgName": "font-ext",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     },
     ".sencha/package/testing.properties": {
@@ -111,7 +111,7 @@
         "pkgName": "font-ext",
         "pkgType": "code",
         "senchadir": ".sencha",
-        "touchRelPath": "../../../touch"
+        "touchRelPath": "../../../${touch.dir}"
       }
     }
   }

@@ -25,7 +25,7 @@ Ext.define('Ext.form.FieldAncestor', {
             initInheritedState: 'initFieldInheritedState'
         },
         before: {
-            destroy: 'onBeforeDestroy'
+            doDestroy: 'onBeforeDestroy'
         }
     },
 
@@ -190,8 +190,8 @@ Ext.define('Ext.form.FieldAncestor', {
      */
     onFieldErrorChange: Ext.emptyFn,
 
-    onBeforeDestroy: function(){
-        this.monitor.unbind();
+    onBeforeDestroy: function() {
+        this.monitor = Ext.destroy(this.monitor);
     }
 
 });

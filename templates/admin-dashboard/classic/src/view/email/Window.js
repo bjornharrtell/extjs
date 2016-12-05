@@ -25,7 +25,7 @@ Ext.define('Admin.view.email.Window', {
         });
     },
 
-    onDestroy: function () {
+    doDestroy: function () {
         Ext.un(this.resizeListeners);
 
         this.callParent();

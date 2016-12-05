@@ -11,42 +11,49 @@ Ext.define('Ext.draw.engine.SvgContext', {
      * @private
      * Properties to be saved/restored in the `save` and `restore` methods.
      */
-    toSave: ["strokeOpacity", "strokeStyle", "fillOpacity", "fillStyle", "globalAlpha", "lineWidth", "lineCap",
-             "lineJoin", "lineDash", "lineDashOffset", "miterLimit", "shadowOffsetX", "shadowOffsetY", "shadowBlur",
-             "shadowColor", "globalCompositeOperation", "position", "fillGradient", "strokeGradient"],
+    toSave: ['strokeOpacity', 'strokeStyle', 'fillOpacity', 'fillStyle', 'globalAlpha',
+        'lineWidth', 'lineCap', 'lineJoin', 'lineDash', 'lineDashOffset', 'miterLimit',
+        'shadowOffsetX', 'shadowOffsetY', 'shadowBlur', 'shadowColor',
+        'globalCompositeOperation', 'position', 'fillGradient', 'strokeGradient'],
 
-    "strokeOpacity": 1,
-    "strokeStyle": "none",
-    "fillOpacity": 1,
-    "fillStyle": "none",
-    "lineDash": [],
-    "lineDashOffset": 0,
-    "globalAlpha": 1,
-    "lineWidth": 1,
-    "lineCap": "butt",
-    "lineJoin": "miter",
-    "miterLimit": 10,
-    "shadowOffsetX": 0,
-    "shadowOffsetY": 0,
-    "shadowBlur": 0,
-    "shadowColor": "none",
-    "globalCompositeOperation": "src",
+    strokeOpacity: 1,
+    strokeStyle: 'none',
+    fillOpacity: 1,
+    fillStyle: 'none',
+    lineDas: [],
+    lineDashOffset: 0,
+    globalAlpha: 1,
+    lineWidth: 1,
+    lineCap: 'butt',
+    lineJoin: 'miter',
+    miterLimit: 10,
+    shadowOffsetX: 0,
+    shadowOffsetY: 0,
+    shadowBlur: 0,
+    shadowColor: 'none',
+    globalCompositeOperation: 'src',
 
     urlStringRe: /^url\(#([\w\-]+)\)$/,
 
     constructor: function (SvgSurface) {
-        this.surface = SvgSurface;
-        this.state = [];
-        this.matrix = new Ext.draw.Matrix();
-        this.path = null;
-        this.clear();
+        var me = this;
+
+        me.surface = SvgSurface;
+        // Stack of contexts.
+        me.state = [];
+        me.matrix = new Ext.draw.Matrix();
+        // Currently manipulated path.
+        me.path = null;
+        me.clear();
     },
 
     /**
      * Clears the context.
      */
     clear: function () {
+        // Current group to put paths into.
         this.group = this.surface.mainGroup;
+        // Position within the current group.
         this.position = 0;
         this.path = null;
     },
@@ -58,47 +65,6 @@ Ext.define('Ext.draw.engine.SvgContext', {
      */
     getElement: function (tag) {
         return this.surface.getSvgElement(this.group, tag, this.position++);
-    },
-
-    /**
-     * @private
-     *
-     * Destroys the DOM element and all associated gradients.
-     *
-     * @param element {HTMLElement|Ext.dom.Element|String} DOM element.
-     */
-    removeElement: function (element) {
-        var element = Ext.fly(element),
-            fill, stroke, fillMatch, strokeMatch,
-            gradients, gradient, key;
-
-        if (!element) {
-            return;
-        }
-        if (element.dom.tagName === 'g') {
-            gradients = element.dom.gradients;
-            for (key in gradients) {
-                gradients[key].destroy();
-            }
-        } else {
-            fill = element.getAttribute('fill');
-            stroke = element.getAttribute('stroke');
-            fillMatch = fill && fill.match(this.urlStringRe);
-            strokeMatch = stroke && stroke.match(this.urlStringRe);
-            if (fillMatch && fillMatch[1]) {
-                gradient = Ext.fly(fillMatch[1]);
-                if (gradient) {
-                    gradient.destroy();
-                }
-            }
-            if (strokeMatch && strokeMatch[1]) {
-                gradient = Ext.fly(strokeMatch[1]);
-                if (gradient) {
-                    gradient.destroy();
-                }
-            }
-        }
-        element.destroy();
     },
 
     /**
@@ -129,12 +95,13 @@ Ext.define('Ext.draw.engine.SvgContext', {
     restore: function () {
         var toSave = this.toSave,
             obj = this.state.pop(),
-            children = this.group.dom.childNodes,
+            group = this.group,
+            children = group.dom.childNodes,
             key, i;
-        
+
         // Removing extra DOM elements that were not reused.
         while (children.length > this.position) {
-            this.removeElement(children[children.length - 1]);
+            group.last().destroy();
         }
         for (i = 0; i < toSave.length; i++) {
             key = toSave[i];
@@ -146,7 +113,7 @@ Ext.define('Ext.draw.engine.SvgContext', {
         }
 
         this.setTransform.apply(this, obj.matrix.elements);
-        this.group = this.group.getParent();
+        this.group = group.getParent();
     },
 
     /**
@@ -505,25 +472,37 @@ Ext.define('Ext.draw.engine.SvgContext', {
      * Fills the subpaths of the current default path or the given path with the current fill style.
      */
     fill: function () {
-        if (!this.path) {
+        var me = this;
+
+        if (!me.path) {
             return;
         }
-        if (this.fillStyle) {
+        if (me.fillStyle) {
             var path,
-                fillGradient = this.fillGradient,
-                bbox = this.bbox,
-                element = this.path.element;
+                fillGradient = me.fillGradient,
+                element = me.path.element,
+                bbox = me.bbox,
+                fill;
+
             if (!element) {
-                path = this.path.toString();
-                element = this.path.element = this.getElement('path');
-                this.surface.setElementAttributes(element, {
+                path = me.path.toString();
+                element = me.path.element = me.getElement('path');
+                me.surface.setElementAttributes(element, {
                     "d": path,
-                    "transform": this.matrix.toSvg()
+                    "transform": me.matrix.toSvg()
                 });
             }
-            this.surface.setElementAttributes(element, {
-                "fill": fillGradient && bbox ? fillGradient.generateGradient(this, bbox) : this.fillStyle,
-                "fill-opacity": this.fillOpacity * this.globalAlpha
+            if (fillGradient && bbox) {
+                // This indirectly calls ctx.createLinearGradient or ctx.createRadialGradient,
+                // depending on the type of gradient, and returns an instance of
+                // Ext.draw.engine.SvgContext.Gradient.
+                fill = fillGradient.generateGradient(me, bbox);
+            } else {
+                fill = me.fillStyle;
+            }
+            me.surface.setElementAttributes(element, {
+                "fill": fill,
+                "fill-opacity": me.fillOpacity * me.globalAlpha
             });
         }
     },
@@ -532,39 +511,51 @@ Ext.define('Ext.draw.engine.SvgContext', {
      * Strokes the subpaths of the current default path or the given path with the current stroke style.
      */
     stroke: function () {
-        if (!this.path) {
+        var me = this;
+
+        if (!me.path) {
             return;
         }
-        if (this.strokeStyle) {
+        if (me.strokeStyle) {
             var path,
-                strokeGradient = this.strokeGradient,
-                bbox = this.bbox,
-                element = this.path.element;
-            if (!element || !this.path.svgString) {
-                path = this.path.toString();
+                strokeGradient = me.strokeGradient,
+                element = me.path.element,
+                bbox = me.bbox,
+                stroke;
+
+            if (!element || !me.path.svgString) {
+                path = me.path.toString();
                 if (!path) {
                     return;
                 }
-                element = this.path.element = this.getElement('path');
-                this.surface.setElementAttributes(element, {
+                element = me.path.element = me.getElement('path');
+                me.surface.setElementAttributes(element, {
                     "fill": "none",
                     "d": path,
-                    "transform": this.matrix.toSvg()
+                    "transform": me.matrix.toSvg()
                 });
             }
-            this.surface.setElementAttributes(element, {
-                "stroke": strokeGradient && bbox ? strokeGradient.generateGradient(this, bbox) : this.strokeStyle,
-                "stroke-linecap": this.lineCap,
-                "stroke-linejoin": this.lineJoin,
-                "stroke-width": this.lineWidth,
-                "stroke-opacity": this.strokeOpacity * this.globalAlpha,
-                "stroke-dasharray": this.lineDash.join(','),
-                "stroke-dashoffset": this.lineDashOffset
+            if (strokeGradient && bbox) {
+                // This indirectly calls ctx.createLinearGradient or ctx.createRadialGradient,
+                // depending on the type of gradient, and returns an instance of
+                // Ext.draw.engine.SvgContext.Gradient.
+                stroke = strokeGradient.generateGradient(me, bbox);
+            } else {
+                stroke = me.strokeStyle;
+            }
+            me.surface.setElementAttributes(element, {
+                "stroke": stroke,
+                "stroke-linecap": me.lineCap,
+                "stroke-linejoin": me.lineJoin,
+                "stroke-width": me.lineWidth,
+                "stroke-opacity": me.strokeOpacity * me.globalAlpha,
+                "stroke-dasharray": me.lineDash.join(','),
+                "stroke-dashoffset": me.lineDashOffset
             });
-            if (this.lineDash.length) {
-                this.surface.setElementAttributes(element, {
-                    "stroke-dasharray": this.lineDash.join(','),
-                    "stroke-dashoffset": this.lineDashOffset
+            if (me.lineDash.length) {
+                me.surface.setElementAttributes(element, {
+                    "stroke-dasharray": me.lineDash.join(','),
+                    "stroke-dashoffset": me.lineDashOffset
                 });
             }
         }
@@ -615,7 +606,8 @@ Ext.define('Ext.draw.engine.SvgContext', {
     },
 
     /**
-     * Returns an object that represents a linear gradient that paints along the line given by the coordinates represented by the arguments.
+     * Returns an object that represents a linear gradient that paints along the line
+     * given by the coordinates represented by the arguments.
      * @param {Number} x0
      * @param {Number} y0
      * @param {Number} x1
@@ -625,8 +617,8 @@ Ext.define('Ext.draw.engine.SvgContext', {
     createLinearGradient: function (x0, y0, x1, y1) {
         var me = this,
             element = me.surface.getNextDef('linearGradient'),
-            gradients = me.group.dom.gradients || (me.group.dom.gradients = {}),
             gradient;
+
         me.surface.setElementAttributes(element, {
             "x1": x0,
             "y1": y0,
@@ -635,12 +627,13 @@ Ext.define('Ext.draw.engine.SvgContext', {
             "gradientUnits": "userSpaceOnUse"
         });
         gradient = new Ext.draw.engine.SvgContext.Gradient(me, me.surface, element);
-        gradients[element.dom.id] = gradient;
+
         return gradient;
     },
 
     /**
-     * Returns a CanvasGradient object that represents a radial gradient that paints along the cone given by the circles represented by the arguments.
+     * Returns a CanvasGradient object that represents a radial gradient that paints
+     * along the cone given by the circles represented by the arguments.
      * If either of the radii are negative, throws an IndexSizeError exception.
      * @param {Number} x0
      * @param {Number} y0
@@ -653,8 +646,8 @@ Ext.define('Ext.draw.engine.SvgContext', {
     createRadialGradient: function (x0, y0, r0, x1, y1, r1) {
         var me = this,
             element = me.surface.getNextDef('radialGradient'),
-            gradients = me.group.dom.gradients || (me.group.dom.gradients = {}),
             gradient;
+
         me.surface.setElementAttributes(element, {
             "fx": x0,
             "fy": y0,
@@ -664,38 +657,56 @@ Ext.define('Ext.draw.engine.SvgContext', {
             "gradientUnits": "userSpaceOnUse"
         });
         gradient = new Ext.draw.engine.SvgContext.Gradient(me, me.surface, element, r0 / r1);
-        gradients[element.dom.id] = gradient;
+
         return gradient;
     }
 });
 
 /**
- * @class Ext.draw.engine.SvgContext.Gradient
+ * @class Ext.draw.engine.SvgContext.Gradient.
+ *
+ * A class that implements native CanvasGradient interface
+ * (https://developer.mozilla.org/en/docs/Web/API/CanvasGradient)
+ * and a `toString` method that returns the ID of the gradient.
  */
-Ext.define("Ext.draw.engine.SvgContext.Gradient", {
+Ext.define('Ext.draw.engine.SvgContext.Gradient', {
 
-    statics: {
-        map: {}
-    },
+    // Gradients workflow in SVG engine:
+    //
+    // Inside the 'fill' & 'stroke' methods of the SVG Context
+    // we check if the 'ctx.fillGradient' or 'ctx.strokeGradient'
+    // objects exist.
+    // These objects are instances of Ext.draw.gradient.Gradient
+    // and are assigned to the ctx by the sprite's 'useAttributes' method,
+    // if the sprite has any gradients.
+    //
+    // Additionally, we check if the 'ctx.bbox' object exists - the bounding box
+    // for the gradients, set by the sprite's 'setGradientBBox' method.
+    //
+    // If we have both bbox and a valid instance of Ext.draw.gradient.Gradient,
+    // the 'generateGradient' method of the instance is called,
+    // which in turn calls 'ctx.createLinearGradient' or 'ctx.createRadialGradient'
+    // depending on the type of the gradient represented by the instance.
+    // These methods create a 'linearGradient' or 'radialGradient' SVG
+    // node and wrap it into a Ext.draw.engine.SvgContext.Gradient instance.
+    //
+    // The Ext.draw.engine.SvgContext.Gradient instance is then used internally
+    // by the Ext.draw.gradient.Gradient to add color 'stop' nodes
+    // to the gradient node, and by the SVG context when the 'fill' or
+    // 'stroke' attribute of a 'path' node is set to the Ext.draw.engine.SvgContext.Gradient
+    // instance, which is implicitly converted to a string - a 'url(#id)' reference
+    // to the gradient element wrapped by the instance.
+
+    isGradient: true,
 
     constructor: function (ctx, surface, element, compression) {
-        var map = this.statics().map,
-            oldInstance;
+        var me = this;
 
-        // Because of the way Ext.draw.engine.Svg.getNextDef works,
-        // there is no guarantee that an existing DOM element from the 'defs' section won't be used
-        // for the 'element' param.
-        oldInstance = map[element.dom.id];
-        if (oldInstance) {
-            oldInstance.element = null;
-        }
-        map[element.dom.id] = this;
-
-        this.ctx = ctx;
-        this.surface = surface;
-        this.element = element;
-        this.position = 0;
-        this.compression = compression || 0;
+        me.ctx = ctx;
+        me.surface = surface;
+        me.element = element;
+        me.position = 0;
+        me.compression = compression || 0;
     },
 
     /**
@@ -704,12 +715,14 @@ Ext.define("Ext.draw.engine.SvgContext.Gradient", {
      * @param {String} color
      */
     addColorStop: function (offset, color) {
-        var stop = this.surface.getSvgElement(this.element, 'stop', this.position++),
-            compression = this.compression;
-        this.surface.setElementAttributes(stop, {
+        var me = this,
+            stop = me.surface.getSvgElement(me.element, 'stop', me.position++),
+            compression = me.compression;
+
+        me.surface.setElementAttributes(stop, {
             "offset": (((1 - compression) * offset + compression) * 100).toFixed(2) + '%',
             "stop-color": color,
-            "stop-opacity": Ext.draw.Color.fly(color).a.toFixed(15)
+            "stop-opacity": Ext.util.Color.fly(color).a.toFixed(15)
         });
     },
 
@@ -720,16 +733,6 @@ Ext.define("Ext.draw.engine.SvgContext.Gradient", {
             Ext.fly(children[children.length - 1]).destroy();
         }
         return 'url(#' + this.element.getId() + ')';
-    },
-
-    destroy: function () {
-        var map = this.statics().map,
-            element = this.element;
-
-        if (element && element.dom) {
-            delete map[element.dom.id];
-            element.destroy();
-        }
-        this.callParent();
     }
+
 });

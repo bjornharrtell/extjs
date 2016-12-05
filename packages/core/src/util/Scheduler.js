@@ -355,76 +355,74 @@ Ext.define('Ext.util.Scheduler', {
             me.timer = null;
         }
 
-        //<debug>
-        if (me.firing) {
-            Ext.raise('Notify cannot be called recursively');
-        }
-        //</debug>
+        // Only process the queue if we are not already notifying
+        // and there are notifications to deliver.
+        if (!me.firing && me.scheduledCount) {
+            if (suspend) {
+                Ext.suspendLayouts();
+            }
 
-        if (suspend) {
-            Ext.suspendLayouts();
-        }
-
-        while (me.scheduledCount) {
-            if (cyclesLeft) {
-                --cyclesLeft;
-            } else {
-                me.firing = null;
-                //<debug>
-                if (me.onCycleLimitExceeded) {
-                    me.onCycleLimitExceeded();
+            while (me.scheduledCount) {
+                if (cyclesLeft) {
+                    --cyclesLeft;
+                } else {
+                    me.firing = null;
+                    //<debug>
+                    if (me.onCycleLimitExceeded) {
+                        me.onCycleLimitExceeded();
+                    }
+                    //</debug>
+                    break;
                 }
-                //</debug>
-                break;
-            }
 
-            if (!firedEvent) {
-                firedEvent = true;
-                if (globalEvents.hasListeners.beforebindnotify) {
-                    globalEvents.fireEvent('beforebindnotify', me);
+                if (!firedEvent) {
+                    firedEvent = true;
+                    if (globalEvents.hasListeners.beforebindnotify) {
+                        globalEvents.fireEvent('beforebindnotify', me);
+                    }
                 }
-            }
 
-            ++me.passes;
+                ++me.passes;
 
-            // We need to sort before we start firing because items can be added as we
-            // loop.
-            if (!(queue = me.orderedItems)) {
-                me.sort();
-                queue = me.orderedItems;
-            }
+                // We need to sort before we start firing because items can be added as we
+                // loop.
+                if (!(queue = me.orderedItems)) {
+                    me.sort();
+                    queue = me.orderedItems;
+                }
 
-            len = queue.length;
-            if (len) {
-                me.firing = me.items;
+                len = queue.length;
+                if (len) {
+                    me.firing = me.items;
 
-                for (i = 0; i < len; ++i) {
-                    item = queue[i];
+                    for (i = 0; i < len; ++i) {
+                        item = queue[i];
 
-                    if (item.scheduled) {
-                        item.scheduled = false;
-                        --me.scheduledCount;
-                        me.notifyIndex = i;
+                        if (item.scheduled) {
+                            item.scheduled = false;
+                            --me.scheduledCount;
+                            me.notifyIndex = i;
 
-                        //Ext.log('React: ' + item.getFullName());
-                        // This sequence allows the reaction to schedule items further
-                        // down the queue without a second pass but also to schedule an
-                        // item that is "upstream" or even itself.
-                        item.react();
+                            //Ext.log('React: ' + item.getFullName());
+                            // This sequence allows the reaction to schedule items further
+                            // down the queue without a second pass but also to schedule an
+                            // item that is "upstream" or even itself.
+                            item.react();
 
-                        if (!me.scheduledCount) {
-                            break;
+                            if (!me.scheduledCount) {
+                                break;
+                            }
                         }
                     }
                 }
             }
-        }
 
-        me.firing = null;
-        me.notifyIndex = -1;
+            me.firing = null;
+            me.notifyIndex = -1;
 
-        if (suspend) {
-            Ext.resumeLayouts(true);
+            if (suspend) {
+                Ext.resumeLayouts(true);
+            }
         }
 
         // The last thing we do is check for idle state transition (now that whatever

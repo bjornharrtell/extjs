@@ -1,9 +1,15 @@
 /**
- * This class is used to display small visual icons in the header of a panel. There are a set of
- * 25 icons that can be specified by using the {@link #type} config. The {@link #callback} config
- * can be used to provide a function that will respond to any click events. In general, this class
- * will not be instantiated directly, rather it will be created by specifying the {@link Ext.panel.Panel#tools}
- * configuration on the Panel itself.
+ * This class is used to display small visual icons in the header of a panel.
+ *
+ * There are a set of 25 icons that can be specified by using the {@link #cfg-type} config.
+ * 
+ * The {@link #cfg-glyph} config may be used to specify a font icon in any available font.
+ *
+ * The {@link #cfg-iconCls} config may be used to add a specific class name to the tool element.
+ * 
+ * The {@link #cfg-callback} config can be used to provide a function that will respond to any click events.
+ * In general, this class will not be instantiated directly, rather it will be created by specifying the
+ * {@link Ext.panel.Panel#tools} configuration on the Panel itself.
  *
  *     @example
  *     Ext.create('Ext.panel.Panel', {
@@ -17,11 +23,11 @@
  *                 // show help here
  *             }
  *         }, {
- *             itemId: 'refresh',
- *             type: 'refresh',
+ *             itemId: 'reply',
+ *             glyph: 'xf112@FontAwesome', // Reply icon
  *             hidden: true,
  *             callback: function() {
- *                 // do refresh
+ *                 // do reply
  *             }
  *         }, {
  *             type: 'search',
@@ -51,6 +57,18 @@ Ext.define('Ext.panel.Tool', {
     uses: ['Ext.tip.QuickTipManager'],
     xtype: 'tool',
 
+    requires: [
+        'Ext.Glyph'
+    ],
+
+    config: {
+        /**
+         * @cfg {Number/String} glyph
+         * @inheritdoc Ext.panel.Header#glyph
+         */
+        glyph: null
+    },
+
     /**
      * @property {Boolean} isTool
      * `true` in this class to identify an object as an instantiated Tool, or subclass thereof.
@@ -70,14 +88,26 @@ Ext.define('Ext.panel.Tool', {
      * @private
      */
     toolOverCls: Ext.baseCSSPrefix + 'tool-over',
+    /**
+     * @cfg {String} iconCls
+     * @inheritdoc Ext.panel.Header#cfg-iconCls
+     */
 
     childEls: [
         'toolEl'
     ],
 
     renderTpl: [
-        '<div id="{id}-toolEl" data-ref="toolEl" class="{baseCls}-img {baseCls}-{type}' +
-            '{childElCls}" role="presentation"></div>'
+        '<div id="{id}-toolEl" data-ref="toolEl" class="{className} {childElCls}" role="presentation"' +
+        '<tpl if="glyph">' +
+            '<tpl if="glyphFontFamily">' +
+                ' style="font-family:{glyphFontFamily};">' +
+            '</tpl>' +
+            '{glyph}' +
+        '<tpl else>' +
+            '>' +
+        '</tpl>' +
+        '</div>'
     ],
 
     /**
@@ -97,7 +127,7 @@ Ext.define('Ext.panel.Tool', {
      * @cfg {Ext.panel.Tool} callback.tool The tool that is calling.
      * @cfg {Ext.event.Event} callback.event The click event.
      * @since 4.2
-     * @declarativeHandler
+     * @controllable
      */
 
     /**
@@ -222,7 +252,8 @@ Ext.define('Ext.panel.Tool', {
     focusable: true,
     tabIndex: 0,
     
-    keyHandlers: {
+    keyMap: {
+        scope: 'this',
         SPACE: 'onClick',
         ENTER: 'onClick'
     },
@@ -269,23 +300,54 @@ Ext.define('Ext.panel.Tool', {
         }
         //</debug>
 
-        me.type = me.type || me.id;
-
-        Ext.applyIf(me.renderData, {
-            baseCls: me.baseCls,
-            type: me.type
-        });
-
         // alias qtip, should use tooltip since it's what we have in the docs
         me.tooltip = me.tooltip || me.qtip;
         me.callParent();
+    },
+
+    initRenderData: function() {
+        var me = this,
+            data = me.callParent(),
+            glyph = me.getGlyph(),
+            glyphFontFamily;
+
+        // Transform Glyph to the useful parts
+        if (glyph) {
+            glyphFontFamily = glyph.fontFamily;
+            glyph = glyph.character;
+        }
+
+        Ext.applyIf(data, {
+            className: me.calculateClassName(),
+            glyph: glyph,
+            glyphFontFamily: glyphFontFamily
+        });
+
+        return data;
+    },
+    
+    calculateClassName: function() {
+        var me = this,
+            result = me.baseCls + '-tool-el ';
+
+        if (me.type) {
+            result += me.baseCls + '-img ' + me.baseCls + '-' + me.type;
+        } else if (me.iconCls) {
+            result += me.iconCls; // do not add x-tool-img to allow iconCls full sway
+        }
+        return result;
     },
 
     afterRender: function() {
         var me = this,
             tip;
 
-        me.callParent(arguments);
+        me.callParent();
+
+        if (me.setTypeAfterRender) {
+            me.setTypeAfterRender = false;
+            me.setType(me.type);
+        }
 
         me.el.on({
             click: me.onClick,
@@ -356,29 +418,108 @@ Ext.define('Ext.panel.Tool', {
      */
     setType: function(type) {
         var me = this,
-            oldType = me.type;
+            toolEl = me.toolEl,
+            updating = me.updating,
+            rendering = me.rendering,
+            oldClassName, clear;
+
+        if (!updating) {
+            oldClassName = me.calculateClassName();
+            if (!rendering) {
+                me.updating = clear = true;
+            }
+            me.setIconCls(null);
+            me.setGlyph(null);
+        }
 
         me.type = type;
-        if (me.rendered) {
-            if (oldType) {
-                me.toolEl.removeCls(me.baseCls + '-' + oldType);
-            }
-            me.toolEl.addCls(me.baseCls + '-' + type);
-        } else {
-            me.renderData.type = type;
+
+        if (clear) {
+            me.updateToolCls(oldClassName);
+            me.updating = false;
+        } else if (rendering) {
+            me.setTypeAfterRender = true;
         }
+
         return me;
     },
 
-    onDestroy: function(){
+    /**
+     * Sets the icon class. Allows the icon to be changed.
+     * @param {String} type The new icon class. See the {@link #type} config.
+     * @return {Ext.panel.Tool} this
+     */
+    setIconCls: function(iconCls) {
         var me = this,
-            keyMap = me.keyMap;
+            toolEl = me.toolEl,
+            updating = me.updating,
+            oldClassName, clear;
+
+        if (!updating) {
+            oldClassName = me.calculateClassName();
+            me.updating = clear = true;
+            me.setType(null);
+            me.setGlyph(null);
+        }
+
+        me.iconCls = iconCls;
+
+        if (clear) {
+            me.updateToolCls(oldClassName);
+            me.updating = false;
+        }
+
+        return me;
+    },
+
+    doDestroy: function() {
+        var me = this;
 
         me.setTooltip(null);
 
         delete me.toolOwner;
 
         me.callParent();
+    },
+
+    applyGlyph: function(glyph, oldGlyph) {
+        if (glyph) {
+            if (!glyph.isGlyph) {
+                glyph = new Ext.Glyph(glyph);
+            }
+            if (glyph.isEqual(oldGlyph)) {
+                glyph = undefined;
+            }
+        }
+        return glyph;
+    },
+
+    updateGlyph: function(glyph, oldGlyph) {
+        var me = this,
+            toolEl = me.toolEl,
+            updating = me.updating,
+            oldClassName, clear;
+
+        if (!updating) {
+            oldClassName = me.calculateClassName();
+            me.updating = clear = true;
+            me.setType(null);
+            me.setIconCls(null);
+        }
+
+        if (toolEl) {
+            if (glyph) {
+                toolEl.dom.innerHTML = glyph.character;
+                toolEl.setStyle(glyph.getStyle());
+            } else {
+                toolEl.dom.innerHTML = '';
+            }
+        }
+
+        if (clear) {
+            me.updateToolCls(oldClassName);
+            me.updating = false;
+        }
     },
 
     privates: {
@@ -409,6 +550,12 @@ Ext.define('Ext.panel.Tool', {
             } else if (me.callback) {
                 Ext.callback(me.callback, me.scope, [me.toolOwner || me.ownerCt, me, e], 0, me);
             }
+            
+            // The handler could have destroyed the owner, and the Tool instance as well.
+            // This is what happens with Close tools in Panels.
+            if (me.destroyed) {
+                return;
+            }
 
             /**
              * @event click
@@ -418,6 +565,8 @@ Ext.define('Ext.panel.Tool', {
              * @param {Ext.Component} owner The logical owner of the tool. In a typical
              * `Ext.panel.Panel`, this is set to the owning panel. This value comes from the
              * `toolOwner` config.
+             * Note that if the tool handler destroys the tool and/or its owner, the event
+             * will not fire.
              * @since 5.0.0
              */
             me.fireEvent('click', me, e, me.toolOwner || me.ownerCt);
@@ -462,6 +611,16 @@ Ext.define('Ext.panel.Tool', {
          */
         onMouseOut: function() {
             this.el.removeCls(this.toolOverCls);
+        },
+
+        updateToolCls: function(oldCls) {
+            var me = this,
+                toolEl = this.toolEl;
+
+            if (toolEl) {
+                toolEl.removeCls(oldCls);
+                toolEl.addCls(this.calculateClassName());
+            }
         }
     }
 });

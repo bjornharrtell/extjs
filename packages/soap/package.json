@@ -24,7 +24,7 @@
     "summary": "SOAP Data Support",
     "detailedDescription": "This package provides SOAP support for the Data package",
 
-    "version": "6.0.1.250",
+    "version": "6.2.0.981",
     "compatVersion": "6.0.0",
     "format": "1",
 

@@ -6,7 +6,7 @@
 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="google" content="notranslate" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=10, user-scalable=yes">
 
     <title>Ext JS Kitchen Sink</title>
 
@@ -15,15 +15,65 @@
     <!-- The line below must be kept intact for Sencha Command to build your application -->
     <script type="text/javascript">
         var Ext = Ext || {};
-        Ext.beforeLoad = function(tags){
-            var profile = location.href.match(/profile=([\w-]+)/),
-                locale = location.href.match(/locale=([\w-]+)/);
+        var KitchenSink = KitchenSink || {};
 
-            profile  = (profile && profile[1]) || (tags.phone ? 'modern-triton' : 'triton');
-            locale = (locale && locale[1]) || 'en';
+        Ext.beforeLoad = function (tags) {
+            var query = location.search.substring(1),
+                values = {
+                    'false': false,
+                    'true': true,
+                    'null': null
+                },
+                paramRe = /([^&=]+)(=([^&]*))?/g,
+                plusRe = /\+/g,  // Regex for replacing addition symbol with a space
+                params = {},
+                match, key, val;
+
+            while (match = paramRe.exec(query)) {
+                key = decodeURIComponent(match[1].replace(plusRe, ' '));
+
+                if (match[2]) {
+                    val = decodeURIComponent(match[3].replace(plusRe, ' '));
+                    if (val in values) {
+                        val = values[val];
+                    } else if (!isNaN(+val)) {
+                        val = +val;
+                    }
+                } else {
+                    val = true;
+                }
+
+                params[key] = val;
+            }
+
+            var profile = params.profile,
+                locale = params.locale;
+
+            if (!profile) {
+                if (!params.classic && !tags.desktop && tags.ios){
+                    profile = 'ios';
+                } else if (!params.classic && (params.modern || tags.phone)) {
+                    profile = 'material';
+                } else {
+                    profile = 'triton';
+                }
+            }
+
+            match = profile.match(/^(.+?)(?:-(en|he))$/);
+            if (match) { // "profile=triton-en"
+                profile = match[1];
+                locale = locale || match[2];
+            } else {
+                locale = locale || 'en';
+            }
+
+            // TODO: EXTJS-21544 - set platformTags based upon locale's text direction.
+            Ext.platformTags.rtl = locale === 'he';
+            KitchenSink.profileName = profile;
+            KitchenSink.locale = locale;
 
             Ext.manifest = profile + "-" + locale;
-            tags.test = /testMode=true/.test(location.search);
+            tags.test = !!params.testMode;
             Ext.microloaderTags = tags;
         };
     </script>

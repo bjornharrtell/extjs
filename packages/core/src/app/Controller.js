@@ -332,8 +332,8 @@ Ext.define('Ext.app.Controller', {
             else if (name.indexOf('.') > 0 && (Ext.ClassManager.isCreated(name) ||
                      this.hasRegisteredPrefix(name))) {
                 absoluteName = name;
-            }
-            else {
+                shortName = name.replace(namespace + '.' + kind + '.', '');
+            } else {
                 //<debug>
                 if (!namespace) {
                     Ext.log.warn("Cannot find namespace for " + kind + " " + name + ", " +
@@ -569,7 +569,7 @@ Ext.define('Ext.app.Controller', {
      */
     constructor: function(config) {
         this.initAutoGetters();
-        this.callParent(arguments);
+        this.callParent([config]);
     },
 
     /**
@@ -656,6 +656,10 @@ Ext.define('Ext.app.Controller', {
         }
 
         return refMap;
+    },
+
+    applyId: function(id) {
+        return id || Ext.app.Controller.getFullName(this.$className, 'controller', this.$namespace).shortName;
     },
 
     applyRefs: function(refs) {
@@ -818,7 +822,7 @@ Ext.define('Ext.app.Controller', {
             }
             
             if (cached) {
-                cached.on('beforedestroy', function() {
+                cached.on('destroy', function() {
                     refCache[ref] = null;
                 });
             }
@@ -932,15 +936,12 @@ Ext.define('Ext.app.Controller', {
         return name && Ext.ClassManager.get(name.absoluteName);
     },
 
-    ensureId: function() {
-        var id = this.getId();
-            
-        if (!id) {
-            this.setId(this.getModuleClassName(this.$className, 'controller'));
-        }    
-    },
-    
-    destroy: function(destroyRefs, /* private */ fromApp) {
+    /**
+     * @inheritdoc
+     * @param destroyRefs (private)
+     * @param fromApp (private)
+     */
+    destroy: function(destroyRefs, fromApp) {
         var me = this,
             app = me.application,
             refCache, ref;

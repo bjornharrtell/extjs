@@ -29,6 +29,10 @@ Ext.define('KitchenSink.view.charts.line.BasicController', {
     },
 
     onPreview: function () {
+        if (Ext.isIE8) {
+            Ext.Msg.alert('Unsupported Operation', 'This operation requires a newer version of Internet Explorer.');
+            return;
+        }
         var chart = this.lookupReference('chart');
         chart.preview();
     }

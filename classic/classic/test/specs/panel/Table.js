@@ -63,4 +63,35 @@ describe("Ext.panel.Table", function () {
             expect(grid.headerCt.forceFit).toBe(true);
         });
     });
+    
+    describe("scrollable", function() {
+        // https://sencha.jira.com/browse/EXTJS-15736
+        it("should not throw exception on autoScroll config when locking", function() {
+            expect(function() {
+                createGrid(null, {
+                    height	: 400,
+                    width	: 600,
+                    autoScroll : true,
+                    store	: store,
+                    columns	: [
+                        { text: 'Name',  dataIndex: 'name', hideable : false, width: 35, locked:true},
+                        { text: 'Email', dataIndex: 'email', flex: 1 },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' },
+                        { text: 'Phone', dataIndex: 'phone' }
+                    ],
+                    renderTo: document.body
+                });
+            }).not.toThrow();
+        });
+    });
 });

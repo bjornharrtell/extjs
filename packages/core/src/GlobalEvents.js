@@ -188,7 +188,7 @@ Ext.define('Ext.GlobalEvents', {
      * @member Ext
      * @method on
      * Shorthand for {@link Ext.GlobalEvents#addListener}.
-     * @inheritdoc Ext.util.Observable#addListener
+     * @inheritdoc Ext.mixin.Observable#addListener
      */
     Ext.on = function() {
         return GlobalEvents.addListener.apply(GlobalEvents, arguments);
@@ -196,11 +196,23 @@ Ext.define('Ext.GlobalEvents', {
 
     /**
      * @member Ext
-     * @method
+     * @method un
      * Shorthand for {@link Ext.GlobalEvents#removeListener}.
-     * @inheritdoc Ext.util.Observable#removeListener
+     * @inheritdoc Ext.mixin.Observable#removeListener
      */
     Ext.un = function() {
         return GlobalEvents.removeListener.apply(GlobalEvents, arguments);
+    };
+
+    /**
+     * @member Ext
+     * @method fireEvent
+     * Shorthand for {@link Ext.GlobalEvents#fireEvent}.
+     * @inheritdoc Ext.mixin.Observable#fireEvent
+     *
+     * @since 6.2.0
+     */
+    Ext.fireEvent = function() {
+        return GlobalEvents.fireEvent.apply(GlobalEvents, arguments);
     };
 });

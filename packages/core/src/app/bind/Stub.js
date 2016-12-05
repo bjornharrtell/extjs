@@ -18,35 +18,6 @@ Ext.define('Ext.app.bind.Stub', {
 
     validationKey: 'validation',
 
-    statics: {
-        trackHadValue: function(value, owner, path, stub) {
-            var children = stub && stub.children,
-                child, key, hadValue;
-
-            // Keep track of the fact that we've had a value set. We may get set
-            // to undefined in the future, we only need to know whether we
-            // are initially in an undefined state
-            hadValue = value !== undefined;
-            if (!owner.hadValue[path]) {
-                owner.hadValue[path] = hadValue;
-            }
-
-            if (stub) {
-                stub.hadValue = hadValue;
-            }
-
-            if (value && (value.constructor === Object || value.isModel)) {
-                if (value.isModel) {
-                    value = value.data;
-                }
-
-                for (key in value) {
-                    Ext.app.bind.Stub.trackHadValue(value[key], owner, path + '.' + key, children && children[key]);
-                }
-            }
-        }
-    },
-
     constructor: function (owner, name, parent) {
         var me = this,
             path = name;
@@ -58,26 +29,25 @@ Ext.define('Ext.app.bind.Stub', {
             if (!parent.isRootStub) {
                 path = parent.path + '.' + name;
             }
+            me.checkHadValue();
         }
-        me.hadValue = owner.hadValue[path];
         me.path = path;
     },
     
     destroy: function() {
         var me = this,
             formula = me.formula,
-            parent = me.parent,
             storeBinding = me.storeBinding;
 
         if (formula) {
             formula.destroy();
         }
+        
         if (storeBinding) {
             storeBinding.destroy();
         }
+        
         me.detachBound();
-
-        me.parentValue = me.formula = me.storeBinding = null;
         
         me.callParent();
     },
@@ -100,9 +70,9 @@ Ext.define('Ext.app.bind.Stub', {
                     field = value.getField(name);
                 }
                 if (lateBound) {
-                    scope[callback](field, null, this);
+                    scope[callback](field, value, this);
                 } else {
-                    callback.call(scope, field, null, this);
+                    callback.call(scope, field, value, this);
                 }
             });
         }
@@ -156,7 +126,7 @@ Ext.define('Ext.app.bind.Stub', {
             parentData = me.parent.getDataObject(), // RootStub does not get here
             name = me.name,
             ret = parentData ? parentData[name] : null,
-            associations, association;
+            associations;
 
         if (!ret && parentData && parentData.isEntity) {
             // Check if the item is an association, if it is, grab it but don't load it.
@@ -169,7 +139,7 @@ Ext.define('Ext.app.bind.Stub', {
         if (!ret || !(ret.$className || Ext.isObject(ret))) {
             parentData[name] = ret = {};
             // We're implicitly setting a value on the object here
-            me.hadValue = me.owner.hadValue[me.path] = true;
+            me.hadValue = true;
             // If we're creating the parent data object, invalidate the dirty
             // flag on our children.
             me.invalidate(true, true);
@@ -204,6 +174,8 @@ Ext.define('Ext.app.bind.Stub', {
         }
 
         me.children = null;
+
+        replacement.checkHadValue();
 
         return me.callParent([ replacement ]);
     },
@@ -247,6 +219,8 @@ Ext.define('Ext.app.bind.Stub', {
             children = me.children,
             name;
 
+        me.checkHadValue();
+
         me.dirty = true;
         if (!dirtyOnly && !me.isLoading()) {
             if (!me.scheduled) {
@@ -272,7 +246,8 @@ Ext.define('Ext.app.bind.Stub', {
             parent = me.parent,
             name = me.name,
             formula = me.formula,
-            parentData, associations, association, formulaStub;
+            parentData, associations,
+            association, formulaStub, setterName;
 
         if (formula && !formula.settingValue && formula.set) {
             formula.setValue(value);
@@ -299,7 +274,10 @@ Ext.define('Ext.app.bind.Stub', {
 
             if (associations && (name in associations)) {
                 association = associations[name];
-                parentData[association.setterName](value);
+                setterName = association.setterName;
+                if (setterName) {
+                    parentData[setterName](value);
+                }
                 // We may be setting a record here, force the value to recalculate
                 me.invalidate(true);
             } else {
@@ -315,7 +293,6 @@ Ext.define('Ext.app.bind.Stub', {
                     delete parentData[name];
                 } else {
                     parentData[name] = value;
-                    Ext.app.bind.Stub.trackHadValue(value, me.owner, me.path, me);
                 }
 
                 me.inspectValue(parentData);
@@ -343,7 +320,7 @@ Ext.define('Ext.app.bind.Stub', {
         var children = this.children,
             len = modifiedFieldNames && modifiedFieldNames.length,
             associations = record.associations,
-            key, i, child, scheduled;
+            key, i, child;
 
         // No point checking anything if we don't have children
         if (children) {
@@ -372,6 +349,15 @@ Ext.define('Ext.app.bind.Stub', {
     afterReject: function(record) {
         // Essentially the same as an edit, but we don't know what changed.
         this.afterEdit(record, null);
+    },
+
+    afterAssociatedRecordSet: function(record, associated, role) {
+        var children = this.children,
+            key = role.role;
+
+        if (children && key in children) {
+            children[key].invalidate(true);
+        }
     },
 
     setByLink: function (value) {
@@ -455,6 +441,12 @@ Ext.define('Ext.app.bind.Stub', {
     },
 
     privates: {
+        checkHadValue: function() {
+            if (!this.hadValue) {
+                this.hadValue = this.getRawValue() !== undefined;
+            }
+        },
+
         collect: function() {
             var me = this,
                 result = me.callParent(),
@@ -531,12 +523,19 @@ Ext.define('Ext.app.bind.Stub', {
                         // Only want to trigger automatic loading if we've come from an association. Otherwise leave
                         // the user in charge of that.
                         associatedEntity = boundValue.associatedEntity;
-                        if (associatedEntity && !associatedEntity.phantom && !boundValue.complete && !boundValue.hasPendingLoad()) {
+                        if (associatedEntity && boundValue.autoLoad !== false && !boundValue.complete && !boundValue.hasPendingLoad()) {
                             boundValue.load();
                         }
                         // We only want to listen for the first load, since the actual
                         // store object won't change from then on
-                        boundValue.on('load', me.onStoreLoad, me, {single: true});
+                        boundValue.on({
+                            scope: me,
+                            load: {
+                                fn: 'onStoreLoad',
+                                single: true
+                            },
+                            destroy: 'onDestroyBound'
+                        });
                     }
                 }
                 me.boundValue = boundValue;
@@ -552,8 +551,18 @@ Ext.define('Ext.app.bind.Stub', {
                 if (current.isModel) {
                     current.unjoin(me);
                 } else {
-                    current.un('load', me.onStoreLoad, me);
+                    current.un({
+                        scope: me,
+                        load: 'onStoreLoad',
+                        destroy: 'onDestroyBound'
+                    });
                 }
+            }
+        },
+        
+        onDestroyBound: function() {
+            if (!this.owner.destroying) {
+                this.set(null);
             }
         },
 

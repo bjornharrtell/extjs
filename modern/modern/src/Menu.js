@@ -6,24 +6,26 @@
  *
  *      @example preview
  *      var menu = Ext.create('Ext.Menu', {
- *          items: [
- *              {
- *                  text: 'Settings',
- *                  iconCls: 'settings'
- *              },
- *              {
- *                  text: 'New Item',
- *                  iconCls: 'compose'
- *              },
- *              {
- *                  text: 'Star',
- *                  iconCls: 'star'
- *              }
- *          ]
+ *          items: [{
+ *              text: 'Settings',
+ *              iconCls: 'settings'
+ *          }, {
+ *              text: 'New Item',
+ *              iconCls: 'compose'
+ *          }, {
+ *              text: 'Star',
+ *              iconCls: 'star'
+ *          }]
+ *      });
+ *
+ *      Ext.Viewport.add({
+ *          xtype: 'panel',
+ *          html: 'Main View Content'
  *      });
  *
  *      Ext.Viewport.setMenu(menu, {
  *          side: 'left',
+ *          // omitting the reveal config defaults the animation to 'cover'
  *          reveal: true
  *      });
  *
@@ -36,84 +38,102 @@ Ext.define('Ext.Menu', {
     xtype: 'menu',
     requires: ['Ext.Button'],
 
-    config: {
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        baseCls: Ext.baseCSSPrefix + 'menu',
+    /**
+     * @cfg
+     * @inheritdoc
+     */
+    baseCls: Ext.baseCSSPrefix + 'menu',
 
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        left: 0,
+    /**
+     * @cfg
+     * @inheritdoc
+     */
+    left: 0,
 
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        right: 0,
+    /**
+     * @cfg
+     * @inheritdoc
+     */
+    right: 0,
 
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        bottom: 0,
+    /**
+     * @cfg
+     * @inheritdoc
+     */
+    bottom: 0,
 
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        height: 'auto',
+    /**
+     * @cfg
+     * @inheritdoc
+     */
+    height: 'auto',
 
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        width: 'auto',
+    /**
+     * @cfg
+     * @inheritdoc
+     */
+    width: 'auto',
 
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        defaultType: 'button',
+    /**
+     * @cfg
+     * @inheritdoc
+     */
+    defaultType: 'button',
 
-        /**
-         * @hide
-         */
-        showAnimation: null,
+    /**
+     * @hide
+     */
+    showAnimation: null,
 
-        /**
-         * @hide
-         */
-        hideAnimation: null,
+    /**
+     * @hide
+     */
+    hideAnimation: null,
 
-        /**
-         * @hide
-         */
-        centered: false,
+    /**
+     * @hide
+     */
+    centered: false,
 
-        /**
-         * @hide
-         */
-        modal: true,
+    /**
+     * @hide
+     */
+    modal: true,
 
-        /**
-         * @hide
-         */
-        hidden: true,
+    /**
+     * @hide
+     */
+    hidden: true,
 
-        /**
-         * @hide
-         */
-        hideOnMaskTap: true,
+    /**
+     * @hide
+     */
+    hideOnMaskTap: true,
 
-        /**
-         * @hide
-         */
-        translatable: {
-            translationMethod: null
+    /**
+     * @hide
+     */
+    translatable: {
+        translationMethod: null
+    },
+
+    layout: {
+        type: 'vbox',
+        align: 'stretch'
+    },
+
+    floated: true,
+
+    hide: function() {
+        var me = this,
+            parent = me.parent;
+
+        if (parent && parent.isViewport && me.$side && !me.viewportIsHiding) {
+            me.viewportIsHiding = true;
+            parent.hideMenu(me.$side, true);
+        } else {
+            me.viewportIsHiding = false;
+            me.callParent();
         }
     },
 
@@ -136,21 +156,16 @@ Ext.define('Ext.Menu', {
     },
 
     updateHideOnMaskTap : function(hide) {
-        var mask = this.getModal();
+        if (!this.isFloated()) {
+            var mask = this.getModal();
 
-        if (mask) {
-            mask[hide ? 'on' : 'un'].call(mask, 'tap', function() {
-                Ext.Viewport.hideMenu(this.$side);
-            }, this);
+            if (mask) {
+                mask[hide ? 'on' : 'un']('tap', this.onMaskTap, this);
+            }
         }
     },
 
-    /**
-     * Only fire the hide event if it is initialized
-     */
-    updateHidden: function() {
-        if (this.initialized) {
-            this.callParent(arguments);
-        }
+    onMaskTap: function() {
+        Ext.Viewport.hideMenu(this.$side);
     }
 });

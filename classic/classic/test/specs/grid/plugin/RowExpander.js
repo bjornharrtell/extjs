@@ -1,3 +1,5 @@
+/* global Ext, expect, jasmine */
+
 describe('Ext.grid.plugin.RowExpander', function () {
     var dummyData = [
             ['3m Co',71.72,0.02,0.03,'9/1 12:00am', 'Manufacturing'],
@@ -31,7 +33,7 @@ describe('Ext.grid.plugin.RowExpander', function () {
             ['Wal-Mart Stores, Inc.',45.45,0.73,1.63,'9/1 12:00am', 'Retail'],
             ['Walt Disney Company (The) (Holding Company)',29.89,0.24,0.81,'9/1 12:00am', 'Services']
         ],
-        store, expander, grid, view, bufferedRenderer, columns, i;
+        store, expander, grid, view, scroller, bufferedRenderer, columns, i;
 
 
     // add in some dummy descriptions
@@ -109,9 +111,20 @@ describe('Ext.grid.plugin.RowExpander', function () {
             plugins: expander,
             title: 'Expander Rows, Collapse and Force Fit',
             renderTo: document.body
-        }, gridCfg)),
-            view = grid.getView(),
-            bufferedRenderer = view.bufferedRenderer;
+        }, gridCfg));
+
+        view = grid.getView();
+        scroller = view.isLockingView ? view.normalView.getScrollable() : view.getScrollable();
+        bufferedRenderer = view.bufferedRenderer;
+    }
+
+    function getElementBottom (el) {
+        return el.dom.getBoundingClientRect().bottom;
+    }
+ 
+    function getRowBodyTr (index, locked) {
+        view = locked ? expander.lockedView : expander.view;
+        return view.all.item(index).down('.' + Ext.baseCSSPrefix + 'grid-rowbody-tr');
     }
 
     afterEach(function () {
@@ -121,305 +134,531 @@ describe('Ext.grid.plugin.RowExpander', function () {
         Ext.data.Model.schema.clear();
     });
 
-    describe("RowExpander", function () {
-        it("should not expand in response to mousedown", function() {
-            makeGrid();
-
-            jasmine.fireMouseEvent(grid.view.el.query('.x-grid-row-expander')[0], 'mousedown');
-
-            expect(grid.view.all.item(0).down('.' + Ext.baseCSSPrefix + 'grid-rowbody-tr').isVisible()).toBe(false);
+    it("should not cause an exception if the expander column is not added", function() {
+        makeGrid({
+            renderTo: null
+        }, {
+            addExpander: Ext.emptyFn
         });
 
-        it("should expand on click", function() {
-            makeGrid();
+        expect(function() {
+            grid.render(Ext.getBody());
+        }).not.toThrow();
+    });
 
-            jasmine.fireMouseEvent(grid.view.el.query('.x-grid-row-expander')[0], 'click');
+    it("should not expand in response to mousedown", function() {
+        makeGrid();
 
-            expect(grid.view.all.item(0).down('.' + Ext.baseCSSPrefix + 'grid-rowbody-tr').isVisible()).toBe(true);
+        jasmine.fireMouseEvent(grid.view.el.query('.x-grid-row-expander')[0], 'mousedown');
+
+        expect(getRowBodyTr(0).isVisible()).toBe(false);
+    });
+
+    it("should expand on click", function() {
+        makeGrid();
+        var yRange = scroller.getSize().y,
+            layoutCounter = grid.view.componentLayoutCounter;
+
+        jasmine.fireMouseEvent(grid.view.el.query('.x-grid-row-expander')[0], 'click');
+
+        expect(getRowBodyTr(0).isVisible()).toBe(true);
+
+        // Scroller's scroll range must have increased as a result of row expansion
+        expect(scroller.getSize().y).toBeGreaterThan(yRange);
+
+        // Expanding ust lay out in case it triggers overflow
+        expect(grid.view.componentLayoutCounter).toBe(layoutCounter + 1);
+    });
+
+    it("should expand on click with a hidden locked grid", function() {
+        makeGrid({
+            enableLocking: true,
+            height: 100,
+            leadingBufferZone: 1,
+            trailingBufferZone: 1
         });
 
-        it("should collapse on click", function() {
-            makeGrid();
+        var yRange = scroller.getSize().y,
+            layoutCounter = grid.normalGrid.view.componentLayoutCounter;
 
-            // start with row 0 expanded
-            expander.toggleRow(0, store.getAt(0));
+        jasmine.fireMouseEvent(grid.view.el.query('.x-grid-row-expander')[0], 'click');
 
-            jasmine.fireMouseEvent(grid.view.el.query('.x-grid-row-expander')[0], 'click');
+        expect(getRowBodyTr(0).isVisible()).toBe(true);
 
-            expect(grid.view.all.item(0).down('.' + Ext.baseCSSPrefix + 'grid-rowbody-tr').isVisible()).toBe(false);
+        // Scroller's scroll range must have increased as a result of row expansion
+        // EXTJS-20385
+        expect(scroller.getSize().y).toBeGreaterThan(yRange);
+
+        // Expanding ust lay out in case it triggers overflow
+        expect(grid.normalGrid.view.componentLayoutCounter).toBe(layoutCounter + 1);
+    });
+
+    it("should collapse on click", function() {
+        makeGrid();
+
+        // start with row 0 expanded
+        expander.toggleRow(0, store.getAt(0));
+        var layoutCounter = grid.view.componentLayoutCounter;
+
+        jasmine.fireMouseEvent(grid.view.el.query('.x-grid-row-expander')[0], 'click');
+
+        expect(getRowBodyTr(0).isVisible()).toBe(false);
+
+        // Collapsing ust lay out in case it triggers underflow
+        expect(grid.view.componentLayoutCounter).toBe(layoutCounter + 1);
+    });
+
+    describe("with scrollIntoViewOnExpand", function() {
+        it("should scroll the full row body into view", function() {
+            var viewBottom, rowBottom;
+
+            makeGrid(null, {
+                scrollIntoViewOnExpand: true
+            });
+
+            expander.toggleRow(8, store.getAt(8));
+            // measure position of row vs. height of view
+            viewBottom = getElementBottom(view.el);
+            rowBottom = getElementBottom(getRowBodyTr(8));
+            // row body should be scrolled into view
+            expect(rowBottom).not.toBeGreaterThan(viewBottom);
         });
 
-        describe("with a lockedTpl", function() {
-            beforeEach(function() {
+        describe("with locked columns", function() {
+            function makeLockedGrid (tall) {
+                var smallTpl = new Ext.XTemplate('{industry}'),
+                    tallTpl = new Ext.XTemplate(
+                        '<p><b>Company:</b> {company}</p>',
+                        '<p><b>Change:</b> {change}</p><br>',
+                        '<p><b>Summary:</b> {desc}</p>'
+                    );
+
                 makeGrid({
                     columns: [
                         {text: "Company", width: 200, dataIndex: 'company', locked: true},
                         {text: "Price", renderer: Ext.util.Format.usMoney, dataIndex: 'price'},
-                        {text: "Change", dataIndex: 'change'},
-                        {text: "% Change", dataIndex: 'pctChange'},
-                        {text: "Last Updated", renderer: Ext.util.Format.dateRenderer('m/d/Y'), dataIndex: 'lastChange'}
+                        {text: "Change", dataIndex: 'change'}
                     ]
                 }, {
-                    rowBodyTpl : new Ext.XTemplate(
-                        '<p><b>Company:</b> {company}</p>',
-                        '<p><b>Change:</b> {change:this.formatChange}</p><br>',
-                        '<p><b>Summary:</b> {desc}</p>',
-                        {
-                            formatChange: function(v){
-                                var color = v >= 0 ? 'green' : 'red';
-                                return '<span style="color: ' + color + ';">' + Ext.util.Format.usMoney(v) + '</span>';
-                            }
-                        }
-                    ),
-                    lockedTpl: new Ext.XTemplate('{industry}')
+                    scrollIntoViewOnExpand: true,
+                    rowBodyTpl : tall ? tallTpl : smallTpl,
+                    lockedTpl : tall ? smallTpl : tallTpl
                 });
+            }
+
+            it("should use the lockTpl content (when it is taller) to determine scroll distance", function() {
+                var viewBottom, rowBottom;
+
+                makeLockedGrid(false);
+
+                expander.toggleRow(8, store.getAt(8));
+
+                waits(200);
+                runs(function() {
+                    // measure position of row vs. height of view
+                    viewBottom = getElementBottom(expander.lockedView.el);
+                    rowBottom = getElementBottom(getRowBodyTr(8, true));
+                    // row body should be scrolled into view
+                    expect(rowBottom).not.toBeGreaterThan(viewBottom);
+                });            
             });
 
-            it("should not expand in response to mousedown", function() {
-                jasmine.fireMouseEvent(grid.lockedGrid.view.el.query('.x-grid-row-expander')[0], 'mousedown');
+            it("should use the rowBodyTpl content (when it is taller) to determine scroll distance", function() {
+                var viewBottom, rowBottom;
 
-                expect(grid.lockedGrid.view.all.item(0).down('.' + Ext.baseCSSPrefix + 'grid-rowbody-tr').isVisible()).toBe(false);
-            });
+                makeLockedGrid(true);
 
-            it("should expand on click", function() {
-                jasmine.fireMouseEvent(grid.lockedGrid.view.el.query('.x-grid-row-expander')[0], 'click');
+                expander.toggleRow(8, store.getAt(8));
 
-                expect(grid.lockedGrid.view.all.item(0).down('.' + Ext.baseCSSPrefix + 'grid-rowbody-tr').isVisible()).toBe(true);
-            });
-
-            it("should collapse on click", function() {
-                // start with row 0 expanded
-                expander.toggleRow(0, store.getAt(0));
-
-                // click to collapse
-                jasmine.fireMouseEvent(grid.lockedGrid.view.el.query('.x-grid-row-expander')[0], 'click');
-
-                // The rowbody row of item 0 should not be visible
-                expect(grid.lockedGrid.view.all.item(0).down('.' + Ext.baseCSSPrefix + 'grid-rowbody-tr').isVisible()).toBe(false);
-
-                // Check the content of the rowbody in the locked side.
-                // The lockedTpl specifies that it be the industry field.
-                expect(grid.lockedGrid.view.all.item(0).down('.' + Ext.baseCSSPrefix + 'grid-rowbody', true).firstChild.data).toBe(grid.store.getAt(0).get('industry'));
-
-                // Check thetwo rows (one on each side) are synched in height
-                // The lockedTpl specifies that it be the industry field.
-                expect(grid.lockedGrid.view.all.item(0).getHeight()).toBe(grid.normalGrid.view.all.item(0).getHeight());
+                waits(200);
+                runs(function() {
+                    // measure position of row vs. height of view
+                    viewBottom = getElementBottom(expander.normalView.el);
+                    rowBottom = getElementBottom(getRowBodyTr(8, false));
+                    // row body should be scrolled into view
+                    expect(rowBottom).not.toBeGreaterThan(viewBottom);
+                });            
             });
         });
+    });
 
-        describe('striping rows', function () {
-            describe('normal grid', function () {
-                it("should place the altRowCls on the view row's ancestor row", function () {
-                    // The .x-grid-item-alt class is now placed on the view *item*. The row table.
-                    // See EXTJSIV-612.
-                    makeGrid();
-
-                    var node = grid.view.getNode(store.getAt(1));
-
-                    expect(Ext.fly(node).hasCls('x-grid-item-alt')).toBe(true);
-                });
-            });
-
-            describe('locked grid', function () {
-                it("should place the altRowCls on the view row's ancestor row", function () {
-                    // The .x-grid-item-alt class is now placed on the view *item*. The row table.
-                    // See EXTJSIV-612.
-                    makeGrid({
-                        columns: [
-                            {text: 'Company', dataIndex: 'company', locked: true},
-                            {text: 'Price', dataIndex: 'price', locked: true},
-                            {text: 'Change', dataIndex: 'change'},
-                            {text: '% Change', dataIndex: 'pctChange'},
-                            {text: 'Last Updated', dataIndex: 'lastChange'}
-                        ]
-                    });
-
-                    var lockedNode = grid.view.getNode(store.getAt(1)),
-                        normalNode = grid.normalGrid.view.getNode(store.getAt(1));
-
-                    expect(Ext.fly(lockedNode).hasCls('x-grid-item-alt')).toBe(true);
-                    expect(Ext.fly(normalNode).hasCls('x-grid-item-alt')).toBe(true);
-                });
-
-                it("should sync row heights when buffered renderer adds new rows during scroll", function () {
-                    makeGrid({
-                        leadingBufferZone: 2,
-                        trailingBufferZone: 2,
-                        height: 100,
-                        columns: [
-                            {text: 'Company', dataIndex: 'company', locked: true},
-                            {text: 'Price', dataIndex: 'price', locked: true},
-                            {text: 'Change', dataIndex: 'change'},
-                            {text: '% Change', dataIndex: 'pctChange'},
-                            {text: 'Last Updated', dataIndex: 'lastChange'}
-                        ]
-                    });
-
-                    // Get the expander elements to click on
-                    var expanders = grid.view.el.query('.x-grid-row-expander'),
-                        lockedView = grid.lockedGrid.view,
-                        normalView = grid.normalGrid.view,
-                        item0CollapsedHeight = lockedView.all.item(0, true).offsetHeight,
-                        item0ExpandedHeight;
-
-                    // Expand first row
-                    jasmine.fireMouseEvent(expanders[0], 'click');
-
-                    item0ExpandedHeight = lockedView.all.item(0, true).offsetHeight;
-
-                    // item 0 should have expanded
-                    expect(item0ExpandedHeight).toBeGreaterThan(item0CollapsedHeight);
-
-                    // Locked side's item 0 should have synced height
-                    expect(normalView.all.item(0, true).offsetHeight).toBe(item0ExpandedHeight);
-
-                    normalView.setScrollY(1000);
-
-                    waits(500);
-                    runs(function() {
-                        normalView.setScrollY(0);
-                    });
-
-                    waits(500);
-                    runs(function() {
-                        // We scrolled the normal view, and the locked view should have had its newly rendered row 0 height synced
-                        expect(lockedView.all.item(0, true).offsetHeight).toBe(item0ExpandedHeight);
-                    });
-                });
-            });
-        });
-
-        it('should work when defined in a subclass', function () {
-            // The point of this spec is to demonstrate that the RowExpander plugin, which depends on the
-            // RowBody grid feature, will still be properly constructed and rendered when defined in initComponent
-            // in a subclass of grid (really, anything that has panel.Table as an ancestor class).
-            //
-            // The bug was that the plugin configured in the derived class' initComponent would not be properly
-            // rendered since it would be created AFTER the table view was created (and the view needs to know
-            // about all its features at construction time). Thus, checking its features length is sufficient to
-            // show that it's been fixed.
-            // See EXTJSIV-EXTJSIV-11927.
+    describe("with a lockedTpl", function() {
+        beforeEach(function() {
             makeGrid({
-                xhooks: {
-                    initComponent: function () {
-                        Ext.apply(this, {
-                            store: [],
-                            columns: [],
-                            plugins: [{
-                                ptype: 'rowexpander',
-                                rowBodyTpl: new Ext.XTemplate(
-                                    '<p><b>Company:</b> {company}</p>',
-                                    '<p><b>Change:</b> {change:this.formatChange}</p><br>',
-                                    '<p><b>Summary:</b> {desc}</p>'
-                                )
-                            }]
-                        });
-
-                        this.callParent(arguments);
+                syncRowHeight: false,
+                columns: [
+                    {text: "Company", width: 200, dataIndex: 'company', locked: true},
+                    {text: "Price", renderer: Ext.util.Format.usMoney, dataIndex: 'price'},
+                    {text: "Change", dataIndex: 'change'},
+                    {text: "% Change", dataIndex: 'pctChange'},
+                    {text: "Last Updated", renderer: Ext.util.Format.dateRenderer('m/d/Y'), dataIndex: 'lastChange'}
+                ]
+            }, {
+                rowBodyTpl : new Ext.XTemplate(
+                    '<p><b>Company:</b> {company}</p>',
+                    '<p><b>Change:</b> {change:this.formatChange}</p><br>',
+                    '<p><b>Summary:</b> {desc}</p>',
+                    {
+                        formatChange: function(v){
+                            var color = v >= 0 ? 'green' : 'red';
+                            return '<span style="color: ' + color + ';">' + Ext.util.Format.usMoney(v) + '</span>';
+                        }
                     }
+                ),
+                lockedTpl: new Ext.XTemplate('{industry}')
+            });
+        });
+
+        it("should not expand in response to mousedown", function() {
+            jasmine.fireMouseEvent(grid.lockedGrid.view.el.query('.x-grid-row-expander')[0], 'mousedown');
+
+            expect(getRowBodyTr(0, true).isVisible()).toBe(false);
+        });
+
+        it("should expand on click", function() {
+            jasmine.fireMouseEvent(grid.lockedGrid.view.el.query('.x-grid-row-expander')[0], 'click');
+
+            expect(getRowBodyTr(0, true).isVisible()).toBe(true);
+            
+            expect(grid.lockedGrid.view.body.getHeight()).toBe(grid.normalGrid.view.body.getHeight());
+        });
+
+        it("should collapse on click", function() {
+            // start with row 0 expanded
+            expander.toggleRow(0, store.getAt(0));
+
+            // click to collapse
+            jasmine.fireMouseEvent(grid.lockedGrid.view.el.query('.x-grid-row-expander')[0], 'click');
+
+            // The rowbody row of item 0 should not be visible
+            expect(getRowBodyTr(0, true).isVisible()).toBe(false);
+
+            // Check the content of the rowbody in the locked side.
+            // The lockedTpl specifies that it be the industry field.
+            expect(grid.lockedGrid.view.all.item(0).down('.' + Ext.baseCSSPrefix + 'grid-rowbody', true).firstChild.data).toBe(grid.store.getAt(0).get('industry'));
+
+            // Check thetwo rows (one on each side) are synched in height
+            // The lockedTpl specifies that it be the industry field.
+            expect(grid.lockedGrid.view.all.item(0).getHeight()).toBe(grid.normalGrid.view.all.item(0).getHeight());
+        });
+    });
+
+    describe("with checkbox model", function() {
+        it("should move checkcolumn up one position", function() {
+            makeGrid({
+                selModel: {
+                    selType: 'checkboxmodel',
+                    injectCheckbox: 0
                 }
             });
 
-            expect(grid.view.features.length).toBe(1);
+            expect(grid.getColumnManager().getColumns()[1].xtype).toBe('checkcolumn');
         });
 
-        it('should insert a colspan attribute on the rowwrap cell equal to the number of grid columns', function () {
+        it("should move checkcolumn up one position when injectBox is greater than 0", function() {
             makeGrid({
-                columns: [
-                    {text: 'Company', dataIndex: 'company'},
-                    {text: 'Price', dataIndex: 'price'},
-                    {text: 'Change', dataIndex: 'change'},
-                    {text: '% Change', dataIndex: 'pctChange'},
-                    {text: 'Last Updated', dataIndex: 'lastChange'}
-                ]
+                selModel: {
+                    selType: 'checkboxmodel',
+                    injectCheckbox: 2
+                }
             });
-
-            // Grid columns + row expander column = 6.
-            expect(parseInt(grid.body.down('.x-grid-cell-rowbody', true).getAttribute('colspan'), 10)).toBe(6);
+            expect(grid.getColumnManager().getColumns()[2].xtype).toBe('checkcolumn');
         });
 
-        it('should expand the buffered rendering scroll range when at the bottom and the row is expanded', function() {
+        it("should move checkcolumn up one position when injectBox is a first", function() {
             makeGrid({
-                leadingBufferZone: 2,
-                trailingBufferZone: 2,
-                height: 100
+                selModel: {
+                    selType: 'checkboxmodel',
+                    injectCheckbox: 'first'
+                }
             });
 
-            expect(bufferedRenderer).toBeDefined();
+            expect(grid.getColumnManager().getColumns()[1].xtype).toBe('checkcolumn');
+        });
 
-            // Scroll until last row visible
-            waitsFor(function() {
-                view.setScrollY(view.getScrollY() + 10);
-                return view.all.endIndex === store.getCount() - 1;
+        it("should keep the checkcolumn at the last index when injectBox is last", function() {
+            makeGrid({
+                selModel: {
+                    selType: 'checkboxmodel',
+                    injectCheckbox: 'last'
+                }
             });
+
+            expect(grid.getColumnManager().getColumns()[6].xtype).toBe('checkcolumn');
+        });
+    });
+
+    describe('striping rows', function () {
+        describe('normal grid', function () {
+            it("should place the altRowCls on the view row's ancestor row", function () {
+                // The .x-grid-item-alt class is now placed on the view *item*. The row table.
+                // See EXTJSIV-612.
+                makeGrid();
+
+                var node = grid.view.getNode(store.getAt(1));
+
+                expect(Ext.fly(node).hasCls('x-grid-item-alt')).toBe(true);
+            });
+        });
+
+        describe('locked grid', function () {
+            it("should place the altRowCls on the view row's ancestor row", function () {
+                // The .x-grid-item-alt class is now placed on the view *item*. The row table.
+                // See EXTJSIV-612.
+                makeGrid({
+                    columns: [
+                        {text: 'Company', dataIndex: 'company', locked: true},
+                        {text: 'Price', dataIndex: 'price', locked: true},
+                        {text: 'Change', dataIndex: 'change'},
+                        {text: '% Change', dataIndex: 'pctChange'},
+                        {text: 'Last Updated', dataIndex: 'lastChange'}
+                    ]
+                });
+
+                var lockedNode = grid.view.getNode(store.getAt(1)),
+                    normalNode = grid.normalGrid.view.getNode(store.getAt(1));
+
+                expect(Ext.fly(lockedNode).hasCls('x-grid-item-alt')).toBe(true);
+                expect(Ext.fly(normalNode).hasCls('x-grid-item-alt')).toBe(true);
+            });
+
+            it("should sync row heights when buffered renderer adds new rows during scroll", function () {
+                makeGrid({
+                    leadingBufferZone: 2,
+                    trailingBufferZone: 2,
+                    height: 100,
+                    columns: [
+                        {text: 'Company', dataIndex: 'company', locked: true},
+                        {text: 'Price', dataIndex: 'price', locked: true},
+                        {text: 'Change', dataIndex: 'change'},
+                        {text: '% Change', dataIndex: 'pctChange'},
+                        {text: 'Last Updated', dataIndex: 'lastChange'}
+                    ]
+                });
+
+                // Get the expander elements to click on
+                var expanders = grid.view.el.query('.x-grid-row-expander'),
+                    lockedView = grid.lockedGrid.view,
+                    normalView = grid.normalGrid.view,
+                    item0CollapsedHeight = lockedView.all.item(0, true).offsetHeight,
+                    item0ExpandedHeight;
+
+                // Expand first row
+                jasmine.fireMouseEvent(expanders[0], 'click');
+
+                item0ExpandedHeight = lockedView.all.item(0, true).offsetHeight;
+
+                // item 0 should have expanded
+                expect(item0ExpandedHeight).toBeGreaterThan(item0CollapsedHeight);
+
+                // Locked side's item 0 should have synced height
+                expect(normalView.all.item(0, true).offsetHeight).toBe(item0ExpandedHeight);
+
+                normalView.setScrollY(1000);
+
+                waits(500);
+                runs(function() {
+                    normalView.setScrollY(0);
+                });
+
+                waits(500);
+                runs(function() {
+                    // We scrolled the normal view, and the locked view should have had its newly rendered row 0 height synced
+                    expect(lockedView.all.item(0, true).offsetHeight).toBe(item0ExpandedHeight);
+                });
+            });
+        });
+    });
+
+    it('should work when defined in a subclass', function () {
+        // The point of this spec is to demonstrate that the RowExpander plugin, which depends on the
+        // RowBody grid feature, will still be properly constructed and rendered when defined in initComponent
+        // in a subclass of grid (really, anything that has panel.Table as an ancestor class).
+        //
+        // The bug was that the plugin configured in the derived class' initComponent would not be properly
+        // rendered since it would be created AFTER the table view was created (and the view needs to know
+        // about all its features at construction time). Thus, checking its features length is sufficient to
+        // show that it's been fixed.
+        // See EXTJSIV-EXTJSIV-11927.
+        makeGrid({
+            xhooks: {
+                initComponent: function () {
+                    Ext.apply(this, {
+                        store: [],
+                        columns: [],
+                        plugins: [{
+                            ptype: 'rowexpander',
+                            rowBodyTpl: new Ext.XTemplate(
+                                '<p><b>Company:</b> {company}</p>',
+                                '<p><b>Change:</b> {change:this.formatChange}</p><br>',
+                                '<p><b>Summary:</b> {desc}</p>'
+                            )
+                        }]
+                    });
+
+                    this.callParent(arguments);
+                }
+            }
+        });
+
+        expect(grid.view.features.length).toBe(1);
+    });
+
+    it('should insert a colspan attribute on the rowwrap cell equal to the number of grid columns', function () {
+        makeGrid({
+            columns: [
+                {text: 'Company', dataIndex: 'company'},
+                {text: 'Price', dataIndex: 'price'},
+                {text: 'Change', dataIndex: 'change'},
+                {text: '% Change', dataIndex: 'pctChange'},
+                {text: 'Last Updated', dataIndex: 'lastChange'}
+            ]
+        });
+
+        // Grid columns + row expander column = 5.
+        // There is a real cell below the expnder cell.
+        expect(parseInt(grid.body.down('.x-grid-cell-rowbody', true).getAttribute('colspan'), 10)).toBe(5);
+    });
+
+    it('should expand the buffered rendering scroll range when at the bottom and the row is expanded', function() {
+        makeGrid({
+            leadingBufferZone: 2,
+            trailingBufferZone: 2,
+            height: 100
+        });
+
+        expect(bufferedRenderer).toBeDefined();
+
+        // Scroll until last row visible
+        waitsFor(function() {
+            view.setScrollY(view.getScrollY() + 10);
+            return view.all.endIndex === store.getCount() - 1;
+        });
+
+        runs(function() {
+            // Get the expander elements to click on
+            var expanders = view.el.query('.x-grid-row-expander'),
+                scroller = view.getScrollable(),
+                scrollHeight = scroller.getSize().y;
+
+            // Expand last row
+            jasmine.fireMouseEvent(expanders[expanders.length - 1], 'click');
+
+            // Scroll range must have increased.
+            expect(scroller.getSize().y).toBeGreaterThan(scrollHeight);
+        });
+    });
+
+    describe('locking grid', function () {
+        describe('no initial locked columns', function () {
+            beforeEach(function () {
+                makeGrid({
+                    enableLocking: true
+                });
+            });
+
+            it('should add the expander column to the normal grid', function () {
+                expect(expander.expanderColumn.up('tablepanel')).toBe(grid.normalGrid);
+            });
+
+            it('should hide the locked grid', function () {
+                expect(grid.lockedGrid.hidden).toBe(true);
+            });
+
+            it('should move the expander column to the locked grid when first column is locked', function () {
+                // Pass in an active header. Don't use the first column in the stack (it's the rowexpander column)!
+                grid.lock(grid.columnManager.getColumns()[1]);
+
+                expect(expander.expanderColumn.up('tablepanel')).toBe(grid.lockedGrid);
+            });
+        });
+
+        describe('has locked columns', function () {
+            beforeEach(function () {
+                makeGrid({
+                    columns: [
+                        {text: 'Company', locked: true, dataIndex: 'company'},
+                        {text: 'Price', dataIndex: 'price'},
+                        {text: 'Change', dataIndex: 'change'},
+                        {text: '% Change', dataIndex: 'pctChange'},
+                        {text: 'Last Updated', dataIndex: 'lastChange'}
+                    ]
+                });
+            });
+
+            it('should add the expander column to the locked grid', function () {
+                expect(expander.expanderColumn.up('tablepanel')).toBe(grid.lockedGrid);
+            });
+
+            it('should not hide the locked grid', function () {
+                expect(grid.lockedGrid.hidden).toBe(false);
+            });
+
+            it('should move the expander column to the normal grid when there are no locked columns', function () {
+                // Pass in an active header. Don't use the first column in the stack (it's the rowexpander column)!
+                grid.unlock(grid.columnManager.getColumns()[1]);
+
+                expect(grid.lockedGrid);
+                expect(expander.expanderColumn.up('tablepanel')).toBe(grid.normalGrid);
+            });
+        });
+    });
+
+    describe('mousedown in large expansion row', function() {
+        it('should not scroll', function() {
+            grid = new Ext.grid.Panel({
+                renderTo: Ext.getBody(),
+                width: 500,
+                height: 300,
+                viewConfig: {
+                    enableTextSelection : true
+                },
+                columns: [{
+                    text: 'Foo',
+                    dataIndex: 'foo',
+                    flex: 1
+                }],
+                plugins: {
+                    ptype: 'rowexpander',
+                    rowBodyTpl: '{bar}'
+                },
+                store: {
+                    fields: ['foo'],
+                    data: [{
+                        foo : 'Expand this row, scroll down and select text near bottom',
+                        bar : [
+                            '<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nulla est, ornare vitae convallis id, vestibulum at mauris. Etiam eget sem molestie, finibus augue quis, accumsan nisi. Sed sit amet varius est. Cras non massa sapien. Morbi hendrerit lectus neque, in semper urna pellentesque sed. Phasellus vitae est ultricies, faucibus ipsum id, maximus tellus. Sed leo urna, suscipit ut maximus eget, sagittis fermentum justo. Cras sed tellus in enim finibus varius. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Quisque gravida nisl lacus, at luctus lectus elementum in. Sed facilisis tristique lacus, a tincidunt nunc maximus sit amet. Aliquam convallis sed mauris et elementum. Etiam tincidunt, risus id suscipit varius, tortor est molestie neque, non viverra est odio laoreet neque. Proin mollis tristique leo nec rutrum. Nulla enim dui, rutrum ac maximus sit amet, porttitor eget nisl.</p>',
+                            '<p>Curabitur ac pulvinar turpis. Nullam sit amet ipsum leo. Maecenas augue arcu, bibendum at venenatis ut, tempus at justo. Ut ornare leo accumsan massa venenatis accumsan. Nam consequat posuere mauris, vel placerat lorem elementum non. Sed nec turpis a diam pretium facilisis. Integer ornare luctus augue, a aliquam ante gravida quis. Praesent eget mi eu turpis sagittis viverra. Nam at posuere nisi. Praesent maximus libero ac facilisis laoreet. Proin varius dui sed erat elementum varius. Pellentesque sapien tellus, maximus vel porta a, congue ut dolor. Proin molestie dignissim nisl nec efficitur.</p>',
+                            '<p>Ut luctus aliquet sapien, vel sollicitudin neque iaculis et. Vestibulum in viverra nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Donec nisl ipsum, congue aliquam interdum et, blandit non odio. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Pellentesque a lacus id odio mattis efficitur ac et metus. Maecenas ut varius magna, nec rutrum nisl. Curabitur ut faucibus sapien.</p>',
+                            '<p>Duis euismod, enim sit amet lacinia semper, magna felis luctus magna, non auctor orci ante quis tortor. Etiam ut massa vitae justo viverra semper sit amet rutrum justo. Aliquam quis quam nulla. Sed aliquam lacus at est tempor, vel condimentum odio facilisis. Ut aliquam consequat dolor. Mauris non aliquet metus. Curabitur tempor massa non fringilla interdum. Sed nec efficitur purus. Praesent sagittis lacinia ex, vel mattis mauris congue sed. Donec vulputate erat in erat feugiat fringilla. Duis vel imperdiet enim, vitae aliquam tortor. Vestibulum nunc mi, gravida at enim nec, eleifend rutrum ligula. Donec efficitur iaculis ullamcorper.</p>',
+                            '<p>Sed in augue ac risus commodo ultricies et id dolor. Aliquam sed mauris ullamcorper, dignissim nibh luctus, viverra lacus. Phasellus vitae rutrum elit, et vehicula turpis. Morbi eget tortor sit amet tortor tempor mollis. Morbi facilisis massa neque, non imperdiet quam tristique id. Quisque lectus nulla, lobortis in dolor vitae, gravida malesuada ligula. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>'
+                        ]
+                    }]
+                }
+            });
+
+            // Expand the expander
+            jasmine.fireMouseEvent(grid.view.el.query('.x-grid-row-expander')[0], 'click');
+            
+            grid.view.scrollTo(0, 100);
+
+            // We must wait until the Scroller knows about the scroll position
+            // at which point it fires a scrollend event
+            waitsForEvent(grid.getView().getScrollable(), 'scrollend', 'Grid scrollend');
 
             runs(function() {
-                // Get the expander elements to click on
-                var expanders = view.el.query('.x-grid-row-expander'),
-                    scroller = view.getScrollable(),
-                    scrollHeight = scroller.getSize().y;
-
-                // Expand last row
-                jasmine.fireMouseEvent(expanders[expanders.length - 1], 'click');
-
-                // Scroll range must have increased.
-                expect(scroller.getSize().y).toBeGreaterThan(scrollHeight);
-            });
-        });
-
-        describe('locking grid', function () {
-            describe('no initial locked columns', function () {
-                beforeEach(function () {
-                    makeGrid({
-                        enableLocking: true
-                    });
-                });
-
-                it('should add the expander column to the normal grid', function () {
-                    expect(expander.grid).toBe(grid.normalGrid);
-                });
-
-                it('should hide the locked grid', function () {
-                    expect(grid.lockedGrid.hidden).toBe(true);
-                });
-
-                it('should move the expander column to the locked grid when first column is locked', function () {
-                    // Pass in an active header. Don't use the first column in the stack (it's the rowexpander column)!
-                    grid.lock(grid.columnManager.getColumns()[1]);
-
-                    expect(expander.grid).toBe(grid.lockedGrid);
-                });
+                // Must give a valid x coordinate, so that it can be matched below a column so that the navigation model
+                // can determin the closet column to navigate to.
+                jasmine.fireMouseEvent(grid.view.all.item(0).down(Ext.grid.feature.RowBody.prototype.innerSelector), 'mousedown', 100);
             });
 
-            describe('has locked columns', function () {
-                beforeEach(function () {
-                    makeGrid({
-                        columns: [
-                            {text: 'Company', locked: true, dataIndex: 'company'},
-                            {text: 'Price', dataIndex: 'price'},
-                            {text: 'Change', dataIndex: 'change'},
-                            {text: '% Change', dataIndex: 'pctChange'},
-                            {text: 'Last Updated', dataIndex: 'lastChange'}
-                        ]
-                    });
-                });
+            // Nothing detectable should happen. Scroll position should remain stable
+            waits(100);
 
-                it('should add the expander column to the locked grid', function () {
-                    expect(expander.grid).toBe(grid.lockedGrid);
-                });
-
-                it('should not hide the locked grid', function () {
-                    expect(grid.lockedGrid.hidden).toBe(false);
-                });
-
-                it('should move the expander column to the normal grid when there are no locked columns', function () {
-                    // Pass in an active header. Don't use the first column in the stack (it's the rowexpander column)!
-                    grid.unlock(grid.columnManager.getColumns()[1]);
-
-                    expect(grid.lockedGrid);
-                    expect(expander.grid).toBe(grid.normalGrid);
-                });
+            runs(function() {
+                // Scroll position should be stable.
+                expect(grid.view.getScrollY()).toBe(100);
             });
-        });
+       });
     });
 });

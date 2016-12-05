@@ -82,44 +82,6 @@ Ext.define('Ext.container.DockingContainer', {
     horizontalDocks: 0,
 
     /**
-     * When set to `true`, two elements are added to the panel's element. These are the
-     * `{@link #tabGuardBeforeEl}` and `{@link #tabGuardAfterEl}`.
-     * @cfg {Boolean} tabGuard
-     * @private
-     * @since 6.0.0
-     */
-    tabGuard: false,
-
-    /**
-     * This element reference is generated when `{@link #tabGuard}` is `true`. This element
-     * is generated after all `dockedItems` in the DOM.
-     * @property {Ext.dom.Element} tabGuardAfterEl
-     * @private
-     * @since 6.0.0
-     */
-
-    /**
-     * This element reference is generated when `{@link #tabGuard}` is `true`. This element
-     * is generated before all `dockedItems` in the DOM.
-     * @property {Ext.dom.Element} tabGuardBeforeEl
-     * @private
-     * @since 6.0.0
-     */
-
-    /**
-     * @property {String/String[]/Ext.XTemplate} tabGuardTpl
-     * This template is used to generate the `tabGuard` elements. It is used once per
-     * element (see `{@link #tabGuardBeforeEl}` and `{@link #tabGuardAfterEl}`).
-     * @private
-     * @since 6.0.0
-     */
-    tabGuardTpl:
-        '<div id="{id}-{tabGuardEl}" data-ref="{tabGuardEl}" tabIndex="0" class="' +
-            Ext.baseCSSPrefix + 'tab-guard ' +
-            Ext.baseCSSPrefix + 'tab-guard-{tabGuard}" ' +
-        '></div>',
-
-    /**
      * Adds docked item(s) to the container.
      *
      * @param {Object/Object[]} items The Component or array of components to add. The components
@@ -196,35 +158,17 @@ Ext.define('Ext.container.DockingContainer', {
         // context is the renderData! The "this" pointer is either the frameTpl or the
         // renderTpl instance!
 
-        // Due to framing, we will be called in two different ways: in the frameTpl or in
-        // the renderTpl. The frameTpl version enters via doRenderFramingDockedItems which
-        // sets "$skipDockedItems" on the renderTpl's renderData.
-        //
         var me = renderData.$comp,
             layout = me.componentLayout,
-            tabGuard = me.tabGuard && me.getTpl('tabGuardTpl'),
+            tabGuard = me.tabGuard && me.lookupTpl('tabGuardTpl'),
             items, tree;
 
-        if (layout.getDockedItems && !renderData.$skipDockedItems) {
-            if (tabGuard && !after) {
-                renderData.tabGuard = 'before';
-                me.addChildEl(renderData.tabGuardEl = 'tabGuardBeforeEl');
-
-                tabGuard.applyOut(renderData, out);
-            }
-
+        if (layout.getDockedItems) {
             items = layout.getDockedItems('render', !after);
             tree = items && layout.getItemsRenderTree(items);
 
             if (tree) {
                 Ext.DomHelper.generateMarkup(tree, out);
-            }
-
-            if (tabGuard && after) {
-                renderData.tabGuard = 'after';
-                me.addChildEl(renderData.tabGuardEl = 'tabGuardAfterEl');
-
-                tabGuard.applyOut(renderData, out);
             }
         }
     },

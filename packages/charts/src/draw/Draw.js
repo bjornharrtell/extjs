@@ -243,7 +243,7 @@ Ext.define('Ext.draw.Draw', {
             curY = dataY[i+1];
             nextX = dataX[i+2];
             nextY = dataY[i+2];
-            if (!Ext.isNumber(nextX + nextY)) {
+            if ( !(Ext.isNumber(nextX) && Ext.isNumber(nextY)) ) {
                 smoothX.push(x, curX, curX);
                 smoothY.push(y, curY, curY);
                 break;

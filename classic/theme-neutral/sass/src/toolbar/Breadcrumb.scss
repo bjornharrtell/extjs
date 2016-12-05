@@ -58,6 +58,9 @@
  * @param {string/list} [$ui-arrow-glyph=$breadcrumb-arrow-glyph]
  * Glyph for the "arrow" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  *
+ * @param {string/list} [$ui-arrow-glyph-rtl=$breadcrumb-arrow-glyph-rtl]
+ * Glyph for the "arrow" icon when {@link Global_CSS#$enable-font-icons} is `true` and rtl is `true`.
+ *
  * @param {color} [$ui-arrow-glyph-color=$breadcrumb-arrow-glyph-color]
  * The color to use for the "arrow" icon when {@link Global_CSS#$enable-font-icons} is `true`.
  *
@@ -136,6 +139,7 @@
     $ui-leaf-glyph: $breadcrumb-leaf-glyph,
     $ui-leaf-glyph-color: $breadcrumb-leaf-glyph-color,
     $ui-arrow-glyph: $breadcrumb-arrow-glyph,
+    $ui-arrow-glyph-rtl: $breadcrumb-arrow-glyph-rtl,
     $ui-arrow-glyph-color: $breadcrumb-arrow-glyph-color,
     $ui-arrow-expanded-glyph: $breadcrumb-arrow-expanded-glyph,
     $ui-arrow-expanded-glyph-color: $breadcrumb-arrow-expanded-glyph-color,
@@ -187,24 +191,24 @@
     }
 
     .#{$prefix}btn-wrap-#{$ui-button-ui}-small.#{$prefix}btn-arrow:after {
-        .#{$prefix}breadcrumb-btn > & {
+        .#{$prefix}breadcrumb-btn & {
             width: $ui-arrow-width;
             background-image: theme-background-image('breadcrumb/#{$ui}-arrow');
         }
 
         @if $include-rtl {
-            .#{$prefix}rtl.#{$prefix}breadcrumb-btn > & {
+            .#{$prefix}rtl.#{$prefix}breadcrumb-btn & {
                 background-image: theme-background-image('breadcrumb/#{$ui}-arrow-rtl');
             }
         }
 
         @if $ui-include-menu-active-arrow {
-            .#{$prefix}btn-menu-active.#{$prefix}breadcrumb-btn > & {
+            .#{$prefix}btn-menu-active.#{$prefix}breadcrumb-btn & {
                 background-image: theme-background-image('breadcrumb/#{$ui}-arrow-open');
             }
 
             @if $include-rtl {
-                .#{$prefix}rtl.#{$prefix}btn-menu-active.#{$prefix}breadcrumb-btn > & {
+                .#{$prefix}rtl.#{$prefix}btn-menu-active.#{$prefix}breadcrumb-btn & {
                     background-image: theme-background-image('breadcrumb/#{$ui}-arrow-open-rtl');
                 }
             }
@@ -212,7 +216,7 @@
     }
 
     .#{$prefix}btn-wrap-#{$ui-button-ui}-small.#{$prefix}btn-split:after {
-        .#{$prefix}breadcrumb-btn > & {
+        .#{$prefix}breadcrumb-btn & {
             width: $ui-split-width;
 
             @if $enable-font-icons and ($ui-arrow-glyph !=  null) {
@@ -225,26 +229,31 @@
             }
         }
 
-        @if $include-rtl and ((not $enable-font-icons) or ($ui-arrow-glyph == null)) {
-            .#{$prefix}rtl.#{$prefix}breadcrumb-btn > & {
-                background-image: theme-background-image('breadcrumb/#{$ui}-split-arrow-rtl');
+        @if $include-rtl {
+            .#{$prefix}rtl.#{$prefix}breadcrumb-btn & {
+                @if $enable-font-icons and ($ui-arrow-glyph-rtl !=  null) {
+                    @include font-icon($ui-arrow-glyph-rtl, $pseudo: false);
+                    background: none !important;
+                } @else {
+                    background-image: theme-background-image('breadcrumb/#{$ui}-split-arrow-rtl');
+                }
             }
         }
 
         @if $ui-include-split-over-arrow and ((not $enable-font-icons) or ($ui-arrow-glyph == null)) {
-            .#{$prefix}btn-over.#{$prefix}breadcrumb-btn > & {
+            .#{$prefix}btn-over.#{$prefix}breadcrumb-btn & {
                 background-image: theme-background-image('breadcrumb/#{$ui}-split-arrow-over');
             }
 
             @if $include-rtl {
-                .#{$prefix}rtl.#{$prefix}btn-over.#{$prefix}breadcrumb-btn > & {
+                .#{$prefix}rtl.#{$prefix}btn-over.#{$prefix}breadcrumb-btn & {
                     background-image: theme-background-image('breadcrumb/#{$ui}-split-arrow-over-rtl');
                 }
             }
         }
 
         @if $ui-include-menu-active-arrow {
-            .#{$prefix}btn-menu-active.#{$prefix}breadcrumb-btn > & {
+            .#{$prefix}btn-menu-active.#{$prefix}breadcrumb-btn & {
                 @if $enable-font-icons and ($ui-arrow-expanded-glyph !=  null) {
                     @include font-icon($ui-arrow-expanded-glyph, $pseudo: false);
                     color: $ui-arrow-expanded-glyph-color;
@@ -256,7 +265,7 @@
             }
 
             @if $include-rtl and ((not $enable-font-icons) or ($ui-arrow-glyph == null)) {
-                .#{$prefix}rtl.#{$prefix}btn-menu-active.#{$prefix}breadcrumb-btn > & {
+                .#{$prefix}rtl.#{$prefix}btn-menu-active.#{$prefix}breadcrumb-btn & {
                     background-image: theme-background-image('breadcrumb/#{$ui}-split-arrow-open-rtl');
                 }
             }

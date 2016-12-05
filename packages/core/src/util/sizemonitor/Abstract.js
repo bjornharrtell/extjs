@@ -19,13 +19,13 @@ Ext.define('Ext.util.sizemonitor.Abstract', {
         args: []
     },
 
-    width: 0,
+    width: null,
 
-    height: 0,
+    height: null,
 
-    contentWidth: 0,
+    contentWidth: null,
 
-    contentHeight: 0,
+    contentHeight: null,
 
     constructor: function(config) {
         this.refresh = Ext.Function.bind(this.refresh, this);
@@ -73,11 +73,11 @@ Ext.define('Ext.util.sizemonitor.Abstract', {
     },
 
     getContentWidth: function() {
-        return this.detectorsContainer.offsetWidth;
+        return this.detectorsContainer.clientWidth;
     },
 
     getContentHeight: function() {
-        return this.detectorsContainer.offsetHeight;
+        return this.detectorsContainer.clientHeight;
     },
 
     refreshSize: function() {
@@ -95,7 +95,7 @@ Ext.define('Ext.util.sizemonitor.Abstract', {
             currentContentHeight = this.contentHeight,
             info = this.info,
             resized = false,
-            flag;
+            flag = 0;
 
         this.width = width;
         this.height = height;
@@ -119,6 +119,10 @@ Ext.define('Ext.util.sizemonitor.Abstract', {
     },
 
     refresh: function(force) {
+        if (this.destroying || this.destroyed) {
+            return;
+        }
+        
         if (this.refreshSize() || force) {
             Ext.TaskQueue.requestWrite('refreshMonitors', this);
         }
@@ -135,6 +139,9 @@ Ext.define('Ext.util.sizemonitor.Abstract', {
         }
 
         delete me._element;
+        
+        // This is a closure so Base destructor won't null it
+        me.refresh = null;
 
         me.callParent();
     }

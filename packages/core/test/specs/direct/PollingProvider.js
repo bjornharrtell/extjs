@@ -143,7 +143,9 @@ describe("Ext.direct.PollingProvider", function() {
     
     describe("should handle polling:", function() {
         beforeEach(function() {
-            spyOn(Ext.Ajax, 'request').andReturn();
+            spyOn(Ext.Ajax, 'request').andCallFake(function(request) {
+                return request;
+            });
             
             provider.connect();
         });
@@ -165,6 +167,19 @@ describe("Ext.direct.PollingProvider", function() {
                 params: { foo: 'bar' },
                 scope: provider,
                 callback: provider.onData
+            });
+        });
+        
+        it("should pass headers if they are set", function() {
+            provider.setHeaders({ blerg: 'zingbong' });
+            provider.runPoll();
+            
+            expect(Ext.Ajax.request).toHaveBeenCalledWith({
+                url: '/foo',
+                params: { foo: 'bar' },
+                scope: provider,
+                callback: provider.onData,
+                headers: { blerg: 'zingbong' }
             });
         });
         
@@ -307,7 +322,7 @@ describe("Ext.direct.PollingProvider", function() {
             provider.on('data', handler);
         });
         
-        it("fires exception when poll is unsuccessful", function() {
+        it("fires exception Event object via data event when poll is unsuccessful", function() {
             provider.onData({}, false, { foo: 'bar' });
             
             var args = handler.argsForCall[0],
@@ -321,17 +336,31 @@ describe("Ext.direct.PollingProvider", function() {
             expect(args[1]).toEqual(ex);
         });
         
-        it("doesn't fire 'data' event when dataset is empty", function() {
-            spyOn(provider, 'createEvents').andCallThrough();
+        describe("empty event set", function() {
+            beforeEach(function() {
+                spyOn(provider, 'createEvents').andCallThrough();
+            });
             
-            provider.onData({}, true, {});
+            it("doesn't fire 'data' event when dataset is empty", function() {
+                provider.onData({}, true, {});
+                
+                expect(provider.createEvents).toHaveBeenCalled();
+                // AND
+                expect(handler).not.toHaveBeenCalled();
+            });
             
-            expect(provider.createEvents).toHaveBeenCalled();
-            // AND
-            expect(handler).not.toHaveBeenCalled();
+            it("doesn't fire exception event", function() {
+                var exceptionHandler = jasmine.createSpy('exception event');
+                
+                provider.on('exception', exceptionHandler);
+                
+                provider.onData({}, true, {});
+                
+                expect(exceptionHandler).not.toHaveBeenCalled();
+            });
         });
         
-        it("fires 'data' event when dataset contains events", function() {
+        describe("non-empty event set", function() {
             var Event = Ext.direct.Event,
                 eventData = [{
                     type: 'event',
@@ -349,29 +378,48 @@ describe("Ext.direct.PollingProvider", function() {
                     type: 'event',
                     name: 'qux',
                     data: 'plugh'
-                }],
-                events, result;
+                }];
+            
+            it("fires 'data' event when dataset contains events", function() {
+                var events, result;
 
-            provider.onData({}, true, { responseText: Ext.encode(eventData) });
-            
-            events = Ext.Array.map(eventData, function(i) {
-                return new Event(i);
+                provider.onData({}, true, { responseText: Ext.encode(eventData) });
+                
+                events = Ext.Array.map(eventData, function(i) {
+                    return new Event(i);
+                });
+                
+                result = Ext.Array.map(handler.argsForCall, function(i) {
+                    return i[1];
+                });
+                
+                expect(result).toEqual(events);
             });
             
-            result = Ext.Array.map(handler.argsForCall, function(i) {
-                return i[1];
+            it("doesn't fire exception event", function() {
+                var exceptionHandler = jasmine.createSpy('exception event');
+                
+                provider.on('exception', exceptionHandler);
+                
+                provider.onData({}, true, { responseText: Ext.encode(eventData) });
+                
+                expect(exceptionHandler).not.toHaveBeenCalled();
             });
-            
-            expect(result).toEqual(events);
         });
     });
     
     describe("Ajax errors", function() {
-        var handler;
+        var handler, exceptionHandler;
         
         beforeEach(function() {
-            handler = jasmine.createSpy('data handler');
+            handler = jasmine.createSpy('data event');
+            exceptionHandler = jasmine.createSpy('exception event');
+            
             provider.on('data', handler);
+            provider.on('exception', exceptionHandler);
+
+            // Suppress console error and dump
+            spyOn(Ext, 'log');
         });
         
         it("doesn't break on undefined response", function() {
@@ -389,7 +437,7 @@ describe("Ext.direct.PollingProvider", function() {
         it("doesn't break on empty string response", function() {
             provider.onData({}, true, { responseText: '' });
             
-            expect(handler).not.toHaveBeenCalled();
+            expect(handler).toHaveBeenCalled();
         });
         
         it("doesn't break on empty dataset returned", function() {
@@ -398,57 +446,107 @@ describe("Ext.direct.PollingProvider", function() {
             expect(handler).not.toHaveBeenCalled();
         });
         
-        it("raises exception on garbled json response", function() {
-            // Suppress console error and dump
-            spyOn(Ext, 'log');
+        describe("garbled json response", function() {
+            beforeEach(function() {
+                provider.onData({}, true, { responseText: 'invalid json' });
+            });
             
-            provider.onData({}, true, { responseText: 'invalid json' });
+            it("fires data event with Exception object", function() {
+                var args = handler.argsForCall[0][1],
+                    xcpt = {
+                        code: args.code,
+                        message: args.message
+                    };
+                
+                expect(xcpt).toEqual({
+                    code: Ext.direct.Manager.exceptions.PARSE,
+                    message: "Error parsing json response: \n\n Ext.JSON.decode(): You're trying to decode an invalid JSON String: invalid json"
+                });
+            });
             
-            var args = handler.argsForCall[0][1],
-                xcpt = {
-                    code: args.code,
-                    message: args.message
-                };
-            
-            expect(xcpt).toEqual({
-                code: Ext.direct.Manager.exceptions.PARSE,
-                message: "Error parsing json response: \n\n Ext.JSON.decode(): You're trying to decode an invalid JSON String: invalid json"
+            it("fires exception event with Exception object", function() {
+                var args = exceptionHandler.argsForCall[0][1],
+                    xcpt = {
+                        code: args.code,
+                        message: args.message
+                    };
+                
+                expect(xcpt).toEqual({
+                    code: Ext.direct.Manager.exceptions.PARSE,
+                    message: "Error parsing json response: \n\n Ext.JSON.decode(): You're trying to decode an invalid JSON String: invalid json"
+                });
             });
         });
         
-        it("raises exception on invalid payload data", function() {
-            provider.onData({}, true, { responseText: Ext.JSON.encode({ foo: 'bar' }) });
+        describe("invalid payload data", function() {
+            beforeEach(function() {
+                provider.onData({}, true, { responseText: Ext.JSON.encode({ foo: 'bar' }) });
+            });
             
-            var args = handler.argsForCall[0][1],
-                xcpt = {
-                    code: args.code,
-                    message: args.message
-                };
+            it("fires data event with Exception object", function() {
+                var args = handler.argsForCall[0][1],
+                    xcpt = {
+                        code: args.code,
+                        message: args.message
+                    };
+                
+                expect(xcpt).toEqual({
+                    code: Ext.direct.Manager.exceptions.DATA,
+                    message: 'Invalid data: event type is not specified'
+                });
+            });
             
-            expect(xcpt).toEqual({
-                code: Ext.direct.Manager.exceptions.DATA,
-                message: 'Invalid data: event type is not specified'
+            it("fires exception event with Exception object", function() {
+                var args = exceptionHandler.argsForCall[0][1],
+                    xcpt = {
+                        code: args.code,
+                        message: args.message
+                    };
+                
+                expect(xcpt).toEqual({
+                    code: Ext.direct.Manager.exceptions.DATA,
+                    message: 'Invalid data: event type is not specified'
+                });
             });
         });
         
-        it("lets returned exception pass through", function() {
-            var ex = {
+        describe("server returned exception", function() {
+            var ex, data;
+            
+            beforeEach(function() {
+                ex = {
                     type: 'exception',
                     message: 'Fubar'
-                },
-                data = Ext.JSON.encode(ex);
-            
-            provider.onData({}, true, { responseText: data });
-            
-            var args = handler.argsForCall[0][1],
-                xcpt = {
-                    type: args.type,
-                    message: args.message
                 };
+                
+                data = Ext.JSON.encode(ex);
+                
+                provider.onData({}, true, { responseText: data });
+            });
             
-            expect(handler.argsForCall.length).toBe(1);
-            // AND
-            expect(xcpt).toEqual(ex);
+            it("fires data event with passed Exception object", function() {
+                var args = handler.argsForCall[0][1],
+                    xcpt = {
+                        type: args.type,
+                        message: args.message
+                    };
+                
+                expect(handler.argsForCall.length).toBe(1);
+                // AND
+                expect(xcpt).toEqual(ex);
+            });
+
+            it("fires exception event with passed Exception object", function() {
+                var args = exceptionHandler.argsForCall[0][1],
+                    xcpt = {
+                        type: args.type,
+                        message: args.message
+                    };
+                
+                expect(exceptionHandler.argsForCall.length).toBe(1);
+                // AND
+                expect(xcpt).toEqual(ex);
+            });
         });
     });
     

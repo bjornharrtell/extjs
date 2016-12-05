@@ -146,6 +146,40 @@ Ext.define('Ext.grid.selection.Columns', {
             }
         },
 
+        setRangeStart: function(startColumn) {
+            var me = this,
+                prevSelection = me.getColumns();
+
+            me.startColumn = startColumn;
+            me.selectedColumns = [startColumn];
+            prevSelection.push(startColumn);
+            me.refreshColumns.apply(me, prevSelection);
+        },
+
+        setRangeEnd: function(endColumn) {
+            var me = this,
+                prevSelection = me.getColumns(),
+                colManager = this.view.ownerGrid.getVisibleColumnManager(),
+                columns = colManager.getColumns(),
+                start = colManager.indexOf(me.startColumn),
+                end = colManager.indexOf(endColumn),
+                i;
+
+            // Allow looping through columns
+            if (end < start) {
+                i = start;
+                start = end;
+                end = i;
+            }
+
+            me.selectedColumns = [];
+            for (i = start; i <= end; i++) {
+                me.selectedColumns.push(columns[i]);
+                prevSelection.push(columns[i]);
+            }
+            me.refreshColumns.apply(me, prevSelection);
+        },
+
         /**
          * @return {Boolean}
          * @private
@@ -255,7 +289,7 @@ Ext.define('Ext.grid.selection.Columns', {
          * @private
          */
         getContiguousSelection: function() {
-            var selection = Ext.Array.sort(this.selectedColumns, function(c1, c2) {
+            var selection = Ext.Array.sort(this.getColumns(), function(c1, c2) {
                     // Use index *in ownerGrid* so that a locking assembly can order columns correctly
                     return c1.getView().ownerGrid.getVisibleColumnManager().indexOf(c1) - c2.getView().ownerGrid.getVisibleColumnManager().indexOf(c2);
                 }),

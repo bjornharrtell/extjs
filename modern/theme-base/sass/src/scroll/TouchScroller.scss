@@ -1,9 +1,0 @@
-// Ext.Component's innerElement doubles as the scroller's inner element.
-// This rule overrides the height/width: 100% set by the .x-inner rule.
-// This element must be allowed to expand with it's content since it is
-// used by the scroller to determine the scroll size.
-.x-scroll-scroller {
-    height: auto !important;
-    width: auto !important;
-    position: relative !important;
-}

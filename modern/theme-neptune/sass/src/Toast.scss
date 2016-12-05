@@ -3,28 +3,21 @@
  */
 
 .#{$prefix}toast {
-    margin: .5em;
-    border: .15em solid $base-color;
+    margin: $toast-margin;
+    @include border($toast-border-width $toast-border-style $toast-border-color);
+    @include box-shadow($toast-shadow);
 
-    @include box-shadow(rgba(#000, .4) 0 .1em .5em);
-    //@if $include-border-radius {
-    //    @include border-radius($panel-border-radius);
-    //}
-
-    .#{$prefix}toast-text {
-        padding: 6px 0;
-        line-height: 1.4em;
+    .#{$prefix}toast-inner {
+        color: $toast-color;
+        background-color: $toast-background-color;
+        @include font($toast-font-weight, $toast-font-size, $toast-line-height, $toast-font-family);
+        padding: $toast-padding;
     }
-}
 
-
-@mixin toast-ui($ui-label, $bg-color) {
-    .#{$prefix}toast-#{$ui-label} {
-        .#{$prefix}toast-text {
-            @include color-by-background($bg-color, 80%);
-            @include bevel-by-background($bg-color);
+    .#{$prefix}big & {
+        .#{$prefix}toast-inner {
+            @include font($toast-font-weight, $toast-font-size-big, $toast-line-height-big, $toast-font-family);
+            padding: $toast-padding-big;
         }
     }
 }
-
-//@include msgbox-ui('dark', $sheet-bg-color);

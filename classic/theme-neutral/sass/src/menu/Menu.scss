@@ -303,10 +303,11 @@
     $ui-scroller-top-glyph: $menu-scroller-top-glyph,
     $ui-scroller-bottom-glyph: $menu-scroller-bottom-glyph,
     $ui-classic-scrollers: $menu-classic-scrollers,
-    $ui-item-disabled-cursor: $menu-item-disabled-cursor
+    $ui-item-disabled-cursor: $menu-item-disabled-cursor,
+    $ui-item-arrow-top-offset: 0
 ) {
 
-    $ui-item-arrow-top: round(($ui-item-height - vertical($ui-item-border-width) - $ui-item-arrow-height) / 2) !default;
+    $ui-item-arrow-top: round(($ui-item-height - vertical($ui-item-border-width) - $ui-item-arrow-height) / 2) + $ui-item-arrow-top-offset !default;
     $ui-icon-separator-indent: before($ui-item-icon-horizontal-spacing) + $ui-item-icon-size + after($ui-item-icon-horizontal-spacing);
     $ui-item-indent: $ui-icon-separator-indent + $ui-separator-size + before($ui-item-text-horizontal-spacing);
     $ui-item-indent-no-separator: before($ui-item-icon-horizontal-spacing) + $ui-item-icon-size + max(after($ui-item-icon-horizontal-spacing), before($ui-item-text-horizontal-spacing));
@@ -332,18 +333,21 @@
         background-color: $ui-separator-background-color;
         width: $ui-separator-size;
 
-        @if $include-rtl {
-            &.#{$prefix}rtl {
-                left: auto;
-                right: $ui-icon-separator-indent;
-            }
-        }
     }
 
+    @if $include-rtl {
+        .#{$prefix}rtl > .#{$prefix}menu-icon-separator {
+            left: auto;
+            right: $ui-icon-separator-indent;
+        }
+    }
     .#{$prefix}menu-item-#{$ui} {
         border-width: $ui-item-border-width;
         cursor: $ui-item-cursor;
 
+        // We duplicate the styling for both active and focused menu items
+        // because an item may be active but not focused, and vice versa.
+        &.#{$prefix}menu-item-focus,
         &.#{$prefix}menu-item-active {
             @include background-gradient($ui-item-active-background-color, $ui-item-background-gradient);
             @if $ui-item-active-border-radius != 0 {
@@ -422,6 +426,7 @@
         cursor: $ui-item-cursor; // needed to override cursor:default set by x-unselectable
 
         @if $ui-item-active-text-color != $ui-text-color {
+            .#{$prefix}menu-item-focus &,
             .#{$prefix}menu-item-active & {
                 color: $ui-item-active-text-color;
             }
@@ -494,6 +499,7 @@
         font-size: $ui-glyph-font-size;
         color: $ui-glyph-color;
         @if $ui-item-active-glyph-color != $ui-glyph-color {
+            .#{$prefix}menu-item-focus &,
             .#{$prefix}menu-item-active & {
                 color: $ui-item-active-glyph-color;
                 
@@ -513,6 +519,7 @@
                 left: auto;
                 right: before($ui-item-icon-horizontal-spacing);
 
+                .#{$prefix}menu-item-focus &,
                 .#{$prefix}menu-item-active & {
                     right: before($ui-item-icon-horizontal-spacing) - left($ui-item-border-width);
                 }
@@ -553,6 +560,7 @@
                     right: auto;
                     left: after($ui-item-icon-horizontal-spacing);
 
+                    .#{$prefix}menu-item-focus &,
                     .#{$prefix}menu-item-active & {
                         left: after($ui-item-icon-horizontal-spacing) - right($ui-item-border-width);
                     }
@@ -570,6 +578,7 @@
                 color: $ui-item-checkbox-glyph-color;
 
                 @if $ui-item-active-checkbox-glyph-color != $ui-item-checkbox-glyph-color {
+                    .#{$prefix}menu-item-focus &,
                     .#{$prefix}menu-item-active & {
                         color: $ui-item-active-checkbox-glyph-color;
                     }
@@ -599,6 +608,7 @@
                     color: $ui-item-checkbox-group-glyph-color;
                 }
                 @if $ui-item-active-checkbox-group-glyph-color != $ui-item-checkbox-group-glyph-color {
+                    .#{$prefix}menu-item-focus &,
                     .#{$prefix}menu-item-active & {
                         color: $ui-item-active-checkbox-group-glyph-color;
                     }
@@ -630,8 +640,8 @@
     .#{$prefix}menu-item-arrow-#{$ui} {
         width: $ui-item-arrow-width;
         height: $ui-item-arrow-height;
-        top: $ui-item-arrow-top;
-        right: after($ui-item-arrow-horizontal-spacing);
+        top: $ui-item-arrow-top - top($ui-item-border-width);
+        right: after($ui-item-arrow-horizontal-spacing) - right($ui-item-border-width);
         margin: $ui-item-arrow-margin;
 
         @if $enable-font-icons and ($ui-item-arrow-glyph != null) {
@@ -639,6 +649,7 @@
             color: $ui-item-arrow-glyph-color;
 
             @if $ui-item-active-arrow-glyph-color != $ui-item-arrow-glyph-color {
+                .#{$prefix}menu-item-focus &,
                 .#{$prefix}menu-item-active & {
                     color: $ui-item-active-arrow-glyph-color;
                 }
@@ -647,6 +658,7 @@
             background-image: theme-background-image('menu/#{$ui}-menu-parent');
         }
 
+        .#{$prefix}menu-item-focus &,
         .#{$prefix}menu-item-active & {
             top: $ui-item-arrow-top - top($ui-item-border-width);
             right: after($ui-item-arrow-horizontal-spacing) - right($ui-item-border-width);
@@ -664,6 +676,7 @@
                     background-image: theme-background-image('menu/#{$ui}-menu-parent-left');
                 }
 
+                .#{$prefix}menu-item-focus &,
                 .#{$prefix}menu-item-active & {
                     left: after($ui-item-arrow-horizontal-spacing) - right($ui-item-border-width);
                 }
@@ -716,6 +729,14 @@
     @include extjs-menu-ui(
         $ui: 'default'
     );
+    
+    @include extjs-menu-ui(
+        $ui: 'default-menubar',
+        $ui-item-arrow-glyph: $menubar-item-arrow-glyph,
+        $ui-item-arrow-glyph-rtl: $menubar-item-arrow-glyph-rtl,
+        $ui-item-arrow-height: $menubar-item-arrow-height,
+        $ui-item-arrow-width: $menubar-item-arrow-width,
+        $ui-item-arrow-horizontal-spacing: $menubar-item-arrow-horizontal-spacing,
+        $ui-item-arrow-top-offset: $menubar-item-arrow-vertical-offset
+    );
 }
-
-

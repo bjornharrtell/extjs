@@ -1,7 +1,8 @@
 Ext.define('KitchenSink.store.Files', {
     extend: 'Ext.data.TreeStore',
+    alias: 'store.files',
 
-    root: {
+    rootData: {
         text: 'Ext JS',
         expanded: true,
         children: [
@@ -85,5 +86,15 @@ Ext.define('KitchenSink.store.Files', {
             { leaf:true, text: 'ShadowPool.js' },
             { leaf:true, text: 'ZIndexManager.js' }
         ]
+    },
+
+    constructor: function (config) {
+        // Since records claim the data object given to them, clone the data
+        // for each instance.
+        config = Ext.apply({
+            root: Ext.clone(this.rootData)
+        }, config);
+
+        this.callParent([config]);
     }
 });

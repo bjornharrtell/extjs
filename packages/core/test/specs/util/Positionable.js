@@ -10,7 +10,8 @@ describe("Ext.util.Positionable", function() {
                 left: '6px',
                 top: '7px',
                 'z-index': 10,
-                position: 'absolute'
+                position: 'absolute',
+                backgroundColor: 'green'
             }
         }, cfg));
     }
@@ -25,14 +26,15 @@ describe("Ext.util.Positionable", function() {
                 left: '6px',
                 top: '7px',
                 'z-index': 10,
-                position: 'absolute'
+                position: 'absolute',
+                backgroundColor: 'green'
             }
         }, cfg));
     }
 
     beforeEach(function() {
         // creates an absolute positioned wrapper element so that specs can
-        // append Elements/Components to it to test potioning to page-coordinates
+        // append Elements/Components to it to test positioning to page-coordinates
         wrap = Ext.getBody().createChild({
             style: {
                 width: '100px',
@@ -86,7 +88,8 @@ describe("Ext.util.Positionable", function() {
                         height: '60px',
                         left: '60px',
                         top: '60px',
-                        position: 'absolute'
+                        position: 'absolute',
+                        backgroundColor: 'red'
                     }
                 });
             });
@@ -188,7 +191,7 @@ describe("Ext.util.Positionable", function() {
                 "b-bl?": [15, 60],
                 "b-b?": [45, 60],
                 "b-br?": [75, 60],
-                "br-tl?": [95, 100],
+                "br-tl?": [15, 100],
                 "br-t?": [25, 100],
                 "br-tr?": [55, 100],
                 "br-l?": [95, 30],
@@ -487,6 +490,67 @@ describe("Ext.util.Positionable", function() {
                     expect(region.right).toBe(61);
                     expect(region.bottom).toBe(67);
                     expect(region.left).toBe(21);
+                });
+            });
+            
+            // IE9 disabled because https://sencha.jira.com/browse/EXTJS-19483
+            (Ext.isIE9 ? xdescribe : describe)("getClientRegion", function() {
+                var scrollbarSize = Ext.getScrollbarSize(),
+                    el, region;
+                
+                function addScrollStyle(axis) {
+                    el.setStyle('overflow-' + axis, 'scroll');
+                }
+                
+                beforeEach(function() {
+                    el = isComponent ? positionable.el : positionable;
+                    
+                    // Default width and height of 40px is not enough
+                    // to display scrollbars in some browsers
+                    el.dom.style.width = el.dom.style.height = '100px';
+                    el.dom.style.backgroundColor = 'red';
+                    
+                    region = positionable.getRegion();
+                });
+                
+                it("should be the same as Region with no scrollbars", function() {
+                    var clientRegion = positionable.getClientRegion();
+                    
+                    expect(clientRegion.equals(region)).toBe(true);
+                });
+                
+                it("should account for vertical scrollbar", function() {
+                    addScrollStyle('y');
+                    
+                    var clientRegion = positionable.getClientRegion();
+                    
+                    expect(clientRegion.top).toBe(region.top);
+                    expect(clientRegion.right).toBe(region.right - scrollbarSize.width);
+                    expect(clientRegion.bottom).toBe(region.bottom);
+                    expect(clientRegion.left).toBe(region.left);
+                });
+                
+                it("should account for horizontal scrollbar", function() {
+                    addScrollStyle('x');
+                    
+                    var clientRegion = positionable.getClientRegion();
+                    
+                    expect(clientRegion.top).toBe(region.top);
+                    expect(clientRegion.right).toBe(region.right);
+                    expect(clientRegion.bottom).toBe(region.bottom - scrollbarSize.height);
+                    expect(clientRegion.left).toBe(region.left);
+                });
+                
+                it("should account for both scrollbars", function() {
+                    addScrollStyle('x');
+                    addScrollStyle('y');
+                    
+                    var clientRegion = positionable.getClientRegion();
+                    
+                    expect(clientRegion.top).toBe(region.top);
+                    expect(clientRegion.right).toBe(region.right - scrollbarSize.width);
+                    expect(clientRegion.bottom).toBe(region.bottom - scrollbarSize.height);
+                    expect(clientRegion.left).toBe(region.left);
                 });
             });
 

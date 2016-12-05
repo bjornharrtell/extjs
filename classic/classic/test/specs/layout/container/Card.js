@@ -467,17 +467,17 @@ describe("Ext.layout.container.Card", function() {
             describe('when items are derived panels', function () {
                 var synchronousLoad = true,
                     proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
-                    loadStore;
-
-                beforeEach(function() {
-                    // Override so that we can control asynchronous loading
-                    loadStore = Ext.data.ProxyStore.prototype.load = function() {
+                    loadStore = function() {
                         proxyStoreLoad.apply(this, arguments);
                         if (synchronousLoad) {
                             this.flushLoad.apply(this, arguments);
                         }
                         return this;
                     };
+
+                beforeEach(function() {
+                    // Override so that we can control asynchronous loading
+                    Ext.data.ProxyStore.prototype.load = loadStore;
                 });
 
                 afterEach(function() {

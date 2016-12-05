@@ -39,10 +39,6 @@ Ext.define('Admin.view.tablet.email.Email', {
                 }
             },
 
-            defaults: {
-                userCls: 'email-controls-box shadow'
-            },
-
             items: [
                 {
                     xtype: 'panel',
@@ -52,8 +48,10 @@ Ext.define('Admin.view.tablet.email.Email', {
                     header: {
                         userCls: 'email-toolbox'
                     },
+                    userCls: 'email-controls-box shadow',
                     iconCls: 'x-fa fa-inbox',
                     defaultType: 'button',
+                    layout: 'vbox',
 
                     items: [{
                         text: 'Compose',
@@ -104,6 +102,7 @@ Ext.define('Admin.view.tablet.email.Email', {
                     header: {
                         userCls: 'email-toolbox'
                     },
+                    userCls: 'friends-list email-controls-box shadow',
                     iconCls: 'x-fa fa-group',
                     items: [{
                         xtype: 'list',
@@ -115,6 +114,7 @@ Ext.define('Admin.view.tablet.email.Email', {
                             textAlign: 'left',
                             viewModel: true,
                             handler: 'onComposeTo',
+                            tpl: null,
                             bind: {
                                 userCls: '{record.online:pick("offline","online")}',
                                 text: '{record.name}'

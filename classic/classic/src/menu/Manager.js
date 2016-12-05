@@ -24,11 +24,33 @@ Ext.define('Ext.menu.Manager', {
 
         // Lazily create the mousedown listener on first menu show
         me.onShow = function () {
-            delete me.onShow; // remove this hook
-            // Use the global mousedown event that gets fired even if propagation is stopped
-            Ext.on('mousedown', me.checkActiveMenus, me);
+            // This is a separate method to allow calling eagerly in unit tests
+            me.registerGlobalListeners();
+            
             return me.onShow.apply(me, arguments); // do the real thing
         };
+    },
+    
+    onGlobalScroll: function (scroller) {
+        var allMenus = this.visible,
+            len = allMenus.length,
+            i, menu,
+            scrollerEl = scroller.getElement();
+
+        // Scrolling document should not hide menus.
+        // The will move along with the document.
+        if (len && scroller !== Ext.scroll.Scroller.viewport) {
+            // Clone here, we may modify this collection while the loop is active
+            allMenus = allMenus.slice();
+            for (i = 0; i < len; ++i) {
+                menu = allMenus[i];
+                // Hide the menu if:
+                //      The menu does not own scrolling element
+                if (!menu.alignOnScroll && menu.hideOnScroll !== false && !menu.owns(scrollerEl)) {
+                    menu.hide();
+                }
+             }
+         }
     },
 
     checkActiveMenus: function(e) {
@@ -44,8 +66,8 @@ Ext.define('Ext.menu.Manager', {
                 menu = allMenus[i];
                 // Hide the menu if:
                 //      The menu does not own the clicked upon element AND
-                //      The menu is not the child menu of a clicked upon MenuCheckItem
-                if (!(menu.owns(e) || (mousedownCmp && mousedownCmp.isMenuCheckItem && mousedownCmp.menu === menu))) {
+                //      The menu is not the child menu of a clicked upon MenuItem
+                if (!(menu.owns(e) || (mousedownCmp && mousedownCmp.isMenuItem && mousedownCmp.menu === menu))) {
                     menu.hide();
                 }
              }
@@ -162,5 +184,21 @@ Ext.define('Ext.menu.Manager', {
                 }
             }
         }
+    },
+    
+    /**
+     * @private
+     */
+    registerGlobalListeners: function() {
+        var me = this;
+
+        delete me.onShow; // remove the lazy-init hook
+
+        // Use the global mousedown event that gets fired even if propagation is stopped
+        Ext.on({
+            mousedown: me.checkActiveMenus,
+            scroll: me.onGlobalScroll,
+            scope: me
+        });
     }
 });

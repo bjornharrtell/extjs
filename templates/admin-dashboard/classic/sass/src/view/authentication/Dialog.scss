@@ -16,7 +16,8 @@
             @include border-radius($circle-border-radius);
         }
     }
-    .x-form-text-default{
+    
+    .x-form-text-default, .x-placeholder-label-default {
         padding: 15px;
     }
 

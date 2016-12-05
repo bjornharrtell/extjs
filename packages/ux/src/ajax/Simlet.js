@@ -18,7 +18,7 @@ Ext.define('Ext.ux.ajax.Simlet', function () {
                 value = parseInt(value, 10);
             } else if (floatRegex.test(value)) {
                 value = parseFloat(value);
-            } else if (!!(m = dateRegex.test(value))) {
+            } else if (!!(m = dateRegex.exec(value))) {
                 value = new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]));
             }
         }
@@ -31,27 +31,27 @@ Ext.define('Ext.ux.ajax.Simlet', function () {
 
         isSimlet: true,
 
-        responseProps: ['responseText', 'responseXML', 'status', 'statusText'],
+        responseProps: ['responseText', 'responseXML', 'status', 'statusText', 'responseHeaders'],
 
         /**
-         * @cfg {Number} responseText
+         * @cfg {String/Function} responseText
          */
 
         /**
-         * @cfg {Number} responseXML
+         * @cfg {String/Function} responseXML
          */
 
         /**
-         * @cfg {Object} responseHeaders
+         * @cfg {Object/Function} responseHeaders
          */
 
         /**
-         * @cfg {Number} status
+         * @cfg {Number/Function} status
          */
         status: 200,
 
         /**
-         * @cfg {String} statusText
+         * @cfg {String/Function} statusText
          */
         statusText: 'OK',
 
@@ -60,29 +60,11 @@ Ext.define('Ext.ux.ajax.Simlet', function () {
         },
 
         doGet: function (ctx) {
-            var me = this,
-                ret = {};
-
-            Ext.Array.forEach(me.responseProps, function (prop) {
-                if (prop in me) {
-                    ret[prop] = me[prop];
-                }
-            });
-
-            return ret;
+            return this.handleRequest(ctx);
         },
         
         doPost: function (ctx) {
-            var me = this,
-                ret = {};
-
-            Ext.Array.forEach(me.responseProps, function (prop) {
-                if (prop in me) {
-                    ret[prop] = me[prop];
-                }
-            });
-
-            return ret;
+            return this.handleRequest(ctx);
         },
 
         doRedirect: function (ctx) {
@@ -126,6 +108,24 @@ Ext.define('Ext.ux.ajax.Simlet', function () {
                 url: url,
                 xhr: xhr
             };
+        },
+
+        handleRequest: function(ctx) {
+            var me = this,
+                ret = {},
+                val;
+
+            Ext.Array.forEach(me.responseProps, function (prop) {
+                if (prop in me) {
+                    val = me[prop];
+                    if (Ext.isFunction(val)) {
+                        val = val.call(me, ctx);
+                    }
+                    ret[prop] = val;
+                }
+            });
+
+            return ret;
         },
 
         openRequest: function (method, url, options, async) {

@@ -53,9 +53,27 @@ Ext.define('KitchenSink.view.pivot.ChartIntegrationController', {
 
     chartRenderer: function(axis, v){
         var matrix = this.getMatrix(),
-            item = matrix.leftAxis.findTreeElement("key", v);
+            items = matrix.leftAxis.items,
+            totals = matrix.totals,
+            len = items.getCount(),
+            item, i;
 
-        return item ? item.node.name : (v == matrix.grandTotalKey ? matrix.textGrandTotalTpl : v);
+        for(i = 0; i < len; i++){
+            item = items.getAt(i);
+            if(item.record && item.record.getId() === v){
+                return item.name;
+            }
+        }
+
+        len = totals.length;
+        for(i = 0; i < len; i++){
+            item = totals[i];
+            if(item.record && item.record.getId() === v){
+                return item.title;
+            }
+        }
+
+        return v;
     },
 
     getTitles: function(pivot){

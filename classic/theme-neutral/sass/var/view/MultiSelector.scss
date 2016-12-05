@@ -6,13 +6,13 @@
  * @var {number}
  * The font-size for the multiselector's remove glyph.
  */
-$multiselector-remove-font-size: dynamic(100%);
+$multiselector-remove-font-size: dynamic(110%);
 
 /**
  * @var {number/list}
  * The padding of "Remove" cell's inner element
  */
-$multiselector-remove-padding: dynamic($grid-cell-inner-padding);
+$multiselector-remove-padding: dynamic(top($grid-cell-inner-padding) 4px bottom($grid-cell-inner-padding) 4px);
 
 /**
  * @var {color}

@@ -21,10 +21,6 @@
         }
     }
 
-    > .x-layout-box-item {
-        @include st-box();
-    }
-
     &.x-align-start {
         @include st-box-align(start);
     }
@@ -58,54 +54,63 @@
     }
 }
 
+.x-layout-box-item {
+    flex-shrink: 0;
+}
+
 .x-layout-box-item.x-sized {
     > .x-inner, > .x-body, > .x-dock-outer {
         @include absolute-fit();
     }
 }
 
-// Platform specific code
 
-.x-webkit {
-    .x-layout-box {
-        &.x-horizontal > .x-layout-box-item.x-flexed {
-            width: 0 !important;
+/*
+    http://stackoverflow.com/questions/20959600/height-100-on-flexbox-column-child
+
+    Chrome handles height calculations differently then Safari, this is needed to properly
+    allow children of flexed/stretched items to expand to the proper heights.
+
+    We also set all x-layout-box-item to display: flex/-webkit-box-flex.
+    without this iOS hbox and vbox layouts will not properly stretch
+
+    We generalized this selector so that chrome as Chrome with using flex-basis:auto
+    will act like safari and require height:auto to fill heighted elements
+
+    The x-scroller element cannot be auto-heighted because it must not expand past the
+    bounds of the container
+*/
+.x-layout-box {
+    .x-layout-box-item {
+        @include st-box();
+        &.x-heighted {
+            > .x-body:not(.x-scroller), > .x-inner {
+                min-height: 100%;
+                height: auto;
+            }
         }
+    }
 
-        &.x-vertical > .x-layout-box-item.x-flexed {
-            height: 0 !important;
+    // vbox/flexed and hbox-stretched items need some help as well - the height/width of
+    // 100% on the body element is not effective, since the parent element has no explicit
+    // height, instead it causes the height of the body/inner to shrink to 0.
+    // Setting height to auto fixes this.
+    .x-layout-vbox-item.x-flexed,
+    .x-layout-hbox-item.x-stretched {
+        > .x-body:not(.x-scroller), > .x-inner {
+            height: auto;
         }
     }
 }
 
-.x-firefox {
-    .x-stretched {
-        &.x-dock-horizontal {
-            > .x-dock-body {
-                width: 0;
-            }
-        }
-
-        &.x-dock-vertical {
-            > .x-dock-body {
-                height: 0;
-            }
-        }
+.x-safari8m {
+    // Old -webkit prefixed flexbox does not support flex-basis.  To prevent the content
+    // size from affecting the flex outcome it needs a width or height of 0
+    .x-layout-hbox-item.x-flexed {
+        width: 0;
     }
 
-    .x-container {
-        .x-dock-horizontal.x-unsized {
-            .x-dock-body {
-                @include st-box-flex(1, 0px);
-                min-height: 0;
-                min-width: 0;
-            }
-        }
-    }
-
-    .x-has-height > .x-dock.x-unsized.x-dock-vertical {
-        > .x-dock-body {
-            height: 0;
-        }
+    .x-layout-vbox-item.x-flexed {
+        height: 0;
     }
 }

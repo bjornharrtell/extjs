@@ -222,15 +222,14 @@ describe("Ext.data.schema.Schema", function() {
                 Ext.define('spec.ParentModel', {
                     extend: 'Ext.data.Model',
 
-                    associations: [{
-                        type: 'hasOne',
+                    hasOne: {
                         model: 'spec.AssociatedModel',
                         getterName: 'getAssocModel',
                         setterName: 'setAssocModel',
                         name: 'associatedModel',
                         associationKey: 'associatedModel',
                         foreignKey: 'id'
-                    }]
+                    }
                 });
 
                 Ext.define('spec.ChildModel', {

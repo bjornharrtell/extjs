@@ -48,6 +48,7 @@ Ext.define('Ext.draw.sprite.Cross', {
         var s = attr.size / 1.7,
             x = attr.x - attr.lineWidth / 2,
             y = attr.y;
+
         path.fromSvgString('M'.concat(x - s, ',', y, 'l', [-s, -s, s, -s, s, s, s, -s, s, s, -s, s, s, s, -s, s, -s, -s, -s, s, -s, -s, 'z']));
     }
 

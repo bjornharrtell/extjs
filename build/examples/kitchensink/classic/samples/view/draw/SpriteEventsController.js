@@ -4,17 +4,23 @@ Ext.define('KitchenSink.view.draw.SpriteEventsController', {
 
     onSpriteClick: function (item, event) {
         var sprite = item && item.sprite,
-            color = Ext.draw.Color.create(
+            color = Ext.util.Color.create(
                 Math.random() * 255,
                 Math.random() * 255,
                 Math.random() * 255
             );
 
         if (sprite) {
-            sprite.setAttributes({
-                fillStyle: color,
-                strokeStyle: color
-            });
+            if (sprite.type === 'image') {
+                sprite.setAttributes({
+                    rotationRads: sprite.attr.rotationRads + Math.PI / 4
+                });
+            } else {
+                sprite.setAttributes({
+                    fillStyle: color,
+                    strokeStyle: color
+                });
+            }
             sprite.getSurface().renderFrame();
         }
     }

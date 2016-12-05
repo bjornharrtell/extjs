@@ -736,6 +736,18 @@ describe("Ext.Component", function(){
                 ct.destroy();
             });
         });
+
+        describe("destruction", function() {
+            it("should destroy the viewModel when the component is destroyed", function() {
+                makeComponent({
+                    viewModel: {},
+                    renderTo: Ext.getBody()
+                });
+                var vm = c.getViewModel();
+                c.destroy();
+                expect(vm.destroyed).toBe(true);
+            }); 
+        });
     });
 
     describe("session", function() {
@@ -867,6 +879,31 @@ describe("Ext.Component", function(){
             expect(c.getHeight()).toBe(200);
         });
 
+        it("should stop reacting when setting the binding to null", function() {
+            makeComponent({
+                renderTo: Ext.getBody(),
+                height: 200,
+                viewModel: {
+                    data: {
+                        width: 200
+                    }
+                },
+                bind: {
+                    width: '{width}'
+                }
+            });
+            var vm = c.getViewModel();
+
+            vm.notify();
+            expect(c.getWidth()).toBe(200);
+            c.setBind({
+                width: null
+            });
+            vm.set('width', 400);
+            vm.notify();
+            expect(c.getWidth()).toBe(200);
+        });
+
         describe("twoWayBindable", function() {
             var Cls, viewModel;
 
@@ -917,6 +954,52 @@ describe("Ext.Component", function(){
                         bind: {}
                     });
                 }).not.toThrow();
+            });
+
+            it("should stop reacting when setting the binding to null", function() {
+                makeCls({
+                    renderTo: Ext.getBody(),
+                    viewModel: {
+                        data: {
+                            d: 200
+                        }
+                    },
+                    bind: {
+                        customD: '{d}'
+                    }
+                });
+                var vm = c.getViewModel();
+
+                vm.notify();
+                expect(c.getCustomD()).toBe(200);
+                c.setBind({
+                    customD: null
+                });
+                vm.set('customD', 400);
+                vm.notify();
+                expect(c.getCustomD()).toBe(200);
+            });
+
+            it("should not be two way if the binding has twoWay: false", function() {
+                makeCls({
+                    renderTo: Ext.getBody(),
+                    viewModel: {
+                        data: {
+                            d: 200
+                        }
+                    },
+                    bind: {
+                        customD: {
+                            bindTo: '{d}',
+                            twoWay: false
+                        }
+                    }
+                });
+                var vm = c.getViewModel();
+                vm.notify();
+                c.setCustomD(400);
+                vm.notify();
+                expect(vm.get('d')).toBe(200);
             });
 
             describe("when the binding has not fired", function() {
@@ -1065,6 +1148,52 @@ describe("Ext.Component", function(){
                 });
             });
         });
+
+        describe("on destruction", function() {
+            beforeEach(function() {
+                Ext.define('spec.BindCls', {
+                    extend: 'Ext.Component',
+                    xtype: 'bindcls',
+                    config: {
+                        test: null
+                    }
+                })
+            });
+
+            afterEach(function() {
+                Ext.undefine('spec.BindCls');
+            });
+
+            it("should remove bindings when children are destroyed", function() {
+                var ct = new Ext.container.Container({
+                    viewModel: {
+                        data: {
+                            foo: 1
+                        }
+                    },
+                    renderTo: Ext.getBody(),
+                    items: {
+                        xtype: 'bindcls',
+                        bind: {
+                            test: '{foo}'
+                        }
+                    }
+                }), vm = ct.getViewModel();
+
+                var c = ct.items.first();
+                spyOn(c, 'setTest');
+                vm.notify();
+                expect(c.setTest.callCount).toBe(1);
+                c.setTest.reset();
+                vm.set('foo', 2);
+                // The bind is queued up
+                c.destroy();
+                vm.notify();
+                expect(c.setTest).not.toHaveBeenCalled();
+
+                ct.destroy();
+            });
+        });
     });
 
     describe("listener scope resolution", function() {
@@ -1135,15 +1264,7 @@ describe("Ext.Component", function(){
         });
 
         afterEach(function() {
-            if (cmp) {
-                cmp.destroy();
-            }
-            if (parent) {
-                parent.destroy();
-            }
-            if (grandparent) {
-                grandparent.destroy();
-            }
+            cmp = parent = grandparent = Ext.destroy(cmp, parent, grandparent);
         });
 
         describe("listener declared on class body", function() {
@@ -3435,7 +3556,28 @@ describe("Ext.Component", function(){
             expect(c.el.getWidth()).toBe(200);
             expect(c.el.getHeight()).toBe(200);
         });
-        
+       
+        it("should suspend layouts in Ext.batchLayouts", function() {
+            Ext.batchLayouts(function() {
+                expect(Component.layoutSuspendCount).toBe(1);
+            });
+            expect(Component.layoutSuspendCount).toBe(0);
+        });
+
+        it("should resume layouts in Ext.batchLayouts if fn throws an error", function() {
+            // try/catch required to avoid causing test to fail due to the exception thrown
+            try {
+                Ext.batchLayouts(function() {
+                    expect(Component.layoutSuspendCount).toBe(1);
+                    throw 'unexpected exception';
+                });
+            }
+            catch (e) {
+            }
+            // finally should resume
+            expect(Component.layoutSuspendCount).toBe(0);
+        });
+
         it("should run the layout straight away when resuming layouts with flush", function() {
             var spy = jasmine.createSpy();
             c.on('resize', spy);
@@ -3860,7 +4002,7 @@ describe("Ext.Component", function(){
                 expect(ct.body.component).toBe(ct);
 
                 var bodyEl = ct.body.el.dom;
-                expect(bodyEl.parentNode).toBe(ct.el.dom);
+                expect(bodyEl.parentNode.parentNode).toBe(ct.el.dom);
 
                 var item = ct.items.getAt(0);
                 expect(item.el.dom.parentNode).toBe(bodyEl);
@@ -3893,13 +4035,13 @@ describe("Ext.Component", function(){
                 expect(ct.body.component).toBe(ct);
 
                 var bodyEl = ct.body.el.dom;
-                expect(bodyEl.parentNode).toBe(ct.el.dom);
+                expect(bodyEl.parentNode.parentNode).toBe(ct.el.dom);
 
                 var subPanel = ct.items.getAt(0);
                 var bodyEl2 = subPanel.body.el.dom;
 
                 expect(subPanel.el.dom.parentNode).toBe(bodyEl);
-                expect(bodyEl2.parentNode).toBe(subPanel.el.dom);
+                expect(bodyEl2.parentNode.parentNode).toBe(subPanel.el.dom);
 
                 var item = subPanel.items.getAt(0);
                 expect(item.el.dom.parentNode).toBe(bodyEl2);
@@ -3926,7 +4068,7 @@ describe("Ext.Component", function(){
                 expect(ct.body.component).toBe(ct);
 
                 var bodyEl = ct.body.el.dom;
-                expect(bodyEl.parentNode).toBe(ct.el.dom);
+                expect(bodyEl.parentNode.parentNode).toBe(ct.el.dom);
 
                 var outerCt = ct.layout.outerCt;
                 expect(outerCt.component).toBe(ct);
@@ -3961,7 +4103,7 @@ describe("Ext.Component", function(){
                 expect(ct.body.component).toBe(ct);
 
                 var bodyEl = ct.body.el.dom;
-                expect(bodyEl.parentNode).toBe(ct.el.dom);
+                expect(bodyEl.parentNode.parentNode).toBe(ct.el.dom);
 
                 var innerCt = ct.layout.innerCt;
                 expect(innerCt.component).toBe(ct);
@@ -3996,7 +4138,7 @@ describe("Ext.Component", function(){
                 expect(ct.body.component).toBe(ct);
 
                 var bodyEl = ct.body.el.dom;
-                expect(bodyEl.parentNode).toBe(ct.el.dom);
+                expect(bodyEl.parentNode.parentNode).toBe(ct.el.dom);
 
                 var innerCt = ct.layout.innerCt;
                 expect(innerCt.component).toBe(ct);
@@ -5624,6 +5766,34 @@ describe("Ext.Component", function(){
             
         });
     });
+
+    describe("findParentBy", function () {
+        var ct;
+
+        describe("findParentByType", function () {
+            beforeEach(function() {
+                ct = new Ext.toolbar.Toolbar({
+                    renderTo: document.body
+                });
+                makeComponent({
+                    renderTo: null
+                });
+                ct.add(c);
+            });
+
+            afterEach(function(){
+                ct.destroy();
+            });
+
+            it("should find by xtype", function() {
+                expect(c.findParentByType('toolbar')).toBe(ct);
+            });
+
+            it("should find by class", function() {
+                expect(c.findParentByType(Ext.toolbar.Toolbar)).toBe(ct);
+            });
+        });
+    });
     
     describe("nextSibling", function(){
         var ct;
@@ -6176,7 +6346,7 @@ describe("Ext.Component", function(){
                     
                     c.render(Ext.getBody());
                     
-                    expect(spy).wasCalledWith(10, undefined);
+                    expect(spy).toHaveBeenCalledWith(10, undefined);
                 });
                 
                 it("pageY", function() {
@@ -6186,7 +6356,7 @@ describe("Ext.Component", function(){
                     
                     c.render(Ext.getBody());
                     
-                    expect(spy).wasCalledWith(undefined, 10);
+                    expect(spy).toHaveBeenCalledWith(undefined, 10);
                 });
             });
         });
@@ -6199,7 +6369,7 @@ describe("Ext.Component", function(){
 
                 c.render(Ext.getBody());
 
-                expect(spy).wasCalled();
+                expect(spy).toHaveBeenCalled();
             });
         });
         
@@ -6211,7 +6381,7 @@ describe("Ext.Component", function(){
                 
                 c.render(Ext.getBody());
                 
-                expect(spy).wasCalled();
+                expect(spy).toHaveBeenCalled();
             });
         });
 
@@ -6403,7 +6573,7 @@ describe("Ext.Component", function(){
                 expect(c.getScrollable().getY()).toBe(true);
             });
 
-            it("should be able to clear the old scroller", function() {
+            it("should be able to disable scrolling", function() {
                 makeComponent({
                     renderTo: document.body,
                     width: 300,
@@ -6411,104 +6581,261 @@ describe("Ext.Component", function(){
                     scrollable: true
                 });
 
-                var scroller = c.getScrollable();
                 c.setScrollable(false);
-                expect(c.getScrollable()).toBeNull();
-                expect(scroller.destroyed).toBe(true);
+                expect(c.getScrollable().getX()).toBe(false);
+                expect(c.getScrollable().getY()).toBe(false);
             });
         });
 
-        describe('scroll position', function () {
-            it('should preserve vertical scroll position when toggling hide/show', function () {
-                makeComponent({
-                    renderTo: document.body,
-                    height: 100,
-                    width: 100,
-                    scrollable: true,
-                    html: makeText()
-                });
+        describe("retaining scroll position across layouts", function() {
+            var endSpy, s;
 
-                c.el.dom.scrollTop = 1000;
-
-                c.hide();
-                c.show();
-
-                expect(c.el.dom.scrollTop).toBe(1000);
+            beforeEach(function() {
+                endSpy = jasmine.createSpy();
             });
 
-            describe('in a container', function () {
-                var ct, ctScrollable;
+            afterEach(function() {
+                endSpy = s = null;
+            });
 
-                beforeEach(function () {
+            describe("configured dimensions", function() {
+                beforeEach(function() {
                     makeComponent({
-                        width: 500,
-                        height: 500,
-                        html: makeText(),
-                        scrollable: true
-                    });
-
-                    ct = Ext.widget({
-                        xtype: 'container',
-                        renderTo: document.body,
-                        height: 200,
+                        renderTo: Ext.getBody(),
                         width: 200,
-                        items: c,
-                        scrollable: true
+                        height: 200,
+                        scrollable: true,
+                        html: '<div style="width: 600px; height: 600px;"></div>'
                     });
-
-                    ctScrollable = ct.scrollable;
+                    s = c.getScrollable();
+                    s.on('scrollend', endSpy);
                 });
 
-                afterEach(function () {
-                    ct = ctScrollable = Ext.destroy(ct);
+                it("should retain position", function() {
+                    s.scrollTo(300, 300);
+                    waitsFor(function() {
+                        return endSpy.callCount > 0;
+                    });
+                    runs(function() {
+                        c.setSize(199, 199);
+                    });
+                    waitsFor(function() {
+                        var pos = s.getPosition();
+                        return pos.x > 0 && pos.y > 0;
+                    });
+                    runs(function() {
+                        expect(s.getPosition()).toEqual({
+                            x: 300,
+                            y: 300
+                        });
+                    });
                 });
 
-                it('should preserve vertical scroll position when toggling hide/show', function () {
-                    var cmpScrollable;
-
-                    // Here we want a child component with different dimensions than the one created in beforeEach.
-                    ct.add({
-                        width: 100,
-                        height: 100,
-                        html: makeText(),
-                        scrollable: true
+                it("should retain position when hiding/showing", function() {
+                    s.scrollTo(300, 300);
+                    waitsFor(function() {
+                        return endSpy.callCount > 0;
                     });
-
-                    cmpScrollable = ct.items.getAt(1).scrollable;
-                    cmpScrollable.scrollTo(0, 150);
-
-                    ct.hide();
-                    ct.show();
-
-                    expect(cmpScrollable.getPosition()).toEqual({x: 0, y: 150});
+                    runs(function() {
+                        c.hide();
+                        c.show();
+                    });
+                    waitsFor(function() {
+                        var pos = s.getPosition();
+                        return pos.x > 0 && pos.y > 0;
+                    });
+                    runs(function() {
+                        expect(s.getPosition()).toEqual({
+                            x: 300,
+                            y: 300
+                        });
+                    });
                 });
 
-                describe('scroll position of container', function () {
-                    it('should preserve vertical scroll position when toggling hide/show', function () {
-                        ctScrollable.scrollTo(0, 150);
+                it("should not fire a scroll event", function() {
+                    var spy = jasmine.createSpy();
+                    s.scrollTo(300, 300);
+                    waitsFor(function() {
+                        return endSpy.callCount > 0;
+                    });
+                    runs(function() {
+                        s.on('scroll', spy);
+                        c.setSize(199, 199);
+                    });
+                    waitsFor(function() {
+                        var pos = s.getPosition();
+                        return pos.x > 0 && pos.y > 0;
+                    });
+                    runs(function() {
+                        expect(spy).not.toHaveBeenCalled();
+                    });
+                });
+            });
 
-                        ct.hide();
-                        ct.show();
+            describe("calculated dimensions", function() {
+                var ct;
 
-                        expect(ctScrollable.getPosition()).toEqual({x: 0, y: 150});
+                beforeEach(function() {
+                    makeComponent({
+                        scrollable: true,
+                        html: '<div style="width: 600px; height: 600px;"></div>'
                     });
 
-                    it('should preserve horizontal scroll position when toggling hide/show', function () {
-                        ctScrollable.scrollTo(300, 0);
-
-                        ct.hide();
-                        ct.show();
-
-                        expect(ctScrollable.getPosition()).toEqual({x: 300, y: 0});
+                    ct = new Ext.container.Container({
+                        renderTo: Ext.getBody(),
+                        width: 200,
+                        height: 200,
+                        layout: 'fit',
+                        items: c
                     });
 
-                    it('should preserve both scroll positions when toggling hide/show', function () {
-                        ctScrollable.scrollTo(300, 150);
+                    s = c.getScrollable();
+                    s.on('scrollend', endSpy);
+                });
 
-                        ct.hide();
-                        ct.show();
+                afterEach(function() {
+                    ct.destroy();
+                    ct = null;
+                });
 
-                        expect(ctScrollable.getPosition()).toEqual({x: 300, y: 150});
+                it("should retain position", function() {
+                    s.scrollTo(300, 300);
+                    waitsFor(function() {
+                        return endSpy.callCount > 0;
+                    });
+                    runs(function() {
+                        ct.setSize(199, 199);
+                    });
+                    waitsFor(function() {
+                        var pos = s.getPosition();
+                        return pos.x > 0 && pos.y > 0;
+                    });
+                    runs(function() {
+                        expect(s.getPosition()).toEqual({
+                            x: 300,
+                            y: 300
+                        });
+                    });
+                });
+
+                it("should retain position when hiding/showing", function() {
+                    s.scrollTo(300, 300);
+                    waitsFor(function() {
+                        return endSpy.callCount > 0;
+                    });
+                    runs(function() {
+                        c.hide();
+                        c.show();
+                    });
+                    waitsFor(function() {
+                        var pos = s.getPosition();
+                        return pos.x > 0 && pos.y > 0;
+                    });
+                    runs(function() {
+                        expect(s.getPosition()).toEqual({
+                            x: 300,
+                            y: 300
+                        });
+                    });
+                });
+
+                it("should not fire a scroll event", function() {
+                    var spy = jasmine.createSpy();
+                    s.scrollTo(300, 300);
+                    waitsFor(function() {
+                        return endSpy.callCount > 0;
+                    });
+                    runs(function() {
+                        s.on('scroll', spy);
+                        ct.setSize(199, 199);
+                    });
+                    waitsFor(function() {
+                        var pos = s.getPosition();
+                        return pos.x > 0 && pos.y > 0;
+                    });
+                    runs(function() {
+                        expect(spy).not.toHaveBeenCalled();
+                    });
+                });
+            });
+
+            describe("shrinkWrap with constraints", function() {
+                var ct;
+
+                beforeEach(function() {
+                    makeComponent({
+                        renderTo: Ext.getBody(),
+                        scrollable: true,
+                        html: '<div style="width: 600px; height: 600px;"></div>',
+                        shrinkWrap: true,
+                        floating: true,
+                        maxWidth: 200,
+                        maxHeight: 200,
+                        x: 0,
+                        y: 0
+                    });
+
+                    s = c.getScrollable();
+                    s.on('scrollend', endSpy);
+                });
+
+                it("should retain position", function() {
+                    s.scrollTo(300, 300);
+                    waitsFor(function() {
+                        return endSpy.callCount > 0;
+                    });
+                    runs(function() {
+                        c.setHtml('<div style="width: 700px; height: 700px;"></div>');
+                    });
+                    waitsFor(function() {
+                        var pos = s.getPosition();
+                        return pos.x > 0 && pos.y > 0;
+                    });
+                    runs(function() {
+                        expect(s.getPosition()).toEqual({
+                            x: 300,
+                            y: 300
+                        });
+                    });
+                });
+
+                it("should retain position when hiding/showing", function() {
+                    s.scrollTo(300, 300);
+                    waitsFor(function() {
+                        return endSpy.callCount > 0;
+                    });
+                    runs(function() {
+                        c.hide();
+                        c.show();
+                    });
+                    waitsFor(function() {
+                        var pos = s.getPosition();
+                        return pos.x > 0 && pos.y > 0;
+                    });
+                    runs(function() {
+                        expect(s.getPosition()).toEqual({
+                            x: 300,
+                            y: 300
+                        });
+                    });
+                });
+
+                it("should not fire a scroll event", function() {
+                    var spy = jasmine.createSpy();
+                    s.scrollTo(300, 300);
+                    waitsFor(function() {
+                        return endSpy.callCount > 0;
+                    });
+                    runs(function() {
+                        s.on('scroll', spy);
+                        c.setHtml('<div style="width: 700px; height: 700px;"></div>');
+                    });
+                    waitsFor(function() {
+                        var pos = s.getPosition();
+                        return pos.x > 0 && pos.y > 0;
+                    });
+                    runs(function() {
+                        expect(spy).not.toHaveBeenCalled();
                     });
                 });
             });
@@ -6920,7 +7247,7 @@ describe("Ext.Component", function(){
                 
                 c.setPosition(10, 0);
                 
-                expect(spy).wasCalled();
+                expect(spy).toHaveBeenCalled();
             });
             
             it("should call onPosition", function() {
@@ -6928,7 +7255,7 @@ describe("Ext.Component", function(){
                 
                 c.setPosition(10, 0);
                 
-                expect(spy).wasCalled();
+                expect(spy).toHaveBeenCalled();
             });
             
             it("should fire the move event", function() {
@@ -6953,7 +7280,7 @@ describe("Ext.Component", function(){
             
             c.showAt(10, 0, true);
             
-            expect(spy).wasCalledWith(10, 0, true);
+            expect(spy).toHaveBeenCalledWith(10, 0, true);
         });
         
         it("should call show", function() {
@@ -6961,7 +7288,7 @@ describe("Ext.Component", function(){
             
             c.showAt(10, 0);
             
-            expect(spy).wasCalled();
+            expect(spy).toHaveBeenCalled();
         });
     });
     
@@ -7997,6 +8324,58 @@ describe("Ext.Component", function(){
                 });
             });
         });
+        
+        describe("ARIA", function() {
+            beforeEach(function() {
+                makeComponent({
+                    height: 100,
+                    width: 100,
+                    renderTo: Ext.getBody(),
+                    style: 'background-color:red',
+                    ariaRole: 'button',
+                    focusable: true,
+                    tabIndex: 0
+                });
+            });
+            
+            describe("masking", function() {
+                beforeEach(function() {
+                    c.setLoading(true);
+                });
+                
+                it("should set aria-describedby", function() {
+                    expect(c).toHaveAttr('aria-describedby', c.loadMask.id);
+                });
+                
+                it("should set aria-busy", function() {
+                    expect(c).toHaveAttr('aria-busy', 'true');
+                });
+            });
+            
+            describe("unmasking", function() {
+                it("should remove aria-describedby", function() {
+                    c.setLoading(true);
+                    c.setLoading(false);
+                    
+                    expect(c).not.toHaveAttr('aria-describedby');
+                });
+                
+                it("should preserve aria-describedby value if it was set", function() {
+                    c.ariaEl.dom.setAttribute('aria-describedby', 'foo');
+                    c.setLoading(true);
+                    c.setLoading(false);
+                    
+                    expect(c).toHaveAttr('aria-describedby', 'foo');
+                });
+                
+                it("should remove aria-busy", function() {
+                    c.setLoading(true);
+                    c.setLoading(false);
+                    
+                    expect(c).not.toHaveAttr('aria-busy');
+                });
+            });
+        });
     });
 
     describe("size constraints", function() {
@@ -8658,7 +9037,18 @@ describe("Ext.Component", function(){
             });
 
             afterEach(function() {
-                container.destroy();
+                container = Ext.destroy(container);
+            });
+
+            it("should not be case sensitive", function() {
+                container.on({
+                    rEnDeR: handler,
+                    delegate: '> button'
+                });
+
+                container.render(document.body);
+
+                expect(result).toEqual(['foo']);
             });
 
             it("should listen on direct children by xtype", function() {
@@ -8768,6 +9158,25 @@ describe("Ext.Component", function(){
                 container.render(document.body);
 
                 expect(result).toEqual(['bar myCmp', 'parentContainer myCmp']);
+            });
+
+            it("should be able to have a delegated listener when the container has an itemId", function() {
+                var spy = jasmine.createSpy();
+                container.destroy();
+                container = new Ext.container.Container({
+                    itemId: 'foo',
+                    items: {
+                        xtype: 'component',
+                        itemId: 'aChild'
+                    },
+                    listeners: {
+                        someevent: spy,
+                        delegate: '#aChild'
+                    }
+                });
+
+                container.items.first().fireEvent('someevent');
+                expect(spy.callCount).toBe(1);
             });
 
             describe("removal", function() {
@@ -9144,14 +9553,6 @@ describe("Ext.Component", function(){
     });
     
     describe("ARIA attributes", function() {
-        function expectAttr(attr, value) {
-            jasmine.expectAriaAttr(c, attr, value);
-        }
-        
-        function expectNoAttr(attr) {
-            jasmine.expectNoAriaAttr(c, attr);
-        }
-        
         describe("static roles", function() {
             function createSuite(role) {
                 describe(role, function() {
@@ -9164,39 +9565,39 @@ describe("Ext.Component", function(){
                     
                     describe('aria-hidden', function() {
                         it("should not be present after render", function() {
-                            expectNoAttr('aria-hidden');
+                            expect(c).not.toHaveAttr('aria-hidden');
                         });
                         
                         it("should not be present after hiding", function() {
                             c.hide();
                             
-                            expectNoAttr('aria-hidden');
+                            expect(c).not.toHaveAttr('aria-hidden');
                         });
                         
                         it("should not be present after showing", function() {
                             c.hide();
                             c.show();
                             
-                            expectNoAttr('aria-hidden');
+                            expect(c).not.toHaveAttr('aria-hidden');
                         });
                     });
                     
                     describe('aria-disabled', function() {
                         it("should not be present after render", function() {
-                            expectNoAttr('aria-disabled');
+                            expect(c).not.toHaveAttr('aria-disabled');
                         });
                         
                         it("should not be present after disabling", function() {
                             c.disable();
                             
-                            expectNoAttr('aria-disabled');
+                            expect(c).not.toHaveAttr('aria-disabled');
                         });
                         
                         it("should not be present after enabling", function() {
                             c.disable();
                             c.enable();
                             
-                            expectNoAttr('aria-disabled');
+                            expect(c).not.toHaveAttr('aria-disabled');
                         });
                     });
                 });
@@ -9217,42 +9618,234 @@ describe("Ext.Component", function(){
             
             describe("aria-hidden", function() {
                 it("should be false after render", function() {
-                    expectAttr('aria-hidden', 'false');
+                    expect(c).toHaveAttr('aria-hidden', 'false');
                 });
             
                 it("should be true after hiding", function() {
                     c.hide();
                 
-                    expectAttr('aria-hidden', 'true');
+                    expect(c).toHaveAttr('aria-hidden', 'true');
                 });
             
                 it("should be false again after showing", function() {
                     c.hide();
                     c.show();
                 
-                    expectAttr('aria-hidden', 'false');
+                    expect(c).toHaveAttr('aria-hidden', 'false');
                 });
             });
         
             describe("aria-disabled", function() {
                 it("should be false after render", function() {
-                    expectAttr('aria-disabled', 'false');
+                    expect(c).toHaveAttr('aria-disabled', 'false');
                 });
             
                 it("should be true after disabling", function() {
                     c.disable();
                 
-                    expectAttr('aria-disabled', 'true');
+                    expect(c).toHaveAttr('aria-disabled', 'true');
                 });
             
                 it("should be false again after enabling", function() {
                     c.disable();
                     c.enable();
                 
-                    expectAttr('aria-disabled', 'false');
+                    expect(c).toHaveAttr('aria-disabled', 'false');
                 });
             });
         });
     });
-});
 
+    (Ext.supports.PointerEvents ? describe : xdescribe)("touchAction", function() {
+        var Cmp, cmp;
+
+        function makeCmpWithTouchAction(touchAction) {
+            Cmp = Ext.define(null, {
+                extend: 'Ext.Component',
+                childEls: [ 'child' ],
+                renderTpl: '<div id="{id}-child" data-ref="child">{%this.renderContent(out,values)%}</div>'
+            });
+            cmp = new Cmp({
+                renderTo: Ext.getBody(),
+                touchAction: touchAction
+            });
+        }
+
+        function expectTouchAction(el, value) {
+            // touch actions read from the dom are not always returned in the same order
+            // as they were set, so we have to parse theme out.
+            var expectedTouchAction = el.getStyle('touch-action').split(' '),
+                actualTouchAction = value.split(' ');
+
+            expect(actualTouchAction.length).toBe(expectedTouchAction.length);
+
+            Ext.each(expectedTouchAction, function(item) {
+                expect(Ext.Array.contains(actualTouchAction, item)).toBe(true);
+            });
+        }
+
+        afterEach(function() {
+            if (cmp) {
+                cmp.destroy();
+                cmp = null;
+            }
+        });
+
+        it("should default to auto", function() {
+            makeCmpWithTouchAction(null);
+
+            expectTouchAction(cmp.el, 'auto');
+            expectTouchAction(cmp.child, 'auto');
+        });
+
+        it("should disable panX", function() {
+            makeCmpWithTouchAction({
+                panX: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-y pinch-zoom double-tap-zoom');
+        });
+
+        it("should disable panY", function() {
+            makeCmpWithTouchAction({
+                panY: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-x pinch-zoom double-tap-zoom');
+        });
+
+        it("should disable panX and panY", function() {
+            makeCmpWithTouchAction({
+                panX: false,
+                panY: false
+            });
+
+            expectTouchAction(cmp.el, 'pinch-zoom double-tap-zoom');
+        });
+
+        it("should disable pinchZoom", function() {
+            makeCmpWithTouchAction({
+                pinchZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-x pan-y double-tap-zoom');
+        });
+
+        it("should disable panX and pinchZoom", function() {
+            makeCmpWithTouchAction({
+                panX: false,
+                pinchZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-y double-tap-zoom');
+        });
+
+        it("should disable panY and pinchZoom", function() {
+            makeCmpWithTouchAction({
+                panY: false,
+                pinchZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-x double-tap-zoom');
+        });
+
+        it("should disable panX, panY, and PinchZoom", function() {
+            makeCmpWithTouchAction({
+                panX: false,
+                panY: false,
+                pinchZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'double-tap-zoom');
+        });
+
+        it("should disable doubleTapZoom", function() {
+            makeCmpWithTouchAction({
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'manipulation');
+        });
+
+        it("should disable panX and doubleTapZoom", function() {
+            makeCmpWithTouchAction({
+                panX: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-y pinch-zoom');
+        });
+
+        it("should disable panY and doubleTapZoom", function() {
+            makeCmpWithTouchAction({
+                panY: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-x pinch-zoom');
+        });
+
+        it("should disable panX, panY, and doubleTapZoom", function() {
+            makeCmpWithTouchAction({
+                panX: false,
+                panY: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'pinch-zoom');
+        });
+
+        it("should disable pinchZoom and doubleTapZoom", function() {
+            makeCmpWithTouchAction({
+                pinchZoom: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-x pan-y');
+        });
+
+        it("should disable panX, pinchZoom, and doubleTapZoom", function() {
+            makeCmpWithTouchAction({
+                panX: false,
+                pinchZoom: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-y');
+        });
+
+        it("should disable panY, pinchZoom, and doubleTapZoom", function() {
+            makeCmpWithTouchAction({
+                panY: false,
+                pinchZoom: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'pan-x');
+        });
+
+        it("should disable all touch actions", function() {
+            makeCmpWithTouchAction({
+                panX: false,
+                panY: false,
+                pinchZoom: false,
+                doubleTapZoom: false
+            });
+
+            expectTouchAction(cmp.el, 'none');
+        });
+
+        it("should set touch action on a child element", function() {
+            makeCmpWithTouchAction({
+                panX: false,
+                child: {
+                    panY: false,
+                    pinchZoom: false
+                }
+            });
+
+            expectTouchAction(cmp.el, 'pan-y pinch-zoom double-tap-zoom');
+            expectTouchAction(cmp.child, 'pan-x double-tap-zoom');
+        });
+    });
+});

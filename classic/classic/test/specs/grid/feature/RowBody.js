@@ -1,3 +1,5 @@
+/* global Ext, expect, jasmine */
+
 describe('Ext.grid.feature.RowBody', function () {
     var dummyData = [
         ['3m Co',71.72,0.02,0.03,'9/1 12:00am', 'Manufacturing'],
@@ -81,7 +83,11 @@ describe('Ext.grid.feature.RowBody', function () {
             width: 600,
             height: 300,
             features: rowBody,
-            renderTo: Ext.getBody()
+            renderTo: Ext.getBody(),
+            selModel: {
+                mode: 'MULTI',
+                type: 'rowmodel'
+            }
         }, gridCfg));
 
         view = grid.view;
@@ -272,6 +278,12 @@ describe('Ext.grid.feature.RowBody', function () {
 
                 expect(selModel.selected.length).toBe(1);
                 expect(selModel.getSelection()[0] === store.getAt(1)).toBe(true);
+
+                // Ctrl/Click row 2
+                jasmine.fireMouseEvent(grid.view.all.item(2).down('div.x-grid-rowbody', true), 'click', column0Center, 0, null, false, true);
+
+                expect(selModel.selected.length).toBe(2);
+                expect(selModel.getSelection()[1] === store.getAt(2)).toBe(true);
             });
         });
 

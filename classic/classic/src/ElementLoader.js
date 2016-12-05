@@ -95,7 +95,7 @@ Ext.define('Ext.ElementLoader', {
      * - response - The response object.
      * - options - Ajax options.
      * 
-     * @declarativeHandler
+     * @controllable
      */
 
     /**
@@ -106,7 +106,7 @@ Ext.define('Ext.ElementLoader', {
      * - response - The response object.
      * - options - Ajax options.
      * 
-     * @declarativeHandler
+     * @controllable
      */
 
     /**
@@ -118,7 +118,7 @@ Ext.define('Ext.ElementLoader', {
      * - response - The response object.
      * - options - Ajax options.
      * 
-     * @declarativeHandler
+     * @controllable
      */
 
     /**
@@ -388,27 +388,28 @@ Ext.define('Ext.ElementLoader', {
     /**
      * Clears any auto refresh. See {@link #startAutoRefresh}.
      */
-    stopAutoRefresh: function(){
+    stopAutoRefresh: function() {
         clearInterval(this.autoRefresh);
-        delete this.autoRefresh;
+        this.autoRefresh = null;
     },
 
     /**
      * Checks whether the loader is automatically refreshing. See {@link #startAutoRefresh}.
      * @return {Boolean} True if the loader is automatically refreshing
      */
-    isAutoRefreshing: function(){
-        return Ext.isDefined(this.autoRefresh);
+    isAutoRefreshing: function() {
+        return !!this.autoRefresh;
     },
 
     /**
      * Destroys the loader. Any active requests will be aborted.
      */
-    destroy: function(){
+    destroy: function() {
         var me = this;
+        
         me.stopAutoRefresh();
-        delete me.target;
         me.abort();
+        
         me.callParent();
     }
 });

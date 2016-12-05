@@ -106,9 +106,16 @@ Ext.define('Ext.chart.axis.Time', {
         calculateByLabelSize: true,
 
         /**
-         * @cfg {String/Boolean} dateFormat
-         * Indicates the format the date will be rendered on.
-         * For example: 'M d' will render the dates as 'Jan 30', etc.
+         * @cfg {String} dateFormat
+         * Indicates the format the date will be rendered in.
+         * For example: 'M d' will render the dates as 'Jan 30'.
+         * This config works by setting the {@link #renderer} config
+         * to a function that uses {@link Ext.Date#format} to format the dates
+         * using the given `dateFormat`.
+         * If the {@link #renderer} config was set by the user, changes to this config
+         * won't replace the user set renderer (until the user removes the renderer by
+         * setting the `renderer` config to `null`). In this case the way the `dateFormat`
+         * is used (if at all) is up to the user.
          */
         dateFormat: null,
 
@@ -122,15 +129,6 @@ Ext.define('Ext.chart.axis.Time', {
          */
         toDate: null,
 
-        /**
-         * @cfg {Array} [step=[Ext.Date.DAY, 1]] An array with two components:
-         *
-         * - The unit of the step (Ext.Date.DAY, Ext.Date.MONTH, etc).
-         * - The number of units for the step (1, 2, etc).
-         *
-         */
-        step: [Ext.Date.DAY, 1],
-
         layout: 'continuous',
 
         segmenter: 'time',
@@ -139,9 +137,28 @@ Ext.define('Ext.chart.axis.Time', {
     },
 
     updateDateFormat: function (format) {
-        this.setRenderer(function (axis, date) {
-            return Ext.Date.format(new Date(date), format);
-        });
+        var renderer = this.getRenderer();
+
+        if (!renderer || renderer.isDefault) {
+            renderer = function (axis, date) {
+                return Ext.Date.format(new Date(date), format);
+            };
+            renderer.isDefault = true;
+            this.setRenderer(renderer);
+            this.performLayout();
+        }
+    },
+
+    updateRenderer: function (renderer) {
+        var dateFormat = this.getDateFormat();
+
+        if (renderer) {
+            this.performLayout();
+        } else if (dateFormat) {
+            // If the user removes custom `renderer` and `dateFormat` is set,
+            // set the `renderer` to the default one based on `dateFormat`.
+            this.updateDateFormat(dateFormat);
+        }
     },
 
     updateFromDate: function (date) {

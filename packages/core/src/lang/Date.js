@@ -286,7 +286,9 @@ Ext.Date = (function () {
     }
 
     /**
+     * @method xf
      * @private
+     * @param format
      * Create private copy of Ext JS's `Ext.util.Format.format()` method
      * + to remove unnecessary dependency
      * + to resolve namespace conflict with MS-Ajax's implementation
@@ -298,7 +300,7 @@ Ext.Date = (function () {
         });
     }
   
-return utilDate = {
+utilDate = {
     /** @ignore */
     now: nativeDate.now, // always available due to polyfill in Ext.js
 
@@ -487,6 +489,32 @@ return utilDate = {
     YEAR : "y",
 
     /**
+     * The number of days in a week.
+     * @type Number
+     */
+    DAYS_IN_WEEK: 7,
+
+    /**
+     * The number of months in a year.
+     * @type Number
+     */
+    MONTHS_IN_YEAR: 12,
+
+    /**
+     * The maximum number of days in a month.
+     * @type {Number}
+     */
+    MAX_DAYS_IN_MONTH: 31,
+
+    SUNDAY: 0,
+    MONDAY: 1,
+    TUESDAY: 2,
+    WEDNESDAY: 3,
+    THURSDAY: 4,
+    FRIDAY: 5,
+    SATURDAY: 6,
+
+    /**
      * An object hash containing default date values used during date parsing.
      * 
      * The following properties are available:
@@ -631,6 +659,27 @@ return utilDate = {
      */
     defaultFormat : "m/d/Y",
     //</locale>
+
+    //<locale>
+    /**
+     * @property {Number} firstDayOfWeek
+     * The day on which the week starts. `0` being Sunday, through `6` being Saturday.
+     *
+     * This may be overridden in a locale file.
+     */
+    firstDayOfWeek: 0,
+    //</locale>
+
+    //<locale>
+    /**
+     * @property {Number[]} weekendDays
+     * The days on which weekend falls. `0` being Sunday, through `6` being Saturday.
+     *
+     * This may be overridden in a locale file.
+     */
+    weekendDays: [0, 6],
+    //</locale>
+
     //<locale type="function">
     /**
      * Get the short month name for the given month number.
@@ -779,23 +828,23 @@ return utilDate = {
      * @param {Number} millisecond (optional) Millisecond.
      * @return {Boolean} `true` if the passed parameters do not cause a Date "rollover", `false` otherwise.
      */
-    isValid : function(y, m, d, h, i, s, ms) {
+    isValid : function(year, month, day, hour, minute, second, millisecond) {
         // setup defaults
-        h = h || 0;
-        i = i || 0;
-        s = s || 0;
-        ms = ms || 0;
+        hour = hour || 0;
+        minute = minute || 0;
+        second = second || 0;
+        millisecond = millisecond || 0;
 
         // Special handling for year < 100
-        var dt = utilDate.add(new nativeDate(y < 100 ? 100 : y, m - 1, d, h, i, s, ms), utilDate.YEAR, y < 100 ? y - 100 : 0);
+        var dt = utilDate.add(new nativeDate(year < 100 ? 100 : year, month - 1, day, hour, minute, second, millisecond), utilDate.YEAR, year < 100 ? year - 100 : 0);
 
-        return y === dt.getFullYear() &&
-            m === dt.getMonth() + 1 &&
-            d === dt.getDate() &&
-            h === dt.getHours() &&
-            i === dt.getMinutes() &&
-            s === dt.getSeconds() &&
-            ms === dt.getMilliseconds();
+        return year === dt.getFullYear() &&
+            month === dt.getMonth() + 1 &&
+            day === dt.getDate() &&
+            hour === dt.getHours() &&
+            minute === dt.getMinutes() &&
+            second === dt.getSeconds() &&
+            millisecond === dt.getMilliseconds();
     },
 
     /**
@@ -933,7 +982,7 @@ return utilDate = {
      * @private
      */
     parseCodes : {
-        /*
+        /**
          * Notes:
          * g = {Number} calculation group (0 or 1. only group 1 contributes to date calculations.)
          * c = {String} calculation method (required for group 1. null for group 0. {0} = currentGroup - position in regex result array)
@@ -1041,7 +1090,7 @@ return utilDate = {
                 + "y = ty > me.y2kYear ? 1900 + ty : 2000 + ty;\n", // 2-digit year
             s:"(\\d{2})"
         },
-        /*
+        /**
          * In the am/pm parsing routines, we allow both upper and lower case
          * even though it doesn't exactly match the spec. It gives much more flexibility
          * in being able to specify case insensitive regexes.
@@ -1352,10 +1401,11 @@ return utilDate = {
      * is the numeric day index within the week (0-6) which can be used in conjunction with
      * the {@link #monthNames} array to retrieve the textual day name.
      *
-     *      @example
-     *      var dt = new Date('1/10/2007'),
-     *          firstDay = Ext.Date.getFirstDayOfMonth(dt);
-     *      console.log(Ext.Date.dayNames[firstDay]); // output: 'Monday'
+     *    @example
+     *    var dt = new Date('1/10/2007'),
+     *        firstDay = Ext.Date.getFirstDayOfMonth(dt);
+     *
+     *    console.log(Ext.Date.dayNames[firstDay]); // output: 'Monday'
      *
      * @param {Date} date The date
      * @return {Number} The day number (0-6).
@@ -1370,11 +1420,11 @@ return utilDate = {
      * is the numeric day index within the week (0-6) which can be used in conjunction with
      * the {@link #monthNames} array to retrieve the textual day name.
      *
-     *      @example
-     *      var dt = new Date('1/10/2007'),
-     *          lastDay = Ext.Date.getLastDayOfMonth(dt);
+     *    @example
+     *    var dt = new Date('1/10/2007'),
+     *        lastDay = Ext.Date.getLastDayOfMonth(dt);
      *
-     *      console.log(Ext.Date.dayNames[lastDay]); // output: 'Wednesday'
+     *    console.log(Ext.Date.dayNames[lastDay]); // output: 'Wednesday'
      *
      * @param {Date} date The date
      * @return {Number} The day number (0-6).
@@ -1550,7 +1600,9 @@ return utilDate = {
      */
     add : function(date, interval, value) {
         var d = utilDate.clone(date),
-            day, decimalValue, base = 0;
+            base = 0,
+            day, decimalValue;
+
         if (!interval || value === 0) {
             return d;
         }
@@ -1591,7 +1643,7 @@ return utilDate = {
                     d.setTime(d.getTime() + value * 60 * 60 * 1000);
                     break;
                 case utilDate.DAY:
-                    d.setDate(d.getDate() + value);
+                    d.setTime(d.getTime() + value * 24 * 60 * 60 * 1000);
                     break;
                 case utilDate.MONTH:
                     day = date.getDate();
@@ -1678,6 +1730,78 @@ return utilDate = {
         return start.getTime() <= t && t <= end.getTime();
     },
 
+    /**
+     * Checks if the date is a weekend day. Uses {@link #weekendDays}.
+     * @param {Date} date The date.
+     * @return {Boolean} `true` if the day falls on a weekend.
+     *
+     * @since 6.2.0
+     */
+    isWeekend: function(date) {
+        return Ext.Array.indexOf(this.weekendDays, date.getDay()) > -1;
+    },
+
+    /**
+     * Converts the passed UTC date into a local date.
+     * For example, if the passed date is:
+     * `Wed Jun 01 2016 00:10:00 GMT+1000 (AUS Eastern Standard Time)`, then
+     * the returned date will be `Wed Jun 01 2016 00:00:00 GMT+1000 (AUS Eastern Standard Time)`.
+     * @param {Date} d The date to convert.
+     * @return {Date} The date as a local. Does not modify the passed date.
+     *
+     * @since 6.2.0
+     */
+    utcToLocal: function(d) {
+        return new Date(
+            d.getUTCFullYear(), 
+            d.getUTCMonth(), 
+            d.getUTCDate(),  
+            d.getUTCHours(), 
+            d.getUTCMinutes(), 
+            d.getUTCSeconds(),
+            d.getUTCMilliseconds()
+        );
+    },
+
+    /**
+     * Converts the passed local date into a UTC date.
+     * For example, if the passed date is:
+     * `Wed Jun 01 2016 00:00:00 GMT+1000 (AUS Eastern Standard Time)`, then
+     * the returned date will be `Wed Jun 01 2016 10:00:00 GMT+1000 (AUS Eastern Standard Time)`.
+     * @param {Date} d The date to convert.
+     * @return {Date} The date as UTC. Does not modify the passed date.
+     * 
+     * @since 6.2.0
+     */
+    localToUtc: function(d) {
+        return utilDate.utc(
+            d.getFullYear(),
+            d.getMonth(),
+            d.getDate(),
+            d.getHours(),
+            d.getMinutes(),
+            d.getSeconds(),
+            d.getMilliseconds()
+        );
+    },
+
+    /**
+     * Create a UTC date.
+     * @param {Number} year The year.
+     * @param {Number} month The month.
+     * @param {Number} day The day.
+     * @param {Number} [hour=0] The hour.
+     * @param {Number} [min=0] The minutes.
+     * @param {Number} [s=0] The seconds.
+     * @param {Number} [ms=0] The milliseconds.
+     * @return {Date} The UTC date.
+     *
+     * @since 6.2.0
+     */
+    utc: function(year, month, day, hour, min, s, ms) {
+        return new Date(Date.UTC(year, month, day, hour || 0, min || 0, s || 0, ms || 0));
+    },
+
     //Maintains compatibility with old static and prototype window.Date methods.
     compat: function() {
         var p,
@@ -1746,6 +1870,7 @@ return utilDate = {
      * Align the date to `unit`.
      * @param {Date} date The date to be aligned.
      * @param {String} unit The unit. This unit is compatible with the date interval constants.
+     * @param {Number} step
      * @return {Date} The aligned date.
      */
     align: function (date, unit, step) {
@@ -1795,4 +1920,8 @@ return utilDate = {
         }
     }
 };
+
+utilDate.parseCodes.C = utilDate.parseCodes.c;
+
+return utilDate;
 }());

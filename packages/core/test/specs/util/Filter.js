@@ -1,4 +1,4 @@
-describe("Ext.util.Filter", function() {
+describe("Ext.util.Filter", function () {
     var filter;
 
     describe("construction", function() {
@@ -55,19 +55,92 @@ describe("Ext.util.Filter", function() {
         });
     });
 
-    describe("creating filter functions", function() {
-        var edRecord     = {name: 'Ed'},
-            tedRecord    = {name: 'Ted'},
-            abeRecord    = {name: 'Abe'},
+    describe("filterFn", function() {
+        it("should null generated filterFn when value is updated", function() {
+            var filter = new Ext.util.Filter({
+                    property: 'bar'
+                });
+
+            filter.setValue('foo');
+            // filter has a generated filterFn, so should be nulled
+            expect(filter._filterFn).toBeNull();
+        });
+
+        it("should preserve non-generated filterFn when value is updated", function() {
+            var myFilterFn = function(record) {},
+                filter = new Ext.util.Filter({
+                    filterFn: myFilterFn
+                });
+
+            filter.setValue('foo');
+            // second filter has a non-generated filterFn, so should be preserved
+            expect(filter._filterFn).toBe(myFilterFn);
+        });
+
+        it("should null generated filterFn when operator is updated", function() {
+            var filter = new Ext.util.Filter({
+                    property: 'bar'
+                });
+
+            filter.setOperator('<');
+            // filter has a generated filterFn, so should be nulled
+            expect(filter._filterFn).toBeNull();
+        });
+
+        it("should preserve non-generated filterFn when operator is updated", function() {
+            var myFilterFn = function(record) {},
+                filter = new Ext.util.Filter({
+                    filterFn: myFilterFn
+                });
+
+            filter.setOperator('<');
+            // second filter has a non-generated filterFn, so should be preserved
+            expect(filter._filterFn).toBe(myFilterFn);
+        });
+    });
+
+    describe('creating filter functions', function () {
+        var edRecord = {name: 'Ed'},
+            tedRecord = {name: 'Ted'},
+            abeRecord = {name: 'Abe'},
             edwardRecord = {name: 'Edward'};
 
-        it("should honor a simple property matcher", function() {
+        describe('generatedFilterFn property', function () {
+            function doTest(cfg, msg, expectValue, callSetter) {
+                it(msg, function () {
+                    filter = new Ext.util.Filter(cfg);
+                    filter.getFilterFn();
+
+                    if (callSetter) {
+                        filter.setFilterFn(Ext.emptyFn);
+                    }
+
+                    expect(filter.generatedFilterFn).toBe(expectValue);
+                });
+            }
+
+            doTest({
+                property: 'name',
+                value: 'Ed'
+            }, 'should mark as generated when a filterFn is not defined', true, false);
+
+            doTest({
+                filterFn: Ext.emptyFn
+            }, 'should not mark as generated when a filterFn is defined', undefined, false);
+
+            doTest({
+                property: 'name',
+                value: 'Ed'
+            }, 'should not mark as generated when setFilterFn is called', undefined, true);
+        });
+
+        it('should honor a simple property matcher', function () {
             filter = new Ext.util.Filter({
                 property: 'name',
-                value   : 'Ed'
+                value: 'Ed'
             });
-            
-            var fn = filter.getFilterFn(); 
+
+            var fn = filter.getFilterFn();
 
             expect(fn(edRecord)).toBe(true);
             expect(fn(edwardRecord)).toBe(true);
@@ -75,29 +148,29 @@ describe("Ext.util.Filter", function() {
             expect(fn(abeRecord)).toBe(false);
         });
 
-        it("should honor anyMatch", function() {
+        it('should honor anyMatch', function () {
             filter = new Ext.util.Filter({
                 anyMatch: true,
                 property: 'name',
-                value   : 'Ed'
+                value: 'Ed'
             });
 
-            var fn = filter.getFilterFn(); 
-            
+            var fn = filter.getFilterFn();
+
             expect(fn(edRecord)).toBe(true);
             expect(fn(edwardRecord)).toBe(true);
             expect(fn(tedRecord)).toBe(true);
             expect(fn(abeRecord)).toBe(false);
         });
 
-        it("should honor exactMatch", function() {
+        it('should honor exactMatch', function () {
             filter = new Ext.util.Filter({
                 exactMatch: true,
-                property  : 'name',
-                value     : 'Ed'
+                property: 'name',
+                value: 'Ed'
             });
-            
-            var fn = filter.getFilterFn(); 
+
+            var fn = filter.getFilterFn();
 
             expect(fn(edRecord)).toBe(true);
             expect(fn(edwardRecord)).toBe(false);
@@ -105,53 +178,51 @@ describe("Ext.util.Filter", function() {
             expect(fn(abeRecord)).toBe(false);
         });
 
-        it("should honor case sensitivity", function() {
+        it('should honor case sensitivity', function () {
             filter = new Ext.util.Filter({
                 caseSensitive: true,
-                property     : 'name',
-                value        : 'Ed'
+                property: 'name',
+                value: 'Ed'
             });
-            
-            var fn = filter.getFilterFn(); 
+
+            var fn = filter.getFilterFn();
 
             expect(fn(edRecord)).toBe(true);
             expect(fn(edwardRecord)).toBe(true);
             expect(fn(tedRecord)).toBe(false);
         });
 
-        it("should honor case sensitivity and anyMatch", function() {
+        it('should honor case sensitivity and anyMatch', function () {
             filter = new Ext.util.Filter({
                 caseSensitive: true,
-                anyMatch     : true,
-                property     : 'name',
-                value        : 'ed'
+                anyMatch: true,
+                property: 'name',
+                value: 'ed'
             });
-            
-            var fn = filter.getFilterFn(); 
+
+            var fn = filter.getFilterFn();
 
             expect(fn(tedRecord)).toBe(true);
             expect(fn(edRecord)).toBe(false);
             expect(fn(edwardRecord)).toBe(false);
         });
 
-        it("should honor the root property", function() {
+        it('should honor the root property', function () {
             var users = [{
-                data: {name: 'Ed'}
-            }, {
-                data: {name: 'Ted'}
-            }, {
-                data: {name: 'Edward'}
-            }, {
-                data: {name: 'Abe'}
-            }];
-
-            var filter = new Ext.util.Filter({
-                root    : 'data',
-                property: 'name',
-                value   : 'Ed'
-            });
-            
-            var fn = filter.getFilterFn(); 
+                    data: {name: 'Ed'}
+                }, {
+                    data: {name: 'Ted'}
+                }, {
+                    data: {name: 'Edward'}
+                }, {
+                    data: {name: 'Abe'}
+                }],
+                filter = new Ext.util.Filter({
+                    root: 'data',
+                    property: 'name',
+                    value: 'Ed'
+                }),
+                fn = filter.getFilterFn();
 
             expect(fn(users[0])).toBe(true);
             expect(fn(users[2])).toBe(true);
@@ -564,9 +635,27 @@ describe("Ext.util.Filter", function() {
                 });
             });
 
-            describe("value coercion", function() {
-                it("should coerce the candidate value based on the value", function() {
+            describe('value coercion', function () {
+                it('should coerce the candidate value based on the value', function() {
                     expect(match('=', '10', 10)).toBe(true);
+                });
+
+                describe('when one of the operands is a boolean', function () {
+                    describe('the other operand is a string', function () {
+                        it('should coerce Boolean if the other operand is anything else', function () {
+                            expect(match('=', '0', false)).toBe(true);
+                        });
+                    });
+
+                    describe('the other operand is a number', function () {
+                        it('should coerce Boolean if the other operand is anything else', function () {
+                            expect(match('=', false, 0)).toBe(true);
+                        });
+
+                        it('should coerce Number if the other operand is anything else', function () {
+                            expect(match('=', 0, false)).toBe(true);
+                        });
+                    });
                 });
             });
         });
@@ -1330,3 +1419,4 @@ describe("Ext.util.Filter", function() {
         });
     });
 });
+

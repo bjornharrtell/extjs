@@ -7,7 +7,7 @@ Ext.define('Ext.rtl.util.Renderable', {
     // this template should be exactly the same as frameTableTpl, except with the order
     // of right and left TD elements switched.
     rtlFrameTableTpl: [
-        '{%this.renderDockedItems(out,values,0);%}',
+        '<tpl if="hasTabGuard">{% this.renderTabGuard(out, values, \'before\'); %}</tpl>',
         '<table id="{fgid}Table" data-ref="frameTable" class="{frameCls} ', Ext.baseCSSPrefix + 'table-plain" cellpadding="0" role="presentation">',
             '<tpl if="top">',
                 '<tr role="presentation">',
@@ -31,7 +31,7 @@ Ext.define('Ext.rtl.util.Renderable', {
                 '</tr>',
             '</tpl>',
         '</table>',
-        '{%this.renderDockedItems(out,values,1);%}'
+        '<tpl if="hasTabGuard">{% this.renderTabGuard(out, values, \'after\'); %}</tpl>'
     ],
 
     beforeRender: function() {
@@ -60,7 +60,7 @@ Ext.define('Ext.rtl.util.Renderable', {
     privates: {
         getFrameTpl: function(table) {
             return (table && this.getInherited().rtl) ?
-                this.getTpl('rtlFrameTableTpl') : this.callParent(arguments);
+                this.lookupTpl('rtlFrameTableTpl') : this.callParent(arguments);
         },
 
         getFrameRenderData: function () {

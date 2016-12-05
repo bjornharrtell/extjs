@@ -858,4 +858,13 @@ describe("Ext.util.Format", function() {
         });
     });
 
+    describe('word', function () {
+        it('should split on spaces or punctuation', function () {
+            expect(Ext.util.Format.word('a b, abc', 2)).toBe('abc');
+        });
+
+        it('should return empty if out of bounds', function () {
+            expect(Ext.util.Format.word('a b, abc', 5)).toBe('');
+        });
+    });
 });

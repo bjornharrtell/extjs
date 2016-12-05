@@ -111,6 +111,17 @@ Ext.define('Ext.util.Format', function () {
         currencySign: '$',
         //</locale>
 
+        //<locale>
+        /**
+         * @property {String} [currencySpacer='']
+         * True to add a space between the currency and the value
+         *
+         * This may be overridden in a locale file.
+         * @since 6.2.0
+         */
+        currencySpacer: '',
+        //</locale>
+
         /**
          * @property {String} percentSign
          * The percent sign that the {@link #percent} function displays.
@@ -151,6 +162,24 @@ Ext.define('Ext.util.Format', function () {
 
         constructor: function () {
             me = this; // we are a singleton, so cache our this pointer in scope
+        },
+
+        /**
+         * Returns a non-breaking space ("NBSP") for any "blank" value.
+         * @param {Mixed} value
+         * @param {Boolean} [strict=true] Pass `false` to convert all falsey values to an
+         * NBSP. By default, only '', `null` and `undefined` will be converted.
+         * @return {Mixed}
+         * @since 6.2.0
+         */
+        nbsp: function (value, strict) {
+            strict = strict !== false;
+
+            if (strict ? value === '' || value == null : !value) {
+                value = '\xA0';
+            }
+
+            return value;
         },
 
         /**
@@ -226,9 +255,10 @@ Ext.define('Ext.util.Format', function () {
          * (defaults to {@link #currencyPrecision})
          * @param {Boolean} [end] True if the currency sign should be at the end of the string
          * (defaults to {@link #currencyAtEnd})
+         * @param {String} [currencySpacer] True to add a space between the currency and value
          * @return {String} The formatted currency string
          */
-        currency: function(v, currencySign, decimals, end) {
+        currency: function(v, currencySign, decimals, end, currencySpacer) {
             var negativeSign = '',
                 format = ",0",
                 i = 0;
@@ -243,10 +273,15 @@ Ext.define('Ext.util.Format', function () {
                 format += '0';
             }
             v = me.number(v, format);
+            
+            if (currencySpacer == null) {
+                currencySpacer = me.currencySpacer;
+            }
+
             if ((end || me.currencyAtEnd) === true) {
-                return Ext.String.format("{0}{1}{2}", negativeSign, v, currencySign || me.currencySign);
+                return Ext.String.format("{0}{1}{2}{3}", negativeSign, v, currencySpacer, currencySign || me.currencySign);
             } else {
-                return Ext.String.format("{0}{1}{2}", negativeSign, currencySign || me.currencySign, v);
+                return Ext.String.format("{0}{1}{2}{3}", negativeSign, currencySign || me.currencySign, currencySpacer,v);
             }
         },
 
@@ -262,14 +297,14 @@ Ext.define('Ext.util.Format', function () {
          * @param {String} [format] Any valid date format string. Defaults to {@link Ext.Date#defaultFormat}.
          * @return {String} The formatted date string.
          */
-        date: function(v, format) {
-            if (!v) {
+        date: function(value, format) {
+            if (!value) {
                 return "";
             }
-            if (!Ext.isDate(v)) {
-                v = new Date(Date.parse(v));
+            if (!Ext.isDate(value)) {
+                value = new Date(Date.parse(value));
             }
-            return Ext.Date.dateFormat(v, format || Ext.Date.defaultFormat);
+            return Ext.Date.dateFormat(value, format || Ext.Date.defaultFormat);
         },
 
         /**
@@ -365,12 +400,61 @@ Ext.define('Ext.util.Format', function () {
         },
 
         /**
+         * Compares `value` against `threshold` and returns:
+         *
+         * - if `value` < `threshold` then it returns `below`
+         * - if `value` > `threshold` then it returns `above`
+         * - if `value` = `threshold` then it returns `equal` or `above` when `equal` is missing
+         *
+         * The usefulness of this formatter method is in templates. For example:
+         *
+         *      {foo:lessThanElse(0, 'negative', 'positive')}
+         *
+         *      {bar:lessThanElse(200, 'lessThan200', 'greaterThan200', 'equalTo200')}
+         *
+         * @param {Number} value Value that will be checked
+         * @param {Number} threshold Value to compare against
+         * @param {Mixed} below Value to return when `value` < `threshold`
+         * @param {Mixed} above Value to return when `value` > `threshold`. If `value` = `threshold` and
+         * `equal` is missing then `above` is returned.
+         * @param {Mixed} equal Value to return when `value` = `threshold`
+         * @return {Mixed}
+         */
+        lessThanElse: function (value, threshold, below, above, equal) {
+            var v = Ext.Number.from(value, 0),
+                t = Ext.Number.from(threshold, 0),
+                missing = !Ext.isDefined(equal);
+
+            return v < t ? below : (v > t ? above : (missing ? above : equal));
+        },
+
+        /**
+         * Checks if `value` is a positive or negative number and returns the proper param.
+         *
+         * The usefulness of this formatter method is in templates. For example:
+         *
+         *      {foo:sign("clsNegative","clsPositive")}
+         *
+         * @param {Number} value
+         * @param {Mixed} negative
+         * @param {Mixed} positive
+         * @param {Mixed} zero
+         * @return {Mixed}
+         */
+        sign: function (value, negative, positive, zero) {
+            if (zero === undefined) {
+                zero = positive;
+            }
+            return me.lessThanElse(value, 0, negative, positive, zero);
+        },
+
+        /**
          * Strips all HTML tags.
          * @param {Object} value The text from which to strip tags
          * @return {String} The stripped text
          */
-        stripTags: function(v) {
-            return !v ? v : String(v).replace(me.stripTagsRe, "");
+        stripTags: function(value) {
+            return !value ? value : String(value).replace(me.stripTagsRe, "");
         },
 
         /**
@@ -378,8 +462,8 @@ Ext.define('Ext.util.Format', function () {
          * @param {Object} value The text from which to strip script tags
          * @return {String} The stripped text
          */
-        stripScripts : function(v) {
-            return !v ? v : String(v).replace(me.stripScriptsRe, "");
+        stripScripts : function(value) {
+            return !value ? value : String(value).replace(me.stripScriptsRe, "");
         },
 
         /**
@@ -702,8 +786,8 @@ Ext.define('Ext.util.Format', function () {
          * singular form with an "s" appended)
          * @return {String} output The pluralized output of the passed singular form
          */
-        plural : function(v, s, p) {
-            return v +' ' + (v === 1 ? s : (p ? p : s+'s'));
+        plural : function(value, singular, plural) {
+            return value +' ' + (value === 1 ? singular : (plural ? plural : singular+'s'));
         },
 
         /**
@@ -804,7 +888,7 @@ Ext.define('Ext.util.Format', function () {
                     bottom: box,
                     left  : box
                 };
-             }
+            }
 
             var parts  = box.split(' '),
                 ln = parts.length;
@@ -826,6 +910,47 @@ Ext.define('Ext.util.Format', function () {
                 bottom:parseInt(parts[2], 10) || 0,
                 left  :parseInt(parts[3], 10) || 0
             };
+        },
+
+        /**
+         * Formats the given value using `encodeURI`.
+         * @param {String} value The value to encode.
+         * @returns {string}
+         * @since 6.2.0
+         */
+        uri: function (value) {
+            return encodeURI(value);
+        },
+
+        /**
+         * Formats the given value using `encodeURIComponent`.
+         * @param {String} value The value to encode.
+         * @returns {string}
+         * @since 6.2.0
+         */
+        uriCmp: function (value) {
+            return encodeURIComponent(value);
+        },
+        
+        wordBreakRe: /[\W\s]+/,
+
+        /**
+         * Returns the word at the given `index`. Spaces and punctuation are considered
+         * as word separators by default. For example:
+         *
+         *      console.log(Ext.util.Format.word('Hello, my name is Bob.', 2);
+         *      // == 'name'
+         *
+         * @param {String} value The sentence to break into words.
+         * @param {Number} index The 0-based word index.
+         * @param {String/RegExp} [sep="[\W\s]+"} The pattern by which to separate words.
+         * @return {String} The requested word or empty string.
+         */
+        word: function (value, index, sep) {
+            var re = sep ? (typeof sep === 'string' ? new RegExp(sep) : sep) : me.wordBreakRe,
+                parts = (value || '').split(re);
+            
+            return parts[index || 0] || '';
         }
     };
 });

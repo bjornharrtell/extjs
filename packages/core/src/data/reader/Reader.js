@@ -139,7 +139,7 @@
  *                 //iterate over the OrderItems for each Order
  *                 order.orderItems().each(function(orderItem) {
  *                     //we know that the Product data is already loaded, so we can use the synchronous getProduct
- *                     //usually, we would use the asynchronous version (see {@link Ext.data.Model#belongsTo})
+ *                     //usually, we would use the asynchronous version (see #belongsTo)
  *                     var product = orderItem.getProduct();
  *
  *                     console.log(orderItem.get('quantity') + ' orders of ' + product.get('name'));
@@ -553,10 +553,11 @@ Ext.define('Ext.data.reader.Reader', {
      * @return {Ext.data.ResultSet} The parsed or default ResultSet object
      */
     read: function(response, readOptions) {
-        var data, result;
+        var data, result, responseText;
 
         if (response) {
-            if (response.responseText) {
+            responseText = response.responseText
+            if (responseText) {
                 result = this.getResponseData(response);
                 if (result && result.__$isError) {
                     return new Ext.data.ResultSet({
@@ -569,7 +570,7 @@ Ext.define('Ext.data.reader.Reader', {
                 } else {
                     data = this.readRecords(result, readOptions);
                 }
-            } else {
+            } else if (responseText !== '') {
                 data = this.readRecords(response, readOptions);
             }
         }
@@ -620,9 +621,18 @@ Ext.define('Ext.data.reader.Reader', {
             total,
             value,
             message,
-            transform;
-        
-        transform = this.getTransform();
+            transform,
+            meta;
+
+        // Extract the metadata to return with the ResultSet.
+        // If found reconfigure accordingly.
+        // The calling Proxy fires its metachange event if it finds metadata in the ResultSet.
+        meta = me.getMeta ? me.getMeta(data) : data.metaData;
+        if (meta) {
+            me.onMetaChange(meta);
+        }
+
+        transform = me.getTransform();
         if (transform) {
             data = transform(data);
         }
@@ -679,11 +689,12 @@ Ext.define('Ext.data.reader.Reader', {
         }
 
         return recordsOnly ? records : new Ext.data.ResultSet({
-            total  : total || recordCount,
-            count  : recordCount,
-            records: records,
-            success: success,
-            message: message
+            total    : total || recordCount,
+            metadata : meta,
+            count    : recordCount,
+            records  : records,
+            success  : success,
+            message  : message
         });
     },
 

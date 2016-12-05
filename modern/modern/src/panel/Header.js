@@ -135,12 +135,18 @@ Ext.define('Ext.panel.Header', {
             items = me.getItems(),
             length = items.length,
             n = array.length,
-            c, i, n, pos;
+            c, i, pos, instanced;
 
         for (i = 0; i < n; ++i) {
+            c = array[i];
             // We have to ensure all items are actual instances because the "weight"
             // config may come from the class.
-            array[i] = me.factoryItem(array[i]);
+            instanced = c.isWidget;
+            if (!instanced) {
+                c.$initParent = me;
+            }
+            array[i] = me.factoryItem(c);
+            delete c.$initParent;
         }
 
         Ext.Array.sort(array, me.sortByWeight);

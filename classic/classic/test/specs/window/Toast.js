@@ -27,9 +27,9 @@ describe("Ext.window.Toast", function() {
     });
     
     afterEach(function() {
-        Ext.destroy(win, win2, toast);
+        toast = win = win2 = Ext.destroy(toast, win, win2);
         
-        win = field1 = field2 = null;
+        field1 = field2 = null;
     });
     
     describe("creation", function() {

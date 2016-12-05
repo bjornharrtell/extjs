@@ -95,7 +95,7 @@ Ext.define('Ext.chart.series.sprite.PieSlice', {
         }
     },
 
-    render: function (surface, ctx, clip, rect) {
+    render: function (surface, ctx, rect) {
         var me = this,
             attr = me.attr,
             itemCfg = {},
@@ -114,13 +114,13 @@ Ext.define('Ext.chart.series.sprite.PieSlice', {
                 endRho: Math.max(attr.startRho, attr.endRho)
             };
             changes = Ext.callback(attr.renderer, null,
-                [me, itemCfg, me.rendererData, me.rendererIndex], 0, me.getSeries());
+                [me, itemCfg, me.getRendererData(), me.getRendererIndex()], 0, me.getSeries());
             me.setAttributes(changes);
-            me.useAttributes(ctx, clip);
+            me.useAttributes(ctx, rect);
         }
 
         // Draw the sector
-        me.callParent([surface, ctx, clip, rect]);
+        me.callParent([surface, ctx, rect]);
 
         // Draw the labels
         if (attr.label && me.getMarker('labels')) {
@@ -148,8 +148,13 @@ Ext.define('Ext.chart.series.sprite.PieSlice', {
             label = me.getMarker('labels'),
             labelTpl = label.getTemplate(),
             calloutLine = labelTpl.getCalloutLine(),
-            calloutLineLength = calloutLine && calloutLine.length || 40,
-            labelBox, x, y, changes, params;
+            labelBox, x, y, changes, params, calloutLineLength;
+
+        if (calloutLine) {
+            calloutLineLength = calloutLine.length || 40;
+        } else {
+            calloutLineLength = 0;
+        }
 
         surfaceMatrix.appendMatrix(attr.matrix);
 
@@ -198,16 +203,18 @@ Ext.define('Ext.chart.series.sprite.PieSlice', {
                 labelCfg.calloutWidth = calloutLine.width;
             }
         } else {
-            labelCfg.calloutHasLine = false;
+            labelCfg.calloutColor = 'none';
         }
         labelCfg.globalAlpha = attr.globalAlpha * attr.fillOpacity;
 
         // If a slice is empty, don't display the label.
         // This behavior can be overridden by a renderer.
-        labelCfg.hidden = (attr.startAngle == attr.endAngle);
+        if (labelTpl.display !== 'none') {
+            labelCfg.hidden = (attr.startAngle == attr.endAngle);
+        }
 
         if (labelTpl.attr.renderer) {
-            params = [me.attr.label, label, labelCfg, me.rendererData, me.rendererIndex];
+            params = [me.attr.label, label, labelCfg, me.getRendererData(), me.getRendererIndex()];
             changes = Ext.callback(labelTpl.attr.renderer, null, params, 0, me.getSeries());
             if (typeof changes === 'string') {
                 labelCfg.text = changes;

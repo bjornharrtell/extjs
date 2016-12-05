@@ -1,3 +1,5 @@
+/* global expect, Ext, jasmine, spyOn */
+
 describe("Ext.panel.Tool", function() {
     var tool, el;
     
@@ -10,14 +12,6 @@ describe("Ext.panel.Tool", function() {
         el = tool.el;
         
         return tool;
-    }
-    
-    function expectAria(attr, value) {
-        jasmine.expectAriaAttr(tool, attr, value);
-    }
-    
-    function expectNoAria(attr) {
-        jasmine.expectNoAriaAttr(tool, attr);
     }
     
     afterEach(function() {
@@ -38,15 +32,15 @@ describe("Ext.panel.Tool", function() {
             });
             
             it("should have button role", function() {
-                expectAria('role', 'button');
+                expect(tool).toHaveAttr('role', 'button');
             });
             
             it("should not have title", function() {
-                expectNoAria('title');
+                expect(tool).not.toHaveAttr('title');
             });
             
             it("should not have aria-label", function() {
-                expectNoAria('aria-label');
+                expect(tool).not.toHaveAttr('aria-label');
             });
             
             describe("setTooltip", function() {
@@ -56,11 +50,11 @@ describe("Ext.panel.Tool", function() {
                     });
                     
                     it("should set aria-label", function() {
-                        expectAria('aria-label', 'foo');
+                        expect(tool).toHaveAttr('aria-label', 'foo');
                     });
                     
                     it("should not set title", function() {
-                        expectNoAria('title');
+                        expect(tool).not.toHaveAttr('title');
                     });
                 });
                 
@@ -70,11 +64,11 @@ describe("Ext.panel.Tool", function() {
                     });
                     
                     it("should set title", function() {
-                        expectAria('title', 'bar');
+                        expect(tool).toHaveAttr('title', 'bar');
                     });
                     
                     it("should not set aria-label", function() {
-                        expectNoAria('aria-label');
+                        expect(tool).not.toHaveAttr('aria-label');
                     });
                 });
             });
@@ -89,11 +83,11 @@ describe("Ext.panel.Tool", function() {
             });
             
             it("should set aria-label", function() {
-                expectAria('aria-label', 'frob');
+                expect(tool).toHaveAttr('aria-label', 'frob');
             });
             
             it("should not set title", function() {
-                expectNoAria('title');
+                expect(tool).not.toHaveAttr('title');
             });
         });
     });
@@ -108,7 +102,11 @@ describe("Ext.panel.Tool", function() {
             clickSpy = jasmine.createSpy('click');
             scope = {};
             toolOwner = {};
-            ownerCt = {};
+            ownerCt = {
+                getInherited: function() {
+                    return {};
+                }
+            };
             
             makeTool({
                 type: 'close',
@@ -199,7 +197,7 @@ describe("Ext.panel.Tool", function() {
                         it("should stop the event by default", function() {
                             var e = tool.onClick.mostRecentCall.args[0];
                             
-                            expect(e.isStopped).toBe(true);
+                            expect(e.stopped).toBe(true);
                         });
                         
                         it("should not stop event when stopEvent is false", function() {
@@ -209,7 +207,7 @@ describe("Ext.panel.Tool", function() {
                             
                             var e = tool.onClick.mostRecentCall.args[0];
                             
-                            expect(!!e.isStopped).toBe(false);
+                            expect(!!e.stopped).toBe(false);
                         });
                     });
                     
@@ -320,7 +318,7 @@ describe("Ext.panel.Tool", function() {
                     it("should not stop event by default", function() {
                         var e = tool.onClick.mostRecentCall.args[0];
                         
-                        expect(!!e.isStopped).toBe(false);
+                        expect(!!e.stopped).toBe(false);
                     });
                 });
             });
@@ -345,7 +343,7 @@ describe("Ext.panel.Tool", function() {
                 it("should stop event by default", function() {
                     var e = tool.onClick.mostRecentCall.args[0];
                     
-                    expect(e.isStopped).toBe(true);
+                    expect(e.stopped).toBe(true);
                 });
             });
             
@@ -361,8 +359,242 @@ describe("Ext.panel.Tool", function() {
                 it("should stop the event by default", function() {
                     var e = tool.onClick.mostRecentCall.args[0];
                     
-                    expect(e.isStopped).toBe(true);
+                    expect(e.stopped).toBe(true);
                 });
+            });
+        });
+    });
+
+    describe('type', function() {
+        describe("before render", function() {
+            beforeEach(function() {
+                makeTool({
+                    type: 'expand',
+                    renderTo: null
+                });
+            });
+
+            it('should switch from using type to glyph', function() {
+                // Hex 48 is "H". Must switch to using that with no background image
+                tool.setGlyph('x48@FontAwesome');
+
+                tool.render(Ext.getBody());
+
+                expect(tool.toolEl).not.toHaveCls('x-tool-expand');
+                expect(tool.toolEl.getStyle('font-family')).toBe('FontAwesome');
+                expect(tool.toolEl.dom).hasHTML('H');
+            });
+
+            it('should switch from using type to iconCls', function() {
+                tool.setIconCls('foo-icon-cls');
+
+                tool.render(Ext.getBody());
+
+                // toolEl must use the iconCls
+                expect(tool.toolEl).toHaveCls('foo-icon-cls');
+                expect(tool.toolEl).not.toHaveCls('x-tool-expand');
+            });
+
+            it("should be able to switch to another type", function() {
+                tool.setType('print');
+
+                tool.render(Ext.getBody());
+
+                expect(tool.toolEl).toHaveCls('x-tool-print');
+                expect(tool.toolEl).not.toHaveCls('x-tool-expand');
+            });
+        });
+
+        describe("after render", function() {
+            beforeEach(function() {
+                makeTool({
+                    type: 'expand'
+                });
+                // Must start with type's class
+                expect(tool.toolEl).toHaveCls('x-tool-expand');
+            });
+
+            it('should switch from using type to glyph', function() {
+                // Hex 48 is "H". Must switch to using that with no background image
+                tool.setGlyph('x48@FontAwesome');
+                expect(tool.toolEl).not.toHaveCls('x-tool-expand');
+                expect(tool.toolEl.getStyle('font-family')).toBe('FontAwesome');
+                expect(tool.toolEl.dom).hasHTML('H');
+            });
+
+            it('should switch from using type to iconCls', function() {
+                tool.setIconCls('foo-icon-cls');
+
+                // toolEl must use the iconCls
+                expect(tool.toolEl).toHaveCls('foo-icon-cls');
+                expect(tool.toolEl).not.toHaveCls('x-tool-expand');
+            });
+
+            it("should be able to switch to another type", function() {
+                tool.setType('print');
+                expect(tool.toolEl).toHaveCls('x-tool-print');
+                expect(tool.toolEl).not.toHaveCls('x-tool-expand');
+            });
+        });
+    });
+
+    describe('iconCls', function() {
+        describe("before render", function() {
+            beforeEach(function() {
+                makeTool({
+                    iconCls: 'foo-icon-cls',
+                    renderTo: null
+                });
+            });
+
+            it('should switch from using iconCls to glyph', function() {
+                // Hex 48 is "H". Must switch to using that with no background image
+                tool.setGlyph('x48@FontAwesome');
+
+                tool.render(Ext.getBody());
+
+                expect(tool.toolEl).not.toHaveCls('foo-icon-cls');
+                expect(tool.toolEl.getStyle('font-family')).toBe('FontAwesome');
+                expect(tool.toolEl.dom).hasHTML('H');
+            });
+
+            it('should switch from using iconCls to type', function() {
+                tool.setType('expand');
+
+                tool.render(Ext.getBody());
+
+                expect(tool.toolEl).not.toHaveCls('foo-icon-cls');
+
+                // toolEl must use the type's class
+                expect(tool.toolEl).toHaveCls('x-tool-expand');
+            });
+
+            it("should switch classes", function() {
+                tool.setIconCls('bar-icon-cls');
+
+                tool.render(Ext.getBody());
+
+                expect(tool.toolEl).not.toHaveCls('x-tool-img');
+                expect(tool.toolEl).toHaveCls('bar-icon-cls');
+                expect(tool.toolEl).not.toHaveCls('foo-icon-cls');
+            });
+        });
+
+        describe("after render", function() {
+            beforeEach(function() {
+                makeTool({
+                    iconCls: 'foo-icon-cls'
+                });
+
+                // Must start with iconCls
+                expect(tool.toolEl).toHaveCls('foo-icon-cls');
+            });
+
+            it('should switch from using iconCls to glyph', function() {
+                // Hex 48 is "H". Must switch to using that with no background image
+                tool.setGlyph('x48@FontAwesome');
+
+                expect(tool.toolEl).not.toHaveCls('foo-icon-cls');
+                expect(tool.toolEl.getStyle('font-family')).toBe('FontAwesome');
+                expect(tool.toolEl.dom).hasHTML('H');
+            });
+
+            it('should switch from using iconCls to type', function() {
+                tool.setType('expand');
+
+                expect(tool.toolEl).not.toHaveCls('foo-icon-cls');
+
+                // toolEl must use the type's class
+                expect(tool.toolEl).toHaveCls('x-tool-expand');
+            });
+
+            it("should switch classes", function() {
+                tool.setIconCls('bar-icon-cls');
+
+                expect(tool.toolEl).toHaveCls('bar-icon-cls');
+                expect(tool.toolEl).not.toHaveCls('foo-icon-cls');
+            });
+        });
+    });
+
+    describe('glyph', function() {
+        describe("before render", function() {
+            beforeEach(function() {
+                makeTool({
+                    glyph: 'x48@FontAwesome',
+                    renderTo: null
+                });
+            });
+
+            it('should switch from using glyph to type', function() {
+                tool.setType('expand');
+
+                tool.render(Ext.getBody());
+
+                // No glyph character
+                expect(tool.toolEl.dom).hasHTML('');
+            
+                // toolEl must use the type's class
+                expect(tool.toolEl).toHaveCls('x-tool-expand');
+            });
+
+            it('should switch from using glyph to iconCls', function() {
+                tool.setIconCls('foo-icon-cls');
+
+                tool.render(Ext.getBody());
+
+                // No glyph character
+                expect(tool.toolEl.dom.innerHTML).toBe('');
+            
+                // toolEl must use the iconCls
+                expect(tool.toolEl).toHaveCls('foo-icon-cls');
+            });
+
+            it('should switch glyphs', function() {
+                tool.setGlyph('x49@FontAwesome');
+
+                tool.render(Ext.getBody());
+
+                expect(tool.toolEl.getStyle('font-family')).toBe('FontAwesome');
+                expect(tool.toolEl.dom).hasHTML('I');
+            });
+        });
+
+        describe("after render", function() {
+            beforeEach(function() {
+                makeTool({
+                    glyph: 'x48@FontAwesome'
+                });
+                // Hex 48 is "H". Must switch to using that with no background image
+                expect(tool.toolEl.getStyle('font-family')).toBe('FontAwesome');
+                expect(tool.toolEl.dom).hasHTML('H');
+            });
+
+            it('should switch from using glyph to type', function() {
+                tool.setType('expand');
+
+                // No glyph character
+                expect(tool.toolEl.dom).hasHTML('');
+            
+                // toolEl must use the type's class
+                expect(tool.toolEl).toHaveCls('x-tool-expand');
+            });
+
+            it('should switch from using glyph to iconCls', function() {
+                tool.setIconCls('foo-icon-cls');
+
+                // No glyph character
+                expect(tool.toolEl.dom.innerHTML).toBe('');
+            
+                // toolEl must use the iconCls
+                expect(tool.toolEl).toHaveCls('foo-icon-cls');
+            });
+
+            it('should switch glyphs', function() {
+                tool.setGlyph('x49@FontAwesome');
+
+                expect(tool.toolEl.getStyle('font-family')).toBe('FontAwesome');
+                expect(tool.toolEl.dom).hasHTML('I');
             });
         });
     });

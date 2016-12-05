@@ -305,9 +305,8 @@ Ext.define('Ext.data.ProxyStore', {
     applyModel: function(model) {
         if (model) {
             model = Ext.data.schema.Schema.lookupEntity(model);
-        }
-        // If no model, ensure that the fields config is converted to a model.
-        else {
+        } else if (!this.destroying) {
+            // If no model, ensure that the fields config is converted to a model.
             this.getFields();
             model = this.getModel() || this.createImplicitModel();
         }
@@ -338,6 +337,7 @@ Ext.define('Ext.data.ProxyStore', {
                 }
             } else if (model) {
                 proxy = model.getProxy();
+                this.useModelProxy = true;
             }
         
             if (!proxy) {
@@ -576,8 +576,7 @@ Ext.define('Ext.data.ProxyStore', {
      */
     getRemovedRecords: function() {
         var removed = this.getRawRemovedRecords();
-        // If trackRemoved: false, removed will be null
-        return removed ? Ext.Array.clone(removed) : removed;
+        return removed ? Ext.Array.clone(removed) : [];
     },
 
     /**
@@ -706,7 +705,7 @@ Ext.define('Ext.data.ProxyStore', {
      *     store.load({
      *         scope: this,
      *         callback: function(records, operation, success) {
-     *             // the {@link Ext.data.operation.Operation operation} object
+     *             // the operation object
      *             // contains all of the details of the load operation
      *             console.log(records);
      *         }
@@ -727,7 +726,7 @@ Ext.define('Ext.data.ProxyStore', {
      * @param {Ext.data.operation.Operation} options.callback.operation The Operation itself.
      * @param {Boolean} options.callback.success `true` when operation completed successfully.
      * @param {Boolean} [options.addRecords=false] Specify as `true` to *add* the incoming records rather than the
-     * default which is to have the incoming records *replace* the existing stoire contents.
+     * default which is to have the incoming records *replace* the existing store contents.
      * 
      * @return {Ext.data.Store} this
      * @since 1.1.0
@@ -852,8 +851,7 @@ Ext.define('Ext.data.ProxyStore', {
      * {@link #method-load} method for valid configs.
      */
     reload: function(options) {
-        var o = Ext.apply({}, options, this.lastOptions);
-        return this.load(o);
+        return this.load(Ext.apply({}, options, this.lastOptions));
     },
 
     onEndUpdate: function() {
@@ -911,7 +909,7 @@ Ext.define('Ext.data.ProxyStore', {
     /**
      * @private
      */
-    onDestroy: function() {
+    doDestroy: function() {
         var me = this,
             proxy = me.getProxy();
 
@@ -925,9 +923,10 @@ Ext.define('Ext.data.ProxyStore', {
         }
         
         me.setModel(null);
+        
+        me.callParent();
     },
 
-    
     /**
      * Returns true if the store has a pending load task.
      * @return {Boolean} `true` if the store has a pending load task.
@@ -1014,7 +1013,10 @@ Ext.define('Ext.data.ProxyStore', {
         },
 
         clearLoadTask: function() {
-            Ext.asapCancel(this.loadTimer);
+            if (this.loadTimer) {
+                Ext.asapCancel(this.loadTimer);
+            }
+            
             this.pendingLoadOptions = this.loadTimer = null;
         },
 

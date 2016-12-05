@@ -8,6 +8,12 @@
         .#{$prefix}tree-expander {
             @include font-icon($tree-arrow-glyph, $line-height: null);
             color: $tree-arrow-glyph-color;
+
+            @if $include-rtl {
+                &.#{$prefix}rtl {
+                    @include font-icon($tree-arrow-glyph-rtl, $line-height: null);
+                }
+            }
         }
         .#{$prefix}grid-tree-node-expanded .#{$prefix}tree-expander {
             @include font-icon($tree-arrow-expanded-glyph, $line-height: null);

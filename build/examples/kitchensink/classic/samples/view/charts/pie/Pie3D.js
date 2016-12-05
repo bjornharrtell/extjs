@@ -45,6 +45,15 @@ Ext.define('KitchenSink.view.charts.pie.Pie3D', {
         {
             text: 'Switch Theme',
             handler: 'onThemeSwitch'
+        },
+        {
+            text: 'Preview',
+            platformConfig: {
+                desktop: {
+                    text: 'Download'
+                }
+            },
+            handler: 'onDownload'
         }
     ],
 
@@ -60,6 +69,7 @@ Ext.define('KitchenSink.view.charts.pie.Pie3D', {
         theme: 'Muted',
         interactions: ['itemhighlight', 'rotatePie3d'],
         legend: {
+            type: 'sprite',
             docked: 'bottom'
         },
         series: [

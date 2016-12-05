@@ -35,22 +35,31 @@ Ext.define('KitchenSink.view.draw.SpriteEvents', {
                     fillStyle: '#7BB20C',
                     r: 75,
                     x: 200,
-                    y: 200
+                    y: 200,
+                    fx: {
+                        duration: 300
+                    }
                 },
                 {
                     type: 'rect',
                     fillStyle: 'orange',
-                    x: 300,
+                    x: 400,
                     y: 250,
                     width: 150,
-                    height: 150
+                    height: 150,
+                    fx: {
+                        duration: 300
+                    }
                 },
                 {
                     type: 'path',
                     strokeStyle: 'rgb(222,127,209)',
-                    lineWidth: 8,
+                    lineWidth: 12,
                     lineCap: 'round',
-                    path: 'M350,200L500,50'
+                    path: 'M350,200L500,50',
+                    fx: {
+                        duration: 300
+                    }
                 },
                 {
                     type: 'text',
@@ -58,7 +67,26 @@ Ext.define('KitchenSink.view.draw.SpriteEvents', {
                     fontSize: 40,
                     fillStyle: 'rgb(121,190,239)',
                     x: 200,
-                    y: 80
+                    y: 80,
+                    fx: {
+                        duration: 300,
+                        customDurations: {
+                            text: 0
+                        }
+                    }
+                },
+                {
+                    type: 'image',
+                    src: Ext.getResourcePath('images/bounce.png'),
+                    id: 'logo',
+                    x: 100,
+                    y: 320,
+                    width: 256,
+                    height: 107,
+                    fx: {
+                        duration: 500,
+                        easing: 'bounceOut'
+                    }
                 }
             ],
 

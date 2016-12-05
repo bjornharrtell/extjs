@@ -1,4 +1,4 @@
-.x-spinner {
+.x-spinnerfield {
     .x-spinner-button {
         margin-top: .25em;
         margin-bottom: .25em;
@@ -14,12 +14,12 @@
         font-size: 26px;
         line-height: 24px;
 
-        &.x-button-pressed {
+        &.x-pressed {
             background: $base-color;
         }
     }
 
-    &.x-item-disabled {
+    &.x-disabled {
         .x-spinner-button {
             background: $secondary-color;
             color: #b3b3b3 !important;

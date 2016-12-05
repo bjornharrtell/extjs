@@ -1,45 +1,23 @@
 /**
- * Panels are most useful as Overlays - containers that float over your application. They contain extra styling such
- * that when you {@link #showBy} another component, the container will appear in a rounded black box with a 'tip'
- * pointing to a reference component.
+ * Panels add extra functionality by providing various options for configuring a header
+ * that is docked inside the panel.
+ * See:
+ * - {@link #title}
+ * - {@link #iconCls}
+ * - {@link #tools}
+ * - {@link #closable}
  *
- * If you don't need this extra functionality, you should use {@link Ext.Container} instead. See the
- * [Overlays example](#!/example/overlays) for more use cases.
- *
- *      @example miniphone preview
- *
- *      var button = Ext.create('Ext.Button', {
- *           text: 'Button',
- *           id: 'rightButton'
- *      });
- *
- *      Ext.create('Ext.Container', {
- *          fullscreen: true,
- *          items: [
- *              {
- *                   docked: 'top',
- *                   xtype: 'titlebar',
- *                   items: [
- *                       button
- *                   ]
- *               }
- *          ]
- *      });
- *
- *      Ext.create('Ext.Panel', {
- *          html: 'Floating Panel',
- *          left: 0,
- *          padding: 10
- *      }).showBy(button);
+ * It is also possible to configure the header directly using the {@link #header}
+ * configuration. See {@link Ext.panel.Header} for more information.
+ * 
+ * Panels are also useful as Overlays - containers that float over your application.
+ * If configured with `{@link #cfg-anchor: true}`, when you {@link #showBy} another
+ * component, there will be an anchor arrow pointing to the reference component.
  *
  */
 Ext.define('Ext.Panel', {
     extend: 'Ext.Container',
     xtype: 'panel',
-
-    requires: [
-        'Ext.util.LineSegment'
-    ],
 
     alternateClassName: 'Ext.panel.Panel',
 
@@ -48,8 +26,6 @@ Ext.define('Ext.Panel', {
     isPanel: true,
 
     config: {
-        baseCls: Ext.baseCSSPrefix + 'panel',
-
         /**
          * @cfg border
          * @inheritdoc
@@ -76,18 +52,106 @@ Ext.define('Ext.Panel', {
          */
         bodyBorder: null,
 
+        /**
+         * @cfg {Boolean/Object} header
+         * Pass as `false` to prevent a header from being created.
+         *
+         * You may also assign a header with a config object (optionally containing an `xtype`)
+         * to custom-configure your panel's header.
+         *
+         * See {@link Ext.panel.Header} for all the options that may be specified here.
+         */
         header: null,
 
+        /**
+         * @cfg {String} icon
+         * @inheritdoc Ext.panel.Header#icon
+         */
         icon: null,
 
+        /**
+         * @cfg {String} iconCls
+         * @inheritdoc Ext.panel.Header#iconCls
+         */
         iconCls: null,
 
+        /**
+         * @cfg {String/Object} title
+         * @inheritdoc Ext.panel.Header#title
+         */
         title: null,
 
-        tools: null
+        /**
+         * @cfg {Object[]/Ext.panel.Tool[]} tools
+         * An array of {@link Ext.panel.Tool} configs/instances to be added to the header tool area. The tools are stored as
+         * child components of the header container.
+         */
+        tools: null,
+
+        /**
+         * @cfg {Boolean} [anchor=false]
+         * Configure `true` to show an anchor element pointing to the target component when this Panel is
+         * {@link #showBy shown by} another component.
+         */
+        anchor: null,
+
+        /**
+         * @cfg {String} [anchorPosition]
+         * Set the anchor position.
+         *
+         * @private
+         */
+        anchorPosition: null,
+
+        /**
+         * @cfg {Boolean} closable
+         * True to display the 'close' tool button and allow the user to close the panel, false to hide the button and
+         * disallow closing the window.
+         *
+         * By default, when close is requested by clicking the close button in the header, the {@link #method-close} method will be
+         * called. This will _{@link Ext.Component#method-destroy destroy}_ the Panel and its content meaning that it may not be
+         * reused.
+         *
+         * To make closing a Panel _hide_ the Panel so that it may be reused, set {@link #closeAction} to 'hide'.
+         */
+        closable: null,
+
+        /**
+         * @cfg {String} closeAction
+         * The action to take when the close header tool is clicked:
+         *
+         * - **`'{@link #method-destroy}'`** :
+         *
+         *   {@link #method-remove remove} the window from the DOM and {@link Ext.Component#method-destroy destroy} it and all descendant
+         *   Components. The window will **not** be available to be redisplayed via the {@link #method-show} method.
+         *
+         * - **`'{@link #method-hide}'`** :
+         *
+         *   {@link #method-hide} the window by setting visibility to hidden and applying negative offsets. The window will be
+         *   available to be redisplayed via the {@link #method-show} method.
+         *
+         * **Note:** This behavior has changed! setting *does* affect the {@link #method-close} method which will invoke the
+         * appropriate closeAction.
+         */
+        closeAction: 'destroy',
+
+        //<locale>
+        /**
+         * @cfg {String} closeToolText Text to be announced by screen readers when the 
+         * **close** {@link Ext.panel.Tool tool} is focused.  Will also be set as the close 
+         * tool's {@link Ext.panel.Tool#cfg-tooltip tooltip} text.
+         * 
+         * **Note:** Applicable when the panel is {@link #closable}: true
+         */
+        closeToolText: 'Close panel'
+        //</locale>
     },
 
+    classCls: Ext.baseCSSPrefix + 'panel',
+
     manageBorders: true,
+
+    allowHeader: true,
 
     getElementConfig: function() {
         return {
@@ -156,10 +220,13 @@ Ext.define('Ext.Panel', {
     },
 
     applyHeader: function (newHeader, oldHeader) {
+        // This method should never call any getters here doing so will cause re-entry into this method. Extra Headers will be created
         var me = this,
             header = oldHeader;
 
-        if (newHeader === false) {
+        me.allowHeader = newHeader !== false;
+
+        if (!me.allowHeader) {
             if (header) {
                 me.remove(header);
                 header = null;
@@ -170,9 +237,11 @@ Ext.define('Ext.Panel', {
                     header.setConfig(newHeader);
                 }
             } else {
-                // add() will ensure we sort the header to the front by its "weight"
-
-                header = me.add(me.createHeader(newHeader));
+                // Unlike classic, modern doesn't have (yet) the "weight" concept to control the
+                // docking order. To make sure that the header is the first docked item, let's
+                // use insert() instead of add() since this last, through getItems(), creates
+                // and adds config items BEFORE our header, which is not what we want.
+                header = me.insert(0, me.createHeader(newHeader));
             }
         }
 
@@ -197,6 +266,15 @@ Ext.define('Ext.Panel', {
         // we don't return anything since the tools are "stored" on the Header
     },
 
+    close: function() {
+        var me = this;
+
+        if (me.fireEvent('beforeclose', me) !== false) {
+            me[me.getCloseAction()]();
+            me.fireEvent('close', me);
+        }
+    },
+
     createHeader: function (config) {
         var me = this,
             ret = {
@@ -205,6 +283,8 @@ Ext.define('Ext.Panel', {
                 ui: me.getUi()
             },
             icon, title;
+
+        me._isCreatingHeader = true;
 
         if (config && config !== true) {
             Ext.merge(ret, config);
@@ -239,7 +319,29 @@ Ext.define('Ext.Panel', {
             }
         }
 
+        me._isCreatingHeader = false;
         return ret;
+    },
+
+    updateAnchor: function(anchor) {
+        this.tipElement.setVisible(!!anchor);
+    },
+
+    updateAnchorPosition: function(anchorPosition, oldAnchorPosition) {
+        var tipElement = this.tipElement,
+            prefix = this.anchorPrefix;
+
+        if (oldAnchorPosition) {
+            tipElement.removeCls(prefix + oldAnchorPosition.side);
+        }
+
+        if (anchorPosition) {
+            tipElement.addCls(prefix + anchorPosition.side);
+            tipElement.translate(anchorPosition.x, anchorPosition.y);
+            tipElement.show();
+        } else {
+            tipElement.hide();
+        }
     },
 
     updateBorder: function(border, oldBorder) {
@@ -258,6 +360,22 @@ Ext.define('Ext.Panel', {
         var border = (bodyBorder === null) ? this.getBorder() : bodyBorder;
 
         this.setBodyBorderEnabled(bodyBorder !== false);
+    },
+
+    updateClosable: function(closable) {
+        var me = this;
+
+        if (closable) {
+            me.closeTool = me.addTool({
+                type: 'close',
+                weight: 1000,
+                scope: me,
+                handler: me.close,
+                tooltip: me.getCloseToolText()
+            })[0];
+        } else {
+            Ext.destroy(me.closeTool);
+        }
     },
 
     updateIcon: function (icon) {
@@ -286,19 +404,10 @@ Ext.define('Ext.Panel', {
 
     updateUi: function(ui, oldUi) {
         var me = this,
-            suffix = 'x-panel-inner-',
             innerElement = me.innerElement,
             // Let the header initter get the ui since ui is a cached config and
             // should not pull in non-cached cfgs at this early stage
             header = !me.isConfiguring && me.ensureHeader();
-
-        if (oldUi) {
-            innerElement.removeCls(suffix + oldUi);
-        }
-
-        if (ui) {
-            innerElement.addCls(suffix + ui);
-        }
 
         if (header) {
             me.getTitle();
@@ -308,99 +417,120 @@ Ext.define('Ext.Panel', {
         me.callParent([ui, oldUi]);
     },
 
-    alignTo: function(component, alignment) {
-        var alignmentInfo = this.getAlignmentInfo(component, alignment);
-        if(alignmentInfo.isAligned) return;
-        var tipElement = this.tipElement;
+    alignTo: function(component, alignment, options) {
+        var me = this,
+            tipElement = me.tipElement,
+            alignmentInfo = me.getAlignmentInfo(component, alignment),
+            config = me.initialConfig,
+            positioned = me.isPositioned(),
+            setX = positioned ? me.setLeft : me.setX,
+            setY = positioned ? me.setTop : me.setY,
+            x = 0,
+            y = 0,
+            resultRegion, oldHeight, cls;
 
-        tipElement.hide();
-
-        if (this.currentTipPosition) {
-            tipElement.removeCls('x-anchor-' + this.currentTipPosition);
+        if (alignmentInfo.isAligned) {
+            return;
         }
 
-        this.callParent(arguments);
-
-        var LineSegment = Ext.util.LineSegment,
-            alignToElement = component.isComponent ? component.renderElement : component,
-            element = this.renderElement,
-            alignToBox = alignToElement.getBox(),
-            box = element.getBox(),
-            left = box.left,
-            top = box.top,
-            right = box.right,
-            bottom = box.bottom,
-            centerX = left + (box.width / 2),
-            centerY = top + (box.height / 2),
-            leftTopPoint = { x: left, y: top },
-            rightTopPoint = { x: right, y: top },
-            leftBottomPoint = { x: left, y: bottom },
-            rightBottomPoint = { x: right, y: bottom },
-            boxCenterPoint = { x: centerX, y: centerY },
-            alignToCenterX = alignToBox.left + (alignToBox.width / 2),
-            alignToCenterY = alignToBox.top + (alignToBox.height / 2),
-            alignToBoxCenterPoint = { x: alignToCenterX, y: alignToCenterY },
-            centerLineSegment = new LineSegment(boxCenterPoint, alignToBoxCenterPoint),
-            offsetLeft = 0,
-            offsetTop = 0,
-            tipSize, tipWidth, tipHeight, tipPosition, tipX, tipY;
-
-        tipElement.setVisibility(false);
-        tipElement.show();
-        tipSize = tipElement.getSize();
-        tipWidth = tipSize.width;
-        tipHeight = tipSize.height;
-
-        if (centerLineSegment.intersects(new LineSegment(leftTopPoint, rightTopPoint))) {
-            tipX = Math.min(Math.max(alignToCenterX, left + tipWidth), right - (tipWidth));
-            tipY = top;
-            offsetTop = tipHeight + 10;
-            tipPosition = 'top';
-        }
-        else if (centerLineSegment.intersects(new LineSegment(leftTopPoint, leftBottomPoint))) {
-            tipX = left;
-            tipY = Math.min(Math.max(alignToCenterY + (tipWidth / 2), tipWidth * 1.6), bottom - (tipWidth / 2.2));
-            offsetLeft = tipHeight + 10;
-            tipPosition = 'left';
-        }
-        else if (centerLineSegment.intersects(new LineSegment(leftBottomPoint, rightBottomPoint))) {
-            tipX = Math.min(Math.max(alignToCenterX, left + tipWidth), right - tipWidth);
-            tipY = bottom;
-            offsetTop = -tipHeight - 10;
-            tipPosition = 'bottom';
-        }
-        else if (centerLineSegment.intersects(new LineSegment(rightTopPoint, rightBottomPoint))) {
-            tipX = right;
-            tipY = Math.max(Math.min(alignToCenterY - tipHeight, bottom - tipWidth * 1.3), tipWidth / 2);
-            offsetLeft = -tipHeight - 10;
-            tipPosition = 'right';
+        if (!me.isFloated() && !me.getParent()) {
+            me.setFloated(true);
         }
 
-        if (tipX || tipY) {
-            this.currentTipPosition = tipPosition;
-            tipElement.addCls('x-anchor-' + tipPosition);
-            tipElement.setLeft(tipX - left);
-            tipElement.setTop(tipY - top);
-            tipElement.setVisibility(true);
+        // Superclass does pure alignment.
+        // We only need extra if we're showing an anchor.
+        if (!me.getAnchor()) {
+            me.setAnchorPosition(null);
+            return me.callParent([component, alignment, options]);
+        }
 
-            this.setLeft(this.getLeft() + offsetLeft);
-            this.setTop(this.getTop() + offsetTop);
+        // Show anchor el so we can measure it
+        if (!me.anchorSize) {
+            cls = me.anchorMeasureCls;
+            tipElement.addCls(cls);
+            tipElement.show();
+
+            me.anchorSize = new Ext.util.Offset(tipElement.getWidth(), tipElement.getHeight());
+            tipElement.removeCls(cls);
+            tipElement.hide();
+        }
+
+        if ('unconstrainedWidth' in me) {
+            me.setWidth(me.unconstrainedWidth);
+        }
+        if ('unconstrainedHeight' in me) {
+            me.setHeight(me.unconstrainedHeight);
+        }
+        resultRegion = me.getAlignRegion(component, alignment, Ext.apply({
+            anchorSize: me.anchorSize,
+            axisLock: me.getAxisLock()
+        }, options));
+
+        // If already aligned, will return undefined
+        if (resultRegion) {
+            setX.call(me, resultRegion.x);
+            setY.call(me, resultRegion.y);
+            if (resultRegion.constrainWidth) {
+                me.unconstrainedWidth = config.width || me.self.prototype.width;
+
+                // We must deal with height changeing if we restrict width and we are aliging above
+                oldHeight = me.el.getHeight();
+                me.setWidth(alignmentInfo.stats.width = resultRegion.getWidth());
+
+                // We are being positioned above, bump upwards by how much the
+                // element has expanded as a result of width restriction.
+                if (resultRegion.align.position === 0) {
+                    setY.call(me, resultRegion.y + (oldHeight - me.el.getHeight()));
+                }
+            }
+            if (resultRegion.constrainHeight) {
+                me.unconstrainedHeight = config.height || me.self.prototype.height;
+                me.setHeight(alignmentInfo.stats.height = resultRegion.getHeight());
+            }
+            if (resultRegion.anchor) {
+                x = 0;
+                y = 0;
+
+                // The result is to the left or right of the target
+                if (resultRegion.anchor.align & 1) {
+                   y = resultRegion.anchor.y - resultRegion.y - resultRegion.getHeight();
+                } else {
+                    x = resultRegion.anchor.x - resultRegion.x;
+                }
+
+                me.setAnchorPosition({
+                    side: resultRegion.anchor.position,
+                    x: x,
+                    y: y
+                });
+            } else {
+                me.setAnchorPosition(null);
+            }
+            me.setCurrentAlignmentInfo(alignmentInfo);
+        } else {
+            // Already aligned
+            tipElement.show();
         }
     },
 
     privates: {
+        anchorMeasureCls: Ext.baseCSSPrefix + 'anchor-top',
+        anchorPrefix: Ext.baseCSSPrefix + 'anchor-',
+
         ensureHeader: function () {
             var me = this,
                 header;
 
-            me.getViewModel();
-            me.getItems();
+            if (!me._isCreatingHeader) {
+                me.getViewModel();
+                me.getItems();
 
-            header = me.getHeader();
-
-            if (!header && header !== false) {
-                me.setHeader(true);
                 header = me.getHeader();
+
+                if (!header && me.allowHeader) {
+                    me.setHeader(true);
+                    header = me.getHeader();
+                }
             }
 
             return header;

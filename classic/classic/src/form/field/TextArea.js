@@ -59,6 +59,7 @@ Ext.define('Ext.form.field.TextArea', {
             '<tpl if="tabIdx != null"> tabindex="{tabIdx}"</tpl>',
             ' class="{fieldCls} {typeCls} {typeCls}-{ui} {inputCls}" ',
             '<tpl if="fieldStyle"> style="{fieldStyle}"</tpl>',
+            '<tpl foreach="ariaElAttributes"> {$}="{.}"</tpl>',
             '<tpl foreach="inputElAriaAttributes"> {$}="{.}"</tpl>',
             ' autocomplete="off">\n',
             '<tpl if="value">{[Ext.util.Format.htmlEncode(values.value)]}</tpl>',
@@ -208,6 +209,11 @@ Ext.define('Ext.form.field.TextArea', {
             me.fireEvent('specialkey', me, e);
         }
         
+        // Enter key must not bubble up where it can trigger defaultButton action
+        if (key === e.ENTER) {
+            e.stopPropagation();
+        }
+        
         if (me.needsMaxCheck && key !== e.BACKSPACE && key !== e.DELETE && !e.isNavKeyPress() && !me.isCutCopyPasteSelectAll(e, key)) {
             value = me.getValue();
             if (value.length >= me.maxLength) {
@@ -259,12 +265,13 @@ Ext.define('Ext.form.field.TextArea', {
         }
     },
 
-    beforeDestroy: function(){
+    doDestroy: function() {
         var task = this.pasteTask;
+        
         if (task) {
             task.cancel();
-            this.pasteTask = null;
         }    
+        
         this.callParent();
     }
 });

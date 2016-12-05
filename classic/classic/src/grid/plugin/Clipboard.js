@@ -32,7 +32,8 @@ Ext.define('Ext.grid.plugin.Clipboard', {
             get: 'getCellData'
         },
         raw: {
-            get: 'getCellData'
+            get: 'getCellData',
+            put: 'putCellData'
         }
     },
 
@@ -204,5 +205,15 @@ Ext.define('Ext.grid.plugin.Clipboard', {
 
     getTarget: function(comp) {
         return comp.body;
+    },
+
+    privates : {
+        validateAction : function(event) {
+            var view = this.getCmp().getView();
+
+            if (view.actionableMode) {
+                return false;
+            }
+        }
     }
 });

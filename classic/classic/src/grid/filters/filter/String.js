@@ -134,5 +134,19 @@ Ext.define('Ext.grid.filters.filter.String', {
 
     activateMenu: function () {
         this.inputItem.setValue(this.filter.getValue());
+    },
+    
+    createFilter: function(config, key) {
+        var me = this;
+        
+        if (me.filterFn) {
+            return new Ext.util.Filter({
+                filterFn: function(rec) {
+                    return Ext.callback(me.filterFn, me.scope, [rec, me.inputItem.getValue()]);
+                }
+            });
+        } else {
+            return me.callParent([config, key]);
+        }
     }
 });

@@ -128,14 +128,9 @@ Ext.define('Ext.chart.series.Line', {
          */
 
         /**
-         * @cfg {Boolean/Number} smooth
-         * If set to `true` or a non-zero number, the line will be smoothed/rounded around its points; otherwise
-         * straight line segments will be drawn.
-         *
-         * A numeric value is interpreted as a divisor of the horizontal distance between consecutive points in
-         * the line; larger numbers result in sharper curves while smaller numbers result in smoother curves.
-         *
-         * If set to `true` then a default numeric value of 3 will be used.
+         * @cfg {Boolean} smooth
+         * `true` if the series' line should be smoothed.
+         * Line smoothing only works with gapless data.
          */
         smooth: false,
 
@@ -145,6 +140,21 @@ Ext.define('Ext.chart.series.Line', {
          * It is ignored if `smooth` is true.
          */
         step: false,
+
+        /**
+         * @cfg {"gap"/"connect"/"origin"} [nullStyle="gap"]
+         * Possible values:
+         * 'gap' - null points are rendered as gaps.
+         * 'connect' - non-null points are connected across null points, so that
+         * there is no gap, unless null points are at the beginning/end of the line.
+         * Only the visible data points are connected - if a visible data point
+         * is followed by a series of null points that go off screen and eventually
+         * terminate with a non-null point, the connection won't be made.
+         * 'origin' - null data points are rendered at the origin,
+         * which is the y-coordinate of a point where the x and y axes meet.
+         * This requires that at least the x-coordinate of a point is a valid value.
+         */
+        nullStyle: 'gap',
 
         /**
          * @cfg {Boolean} fill
@@ -250,6 +260,13 @@ Ext.define('Ext.chart.series.Line', {
         var sprite = this.getSprites()[0];
         if (sprite && sprite.attr.smooth !== smooth) {
             sprite.setAttributes({smooth: smooth});
+        }
+    },
+
+    updateNullStyle: function (nullStyle) {
+        var sprite = this.getSprites()[0];
+        if (sprite && sprite.attr.nullStyle !== nullStyle) {
+            sprite.setAttributes({nullStyle: nullStyle});
         }
     }
 

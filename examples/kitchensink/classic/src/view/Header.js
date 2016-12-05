@@ -14,7 +14,8 @@ Ext.define('KitchenSink.view.Header', {
 
         this.items = [{
             xtype: 'component',
-            id: 'app-header-logo'
+            id: 'app-header-logo',
+            cls: [ 'ext', 'ext-sencha' ]
         },{
             xtype: 'component',
             id: 'app-header-title',

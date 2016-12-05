@@ -1,11 +1,26 @@
+/* global Ext, MockAjaxManager, expect, spyOn, jasmine, xit */
+
 describe('Ext.grid.plugin.BufferedRenderer', function () {
     var store, grid, tree, view, plugin,
         synchronousLoad = true,
         proxyStoreLoad = Ext.data.ProxyStore.prototype.load,
-        loadStore,
+        loadStore = function() {
+            proxyStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        },
         treeStoreLoad = Ext.data.TreeStore.prototype.load,
-        loadTreeStore,
-        itIE10p = Ext.isIE9m ? xit : it;
+        loadTreeStore = function() {
+            treeStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        },
+        itIE10p = Ext.isIE9m ? xit : it,
+        itNotTouch = Ext.supports.TouchEvents ? xit : it;
 
     function createData(total, variableRowHeight, asymmetricRowHeight) {
         var data = [],
@@ -170,6 +185,7 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
         }, treeCfg || {}));
 
         view = tree.view;
+        return tree;
     }
 
     function completeWithData(data) {
@@ -181,20 +197,8 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
 
     beforeEach(function () {
         // Override so that we can control asynchronous loading
-        loadStore = Ext.data.ProxyStore.prototype.load = function() {
-            proxyStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        };
-        loadTreeStore = Ext.data.TreeStore.prototype.load = function() {
-            treeStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        };
+        Ext.data.ProxyStore.prototype.load = loadStore;
+        Ext.data.TreeStore.prototype.load = loadTreeStore;
 
         MockAjaxManager.addMethods();
     });
@@ -204,8 +208,6 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
         Ext.data.ProxyStore.prototype.load = proxyStoreLoad;
         Ext.data.TreeStore.prototype.load = treeStoreLoad;
 
-        MockAjaxManager.removeMethods();
-
         if (grid) {
             Ext.destroy(grid);
         }
@@ -213,6 +215,8 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
         if (tree) {
             Ext.destroy(tree);
         }
+
+        MockAjaxManager.removeMethods();
 
         store = grid = tree = view = plugin = null;
     });
@@ -369,7 +373,8 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                         store: new Ext.data.BufferedStore({
                             model: Person,
                             leadingBufferZone: 300,
-                            pageSize: 100
+                            pageSize: 100,
+                            autoDestroy: true
                         })
                     });
 
@@ -411,7 +416,7 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                         } else {
                             return true;
                         }
-                    }, 'grid to scroll to end', Ext.isIE ? 40000 : 20000);
+                    }, 'grid to scroll to end', 40000);
 
                     // The atteptLoad timer must never have fired during the scroll.
                     runs(function() {
@@ -481,7 +486,7 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                 expect(r0).not.toBeNull();
 
                 // The new row zero must have been rendered.
-                expect((r0.innerText || r0.textContent).replace(/\n/g,'').replace(/\r/g,'')).toBe("666Old Nick");
+                expect((r0.innerText || r0.textContent).replace(/[\r\n\t]/g,'')).toBe("666Old Nick");
             });
         });
     });
@@ -503,7 +508,8 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
             store = new Ext.data.BufferedStore({
                 model: Person,
                 leadingBufferZone: 300,
-                pageSize: 100
+                pageSize: 100,
+                autoDestroy: true
             });
 
             grid = new Ext.grid.Panel({
@@ -546,9 +552,9 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                 }
                 else {
                     // Scroll incrementally until the correct starting point is found
-                    view.scrollBy(null, 10);
+                    view.scrollBy(null, 25);
                 }
-            }, 'View to scroll record id 100 into the rendered block', 20000);
+            }, 'View to scroll record id 100 into the rendered block', 30000, Ext.isIE ? 100 : null);
 
             runs(function() {
                 var nodes = view.getNodes(),
@@ -585,7 +591,8 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
             store = new Ext.data.BufferedStore({
                 model: Person,
                 leadingBufferZone: 300,
-                pageSize: 100
+                pageSize: 100,
+                autoDestroy: true
             });
 
             grid = new Ext.grid.Panel({
@@ -614,8 +621,8 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                 data: makeData(100)
             });
 
-            maxScroll = normalView.getScrollable().getMaxPosition().y;
-            normalView.setScrollY(maxScroll);
+            maxScroll = grid.getScrollable().getMaxPosition().y;
+            grid.getScrollable().scrollTo(null, maxScroll);
 
             // Important: Simulate Ajax delay before returning data
             waits(100);
@@ -626,7 +633,7 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
             // Both views must render up to the last row with no error thrown
             waitsFor(function() {
                 return lockedView.all.endIndex === 4999 && normalView.all.endIndex === 4999;
-            });
+            }, 'Both views to render the last renderable block', 30000, Ext.isIE ? 100 : null);
         });
 
         // EXTJS-17053
@@ -1677,7 +1684,7 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
 
     describe('gridpanel', function () {
         describe('locking grid', function () {
-            function doIt(reconfigure) {
+            function doIt(reconfigure, afterScrollToEnd) {
                 var columns = [{
                     text: 'Col 1',
                     dataIndex: 'field1',
@@ -1719,7 +1726,7 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                 view = grid.view.normalView;
                 nodeCache = view.all;
 
-                if (reconfigure) {
+                if (reconfigure && !afterScrollToEnd) {
                     grid.reconfigure(null, columns);
                 }
 
@@ -1729,11 +1736,15 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                     }
                     else {
                         // Scroll incrementally until the correct end point is found
-                        view.scrollBy(null, 20);
+                        grid.getScrollable().scrollBy(null, 40);
                     }
-                }, 'last node to scroll into view', 10000, 50);
+                }, 'last node to scroll into view', 40000, 50);
 
                 runs(function () {
+                    if (reconfigure && afterScrollToEnd) {
+                        grid.reconfigure(null, columns);
+                    }
+
                     expect(view.el.down('.x-grid-item-container').getHeight() === view.lockingPartner.el.down('.x-grid-item-container').getHeight()).toBe(true);
                 });
             }
@@ -1744,6 +1755,10 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
 
             it('should have the same height for each locking partner when scrolling after a reconfigure', function () {
                 doIt(true);
+            });
+
+            it('should have the same height for each locking partner when scrolling after a reconfigure when scrolled to end', function () {
+                doIt(true, true);
             });
         });
 
@@ -1823,13 +1838,13 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
 
                     // If row 99 is in the nodeCache, we're done
                     if (reachedTargetRow) {
-                        return view.getScrollY() === lockedView.getScrollY() && nodeCache.startIndex === lockedView.all.startIndex && lockedView.position === view.position && lockedView.bodyTop === view.bodyTop;
+                        return nodeCache.startIndex === lockedView.all.startIndex && lockedView.position === view.position && lockedView.bodyTop === view.bodyTop;
                     }
                     else {
                         // Scroll incrementally until the correct end point is found
-                        view.scrollBy(null, 20);
+                        grid.getScrollable().scrollBy(null, 40);
                     }
-                }, 'row 99 to be rendered', 20000, 50);
+                }, 'row 99 to be rendered', 40000, 50);
 
                 // Must have invoked the row syncher and the two body heights must be the same
                 runs(function () {
@@ -1844,11 +1859,11 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                     var reachedTargetRow = view.bufferedRenderer.getLastVisibleRowIndex() > 990;
 
                     if (reachedTargetRow) {
-                        return view.getScrollY() === lockedView.getScrollY() && view.all.startIndex === lockedView.all.startIndex;
+                        return true;
                     }
                     else {
                         // Scroll in teleporting chunks until the correct end point is found
-                        view.scrollBy(null, 1000);
+                        grid.getScrollable().scrollBy(null, 1000);
                     }
                 }, 'row 990 to scroll into view', 30000, 100);
                 
@@ -1956,13 +1971,13 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
 
                     // If row 99 is in the nodeCache, we're done
                     if (reachedTargetRow) {
-                        return view.getScrollY() === lockedView.getScrollY() && nodeCache.startIndex === lockedView.all.startIndex && lockedView.position === view.position && lockedView.bodyTop === view.bodyTop;
+                        return nodeCache.startIndex === lockedView.all.startIndex && lockedView.position === view.position && lockedView.bodyTop === view.bodyTop;
                     }
                     else {
                         // Scroll incrementally until the correct end point is found
-                        view.scrollBy(null, 20);
+                        grid.getScrollable().scrollBy(null, 40);
                     }
-                }, 'row 99 to be rendered', 20000, 50);
+                }, 'row 99 to be rendered', 40000, 50);
 
                 // Must have invoked the row syncher and the two body heights must be the same
                 runs(function () {
@@ -1976,11 +1991,11 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                     var reachedTargetRow = view.bufferedRenderer.getLastVisibleRowIndex() > 990;
 
                     if (reachedTargetRow) {
-                        return view.getScrollY() === lockedView.getScrollY() && view.all.startIndex === lockedView.all.startIndex;
+                        return true;
                     }
                     else {
                         // Scroll in teleporting chunks until the correct end point is found
-                        view.scrollBy(null, 1000);
+                        grid.getScrollable().scrollBy(null, 1000);
                     }
                 }, 'row 990 to scroll into view', 30000, 100);
                 
@@ -2018,11 +2033,11 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                     success: true,
                     totally: 1000,
                     data: [{
-                        first: 'First',
-                        last: 'Last'
+                        first: 'load2 - First1',
+                        last: 'load2 - Last1'
                     }, {
-                        first: 'First',
-                        last: 'Last'
+                        first: 'load2 - First2',
+                        last: 'load2 - Last2'
                     }],
                     metaData: {
                         root: 'data',
@@ -2037,11 +2052,20 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                         }]
                     }
                 },
-                wasCalled = false;
+                initialData = [
+                    {'name': 'Lisa', 'email': 'lisa@simpsons.com', 'phone': '555-111-1224', 'age': 14},
+                    {'name': 'Lisa', 'email': 'aunt_lisa@simpsons.com', 'phone': '555-111-1274', 'age': 34},
+                    {'name': 'Bart', 'email': 'bart@simpsons.com', 'phone': '555-222-1234', 'age': 12},
+                    {'name': 'Homer', 'email': 'homer@simpsons.com', 'phone': '555-222-1244', 'age': 44},
+                    {'name': 'Marge', 'email': 'marge@simpsons.com', 'phone': '555-222-1254', 'age': 41}
+                ],
+                wasCalled = false,
+                initialColumnCount,
+                newColumnCount;
 
                 makeGrid(null, {
                     data: null,
-                    fields: [],
+                    fields: ['name', 'email'],
                     leadingBufferZone: 50,
                     pageSize: 25,
                     proxy: {
@@ -2055,18 +2079,23 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                         }
                     }
                 });
+                store.load();
+                completeWithData(initialData);
 
-                // Overriding the PageMap method to return a value > 0 when there isn't a representative
-                // page map will reproduce the bug.
-                spyOn(store.data, 'getCount').andCallFake(function () {
-                    store.totalCount = 1000;
-                    return 25;
-                });
+                // No metadata in initial payload
+                expect(wasCalled).toBe(false);
+                expect(store.getCount()).toBe(5);
+                initialColumnCount = grid.getVisibleColumnManager().getColumns().length;
 
                 store.load();
                 completeWithData(successData);
 
+                // Check that reconfigure has been successful
+                newColumnCount = grid.getVisibleColumnManager().getColumns().length;
                 expect(wasCalled).toBe(true);
+                expect(store.getCount()).toBe(2);
+                expect(newColumnCount).toBe(2);
+                expect(newColumnCount).toBeLessThan(initialColumnCount);
             });
 
             describe('with grouping feature', function () {
@@ -2185,7 +2214,7 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                         // Scroll incrementally until the correct end point is found
                         view.scrollBy(null, 10);
                     }
-                }, 'last node to scroll into view', 10000, 50);
+                }, 'last node to scroll into view', 30000, 50);
 
                 // Expanding that last node should append some child nodes to replenish the leading buffer zone.
                 runs(function () {
@@ -2277,11 +2306,11 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
         var Hobbit, store;
 
         afterEach(function() {
-            Ext.destroy(Hobbit, store);
+            Ext.destroy(Hobbit);
         });
 
         it('should reset the cached position so the grid-item-container is at the top of the view on filter', function () {
-            Hobbit = Ext.define(null, {
+            var Hobbit = Ext.define(null, {
                 extend: 'Ext.data.Model',
                 fields: ['name'],
                 proxy: {
@@ -2333,9 +2362,9 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
             });
 
             waitsFor(function () {
-                view.scrollBy(null, 10);
+                view.scrollBy(null, 25);
                 return view.all.startIndex <= 199 && view.all.endIndex >= 199;
-            }, 'row 199 to scroll into the rendered block', 10000);
+            }, 'row 199 to scroll into the rendered block', 30000, 50);
 
             runs(function () {
                 store.addFilter({
@@ -2348,10 +2377,12 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                 expect(plugin.position).toBe(0);
             });
         });
-        it('should reset the cached position so the grid-item-container is at the top of the view on clearFilter', function () {
+        
+        // Uses shift/click which is not available on touch
+        itNotTouch('should reset the cached position so the grid-item-container is at the top of the view on clearFilter', function () {
             var selModel;
 
-            Hobbit = Ext.define(null, {
+            var Hobbit = Ext.define(null, {
                 extend: 'Ext.data.Model',
                 fields: ['name'],
                 proxy: {
@@ -2408,15 +2439,10 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                 // Click to select first row
                 jasmine.fireMouseEvent(view.getCellByPosition({row: 0, column: 0}, true), 'click');
                 expect(view.selModel.getSelection().length).toBe(1);
-            });
 
-            // Scroll all the way to the end
-            waitsFor(function () {
-                view.scrollBy(null, 100);
-                return view.all.endIndex === 2499;
-            }, 'scroll to end', 10000);
+                // Scroll all the way to the end
+                grid.ensureVisible(2499);
 
-            runs(function () {
                 // Click to select from start to end.
                 jasmine.fireMouseEvent(view.getCellByPosition({row: 2499, column: 0}, true), 'click', null, null, null, true);
                 expect(view.selModel.getSelection().length).toBe(2500);
@@ -2540,7 +2566,7 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                     }, {
                         text: 'Task5',
                         dataIndex: 'task5'
-                    }],
+                    }]
                 }, 1000);
             }
 
@@ -2594,7 +2620,8 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
                 proxy: {
                     type: 'memory',
                     data: makeData(52)
-                }
+                },
+                autoDestroy: true
             });
             store.load();
             var store1 = new Ext.data.Store({
@@ -2677,11 +2704,73 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
             // Scroll all the way to the start
             waitsFor(function () {
                 view.scrollBy(null, -100);
-                return view.getScrollY() === 0;;
+                return view.getScrollY() === 0;
             }, 'scroll to top', 10000);
 
             runs(function() {
                 expect(view.bufferedRenderer.bodyTop).toBe(0);
+            });
+        });
+    });
+
+    describe('Reducing view size', function() {
+        var grid;
+
+        afterEach(function() {
+            grid.destroy();
+        });
+
+        it("should reduce the size of the rendered block when the view's height is reduced", function() {
+            var Person = Ext.define(null, {
+                extend: 'Ext.data.Model',
+                fields: ['name'],
+                proxy: {
+                    type: 'ajax',
+                    url: '/foo',
+                    reader: {
+                        rootProperty: 'data'
+                    }
+                }
+            });
+
+            var store = new Ext.data.Store({
+                model: Person,
+                proxy: {
+                    type: 'memory',
+                    data: makeData(100)
+                },
+                autoDestroy: true
+            });
+            store.load();
+
+            grid = new Ext.grid.Panel({
+                title: 'Grid 1',
+                store: store,
+                deferRowRender: false,
+                columns: [{
+                    dataIndex: 'id'
+                }, {
+                    dataIndex: 'name'
+                }],
+                height: 500,
+                renderTo: document.body
+            });
+            
+            grid.view.getScrollable().scrollBy(0, 2000);
+            
+            waitsFor(function() {
+                return grid.view.all.startIndex !== 0;
+            });
+            
+            runs(function() {
+
+                var renderedBlockSize = grid.view.all.getCount();
+                
+                expect(function() {
+                    grid.setHeight(200);
+                }).not.toThrow();
+
+                expect(grid.view.all.getCount()).toBeLessThan(renderedBlockSize);
             });
         });
     });
@@ -2730,6 +2819,150 @@ describe('Ext.grid.plugin.BufferedRenderer', function () {
             // Should have scrolled all the way to the end
             expect(view.all.endIndex).toBe(999);
             expect(view.bufferedRenderer.getLastVisibleRowIndex()).toBe(999);
+        });
+    });
+    
+    // https://sencha.jira.com/browse/EXTJS-19454
+    // Bug manifests when a buffer rendered tree is added by state restoration
+    // on DOM scrolling devices when touch is enabled.
+    describe('scroll range stretching correctly when DOM TouchScrolling is used', function() {
+        var touch = Ext.supports.Touch,
+            touchEvents = Ext.supports.TouchEvents,
+            container;
+
+        afterEach(function() {
+            Ext.destroy(container, tree);
+
+            // Restore to platform defaults
+            Ext.supports.TouchEvents = touchEvents;
+            Ext.supports.Touch = touch;
+        });
+
+        it('should always create a spacer', function() {
+
+            // Fake up the touch scrolling environment which triggers the bug
+            Ext.supports.TouchEvents = true;
+            Ext.supports.Touch = true;
+
+            container = new Ext.container.Container({
+                stateful: true,
+                layout: 'fit',
+                height: 400,
+                width: 600,
+                renderTo: document.body,
+                initState: function() {
+                    this.add(makeTree({
+                        rootVisible: false,
+                        renderTo: null
+                    }, 500));
+                }
+            });
+
+            // There must ALWAYS be a spacer to create a virtual scroll range
+            expect(view.getScrollable()._spacer).not.toBeUndefined();
+        });
+    });
+    
+    describe('delayed data returning after scroll position has moved', function() {
+        it('should not render the returned data block if the scroll position has moved on since the load was requested', function() {
+            var Person = Ext.define(null, {
+                extend: 'Ext.data.Model',
+                fields: ['name'],
+                proxy: {
+                    type: 'ajax',
+                    url: '/foo',
+                    reader: {
+                        rootProperty: 'data'
+                    }
+                }
+            });
+
+            store = new Ext.data.BufferedStore({
+                model: Person,
+                leadingBufferZone: 300,
+                pageSize: 100,
+                autoDestroy: true
+            });
+
+            grid = new Ext.grid.Panel({
+                width: 500,
+                height: 300,
+                store: store,
+                deferRowRender: false,
+                columns: [{
+                    dataIndex: 'id',
+                    locked: true
+                }, {
+                    dataIndex: 'name'
+                }],
+                renderTo: Ext.getBody()
+            });
+            var view = grid.normalGrid.view;
+
+            // Load the pages around scrollTop 0
+            store.load();
+            satisfyRequests();
+
+            // Scroll a long way to a part of the dataset for which we do not have data.
+            view.scrollTo(null, 100000);
+
+            // Allow the scroll event to fire and the requests for the pages
+            // surrounding scrollTop 100000 to be requested.
+            waits(100);
+
+            // Before we return the data for that scroll position,
+            // scroll back to zero
+            runs(function() {
+                view.scrollTo(null, 0);
+            });
+
+            // Allow the scroll handler to fire.
+            // The pages at the top of the dataset will be already there.
+            // The incoming pages for scrollTop 100000 should NOT cause
+            // a render of the rows down at that range; that data
+            // is not required any more.
+            waits(100);
+
+            runs(function() {
+                satisfyRequests();
+                expect(view.all.startIndex).toBe(0);
+            });
+
+        });
+    });
+    
+    describe('refreshView', function() {
+        it('should scroll to an appropriate position when refreshing the view at a specified startIndex', function() {
+            var columns = [{
+                    text: 'Col 1',
+                    dataIndex: 'field1',
+                    width: 100
+                }, {
+                    text: 'Col 2',
+                    dataIndex: 'field2',
+                    width: 100
+                }, {
+                    text: 'Col 3',
+                    dataIndex: 'field3',
+                    width: 100
+                }, {
+                    text: 'Col 4',
+                    dataIndex: 'field4',
+                    width: 100
+                }];
+
+            makeGrid({
+                columns: columns
+            }, {
+                fields: ['field1', 'field2', 'field3', 'field4', 'field5'],
+                data: createData(1000)
+            });
+            view.bufferedRenderer.refreshView(500);
+
+            // After a refresh at a teleported position (no overlapping records with previous rendered block),
+            // the view has moved downwards, so the first visible row index must be "trailingBufferZone" rows
+            // after the requested refresh start row.
+            expect(view.bufferedRenderer.getFirstVisibleRowIndex()).toBe(500 + view.bufferedRenderer.trailingBufferZone);
         });
     });
 });

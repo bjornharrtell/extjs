@@ -26,8 +26,7 @@ Ext.define('Ext.event.publisher.Dom', {
         animationend: 1,
         resize: 1,
         focus: 1,
-        blur: 1,
-        scroll: 1
+        blur: 1
     },
 
     // The following events do not bubble, and cannot be "captured".  The only way to
@@ -45,7 +44,11 @@ Ext.define('Ext.event.publisher.Dom', {
         error: 1,
         DOMContentLoaded: 1,
         DOMFrameContentLoaded: 1,
-        hashchange: 1
+        hashchange: 1,
+        // Scroll can be captured, but it is listed here as one of directEvents instead of
+        // captureEvents because in some browsers capturing the scroll event does not work
+        // if the window object itself fired the scroll event.
+        scroll: 1
     },
 
     /**
@@ -283,21 +286,63 @@ Ext.define('Ext.event.publisher.Dom', {
         return targets;
     },
 
-    publish: function(eventName, target, e) {
+    /**
+     *
+     * @param e {Ext.event.Event/Ext.event.Event[]} An event to publish. Can also be an
+     * array of events.  Gesture publisher passes an array so that gesture events and
+     * the dom events from which they were synthesized can propagate together.
+     * @param [targets] {HTMLElement[]} propagation targets.  Required if `e` is an array.
+     * @param {Boolean} [claimed=false] pass true if we are re-entering publish() to
+     * publish gesture cancellation events that are being fired as a result of something
+     * being claimed.  This ensures that cancellation events cannot be claimed.
+     * @protected
+     */
+    publish: function(e, targets, claimed) {
         var me = this,
-            targets, el, i, ln;
+            hasCaptureSubscribers = false,
+            hasBubbleSubscribers = false,
+            events, type, target, el, i, ln, j, eLn;
 
-        if (Ext.isArray(target)) {
-            // Gesture publisher passes an already created array of propagating targets
-            targets = target;
-        } else if (me.captureEvents[eventName]) {
-            el = Ext.cache[target.id];
-            targets = el ? [el] : [];
-        } else {
-            targets = me.getPropagatingTargets(target);
+        claimed = claimed || false;
+
+        // Gesture publisher passes an already created array of propagating targets.
+        // For all other events we need to compute the targets for propagation now.
+        if (!targets) {
+            //<debug>
+            if (e instanceof Array) {
+                Ext.raise("Propagation targets must be supplied when publishing an array of events.");
+            }
+            //</debug>
+
+            // No targets passed, assume that e is not an array.
+            target = e.target;
+
+            if (me.captureEvents[e.type]) {
+                el = Ext.cache[target.id];
+                targets = el ? [el] : [];
+            } else {
+                targets = me.getPropagatingTargets(target);
+            }
         }
 
+        // "e" may be either a single event (as is the case for events fired by dom publisher)
+        // or it could be an array of events containing a dom event and its recognized
+        // gesture events.
+        events = Ext.Array.from(e);
+
         ln = targets.length;
+        eLn = events.length;
+
+        for (i = 0; i < eLn; i++) {
+            type = events[i].type;
+            if (!hasCaptureSubscribers && me.captureSubscribers[type]) {
+                hasCaptureSubscribers = true;
+            }
+
+            if (!hasBubbleSubscribers && me.bubbleSubscribers[type]) {
+                hasBubbleSubscribers = true;
+            }
+        }
 
         // We will now proceed to fire events in both capture and bubble phases.  You
         // may notice that we are looping all potential targets both times, and only
@@ -308,13 +353,26 @@ Ext.define('Ext.event.publisher.Dom', {
         // are fired.  See https://sencha.jira.com/browse/EXTJS-15953
 
         // capture phase (top-down event propagation).
-        if (me.captureSubscribers[eventName]) {
+        if (hasCaptureSubscribers) {
             for (i = ln; i--;) {
                 el = Ext.cache[targets[i].id];
                 if (el) {
-                    me.fire(el, eventName, e, false, true);
-                    if (e.isStopped) {
-                        break;
+                    for (j = 0; j < eLn; j++) {
+                        e = events[j];
+
+                        me.fire(el, e.type, e, false, true);
+
+                        if (!claimed && e.claimed) {
+                            claimed = true;
+                            j = me.filterClaimed(events, e);
+                            eLn = events.length; // filterClaimed may remove items
+                        }
+
+                        if (e.stopped) {
+                            events.splice(j, 1);
+                            j--;
+                            eLn--;
+                        }
                     }
                 }
             }
@@ -322,17 +380,38 @@ Ext.define('Ext.event.publisher.Dom', {
 
         // bubble phase (bottom-up event propagation).
         // stopPropagation during capture phase cancels entire bubble phase
-        if (!e.isStopped && me.bubbleSubscribers[eventName]) {
+        if (hasBubbleSubscribers && !e.stopped) {
             for (i = 0; i < ln; i++) {
                 el = Ext.cache[targets[i].id];
                 if (el) {
-                    me.fire(el, eventName, e, false, false);
-                    if (e.isStopped) {
-                        break;
+                    for (j = 0; j < eLn; j++) {
+                        e = events[j];
+
+                        me.fire(el, e.type, e, false, false);
+
+                        if (!claimed && e.claimed && me.filterClaimed) {
+                            claimed = true;
+                            j = me.filterClaimed(events, e);
+                            eLn = events.length; // filterClaimed may remove items
+                        }
+
+                        if (e.stopped) {
+                            events.splice(j, 1);
+                            j--;
+                            eLn--;
+                        }
                     }
                 }
             }
         }
+    },
+
+    /**
+     * Hook for gesture publisher to override and perform gesture recognition
+     * @param {Ext.event.Event} e
+     */
+    publishDelegatedDomEvent: function(e) {
+        this.publish(e);
     },
 
     fire: function(element, eventName, e, direct, capture) {
@@ -370,29 +449,25 @@ Ext.define('Ext.event.publisher.Dom', {
         }
     },
 
-    doDelegatedEvent: function(e, invokeAfter) {
+    doDelegatedEvent: function(e) {
         var me = this,
-            timeStamp = e.timeStamp;
+            timeStamp;
 
         e = new Ext.event.Event(e);
 
-        if (me.isEventBlocked(e)) {
-            return false;
-        }
+        timeStamp = e.time;
 
-        me.beforeEvent(e);
+        if (!me.isEventBlocked(e)) {
+            me.beforeEvent(e);
 
-        Ext.frameStartTime = timeStamp;
+            Ext.frameStartTime = timeStamp;
 
-        me.reEnterCount++;
-        me.publish(e.type, e.target, e);
-        me.reEnterCount--;
+            me.reEnterCount++;
+            me.publishDelegatedDomEvent(e);
+            me.reEnterCount--;
 
-        if (invokeAfter !== false) {
             me.afterEvent(e);
         }
-
-        return e;
     },
 
     /**
@@ -425,10 +500,11 @@ Ext.define('Ext.event.publisher.Dom', {
     doDirectEvent: function(e, capture) {
         var me = this,
             currentTarget = e.currentTarget,
-            timeStamp = e.timeStamp,
-            el;
+            timeStamp, el;
 
         e = new Ext.event.Event(e);
+
+        timeStamp = e.time;
 
         if (me.isEventBlocked(e)) {
             return;
@@ -582,11 +658,20 @@ Ext.define('Ext.event.publisher.Dom', {
     },
 
     destroy: function() {
-        var eventName;
+        var GC = Ext.dom['GarbageCollector'],
+            eventName;
 
         for (eventName in this.delegatedListeners) {
             this.removeDelegatedListener(eventName);
         }
+
+        // We are wired to the unload event, so we ensure cleanup of low-level stuff
+        // like the Reaper and the GarbageCollector.
+        Ext.Reaper.flush();
+        if (GC) {
+            GC.collect();
+        }
+
         this.callParent();
     },
 

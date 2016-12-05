@@ -154,6 +154,142 @@ describe("Ext.Base", function() {
         });
     });
 
+    describe("compatibility", function() {
+        var Cls, fn, overrideFn;
+
+        beforeEach(function() {
+            fn = function() {};
+            overrideFn = function() {};
+
+            Cls = Ext.define(null, {
+                someFn: fn
+            });
+        });
+
+        afterEach(function() {
+            overrideFn = fn = Cls = null;
+        });
+
+        describe("null/undefined", function() {
+            it("should not apply the override if the compat value is null", function() {
+                Ext.define(null, {
+                    override: Cls,
+                    compatibility: null,
+                    someFn: overrideFn
+                });
+                expect(Cls.prototype.someFn).toBe(fn);
+            });
+
+            it("should not apply the override if the compat value is undefined", function() {
+                Ext.define(null, {
+                    override: Cls,
+                    compatibility: null,
+                    someFn: overrideFn
+                });
+                expect(Cls.prototype.someFn).toBe(fn);
+            });
+        });
+
+        describe("boolean", function() {
+            it("should not apply the override if the compat value is false", function() {
+                Ext.define(null, {
+                    override: Cls,
+                    compatibility: false,
+                    someFn: overrideFn
+                });
+                expect(Cls.prototype.someFn).toBe(fn);
+            });
+
+            it("should apply the override if the compat value is true", function() {
+                Ext.define(null, {
+                    override: Cls,
+                    compatibility: true,
+                    someFn: overrideFn
+                });
+                expect(Cls.prototype.someFn).toBe(overrideFn);
+            });
+        });
+
+        describe("numeric", function() {
+            it("should not apply the override if the compat value is 0", function() {
+                Ext.define(null, {
+                    override: Cls,
+                    compatibility: 0,
+                    someFn: overrideFn
+                });
+                expect(Cls.prototype.someFn).toBe(fn);
+            });
+
+            it("should apply the override if the compat value is non zero", function() {
+                Ext.define(null, {
+                    override: Cls,
+                    compatibility: 9,
+                    someFn: overrideFn
+                });
+                expect(Cls.prototype.someFn).toBe(overrideFn);
+            });
+        });
+
+        // We don't want exhaustive testing of all version combinations here since
+        // that would basically just be testing checkVersion, we just want to see if 
+        // the basics get passed along
+        describe("other values", function() {
+            var oldVersions;
+
+            beforeEach(function () {
+                oldVersions = Ext.versions;
+                Ext.versions = {
+                    ext: new Ext.Version('4.2.2.900')
+                };
+            });
+
+            afterEach(function () {
+                Ext.versions = oldVersions;
+                oldVersions = null;
+            });
+        
+            describe("version string", function() {
+                it("should not apply the override if the version string does not match", function() {
+                    Ext.define(null, {
+                        override: Cls,
+                        compatibility: '4.2.1',
+                        someFn: overrideFn
+                    });
+                    expect(Cls.prototype.someFn).toBe(fn);
+                });
+
+                it("should apply the override if the version string matches", function() {
+                    Ext.define(null, {
+                        override: Cls,
+                        compatibility: '4.2.2.900',
+                        someFn: overrideFn
+                    });
+                    expect(Cls.prototype.someFn).toBe(overrideFn);
+                });
+            });
+
+            describe("array of version strings", function() {
+                it("should not apply the override if the versions don't match", function() {
+                    Ext.define(null, {
+                        override: Cls,
+                        compatibility: ['4.2.1', '5.1.0-5.1.3'],
+                        someFn: overrideFn
+                    });
+                    expect(Cls.prototype.someFn).toBe(fn);
+                });
+
+                it("should apply the override if the versions match", function() {
+                    Ext.define(null, {
+                        override: Cls,
+                        compatibility: ['4.1.0-4.1.3', '4.2.0-4.2.4'],
+                        someFn: overrideFn
+                    });
+                    expect(Cls.prototype.someFn).toBe(overrideFn);
+                });
+            });
+        });
+    });
+
     describe("borrow", function() {
         beforeEach(function() {
             Ext.define("spec.Foo", {
@@ -329,4 +465,240 @@ describe("Ext.Base", function() {
         });
     });
     
+    describe("destruction", function() {
+        var Class, instance, linked;
+        
+        beforeEach(function() {
+            Class = Ext.define(null, {
+                constructor: function(config) {
+                    Ext.apply(this, config);
+                }
+            });
+        });
+        
+        afterEach(function() {
+            // Should be already destroyed in the tests!
+            Class = instance = linked = null;
+        });
+        
+        describe("basics", function() {
+            beforeEach(function() {
+                instance = new Class();
+                
+                instance.destroy();
+            });
+            
+            it("should set destroyed flag", function() {
+                expect(instance.destroyed).toBe(true);
+            });
+            
+            it("should set isDestroyed flag", function() {
+                expect(instance.isDestroyed).toBe(true);
+            });
+            
+            it("should replace destroy method with emptyFn", function() {
+                expect(instance.destroy).toBe(Ext.emptyFn);
+            });
+        });
+        
+        describe("linking", function() {
+            describe("instances", function() {
+                beforeEach(function() {
+                    linked = new Class();
+                    instance = new Class();
+                    
+                    instance.link('foo', linked);
+                    instance.destroy();
+                });
+                
+                it("should destroy linked instance", function() {
+                    expect(linked.destroyed).toBe(true);
+                });
+                
+                it("should null linked reference on the instance", function() {
+                    expect(instance.foo).toBe(null);
+                });
+                
+                it("should null $links map", function() {
+                    expect(instance.$links).toBe(null);
+                });
+            });
+            
+            describe("DOM nodes", function() {
+                beforeEach(function() {
+                    linked = document.createElement('div');
+                    document.body.appendChild(linked);
+                    
+                    instance = new Class();
+                    
+                    instance.link('frobbe', linked);
+                    
+                    instance.destroy();
+                });
+                
+                it("should detach the linked DOM node", function() {
+                    expect(linked.parentElement).toBe(null);
+                });
+                
+                it("should null linked reference on the instance", function() {
+                    expect(instance.frobbe).toBe(null);
+                });
+                
+                it("should null $links map", function() {
+                    expect(instance.$links).toBe(null);
+                });
+            });
+        });
+        
+        describe("cleanup", function() {
+            var oldFlag;
+            
+            beforeEach(function() {
+                oldFlag = Ext.Base.prototype.clearPropertiesOnDestroy;
+                Ext.Base.prototype.clearPropertiesOnDestroy = true;
+                
+                Class.prototype.$noClearOnDestroy = {
+                    bar: true
+                };
+                
+                Class.prototype.qux = {};
+                Class.prototype.mymse = function() {};
+            });
+            
+            afterEach(function() {
+                Ext.Base.prototype.clearPropertiesOnDestroy = oldFlag;
+            });
+            
+            describe("reaping", function() {
+                beforeEach(function() {
+                    instance = new Class({
+                        foo: 'baroo',
+                        bar: {},
+                        blerg: function() {}, // NOT emptyFn
+                        throbbe: Ext.emptyFn,
+                        frob: Ext.privateFn,
+                        fred: Ext.identityFn,
+                        zumbo: {},
+                        gurgle: [],
+                        zingbong: document.createElement('div')
+                    });
+                    
+                    instance.destroy();
+                });
+                
+                it("should null own object references", function() {
+                    expect(instance.zumbo).toBe(null);
+                });
+                
+                it("should null own array references", function() {
+                    expect(instance.gurgle).toBe(null);
+                });
+                
+                it("should null own DOM node references", function() {
+                    expect(instance.zingbong).toBe(null);
+                });
+                
+                it("should null own closure references", function() {
+                    expect(instance.blerg).toBe(null);
+                });
+                
+                it("should not null primitive values", function() {
+                    expect(instance.foo).toBe('baroo');
+                });
+                
+                it("should not null own emptyFn references", function() {
+                    expect(instance.throbbe).toBe(Ext.emptyFn);
+                });
+                
+                it("should not null own privateFn references", function() {
+                    expect(instance.frob).toBe(Ext.privateFn);
+                });
+                
+                it("should not null own identityFn references", function() {
+                    expect(instance.fred).toBe(Ext.identityFn);
+                });
+                
+                it("should not null inherited object references", function() {
+                    expect(typeof instance.qux).toBe('object');
+                });
+                
+                it("should not null inherited function references", function() {
+                    expect(typeof instance.mymse).toBe('function');
+                });
+                
+                it("should not null whitelisted own properties", function() {
+                    expect(typeof instance.bar).toBe('object');
+                });
+                
+                it("should not null properties when the mood is not right", function() {
+                    instance = new Class({
+                        foo: {},
+                        clearPropertiesOnDestroy: false
+                    });
+                    
+                    instance.destroy();
+                    
+                    expect(typeof instance.foo).toBe('object');
+                });
+            });
+            
+            if (Object.setPrototypeOf) {
+                describe("nuking", function() {
+                    it("should not nuke the instance by default", function() {
+                        instance = new Class();
+                        instance.destroy();
+                        
+                        expect(Object.getPrototypeOf(instance)).not.toBe(null);
+                    });
+                    
+                    it("should set prototype to null when flag is set", function() {
+                        instance = new Class({
+                            clearPrototypeOnDestroy: true
+                        });
+
+                        instance.destroy();
+                        
+                        expect(Object.getPrototypeOf(instance)).toBe(null);
+                    });
+                });
+            }
+            
+            describe("asynchronoucitiness", function() {
+                var oldDelay;
+                
+                beforeEach(function() {
+                    Class.prototype.clearPropertiesOnDestroy = 'async';
+                    
+                    // Jasmine may kick in to introduce an async gap in processing
+                    oldDelay = Ext.Reaper.delay;
+                    Ext.Reaper.delay = Number.MAX_SAFE_INTEGER;
+                    
+                    // Can't spy on the instance because destructor would null the spy!
+                    spyOn(Class.prototype, '$reap').andCallThrough();
+                    
+                    instance = new Class({ foo: {} });
+                    instance.destroy();
+                });
+                
+                afterEach(function() {
+                    Ext.Reaper.delay = oldDelay;
+                });
+                
+                it("should add instance to Reaper's pile of corpses", function() {
+                    expect(Ext.Array.indexOf(Ext.Reaper.queue, instance)).not.toBe(-1);
+                });
+                
+                it("should raise the timer", function() {
+                    expect(Ext.Reaper.timer).not.toBe(null);
+                });
+                
+                it("should reap all dead bodies on tick", function() {
+                    Ext.Reaper.tick();
+                    
+                    expect(instance.foo).toBe(null);
+                    expect(Ext.Reaper.queue.length).toBe(0);
+                });
+            });
+        });
+    });
 });

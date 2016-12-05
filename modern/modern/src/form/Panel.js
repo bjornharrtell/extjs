@@ -130,9 +130,10 @@
  */
 Ext.define('Ext.form.Panel', {
     alternateClassName: 'Ext.form.FormPanel',
-    extend  : 'Ext.Panel',
-    xtype   : 'formpanel',
+    extend: 'Ext.Panel',
+    xtype: 'formpanel',
     requires: ['Ext.XTemplate', 'Ext.field.Checkbox', 'Ext.Ajax'],
+    mixins: ['Ext.form.FieldContainer'],
 
     /**
      * @event submit
@@ -166,12 +167,6 @@ Ext.define('Ext.form.Panel', {
      */
 
     config: {
-        /**
-         * @cfg {String} baseCls
-         * @inheritdoc
-         */
-        baseCls: Ext.baseCSSPrefix + 'form',
-
         /**
          * @cfg {Boolean} standardSubmit
          * Whether or not we want to perform a standard form submit.
@@ -238,15 +233,23 @@ Ext.define('Ext.form.Panel', {
          * {@link Ext.direct.Manager} can be specified here to load and submit forms. API methods may also be
          * specified as strings and will be parsed into the actual functions when the first submit or load has occurred. Such as the following:
          *
-         *     api: {
-         *         load: App.ss.MyProfile.load,
-         *         submit: App.ss.MyProfile.submit
-         *     }
+         *      api: {
+         *          load: App.ss.MyProfile.load,
+         *          submit: App.ss.MyProfile.submit
+         *      }
          *
-         *     api: {
-         *         load: 'App.ss.MyProfile.load',
-         *         submit: 'App.ss.MyProfile.submit'
-         *     }
+         *      api: {
+         *          load: 'App.ss.MyProfile.load',
+         *          submit: 'App.ss.MyProfile.submit'
+         *      }
+         *
+         * You can also use a prefix instead of fully qualified function names:
+         *
+         *      api: {
+         *          prefix: 'App.ss.MyProfile',
+         *          load: 'load',
+         *          submit: 'submit'
+         *      }
          *
          * Load actions can use {@link #paramOrder} or {@link #paramsAsHash} to customize how the load method
          * is invoked.  Submit actions will always use a standard form submit. The `formHandler` configuration
@@ -302,6 +305,12 @@ Ext.define('Ext.form.Panel', {
          */
         enableSubmissionForm: true
     },
+
+    layout: {
+        type: 'vbox'
+    },
+
+    classCls: Ext.baseCSSPrefix + 'formpanel',
 
     getElementConfig: function() {
         var config = this.callParent();
@@ -530,7 +539,7 @@ Ext.define('Ext.form.Panel', {
 
     createSubmissionForm: function(form, values) {
         var fields = this.getFields(),
-            name, input, field, fileinputElement, inputComponent;
+            name, input, field, inputDom;
 
         if(form.nodeType === 1) {
             form = form.cloneNode(false);
@@ -550,12 +559,11 @@ Ext.define('Ext.form.Panel', {
                 if(field.isFile) {
                     if(!form.$fileswap) form.$fileswap = [];
 
-                    inputComponent = field.getComponent().input;
-                    fileinputElement = inputComponent.dom;
-                    input = fileinputElement.cloneNode(true);
-                    fileinputElement.parentNode.insertBefore(input, fileinputElement.nextSibling);
-                    form.appendChild(fileinputElement);
-                    form.$fileswap.push({original: fileinputElement, placeholder: input});
+                    inputDom = field.getComponent().inputElement.dom;
+                    input = inputDom.cloneNode(true);
+                    inputDom.parentNode.insertBefore(input, inputDom.nextSibling);
+                    form.appendChild(inputDom);
+                    form.$fileswap.push({original: inputDom, placeholder: input});
                 } else if(field.isPassword) {
                     if(field.getComponent().getType !== "password") {
                         field.setRevealed(false);
@@ -641,32 +649,32 @@ Ext.define('Ext.form.Panel', {
             }
 
             if (api) {
+                me.applyExtraParams(options);
+                
+                api = Ext.direct.Manager.resolveApi(api, me);
+                me.setApi(api);
+                
                 submit = api.submit;
-
-                if (typeof submit === 'string') {
-                    submit = Ext.direct.Manager.parseMethod(submit);
-
-                    if (submit) {
-                        api.submit = submit;
-                    }
+                
+                if (!submit) {
+                    Ext.raise("Cannot find Ext Direct API method for submit action");
                 }
 
-                if (submit) {
-                    return submit(this.element, function(data, response, success) {
-                        me.setMasked(false);
+                return submit(form, function(data, response, success) {
+                    me.setMasked(false);
 
-                        if (success) {
-                            if (data.success) {
-                                successFn(response, data);
-                            } else {
-                                failureFn(response, data);
-                            }
+                    if (success) {
+                        if (data.success) {
+                            successFn(response, data);
                         } else {
                             failureFn(response, data);
                         }
-                    }, this);
-                }
-            } else {
+                    } else {
+                        failureFn(response, data);
+                    }
+                }, this);
+            }
+            else {
                 var request = Ext.merge({},
                     {
                         url: url,
@@ -770,6 +778,20 @@ Ext.define('Ext.form.Panel', {
         }
     },
 
+    applyExtraParams: function(options) {
+        var form = options.form,
+            params = Ext.merge(this.getBaseParams() || {}, options.params),
+            name, input;
+
+        for (name in params) {
+            input = document.createElement('input');
+            input.setAttribute('type', 'text');
+            input.setAttribute('name', name);
+            input.setAttribute('value', params[name]);
+            form.appendChild(input);
+        }
+    },
+
     /**
      * Performs an Ajax or Ext Direct call to load values for this form.
      *
@@ -839,7 +861,7 @@ Ext.define('Ext.form.Panel', {
      *
      * @return {Ext.data.Connection} The request object.
      */
-    load : function(options) {
+    load: function(options) {
         options = options || {};
 
         var me = this,
@@ -862,7 +884,7 @@ Ext.define('Ext.form.Panel', {
 
                 me.fireEvent('exception', me, response);
             },
-            load, method, args;
+            load, args;
 
         if (options.waitMsg) {
             if (typeof waitMsg === 'string') {
@@ -876,21 +898,21 @@ Ext.define('Ext.form.Panel', {
         }
 
         if (api) {
+            api = Ext.direct.Manager.resolveApi(api, me);
+            me.setApi(api);
+            
             load = api.load;
-
-            if (typeof load === 'string') {
-                load = Ext.direct.Manager.parseMethod(load);
-
-                if (load) {
-                    api.load = load;
-                }
+            
+            if (!load) {
+                Ext.raise("Cannot find Ext Direct API method for load action");
             }
 
-            if (load) {
-                method = load.directCfg.method;
-                args = method.getArgs(me.getParams(options.params), me.getParamOrder(), me.getParamsAsHash());
-
-                args.push(function(data, response, success) {
+            args = load.$directCfg.method.getArgs({
+                params: me.getParams(options.params),
+                paramOrder: me.getParamOrder(),
+                paramsAsHash: me.getParamsAsHash(),
+                scope: me,
+                callback: function(data, response, success) {
                     me.setMasked(false);
 
                     if (success) {
@@ -898,11 +920,12 @@ Ext.define('Ext.form.Panel', {
                     } else {
                         failureFn(response, data);
                     }
-                }, me);
+                }
+            });
 
-                return load.apply(window, args);
-            }
-        } else if (url) {
+            load.apply(window, args);
+        }
+        else if (url) {
             return Ext.Ajax.request({
                 url: url,
                 timeout: (options.timeout || this.getTimeout()) * 1000,
@@ -1196,9 +1219,13 @@ Ext.define('Ext.form.Panel', {
             }
         };
 
-        this.getItems().each(getFieldsFrom);
+        this.fieldQuery().forEach(getFieldsFrom);
 
         return (byName) ? (fields[byName] || []) : fields;
+    },
+
+    fieldQuery: function() {
+        return this.getItems().getRange();
     },
 
     /**

@@ -1104,7 +1104,6 @@ if (!document.createElement('canvas').getContext) {
     copyState(this, o);
     this.aStack_.push(o);
     this.mStack_.push(this.m_);
-    this.m_ = matrixMultiply(createMatrixIdentity(), this.m_);
   };
 
   contextPrototype.restore = function() {

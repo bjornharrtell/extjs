@@ -33,7 +33,7 @@ Ext.define('Ext.menu.CheckItem', {
     /**
      * @cfg {Function/String} checkHandler
      * Alternative for the {@link #checkchange} event.  Gets called with the same parameters.
-     * @declarativeHandler
+     * @controllable
      */
 
     /**
@@ -98,6 +98,8 @@ Ext.define('Ext.menu.CheckItem', {
     childEls: [
         'checkEl'
     ],
+
+    defaultBindProperty: 'checked',
     
     showCheckbox: true,
 
@@ -230,9 +232,10 @@ Ext.define('Ext.menu.CheckItem', {
         this.callParent([e]);
     },
 
-    onDestroy: function() {
+    doDestroy: function() {
         Ext.menu.Manager.unregisterCheckable(this);
-        this.callParent(arguments);
+        
+        this.callParent();
     },
     
     setText: function(text) {
@@ -275,6 +278,8 @@ Ext.define('Ext.menu.CheckItem', {
 
             me.checked = checked;
             Ext.menu.Manager.onCheckChange(me, checked);
+
+            me.publishState('checked', checked);
 
             if (!suppressEvents) {
                 Ext.callback(me.checkHandler, me.scope, [me, checked], 0, me);

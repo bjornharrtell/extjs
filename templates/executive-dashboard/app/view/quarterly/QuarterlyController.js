@@ -12,11 +12,6 @@ Ext.define('ExecDashboard.view.quarterly.QuarterlyController', {
         view.setActiveState(menuitem.text);
     },
 
-    onQuarterlyStatementClick: function(dv, record, item, idx, e, eOpts) {
-        //TODO we probably need to use <a> tag for mobile to work
-        window.open(record.get('url'));
-    },
-
     updateActiveState: function (activeState) {
         var viewModel = this.getViewModel();
 

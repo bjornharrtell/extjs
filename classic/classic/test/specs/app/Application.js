@@ -1,5 +1,7 @@
-xdescribe("Ext.app.Application", function() {
-    var Class, app, initCalled, launchCalled;
+/* global Ext, spyOn, expect */
+
+describe("Ext.app.Application", function() {
+    var Class, app, initCalled, launchCalled, required;
 
     beforeEach(function() {
         this.addMatchers({
@@ -35,11 +37,6 @@ xdescribe("Ext.app.Application", function() {
             create: function() {}
         });
 
-        spyOn(Ext.Loader, 'require').andCallThrough();
-
-        spyOn(Ext.Loader, 'injectScriptElement').andReturn();
-        spyOn(Ext.Loader, 'onFileLoadError').andReturn();
-
         Class = Ext.define('TestApplication.Application', {
             extend: 'Ext.app.Application',
 
@@ -56,6 +53,11 @@ xdescribe("Ext.app.Application", function() {
 
             autoCreateViewport: true,
 
+            __handleRequires: function(requires, callback) {
+                required = requires;
+                callback();
+            },
+
             init: function() {
                 initCalled = true;
             },
@@ -67,6 +69,7 @@ xdescribe("Ext.app.Application", function() {
     });
     
     afterEach(function() {
+        required = null;
         Ext.app.clearNamespaces();
 
         if (Ext.isIE) {
@@ -74,6 +77,10 @@ xdescribe("Ext.app.Application", function() {
         } else {
             delete window.TestApplication;
         }
+
+        Ext.undefine('TestApplication.controller.Foo');
+        Ext.undefine('TestApplication.view.Viewport');
+        Ext.undefine('TestApplication.Application');
     });
 
     describe("resolves global namespaces upon class creation", function() {
@@ -92,34 +99,45 @@ xdescribe("Ext.app.Application", function() {
     
     describe("resolves class names", function() {
         it("resolves Viewport when autoCreateViewport is true", function() {
-            var args = Ext.Loader.require.argsForCall[1][0];
-
-            expect(args).toEqual([
+            expect(required).toEqual([
                 'TestApplication.view.Viewport'
             ]);
         });
         
-        it("defaults to 'app' when appFolder is not set", function() {
-            var path = Ext.Loader.config.paths.TestApplication;
-            
-            expect(path).toBe('app');
-        });
-        
         describe("when appFolder is set", function() {
             beforeEach(function() {
+
+                // This class name is generated and required by an Application
+                // named "Foo" with autoCreateViewport: true
+                // So we must define it to prevent a failed load.
+                Ext.define('Foo.view.Viewport', {
+                    extend: 'Ext.container.Viewport'
+                });
+
                 Ext.define('TestApplication.AbstractApplication', {
                     extend: 'Ext.app.Application',
                 
                     appFolder: 'foo'
                 });
             
-                Ext.define('TestApplication.Application', {
+                Ext.define('TestApplication.Application2', {
                     extend: 'TestApplication.AbstractApplication',
                 
                     name: 'Foo',
                 
-                    autoCreateViewport: true
+                    autoCreateViewport: true,
+
+                    __handleRequires: function(requires, callback) {
+                        callback();
+                    }
                 });
+            });
+
+            afterEach(function() {
+                Ext.undefine('TestApplication.AbstractApplication');
+                Ext.undefine('TestApplication.Application2');
+                Ext.undefine('Foo.view.Viewport');
+                delete Ext.global.Foo;
             });
             
             it("resolves Viewport path", function() {
@@ -234,6 +252,114 @@ xdescribe("Ext.app.Application", function() {
             });
 
             expect(History.getToken()).toEqual('foo');
+        });
+    });
+
+    describe("getController", function() {
+        var ctorLog;
+
+        beforeEach(function() {
+            ctorLog = [];
+
+            Ext.define('CtrlApplication.controller.DeclaredWithId', {
+                extend: 'Ext.app.Controller',
+                id: 'declaredCustomWithId',
+                constructor: function() {
+                    this.callParent(arguments);
+                    ctorLog.push(this.$className);
+                }
+            });
+
+            Ext.define('CtrlApplication.controller.DeclaredAutoIdShort', {
+                extend: 'Ext.app.Controller',
+                constructor: function() {
+                    this.callParent(arguments);
+                    ctorLog.push(this.$className);
+                }
+            });
+
+            Ext.define('CtrlApplication.controller.DeclaredAutoIdLong', {
+                extend: 'Ext.app.Controller',
+                constructor: function() {
+                    this.callParent(arguments);
+                    ctorLog.push(this.$className);
+                }
+            });
+
+            Ext.define('CtrlApplication.controller.NotDeclared', {
+                extend: 'Ext.app.Controller',
+                constructor: function() {
+                    this.callParent(arguments);
+                    ctorLog.push(this.$className);
+                }
+            });
+
+            Ext.define('CtrlApplication.Application', {
+                extend: 'Ext.app.Application',
+
+                name: 'CtrlApplication',
+
+                controllers: [
+                    'DeclaredWithId',
+                    'DeclaredAutoIdShort',
+                    'CtrlApplication.controller.DeclaredAutoIdLong'
+                ]
+            });
+
+            app = new CtrlApplication.Application();
+        });
+
+        afterEach(function() {
+            Ext.undefine('CtrlApplication.controller.DeclaredWithId');
+            Ext.undefine('CtrlApplication.controller.DeclaredAutoIdShort');
+            Ext.undefine('CtrlApplication.controller.DeclaredAutoIdLong');
+            Ext.undefine('CtrlApplication.controller.NotDeclared');
+
+            Ext.undefine('CtrlApplication.Application');
+
+            if (Ext.isIE) {
+                window.CtrlApplication = undefined;
+            } else {
+                delete window.CtrlApplication;
+            }
+
+            ctorLog = null;
+        });
+
+        function times(key) {
+            var count = 0;
+            Ext.Array.forEach(ctorLog, function(name) {
+                if (name === key) {
+                    ++count;
+                }
+            });
+            return count;
+        }
+
+        describe("in controllers collection", function() {
+            it("should be able to get a controller with an explicit id by id or class name", function() {
+                expect(app.getController('declaredCustomWithId').$className).toBe('CtrlApplication.controller.DeclaredWithId');
+                expect(app.getController('CtrlApplication.controller.DeclaredWithId').$className).toBe('CtrlApplication.controller.DeclaredWithId');
+                expect(times('CtrlApplication.controller.DeclaredWithId')).toBe(1);
+            });
+
+            it("should be able to get a controller declared with a short name by short & long name", function() {
+                expect(app.getController('DeclaredAutoIdShort').$className).toBe('CtrlApplication.controller.DeclaredAutoIdShort');
+                expect(app.getController('CtrlApplication.controller.DeclaredAutoIdShort').$className).toBe('CtrlApplication.controller.DeclaredAutoIdShort');
+                expect(times('CtrlApplication.controller.DeclaredAutoIdShort')).toBe(1);
+            });
+
+            it("should be able to get a controller declared with a long name by short & long name", function() {
+                expect(app.getController('DeclaredAutoIdLong').$className).toBe('CtrlApplication.controller.DeclaredAutoIdLong');
+                expect(app.getController('CtrlApplication.controller.DeclaredAutoIdLong').$className).toBe('CtrlApplication.controller.DeclaredAutoIdLong');
+                expect(times('CtrlApplication.controller.DeclaredAutoIdLong')).toBe(1);
+            });
+
+            it("should be able to get a not declared controller by short & long name", function() {
+                expect(app.getController('NotDeclared').$className).toBe('CtrlApplication.controller.NotDeclared');
+                expect(app.getController('CtrlApplication.controller.NotDeclared').$className).toBe('CtrlApplication.controller.NotDeclared');
+                expect(times('CtrlApplication.controller.NotDeclared')).toBe(1);
+            });
         });
     });
 });

@@ -1,5 +1,5 @@
 /**
- *
+ * @class Ext.app.Application
  */
 Ext.define('Ext.overrides.app.Application', {
     override: 'Ext.app.Application',
@@ -18,10 +18,21 @@ Ext.define('Ext.overrides.app.Application', {
     config: {
         /**
          * @cfg {Boolean} enableQuickTips
-         * True to automatically set up Ext.tip.QuickTip support.
-         * @member Ext.app.Application
+         * @deprecated 6.2.0 Use {@link #quickTips}.
          */
-        enableQuickTips: true
+        enableQuickTips: null
+    },
+
+    /**
+     * @cfg {Boolean} quickTips
+     * True to automatically set up Ext.tip.QuickTip support.
+     *
+     * @since 6.2.0
+     */
+    quickTips: true,
+
+    updateEnableQuickTips: function(enableQuickTips) {
+        this.setQuickTips(enableQuickTips);
     },
 
     applyMainView: function(mainView) {
@@ -74,7 +85,7 @@ Ext.define('Ext.overrides.app.Application', {
         var me = this,
             autoCreateViewport = me.autoCreateViewport;
 
-        if (me.getEnableQuickTips()) {
+        if (me.getQuickTips()) {
             me.initQuickTips();
         }
 

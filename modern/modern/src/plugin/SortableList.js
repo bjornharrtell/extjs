@@ -88,7 +88,7 @@ Ext.define('Ext.plugin.SortableList', {
     },
 
     onDragStart: function(e) {
-        var row = Ext.getCmp(e.getTarget('.' + Ext.baseCSSPrefix + 'list-item').id),
+        var row = Ext.getCmp(e.getTarget('.' + Ext.baseCSSPrefix + 'listitem').id),
             list = this.getList(),
             store = list.getStore();
 

@@ -23,6 +23,7 @@
     display: table-cell;
     overflow: hidden;
     height: 100%;
+    position: relative;
 
     @if $include-ff {
         // EXTJS-13752
@@ -31,6 +32,15 @@
             -moz-box-flex: 1; // ff < 28
             flex: 1;
         }
+    }
+
+    .#{$prefix}placeholder-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        cursor: text;
+        white-space: nowrap;
+        overflow: hidden;
     }
 }
 

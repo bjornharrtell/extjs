@@ -81,7 +81,7 @@ Ext.define('Ext.draw.gradient.Linear', {
             gradient,
             l, i;
 
-        if (Ext.isNumber(cx + cy) && h > 0 && w > 0) {
+        if (Ext.isNumber(cx) && Ext.isNumber(cy) && h > 0 && w > 0) {
             l = (Math.sqrt(h * h + w * w) * Math.abs(Math.cos(angle - Math.atan(h / w)))) / 2;
             gradient = ctx.createLinearGradient(
                 cx + cos * l, cy + sin * l,
@@ -93,6 +93,6 @@ Ext.define('Ext.draw.gradient.Linear', {
             }
             return gradient;
         }
-        return Ext.draw.Color.NONE;
+        return Ext.util.Color.NONE;
     }
 });

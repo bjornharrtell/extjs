@@ -14,9 +14,13 @@ Ext.define('Ext.util.translatable.Abstract', {
 
         easing: null,
 
-        easingX: null,
+        easingX: {
+            duration: 300
+        },
 
-        easingY: null
+        easingY: {
+            duration: 300
+        }
     },
 
     /**
@@ -95,7 +99,11 @@ Ext.define('Ext.util.translatable.Abstract', {
         return this.factoryEasing(easing);
     },
 
-    doTranslate: Ext.emptyFn,
+    doTranslate: function(x, y) {
+        if (this.hasListeners.translate) {
+            this.fireEvent('translate', this, x, y);
+        }
+    },
 
     translate: function(x, y, animation) {
         if (animation) {
@@ -267,10 +275,14 @@ Ext.define('Ext.util.translatable.Abstract', {
         me.isAnimating = false;
 
         Ext.AnimationQueue.stop(me.doAnimationFrame, me);
-        me.fireEvent('animationend', me, me.x, me.y);
-        if (me.callback) {
-            me.callback.call(me.callbackScope);
-            me.callback = null;
+        
+        if (!me.destroying) {
+            me.fireEvent('animationend', me, me.x, me.y);
+            
+            if (me.callback) {
+                me.callback.call(me.callbackScope);
+                me.callback = null;
+            }
         }
     },
 
@@ -279,10 +291,17 @@ Ext.define('Ext.util.translatable.Abstract', {
     },
 
     destroy: function() {
-        if (this.isAnimating) {
-            this.stopAnimation();
+        var me = this;
+        
+        me.destroying = true;
+        
+        if (me.isAnimating) {
+            me.stopAnimation();
         }
 
-        this.callParent();
+        me.callParent();
+        
+        me.destroying = false;
+        me.destroyed = true;
     }
 });

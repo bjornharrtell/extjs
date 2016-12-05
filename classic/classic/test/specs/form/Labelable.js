@@ -15,7 +15,7 @@ describe('Ext.form.Labelable', function() {
             },
             privates: {
                 initRenderTpl: function () {
-                    this.renderTpl = this.getTpl('labelableRenderTpl');
+                    this.renderTpl = this.lookupTpl('labelableRenderTpl');
                     return this.callParent();
                 }
             }
@@ -130,16 +130,83 @@ describe('Ext.form.Labelable', function() {
                 expect(component.errorWrapEl.first()).toBe(component.errorEl);
             });
             
-            it("should render ariaErrorEl by default", function() {
+            it("should not render ariaErrorEl by default", function() {
                 create();
+                
+                expect(component.ariaErrorEl).toBe(null);
+            });
+            
+            it("should render ariaErrorEl with renderAriaElements", function() {
+                create({ renderAriaElements: true });
                 
                 expect(component.ariaErrorEl.dom).toBeDefined();
             });
             
             it("should assign x-hidden-clip to ariaErrorEl", function() {
-                create();
+                create({ renderAriaElements: true });
                 
                 expect(component.ariaErrorEl.hasCls('x-hidden-clip')).toBe(true);
+            });
+            
+            it("should set ARIA attributes on the ariaErrorEl", function() {
+                create({ renderAriaElements: true });
+                
+                expect(component.ariaErrorEl).toHaveAttr('aria-hidden', 'true');
+                expect(component.ariaErrorEl).toHaveAttr('aria-live', 'assertive');
+            });
+            
+            it("should not render ariaStatusEl by default", function() {
+                create();
+                
+                expect(component.ariaStatusEl).toBe(null);
+            });
+            
+            it("should render ariaStatusEl with renderAriaElements", function() {
+                create({ renderAriaElements: true });
+                
+                expect(component.ariaStatusEl.dom).toBeDefined();
+            });
+            
+            it("should assign hidden-offsets to ariaStatusEl", function() {
+                create({ renderAriaElements: true });
+                
+                expect(component.ariaStatusEl.hasCls('x-hidden-offsets')).toBe(true);
+            });
+            
+            it("should set ARIA attributes on ariaStatusEl", function() {
+                create({ renderAriaElements: true });
+                
+                expect(component.ariaStatusEl).toHaveAttr('aria-hidden', 'true');
+            });
+            
+            it("should not render ariaHelpEl by default", function() {
+                create();
+                
+                expect(component.ariaHelpEl).toBe(null);
+            });
+            
+            it("should not render ariaHelpEl with renderAriaElements when ariaHelp is empty", function() {
+                create({ renderAriaElements: true });
+                
+                expect(component.ariaHelpEl).toBe(null);
+            });
+            
+            it("should render ariaHelpEl when ariaHelp is configured", function() {
+                create({
+                    renderAriaElements: true,
+                    ariaHelp: 'foo bar'
+                });
+                
+                expect(component.ariaHelpEl.dom).toBeDefined();
+            });
+            
+            it("should assign hidden-offsets to ariaHelpEl when rendered", function() {
+                create({
+                    renderAriaElements: true,
+                    ariaHelp: 'blerg throbbe'
+                });
+                
+                expect(component.ariaHelpEl.hasCls('x-hidden-offsets')).toBe(true);
             });
         });
 
@@ -169,7 +236,7 @@ describe('Ext.form.Labelable', function() {
                     fieldLabel: 'Label'
                 });
 
-                expect(component.labelEl.dom.firstChild.innerHTML).toBe('Label:');
+                expect(component.labelTextEl.dom).hasHTML('Label:');
             });
 
             it("should render the labelSeparator after the label", function() {
@@ -178,7 +245,7 @@ describe('Ext.form.Labelable', function() {
                     labelSeparator: '-'
                 });
 
-                expect(component.labelEl.dom.firstChild.innerHTML).toBe('Label-');
+                expect(component.labelTextEl.dom).hasHTML('Label-');
             });
 
             it("should not render the separator if labelSeparator is empty", function() {
@@ -187,7 +254,7 @@ describe('Ext.form.Labelable', function() {
                     labelSeparator: ''
                 });
 
-                expect(component.labelEl.dom.firstChild.innerHTML).toBe('Label');
+                expect(component.labelTextEl.dom).hasHTML('Label');
             });
 
             describe("labelStyle", function() {
@@ -215,7 +282,7 @@ describe('Ext.form.Labelable', function() {
             it("should set the label element's innerHTML", function() {
                 create();
                 component.setFieldLabel('foo');
-                expect(component.labelEl.dom.firstChild.innerHTML).toBe('foo' + separator);
+                expect(component.labelTextEl.dom).hasHTML('foo' + separator);
             });
 
             it("should show the label element", function() {
@@ -438,10 +505,11 @@ describe('Ext.form.Labelable', function() {
         });
         
         describe("setActiveError/unsetActiveError", function() {
-            var ariaErrorEl;
+            var ariaErrorEl, ariaStatusEl;
             
             beforeEach(function() {
                 define({
+                    renderAriaElements: true,
                     getSubTplMarkup: function() {
                         return '<div></div>';
                     }
@@ -450,10 +518,26 @@ describe('Ext.form.Labelable', function() {
                 create();
                 
                 ariaErrorEl = component.ariaErrorEl;
+                ariaStatusEl = component.ariaStatusEl;
             });
             
             afterEach(function() {
-                ariaErrorEl = null;
+                ariaErrorEl = ariaStatusEl = null;
+            });
+            
+            describe("msgTarget == 'title'", function() {
+                beforeEach(function() {
+                    component.msgTarget = 'title';
+                    component.setActiveErrors(['foo', 'bar']);
+                });
+                
+                it("should not set ariaErrorEl text", function() {
+                    expect(ariaErrorEl.dom.innerHTML).toBe('');
+                });
+                
+                it("should not set ariaStatusEl text", function() {
+                    expect(ariaStatusEl.dom.innerHTML).toBe('');
+                });
             });
             
             describe("setActiveErrors", function() {
@@ -462,13 +546,19 @@ describe('Ext.form.Labelable', function() {
                 });
                 
                 it("should set ariaErrorEl text", function() {
-                    expect(ariaErrorEl.dom.innerHTML).toBe('foo. bar');
+                    expect(ariaErrorEl.dom.innerHTML).toBe('Input error. foo. bar.');
                 });
                 
-                it("should point actionEl aria-describedby to ariaErrorEl", function() {
-                    var actionEl = component.getActionEl();
+                it("should not change ariaErrorEl content for the same error text", function() {
+                    var textNode = ariaErrorEl.dom.firstChild;
                     
-                    expect(actionEl.dom.getAttribute('aria-describedby')).toBe(ariaErrorEl.id);
+                    component.setActiveErrors(['foo', 'bar']);
+                    
+                    expect(ariaErrorEl.dom.firstChild).toBe(textNode);
+                });
+                
+                it("should set ariaStatusEl text", function() {
+                    expect(ariaStatusEl.dom.innerHTML).toBe('foo. bar');
                 });
                 
                 describe("unsetActiveError", function() {
@@ -480,10 +570,8 @@ describe('Ext.form.Labelable', function() {
                         expect(ariaErrorEl.dom.innerHTML).toBe('');
                     });
                     
-                    it("should remove aria-describedby attribute from actionEl", function() {
-                        var actionEl = component.getActionEl();
-                        
-                        expect(actionEl.dom.hasAttribute('aria-describedby')).toBe(false);
+                    it("should clear ariaStatusEl text", function() {
+                        expect(ariaStatusEl.dom.innerHTML).toBe('');
                     });
                 });
             });

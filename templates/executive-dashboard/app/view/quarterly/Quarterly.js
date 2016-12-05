@@ -196,10 +196,6 @@ Ext.define('ExecDashboard.view.quarterly.Quarterly', {
 
         itemSelector: 'div.thumb-wrap',
 
-        listeners: {
-            itemclick: 'onQuarterlyStatementClick'
-        },
-
         tpl: [
             '<tpl for=".">',
                 // Break every four quarters

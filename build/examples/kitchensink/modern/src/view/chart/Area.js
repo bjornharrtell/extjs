@@ -18,6 +18,17 @@ Ext.define('KitchenSink.view.chart.Area', {
         }
     },
 
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    },{
+        type: 'Store',
+        path: 'modern/src/store/OrderItems.js'
+    }],
+    // </example>
+    
+    shadow: true,
     layout: 'fit',
     items: [{
         xtype: 'toolbar',
@@ -32,17 +43,16 @@ Ext.define('KitchenSink.view.chart.Area', {
         }, {
             iconCls: 'x-fa fa-refresh',
             text: 'Refresh',
-            handler: function() {
-                Ext.getStore('OrderItems').generateData(25);
-            }
-        }, {
-            text: 'Reset',
-            handler: 'onReset'
+            handler: 'onRefresh'
         }]
     }, {
         xtype: 'cartesian',
-        store: 'OrderItems',
+        store: {
+            type: 'orderitems',
+            numRecords: 25
+        },
         legend: {
+            type: 'sprite',
             position: 'bottom'
         },
         insetPadding: {
@@ -104,10 +114,5 @@ Ext.define('KitchenSink.view.chart.Area', {
                 fontSize: 20
             }
         }]
-    }],
-
-    initialize: function() {
-        this.callParent();
-        Ext.getStore('OrderItems').generateData(25);
-    }
+    }]
 });

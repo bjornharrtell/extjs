@@ -69,10 +69,13 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
             onStart: me.onStart.bind(me),
             onDrag: me.onDrag.bind(me),
             onEnd: me.onEnd.bind(me),
+            onCancel: me.onCancel.bind(me),
             tolerance: 3,
             autoStart: 300,
             el: el
         });
+
+        headerCt.setTouchAction({ panX: false });
     },
 
     // As we mouse over individual headers, change the cursor to indicate
@@ -168,6 +171,8 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
         me.dragHd = me.activeHd || e.pointerType === 'touch' && me.findActiveHeader(e);
 
         if (me.dragHd && !me.headerCt.dragging) {
+            // Prevent drag and longpress gestures being triggered by this mousedown
+            e.claimGesture();
 
             // Calculate how far off the right marker line the mouse pointer is.
             // This will be the xDelta during the following drag operation.
@@ -178,6 +183,13 @@ Ext.define('Ext.grid.plugin.HeaderResizer', {
             me.headerCt.dragging = false;
             return false;
         }
+    },
+
+    // When mouseup and we have not begun dragging.
+    // The setup done in onbeforeStart must be cleared.
+    onCancel: function(e) {
+        this.dragHd = this.activeHd = null;
+        this.headerCt.dragging = false;
     },
 
     // get the region to constrain to, takes into account max and min col widths

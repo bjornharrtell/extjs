@@ -52,9 +52,15 @@ Ext.define('Ext.data.LocalStore', {
     },
 
     constructDataCollection: function() {
-        return new Ext.util.Collection({
+        var result = new Ext.util.Collection({
             rootProperty: 'data'
         });
+
+        // Add this store as an observer immediately so that we are informed of any
+        // synchronous autoLoad which may occur in this event.
+        result.addObserver(this);
+        
+        return result;
     },
 
     /**
@@ -82,6 +88,14 @@ Ext.define('Ext.data.LocalStore', {
         var sorters = this.getData().getSorters();
         sorters.setSorterConfigure(this.addFieldTransform, this);
         return sorters;
+    },
+
+    onCollectionBeginUpdate: function() {
+        this.beginUpdate();
+    },
+    
+    onCollectionEndUpdate: function() {
+        this.endUpdate();
     },
 
     // When the collection informs us that it has sorted, this LocalStore must react.
@@ -116,13 +130,29 @@ Ext.define('Ext.data.LocalStore', {
      *
      * @param {Function} fn The function to call. The {@link Ext.data.Model Record} is passed as the first parameter.
      * Returning `false` aborts and exits the iteration.
-     * @param {Object} [scope] The scope (this reference) in which the function is executed.
+     * @param {Object} [scope] The scope (`this` reference) in which the function is executed.
      * Defaults to the current {@link Ext.data.Model record} in the iteration.
+     * @param {Object} [includeOptions] An object which contains options which modify how the store is traversed.
+     * @param {Boolean} [includeOptions.filtered] Pass `true` to include filtered out nodes in the iteration.
+     *
+     * Note that the `filtered` option can also be passed as a separate parameter for
+     * compatibility with previous versions.
+     *
      */
-    each: function(fn, scope) {
-        var data = this.data.items,
-            len = data.length,
+    each: function(fn, scope, bypassFilters) {
+        var data = this.getData(),
+            len,
             record, i;
+
+        if (typeof bypassFilters === 'object') {
+            bypassFilters = bypassFilters.filtered;
+        }
+
+        if (bypassFilters === true && data.filtered) {
+            data = data.getSource();
+        }
+        data = data.items.slice(0); // safe for re-entrant calls
+        len = data.length;
 
         for (i = 0; i < len; ++i) {
             record = data[i];
@@ -135,16 +165,40 @@ Ext.define('Ext.data.LocalStore', {
     /**
      * Collects unique values for a particular dataIndex from this store.
      *
-     * @param {String} dataIndex The property to collect
-     * @param {Boolean} [allowNull] Pass true to allow null, undefined or empty string values
-     * @param {Boolean} [bypassFilter] Pass true to collect from all records, even ones which are filtered.
+     * Note that the `filtered` option can also be passed as a separate parameter for
+     * compatibility with previous versions.
+     *
+     *     var store = Ext.create('Ext.data.Store', {
+     *         fields: ['name'],
+     *         data: [{
+     *             name: 'Larry'
+     *         }, {
+     *             name: 'Darryl'
+     *         }, {
+     *             name: 'Darryl'
+     *         }]
+     *     });
+     *
+     *     store.collect('name');
+     *     // returns ["Larry", "Darryl"]
+     *
+     * @param {String} property The property to collect
+     * @param {Object} [includeOptions] An object which contains options which modify how the store is traversed.
+     * @param {Boolean} [includeOptions.allowNull] Pass true to allow null, undefined or empty string values.
+     * @param {Boolean} [includeOptions.filtered] Pass `true` to collect from all records, even ones which are filtered.
+     *
      * @return {Object[]} An array of the unique values
      */
-    collect: function(dataIndex, allowNull, bypassFilter) {
+    collect: function(dataIndex, allowNull, bypassFilters) {
         var me = this,
             data = me.getData();
         
-        if (bypassFilter === true && data.filtered) {
+        if (typeof allowNull === 'object') {
+            bypassFilters = allowNull.filtered;
+            allowNull = allowNull.allowNull;
+        }
+
+        if (bypassFilters === true && data.filtered) {
             data = data.getSource();
         }
 
@@ -224,7 +278,7 @@ Ext.define('Ext.data.LocalStore', {
     /**
      * Get the index within the store of the Record with the passed id.
      *
-     * Like #indexOf, this method is effected by filtering.
+     * Like #indexOf, this method is affected by filtering.
      *
      * @param {String} id The id of the Record to find.
      * @return {Number} The index of the Record. Returns -1 if not found.
@@ -589,7 +643,7 @@ Ext.define('Ext.data.LocalStore', {
                     rootProperty: ''
                 }
             };
-         }
+        }
     }
 
 });

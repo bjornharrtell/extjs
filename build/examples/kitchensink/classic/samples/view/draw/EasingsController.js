@@ -74,8 +74,9 @@ Ext.define('KitchenSink.view.draw.EasingsController', {
         me.onSelect(easingsCombo, record);
     },
 
-    onDestroy: function () {
+    destroy: function () {
         clearTimeout(this.timeoutId);
+        this.callParent();
     }
 
 });

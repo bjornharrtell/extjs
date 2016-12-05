@@ -27,13 +27,12 @@
  *     actionSheet.show();
  *
  * As you can see from the code above, you no longer have to specify a `xtype` when creating buttons within a {@link Ext.ActionSheet ActionSheet},
- * because the {@link #defaultType} is set to {@link Ext.Button button}.
+ * because the {@link #defaultType} is set to {@link Ext.Button button}.x
  *
  */
 Ext.define('Ext.ActionSheet', {
     extend: 'Ext.Sheet',
     alias : 'widget.actionsheet',
-    requires: ['Ext.Button'],
 
     config: {
         /**
@@ -74,5 +73,7 @@ Ext.define('Ext.ActionSheet', {
          * @inheritdoc
          */
         defaultType: 'button'
-    }
+    },
+
+    layout: 'vbox'
 });

@@ -15,6 +15,12 @@ $progress-height: dynamic(20px);
 $progress-border-color: dynamic($base-color);
 
 /**
+ * @var {string}
+ * The border-style of the ProgressBar
+ */
+$progress-border-style: dynamic(solid);
+
+/**
  * @var {number}
  * The border-width of the ProgressBar
  */
@@ -25,6 +31,24 @@ $progress-border-width: dynamic(1px);
  * The border-radius of the ProgressBar
  */
 $progress-border-radius: dynamic(0);
+
+/**
+ * @var {color}
+ * The border color of a focused ProgressBar
+ */
+$progress-focus-border-color: dynamic($progress-border-color);
+
+/**
+ * @var {string}
+ * The border style of a focused ProgressBar
+ */
+$progress-focus-border-style: dynamic($progress-border-style);
+
+/**
+ * @var {number}
+ * The border width of a focused ProgressBar
+ */
+$progress-focus-border-width: dynamic($progress-border-width);
 
 /**
  * @var {color}
@@ -50,13 +74,13 @@ $progress-bar-background-gradient: dynamic('none');
  * @var {color}
  * The color of the ProgressBar's text when in front of the ProgressBar's moving element
  */
-$progress-text-color-front: dynamic(#fff);
+$progress-text-front-color: dynamic(#fff);
 
 /**
  * @var {color}
  * The color of the ProgressBar's text when the ProgressBar's 'moving element is not under it
  */
-$progress-text-color-back: dynamic(#000);
+$progress-text-back-color: dynamic(#000);
 
 /**
  * @var {string}

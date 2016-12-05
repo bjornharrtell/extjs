@@ -52,5 +52,7 @@ Ext.define('Ext.field.Url', {
         component: {
 	        type: 'url'
 	    }
-    }
+    },
+
+    classCls: Ext.baseCSSPrefix + 'urlfield'
 });

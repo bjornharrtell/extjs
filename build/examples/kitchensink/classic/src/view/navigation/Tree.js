@@ -17,12 +17,14 @@ Ext.define('KitchenSink.view.navigation.Tree', {
     stateful: true,
     stateId: 'mainnav.west',
     collapsible: true,
+    enableColumnResize: false,
+    enableColumnMove: false,
     
     bufferedRenderer: !Ext.platformTags.test,
 
     tools: [{
         type: 'up',
-        tooltip: 'Switch to Breadcrumb View',
+        tooltip: 'Switch to Breadcrumb View \u2325N',
         listeners: {
             click: 'showBreadcrumbNav'
         }
@@ -37,6 +39,18 @@ Ext.define('KitchenSink.view.navigation.Tree', {
     }],
     bind: {
         selection: '{selectedView}'
+    },
+
+    viewConfig: {
+        selectionModel: {
+            type: 'treemodel',
+            pruneRemoved: false
+        }
+    },
+
+    keyMap: {
+        "ALT+N": 'showBreadcrumbNav',
+        scope: 'controller'
     },
 
     store: 'navigation',

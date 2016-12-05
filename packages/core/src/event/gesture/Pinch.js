@@ -4,7 +4,7 @@
 Ext.define('Ext.event.gesture.Pinch', {
     extend: 'Ext.event.gesture.MultiTouch',
 
-    priority: 600,
+    priority: 700,
 
     handledEvents: ['pinchstart', 'pinch', 'pinchend', 'pinchcancel'],
 
@@ -48,59 +48,58 @@ Ext.define('Ext.event.gesture.Pinch', {
     lastTouches: null,
 
     onTouchMove: function(e) {
-        if (!this.isTracking) {
-            return;
-        }
+        var me = this,
+            touches, firstPoint, secondPoint, distance;
 
-        var touches = e.touches,
-            firstPoint, secondPoint, distance;
+        if (me.isTracking) {
+            touches = e.touches;
 
-        firstPoint = touches[0].point;
-        secondPoint = touches[1].point;
+            firstPoint = touches[0].point;
+            secondPoint = touches[1].point;
 
-        distance = firstPoint.getDistanceTo(secondPoint);
+            distance = firstPoint.getDistanceTo(secondPoint);
 
-        if (distance === 0) {
-            return;
-        }
+            if (distance === 0) {
+                return;
+            }
 
-        if (!this.isStarted) {
+            if (!me.isStarted) {
 
-            this.isStarted = true;
+                me.isStarted = true;
 
-            this.startDistance = distance;
+                me.startDistance = distance;
 
-            this.fire('pinchstart', e, {
-                touches: touches,
-                distance: distance,
-                scale: 1
-            });
-        }
-        else {
-            this.fire('pinch', e, {
-                touches: touches,
-                distance: distance,
-                scale: distance / this.startDistance
-            });
+                me.fire('pinchstart', e, {
+                    touches: touches,
+                    distance: distance,
+                    scale: 1
+                });
+            } else {
+                me.fire('pinch', e, {
+                    touches: touches,
+                    distance: distance,
+                    scale: distance / me.startDistance
+                });
+            }
         }
     },
 
-    fireEnd: function(e) {
-        this.fire('pinchend', e);
+    onTouchEnd: function(e) {
+        if (this.isStarted) {
+            this.fire('pinchend', e);
+        }
+
+        return this.callParent([e]);
     },
 
-    fireCancel: function(e) {
-        this.fire('pinchcancel', e);
-    },
-
-    fail: function() {
-        return this.callParent(arguments);
+    onCancel: function(e) {
+        this.fire('pinchcancel', e, null, true);
     },
 
     reset: function() {
         this.lastTouches = null;
         this.startDistance = 0;
-        this.callParent();
+        return this.callParent();
     }
 }, function(Pinch) {
     var gestures = Ext.manifest.gestures;

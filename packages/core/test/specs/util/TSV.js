@@ -87,5 +87,34 @@ describe("Ext.util.TSV", function() {
                 [ '3.141592653589793', '1', 'false' ]
             ]);
         });
+
+        it("should return an empty array for null, undefined and empty string", function() {
+            expect(TSV.decode(undefined)).toEqual([]);
+            expect(TSV.decode(null)).toEqual([]);
+            expect(TSV.decode('')).toEqual([]);
+        });
+
+        it("should not create an empty row when a line feed is the last character in the input", function() {
+            var test1 = 'John\tDoe\t42' + TSV.lineBreak + 'Jane\tHenry\t31' + TSV.lineBreak + '\t\t\r\n',
+                test2 = 'John\tDoe\t42' + TSV.lineBreak + '\t\t' + TSV.lineBreak + 'Jane\tHenry\t31\n',
+                test3 = 'John\tDoe\t42\r';
+
+            // two rows of data, one empty row with \r\n end variant
+            expect(TSV.decode(test1)).toEqual([
+                ['John', 'Doe', '42'],
+                ['Jane', 'Henry', '31'],
+                ['', '', '']
+            ]);
+
+            // one row of data, one empty row, another row of data with \n end variant
+            expect(TSV.decode(test2)).toEqual([
+                ['John', 'Doe', '42'],
+                ['', '', ''],
+                ['Jane', 'Henry', '31']                
+            ]);
+
+            // just one row of data with \r end variant
+            expect(TSV.decode(test3)).toEqual([['John', 'Doe', '42']]);
+        });
     });
 });

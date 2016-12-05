@@ -5,7 +5,7 @@
 .x-list {
 	background-color: #fff;
 
-	.x-list-disclosure {
+	.x-listitem-disclosure {
 		border: 0px;
 		background-color: transparent;
 		margin: 10px 15px 10px;
@@ -23,28 +23,27 @@
 		}
 	}
 
-	.x-list-item {
+	.x-listitem {
 		color: $primary-text-color;
 		font-weight: 400;
 		border-top: 1px solid transparent;
 
-		&.x-item-pressed {
+		&.x-pressed {
 			background-color: $list-item-pressed-color;
 		}
 
-		&.x-item-selected.x-list-item-tpl {
+		&.x-selected.x-simplelistitem {
 			background-color: $list-item-selected-color;
-			.x-list-disclosure {
+			.x-listitem-disclosure {
 				background-color: transparent;
 			}
 		}
 
-		.x-list-item-body,
-		&.x-list-item-tpl .x-innerhtml {
+		.x-listitem-body {
 			padding: .7em 1em;
 		}
 
-		&.x-list-item-tpl:before {
+		&.x-simplelistitem:before {
 			content: '';
 			display: block;
 			position: absolute;
@@ -54,13 +53,13 @@
 			border-bottom: solid 1px $list-item-border-color;
 		}
 
-		&.x-item-pressed.x-list-item-tpl:before, &.x-item-selected.x-list-item-tpl:before, &.x-list-footer-wrap.x-list-item-tpl:before{
+		&.x-pressed.x-simplelistitem:before, &.x-selected.x-simplelistitem:before, &.x-group-last.x-simplelistitem:before{
 			border-bottom: solid 1px transparent;
 		}
 	}
 }
 
-.x-list .x-list-header {
+.x-list .x-itemheader {
 	background-color: $list-header-color;
 	border: 0px;
 	padding: 0em 1em;

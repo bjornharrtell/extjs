@@ -20,14 +20,22 @@
         <if>
             <x-is-true value="${enable.split.mode}"/>
             <then>
+                <property name="app.output.framework.include"
+                          value="package-sencha-core,framework,toolkit,package-core"/>
+
                 <x-compile refid="${compiler.ref.id}">
                     <![CDATA[
                         # build a separate sdk-only js file
+                        restore
+                            page
+                        and
+                        ${build.optimize}
+                        and
                         exclude
                             -all
                         and
                         include
-                            -tag=package-sencha-core,framework
+                            -tag=${app.output.framework.include}
                         and
                         save
                             allframework
@@ -38,7 +46,8 @@
                         save
                             frameworkdeps
                         and
-                        ${build.optimize}
+                        include
+                            -tag=Ext.cmd.derive
                         and
                         concat
                             -remove-text-references=${build.remove.references}
@@ -56,6 +65,9 @@
                         and
                         exclude
                             -set=frameworkdeps
+                        and
+                        exclude
+                            -tag=Ext.cmd.derive,derive
                         and
                         concat
                             -remove-text-references=${build.remove.references}

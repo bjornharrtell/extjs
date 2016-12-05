@@ -98,7 +98,7 @@ Ext.define('Ext.picker.Color', {
      *
      *   The 6-digit color hex code (without the # symbol).
      * 
-     * @declarativeHandler
+     * @controllable
      */
 
     /**

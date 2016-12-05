@@ -8,7 +8,11 @@ Ext.define('Ext.draw.ContainerBase', {
 
     initialize: function () {
         this.callParent();
-        this.element.on('resize', 'onBodyResize', this);
+        this.element.on('resize', 'onResize', this);
+    },
+
+    onResize: function (element, size) {
+        this.handleResize(size);
     },
 
     getElementConfig: function () {
@@ -35,6 +39,25 @@ Ext.define('Ext.draw.ContainerBase', {
     },
 
     preview: function () {
+        var image = this.getImage(),
+            items;
+
+        if (image.type === 'svg-markup') {
+            items = {
+                xtype: 'container',
+                html: image.data
+            };
+        } else {
+            items = {
+                xtype: 'image',
+                mode: 'img',
+                style: {
+                    overflow: 'hidden'
+                },
+                src: image.data
+            };
+        }
+
         Ext.Viewport.add({
             xtype: 'panel',
             layout: 'fit',
@@ -44,14 +67,7 @@ Ext.define('Ext.draw.ContainerBase', {
             hideOnMaskTap: true,
             centered: true,
             scrollable: false,
-            items: {
-                xtype: 'image',
-                mode: 'img',
-                style: {
-                    overflow: 'hidden'
-                },
-                src: this.getImage().data
-            },
+            items: items,
             listeners: {
                 hide: function () {
                     Ext.Viewport.remove(this);

@@ -105,7 +105,7 @@ Ext.define('Ext.grid.ColumnComponentLayout', {
             padWidth = ownerContext.getPaddingInfo().width,
             triggerOffset = this.getTriggerOffset(owner, ownerContext),
             inner;
-            
+
         // Only measure the content if we're not grouped, otherwise
         // the size should be governed by the children
         if (owner.isGroupHeader) {
@@ -118,7 +118,7 @@ Ext.define('Ext.grid.ColumnComponentLayout', {
     
     getTriggerOffset: function(owner, ownerContext) {
         var width = 0;
-        
+
         if (ownerContext.widthModel.shrinkWrap && !owner.menuDisabled) {
             // If we have any children underneath, then we already have space reserved
             if (owner.query('>:not([hidden])').length === 0) {

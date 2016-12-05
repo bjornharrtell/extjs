@@ -467,6 +467,10 @@ describe("Ext.app.Controller", function() {
                 }, {
                     ref:         'fredComponent',
                     autoCreate:  true
+                }, {
+                    ref: 'destroyed',
+                    xtype: 'component',
+                    autoCreate: true
                 }]
             });
 
@@ -524,6 +528,15 @@ describe("Ext.app.Controller", function() {
             var p = ctrl.getFredComponent();
             
             expect(p.xtype).toBe('component');
+        });
+
+        it("should be able to recreate an autoCreate after it is destroyed", function() {
+            var o1 = ctrl.getDestroyed();
+            expect(o1.isXType('component')).toBe(true);
+            o1.destroy();
+            var o2 = ctrl.getDestroyed();
+            expect(o2.isXType('component')).toBe(true);
+            expect(o2).not.toBe(o1);
         });
 
         it("creates component when ref has forceCreate flag", function() {
@@ -649,6 +662,8 @@ describe("Ext.app.Controller", function() {
     });
 
     describe("handles getters:", function() {
+        var c, s, m, v;
+        
         beforeEach(function() {
             ctrl = new TestController.controller.Events({
                 id: 'foo'
@@ -656,32 +671,37 @@ describe("Ext.app.Controller", function() {
             ctrl.init();
         });
         
+        afterEach(function() {
+            Ext.destroy(s, m, v, c);
+            s = m = v = c = null;
+        });
+        
         it("should return self on getController(self-id)", function() {
-            var c = ctrl.getController('foo');
+            c = ctrl.getController('foo');
 
             expect(c).toEqual(ctrl);
         });
 
         it("should return nothing on getController(foreign-id)", function() {
-            var c = ctrl.getController('bar');
+            c = ctrl.getController('bar');
 
             expect(c).toBeFalsy();
         });
 
         it("should return Store on getStore()", function() {
-            var s = ctrl.getStore('Test');
+            s = ctrl.getStore('Test');
 
             expect(s.isInstance).toBeTruthy();
         });
 
         it("should return model class on getModel()", function() {
-            var m = ctrl.getModel('Test');
+            m = ctrl.getModel('Test');
 
             expect(m.$isClass).toBeTruthy();
         });
 
         it("should return View class on getView()", function() {
-            var v = ctrl.getView('FooPanel');
+            v = ctrl.getView('FooPanel');
 
             expect(v.$isClass).toBeTruthy();
         });

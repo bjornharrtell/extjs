@@ -1,4 +1,4 @@
-describe("Ext.data.proxy.Server", function() {
+describe("Ext.data.proxy.Server", function () {
     var proxy,
         ServerProxy = Ext.data.proxy.Server,
         reader = new Ext.data.reader.Reader(),
@@ -472,21 +472,29 @@ describe("Ext.data.proxy.Server", function() {
         });
     });
 
-    describe("encoding filters", function() {
-        it("should provide a default encoded string, operator should be excluded by default", function() {
-            var filter1 = new Ext.util.Filter({
-                property : "name",
-                value    : "Ed"
+    describe("encoding filters", function () {
+        var filter1, filter2;
+
+        beforeEach(function () {
+            proxy = new Ext.data.proxy.Server();
+
+            filter1 = new Ext.util.Filter({
+                property: 'name',
+                value: 'Ed'
             });
 
-            var filter2 = new Ext.util.Filter({
-                property : "age",
-                value    : 25,
+            filter2 = new Ext.util.Filter({
+                property: 'age',
+                value: 25,
                 operator: '>'
             });
+        });
 
-            proxy = new Ext.data.proxy.Server();
-            
+        afterEach(function () {
+            proxy = filter1 = filter2 = null;
+        });
+
+        it('should provide a default encoded string, operator should be excluded by default', function () {
             expect(Ext.decode(proxy.encodeFilters([filter1, filter2]))).toEqual([{
                 property: 'name',
                 value: 'Ed'
@@ -495,6 +503,50 @@ describe("Ext.data.proxy.Server", function() {
                 value: 25,
                 operator: '>'
             }]);
+        });
+
+        it('should exclude filters with a filterFn', function () {
+            var f = new Ext.util.Filter({
+                filterFn: function () {
+                    return true;
+                }
+            });
+            expect(Ext.decode(proxy.encodeFilters([filter1, f, filter2]))).toEqual([{
+                property: 'name',
+                value: 'Ed'
+            }, {
+                property: 'age',
+                value: 25,
+                operator: '>'
+            }]);
+        });
+
+        describe('falsy values', function () {
+            function doTest(value) {
+                var v = value;
+
+                if (value === '') {
+                    v = 'an empty string';
+                }
+
+                it('should encode ' + v, function () {
+                    var f = new Ext.util.Filter({
+                        property: 'name',
+                        value: value
+                    });
+
+                    expect(Ext.decode(proxy.encodeFilters([f]))).toEqual([{
+                        property: 'name',
+                        value: value
+                    }]);
+                });
+            }
+
+            doTest(false);
+            doTest(null);
+            doTest(undefined);
+            doTest(0);
+            doTest('');
         });
     });
 
@@ -643,3 +695,4 @@ describe("Ext.data.proxy.Server", function() {
         });
     });
 });
+

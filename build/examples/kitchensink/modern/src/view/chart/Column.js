@@ -1,5 +1,5 @@
 /**
- * Demonstrates how to use Ext.chart.ColumnChart
+ * Demonstrates how to use bar series.
  */
 Ext.define('KitchenSink.view.chart.Column', {
     extend: 'Ext.Panel',
@@ -14,16 +14,23 @@ Ext.define('KitchenSink.view.chart.Column', {
     controller: 'column-chart',
     layout: 'fit',
 
+    shadow: true,
+    
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ColumnController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/Climate.js'
+    }],
+    // </example>
+    
+
     items: [{
         xtype: 'toolbar',
-        top: 0,
-        right: 0,
-        zIndex: 50,
+        docked: 'top',
         cls: 'charttoolbar',
-        style: {
-            background: 'none',
-            border: 'none'
-        },
         items: [{
             xtype: 'spacer'
         }, {
@@ -44,7 +51,6 @@ Ext.define('KitchenSink.view.chart.Column', {
     }, {
         xtype: 'cartesian',
         reference: 'chart',
-        animation: Ext.isIE8 ? false : true,
         store: {
             type: 'climate'
         },
@@ -133,7 +139,6 @@ Ext.define('KitchenSink.view.chart.Column', {
             y: 30  // the sprite y position
         },
         listeners: {
-            initialize: 'onInitialize',
             afterrender: 'onAfterRender',
             beginitemedit: 'onBeginItemEdit',
             enditemedit: 'onEndItemEdit'

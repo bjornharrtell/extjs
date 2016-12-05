@@ -128,7 +128,7 @@ Ext.define('Ext.chart.series.sprite.Box', {
             isHorizontal = attr.orientation === 'horizontal',
             isTransparent = attr.globalAlpha < 1,
             fillStyle = attr.fillStyle,
-            color = Ext.draw.Color.create(
+            color = Ext.util.Color.create(
                 fillStyle.isGradient ?
                     fillStyle.getStops()[0].color :
                     fillStyle
@@ -142,7 +142,7 @@ Ext.define('Ext.chart.series.sprite.Box', {
             temp;
 
         if (!attr.showStroke) {
-            ctx.strokeStyle = Ext.draw.Color.RGBA_NONE;
+            ctx.strokeStyle = Ext.util.Color.RGBA_NONE;
         }
 
         if (isNegative) {
@@ -157,7 +157,7 @@ Ext.define('Ext.chart.series.sprite.Box', {
         me.topGradient.setStops([
             {
                 offset: 0,
-                color: Ext.draw.Color.fromHSV(
+                color: Ext.util.Color.fromHSV(
                     hsv[0],
                     Ext.Number.constrain(hsv[1] * saturationFactor, 0, 1),
                     Ext.Number.constrain((0.5 + colorSpread * 0.10) * brightnessFactor, 0, 1)
@@ -165,7 +165,7 @@ Ext.define('Ext.chart.series.sprite.Box', {
             },
             {
                 offset: 1,
-                color: Ext.draw.Color.fromHSV(
+                color: Ext.util.Color.fromHSV(
                     hsv[0],
                     Ext.Number.constrain(hsv[1] * saturationFactor, 0, 1),
                     Ext.Number.constrain((0.5 - colorSpread * 0.11) * brightnessFactor, 0, 1)
@@ -177,7 +177,7 @@ Ext.define('Ext.chart.series.sprite.Box', {
         me.rightGradient.setStops([
             {
                 offset: 0,
-                color: Ext.draw.Color.fromHSV(
+                color: Ext.util.Color.fromHSV(
                     hsv[0],
                     Ext.Number.constrain(hsv[1] * saturationFactor, 0, 1),
                     Ext.Number.constrain((0.5 - colorSpread * 0.14) * brightnessFactor, 0, 1)
@@ -185,7 +185,7 @@ Ext.define('Ext.chart.series.sprite.Box', {
             },
             {
                 offset: 1,
-                color: Ext.draw.Color.fromHSV(
+                color: Ext.util.Color.fromHSV(
                     hsv[0],
                     Ext.Number.constrain(hsv[1] * (1.0 + colorSpread * 0.4) * saturationFactor, 0, 1),
                     Ext.Number.constrain((0.5 - colorSpread * 0.32) * brightnessFactor, 0, 1)
@@ -202,7 +202,7 @@ Ext.define('Ext.chart.series.sprite.Box', {
         me.frontGradient.setStops([
             {
                 offset: 0,
-                color: Ext.draw.Color.fromHSV(
+                color: Ext.util.Color.fromHSV(
                     hsv[0],
                     Ext.Number.constrain(hsv[1] * (1.0 - colorSpread * 0.1) * saturationFactor, 0, 1),
                     Ext.Number.constrain((0.5 + colorSpread * 0.1) * brightnessFactor, 0, 1)
@@ -210,7 +210,7 @@ Ext.define('Ext.chart.series.sprite.Box', {
             },
             {
                 offset: 1,
-                color: Ext.draw.Color.fromHSV(
+                color: Ext.util.Color.fromHSV(
                     hsv[0],
                     Ext.Number.constrain(hsv[1] * (1.0 + colorSpread * 0.1) * saturationFactor, 0, 1),
                     Ext.Number.constrain((0.5 - colorSpread * 0.23) * brightnessFactor, 0, 1)

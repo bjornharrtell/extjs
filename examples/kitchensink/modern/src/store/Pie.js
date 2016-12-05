@@ -9,24 +9,28 @@
     }
 
     Ext.define('KitchenSink.store.Pie', {
-        alias: 'store.Pie',
         extend: 'Ext.data.Store',
+        alias: 'store.pie',
+
         config: {
-            storeId: 'Pie',
-            fields: ['id', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'name'],
-            data: []
+            numRecords: 9
         },
+
+        fields: ['id', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'name'],
+
         generateData: function (count) {
-            var data = [], i, record = {
-                id: i,
-                g1: 700 * random() + 100,
-                g2: 700 * random() + 100,
-                g3: 700 * random() + 100,
-                g4: 700 * random() + 100,
-                g5: 700 * random() + 100,
-                g6: 700 * random() + 100,
-                name: 'A'
-            };
+            var data = [], 
+                record = {
+                    id: 0,
+                    g1: 700 * random() + 100,
+                    g2: 700 * random() + 100,
+                    g3: 700 * random() + 100,
+                    g4: 700 * random() + 100,
+                    g5: 700 * random() + 100,
+                    g6: 700 * random() + 100,
+                    name: 'A'
+                }, i;
+
             data.push(record);
             for (i = 1; i < count; i++) {
                 record = {
@@ -41,12 +45,12 @@
                 };
                 data.push(record);
             }
-            this.setData(data);
+            this.loadData(data);
         },
-        constructor: function () {
-            this.callParent(arguments);
-            this.generateData(9);
-            return this;
+        constructor: function (config) {
+            var me = this;
+            me.callParent([config]);
+            me.generateData(me.getNumRecords());
         }
     });
 })();

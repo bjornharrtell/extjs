@@ -55,7 +55,7 @@ Ext.define('Neptune.view.grid.widget.LockGroupSummary', function() {
         ],
         listeners: {
             beforeshowtip: function(grid, tip, data) {
-                var cellNode = tip.triggerEvent.getTarget(tip.view.getCellSelector());
+                var cellNode = tip.pointerEvent.getTarget(tip.view.getCellSelector());
                 if (cellNode) {
                     data.colName = tip.view.headerCt.getHeaderAtIndex(cellNode.cellIndex).text;
                 }

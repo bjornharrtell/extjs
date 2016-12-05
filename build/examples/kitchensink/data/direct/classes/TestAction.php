@@ -42,7 +42,7 @@ class TestAction {
         
         $table = $metadata->table;
         
-        if ($table == 'customers') {
+        if ($table == 'companies') {
             $data = array(
                 array(
                     'name'=>'ABC Accounting',

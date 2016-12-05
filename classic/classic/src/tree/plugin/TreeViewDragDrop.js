@@ -9,8 +9,8 @@
  * During the drop operation a data object is passed to a participating DropZone's drop 
  * handlers.  The drag data object has the following properties:
  *
- * - **copy:** {@link Boolean} <br> The value of {@link #copy}.  Or `true` if {@link 
- * #allowCopy} is true **and** the control key was pressed as the drag operation began.
+ * - **copy:** {@link Boolean} <br> The value of {@link #copy}.  Or `true` if {@link #allowCopy} is true
+ * **and** the control key was pressed as the drag operation began.
  * 
  * - **view:** {@link Ext.tree.View TreeView} <br> The source tree view from which the 
  * drag originated

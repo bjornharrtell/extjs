@@ -1,3 +1,5 @@
+/* global Ext, expect, jasmine, spyOn, MockAjaxManager */
+
 describe("Ext.tree.Panel", function(){
     
     var TreeItem = Ext.define(null, {
@@ -10,7 +12,13 @@ describe("Ext.tree.Panel", function(){
     tree, view, makeTree, testNodes, store, rootNode,
         synchronousLoad = true,
         treeStoreLoad = Ext.data.TreeStore.prototype.load,
-        loadStore;
+        loadStore = function() {
+            treeStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
     
     function spyOnEvent(object, eventName, fn) {
         var obj = {
@@ -23,13 +31,7 @@ describe("Ext.tree.Panel", function(){
 
     beforeEach(function() {
         // Override so that we can control asynchronous loading
-        loadStore = Ext.data.TreeStore.prototype.load = function() {
-            treeStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        };
+        Ext.data.TreeStore.prototype.load = loadStore;
 
         MockAjaxManager.addMethods();
         testNodes = [{
@@ -133,15 +135,129 @@ describe("Ext.tree.Panel", function(){
         Ext.data.TreeStore.prototype.load = treeStoreLoad;
 
         Ext.destroy(tree);
-        tree = makeTree = null;
+        tree = view = makeTree = testNodes = store = rootNode = null;
         MockAjaxManager.removeMethods();
     });
+
+    describe("scrolling", function() {
+        function expectScroll(vertical, horizontal) {
+            var dom = tree.getView().getEl().dom;
+
+            // In Mac OS X, scrollbars can be invisible until user hovers mouse cursor
+            // over the scrolled area. This is hard to test so we just assume that
+            // in Mac browsers scrollbars can have 0 width.
+            if (vertical !== undefined) {
+                if (vertical) {
+                    if (Ext.isMac) {
+                        expect(dom.scrollHeight).toBeGreaterThanOrEqual(dom.clientHeight);
+                    }
+                    else {
+                        expect(dom.scrollHeight).toBeGreaterThan(dom.clientHeight);
+                    }
+                }
+                else {
+                    expect(dom.scrollHeight).toBeLessThanOrEqual(dom.clientHeight);
+                }
+            }
+
+            if (horizontal !== undefined) {
+                if (horizontal) {
+                    if (Ext.isMac) {
+                        expect(dom.scrollWidth).toBeGreaterThanOrEqual(dom.clientWidth);
+                    }
+                    else {
+                        expect(dom.scrollWidth).toBeGreaterThan(dom.clientWidth);
+                    }
+                }
+                else {
+                    expect(dom.scrollWidth).toBeLessThanOrEqual(dom.clientWidth);
+                }
+            }
+        }
+
+        function makeNodes(n) {
+            var nodes = [],
+                i;
+
+            for (i = 1; i <= n; ++i) {
+                nodes.push({
+                    text: 'Node' + i
+                });
+            }
+            return nodes;
+        }
+
+        describe("with no columns definition", function() {
+            it("should not show scrollbars when not required", function() {
+                makeTree([{
+                    text: 'Foo'
+                }], {
+                    width: 400,
+                    height: 400
+                }, null, {
+                    expanded: true
+                });
+                expectScroll(false, false);
+            });
+
+            it("should show a vertical scrollbar when required", function() {
+                makeTree(makeNodes(50), {
+                    width: 400,
+                    height: 200
+                }, null, {
+                    expanded: true
+                });
+                expectScroll(true, false);
+            });
+
+            it("should show a horizontal scrollbar when required", function() {
+                makeTree([{
+                    text: 'A really long node that causes horizontal scroll'
+                }], {
+                    width: 200,
+                    height: 200
+                }, null, {
+                    expanded: true
+                });
+                expectScroll(false, true);
+            });
+
+            it("should show a scrollbar in both directions", function() {
+                var nodes = makeNodes(50);
+                nodes.unshift({
+                    text: 'A really long node that causes horizontal scroll'
+                });
+                makeTree(nodes, {
+                    width: 200,
+                    height: 400
+                }, null, {
+                    expanded: true
+                });
+                expectScroll(true, true);
+            });
+        });
+    });
     
-    describe('Checkbox tree nodes', function() {
+    describe("Checkbox tree nodes", function() {
         var eventRec,
             record,
             row,
             checkbox;
+
+        function clickCheckboxId(id) {
+            var checkbox = Ext.get(view.getRow(store.getById(id))).down(view.checkboxSelector, true);
+            jasmine.fireMouseEvent(checkbox, 'click');
+        }
+
+        function getCheckedCount() {
+            var checkedNodes = [];
+            store.getRootNode().cascade(function(node){
+                if (node.get('checked') === true) {
+                    checkedNodes.push(node);
+                }
+            });
+            return checkedNodes.length;
+        }
 
         beforeEach(function() {
             eventRec = null;
@@ -152,7 +268,7 @@ describe("Ext.tree.Panel", function(){
                     }
                 }
             });
-            store.getRoot().cascadeBy(function(r) {
+            store.getRoot().cascade(function(r) {
                 r.set('checked', false);
             });
             tree.expandAll();
@@ -161,12 +277,15 @@ describe("Ext.tree.Panel", function(){
             checkbox = row.down(view.checkboxSelector, true);
         });
 
-        it('should fire the checkchange event', function() {
+        it("should fire the checkchange event", function() {
             jasmine.fireMouseEvent(checkbox, 'click');
             expect(eventRec).toBe(record);
             expect(record.get('checked')).toBe(true);
+
+            // Test that the default checkPropagation: 'none' is honoured.
+            expect(getCheckedCount()).toBe(1);
         });
-        it('should veto checkchange if false is returned from a beforecheckchange handler', function() {
+        it("should veto checkchange if false is returned from a beforecheckchange handler", function() {
             tree.on({
                 beforecheckchange: function(rec) {
                     eventRec = rec;
@@ -176,6 +295,106 @@ describe("Ext.tree.Panel", function(){
             jasmine.fireMouseEvent(checkbox, 'click');
             expect(eventRec).toBe(record);
             expect(record.get('checked')).toBe(false);
+        });
+        it("should sync parent node's check state with state of children on child check change when checkPropagation:'up'", function() {
+            tree.checkPropagation = 'up';
+
+            // Both parent nodes start unchecked
+            expect(store.getById('I').get('checked')).toBe(false);
+            expect(store.getById('J').get('checked')).toBe(false);
+
+            clickCheckboxId('K');
+
+            // K's parent node J should be checked now. K is the sole child.
+            expect(store.getById('J').get('checked')).toBe(true);
+            expect(store.getById('I').get('checked')).toBe(false);
+
+            clickCheckboxId('L');
+
+            // All leaf nodes below I and J are now checked, so I and J should be
+            expect(store.getById('J').get('checked')).toBe(true);
+            expect(store.getById('I').get('checked')).toBe(true);
+
+            // B only gets checked when both D and C are checked
+            expect(store.getById('B').get('checked')).toBe(false);
+            clickCheckboxId('D');
+            expect(store.getById('B').get('checked')).toBe(false);
+            clickCheckboxId('C');
+            expect(store.getById('B').get('checked')).toBe(true);
+
+            // Now reverse that process and uncheck B
+            clickCheckboxId('D');
+            expect(store.getById('B').get('checked')).toBe(false);
+            clickCheckboxId('C');
+            expect(store.getById('B').get('checked')).toBe(false);
+
+            // And finally, clicking a parent, should NOT propagate the checked
+            // state downwards with checkPropagation:'up'
+            clickCheckboxId('B');
+            expect(store.getById('C').get('checked')).toBe(false);
+            expect(store.getById('D').get('checked')).toBe(false);
+        });
+        it("should propagate a parent's checked state to child nodes when checkPropagation:'down'", function() {
+            tree.checkPropagation = 'down';
+
+            // Start with none checked
+            expect(getCheckedCount()).toBe(0);
+
+            clickCheckboxId('A');
+            expect(store.getById('B').get('checked')).toBe(true);
+            expect(store.getById('C').get('checked')).toBe(true);
+            expect(store.getById('D').get('checked')).toBe(true);
+            expect(store.getById('E').get('checked')).toBe(true);
+            expect(store.getById('F').get('checked')).toBe(true);
+            expect(store.getById('G').get('checked')).toBe(true);
+            expect(store.getById('H').get('checked')).toBe(true);
+
+            // Just A and its descendants should be checked.
+            expect(getCheckedCount()).toBe(8);
+        });
+        it("should propagate checked state both ways when checkPropagation:'both'", function() {
+            tree.checkPropagation = 'both';
+
+            // Start with none checked
+            expect(getCheckedCount()).toBe(0);
+
+            clickCheckboxId('A');
+            expect(store.getById('B').get('checked')).toBe(true);
+            expect(store.getById('C').get('checked')).toBe(true);
+            expect(store.getById('D').get('checked')).toBe(true);
+            expect(store.getById('E').get('checked')).toBe(true);
+            expect(store.getById('F').get('checked')).toBe(true);
+            expect(store.getById('G').get('checked')).toBe(true);
+            expect(store.getById('H').get('checked')).toBe(true);
+
+            // Just A and its descendants should be checked.
+            expect(getCheckedCount()).toBe(8);
+
+            // And one more click should go back to zero
+            clickCheckboxId('A');
+            expect(getCheckedCount()).toBe(0);
+
+            // Should propagate up to F
+            clickCheckboxId('H');
+            expect(store.getById('F').get('checked')).toBe(true);
+            expect(store.getById('G').get('checked')).toBe(true);
+            expect(getCheckedCount()).toBe(3);
+
+            // This should restore the whole 'A' subtree to checkedness
+            clickCheckboxId('E');
+            clickCheckboxId('D');
+            clickCheckboxId('C');
+
+            expect(store.getById('B').get('checked')).toBe(true);
+            expect(store.getById('C').get('checked')).toBe(true);
+            expect(store.getById('D').get('checked')).toBe(true);
+            expect(store.getById('E').get('checked')).toBe(true);
+            expect(store.getById('F').get('checked')).toBe(true);
+            expect(store.getById('G').get('checked')).toBe(true);
+            expect(store.getById('H').get('checked')).toBe(true);
+
+            // Just A and its descendants should be checked.
+            expect(getCheckedCount()).toBe(8);
         });
     });
 
@@ -209,6 +428,53 @@ describe("Ext.tree.Panel", function(){
                     expanded: true
                 });
             }).not.toThrow();
+        });
+        
+        describe("with invisible root", function() {
+            it("should expand the root node by default", function() {
+                makeTree(null, {
+                    rootVisible: false
+                });
+                
+                expect(rootNode.isExpanded()).toBe(true);
+            });
+            
+            it("should skip root.expand() when root is loaded", function() {
+                spyOn(TreeItem.prototype, 'expand').andCallThrough();
+                spyOn(Ext.data.TreeStore.prototype, 'onNodeExpand').andCallThrough();
+                
+                makeTree(null, {
+                    rootVisible: false
+                }, null, {
+                    // Pretend that the root node is loaded
+                    loaded: true
+                });
+                
+                expect(rootNode.expand).not.toHaveBeenCalled();
+                expect(rootNode.data.expanded).toBe(true);
+                expect(store.onNodeExpand).toHaveBeenCalled();
+            });
+            
+            it("should not expand the root node when store.autoLoad === false", function() {
+                makeTree(null, {
+                    rootVisible: false
+                }, {
+                    autoLoad: false
+                });
+                
+                expect(rootNode.isExpanded()).toBe(false);
+            });
+            
+            it("should not expand the root node when store has pending load", function() {
+                makeTree(null, {
+                    rootVisible: false
+                }, {
+                    // Pretend that we're loading the store
+                    loading: true
+                });
+                
+                expect(rootNode.isExpanded()).toBe(false);
+            });
         });
     });
 
@@ -262,13 +528,9 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
-    describe('Binding to a TreeStore', function() {
-        it('should bind to a TreeStore in the ViewModel', function() {
-            tree = new Ext.panel.Panel({
-                renderTo: document.body,
-                height: 400,
-                width: 600,
-                layout: 'fit',
+    describe("Binding to a TreeStore", function() {
+        it("should bind to a TreeStore in the ViewModel", function() {
+            makeTree(testNodes, {
                 viewModel: {
                     stores: {
                         nodes: {
@@ -284,30 +546,58 @@ describe("Ext.tree.Panel", function(){
                         }
                     }
                 },
-                items: {
-                    xtype: 'treepanel',
-                    bind: {
-                        store: '{nodes}'
-                    }
-                }
+                store: null,
+                bind: '{nodes}'
             });
-            var treepanel = tree.down('treepanel');
 
-            // The provided default root node has no children
-            expect(treepanel.getRootNode().childNodes.length).toBe(0);
+            tree.getViewModel().notify();
 
-            // Wait until the "nodes" store has been bound
-            waitsFor(function() {
-                return treepanel.getRootNode().childNodes.length === 3 && treepanel.getView().all.getCount() === 4;
-            }, 'new store to be bound to');
+            expect(tree.getRootNode().childNodes.length).toBe(3);
+            expect(tree.getView().all.getCount()).toBe(4);
+        });
+
+        it("should bind to a TreeStore in the ViewModel with locked columns", function() {
+            makeTree(testNodes, {
+                viewModel: {
+                    stores: {
+                        nodes: {
+                            type: 'tree',
+                            model: TreeItem,
+                            root: {
+                                secondaryId: 'root',
+                                id: 'root',
+                                text: 'Root',
+                                children: testNodes,
+                                expanded: true
+                            }
+                        }
+                    }
+                },
+                store: null,
+                bind: '{nodes}',
+                columns: [{
+                    dataIndex: 'text',
+                    locked: true,
+                    xtype: 'treecolumn',
+                    width: 100
+                },{
+                    dataIndex: 'secondaryId',
+                    flex: 1
+                }]
+            });
+
+            tree.getViewModel().notify();
+
+            expect(tree.getRootNode().childNodes.length).toBe(3);
+            expect(tree.getView().all.getCount()).toBe(4);
         });
     });
 
     describe("mouse click to expand/collapse", function() {
-        function makeAutoTree(animate, data) {
-            makeTree(data, {
+        function makeAutoTree(animate, data, cfg) {
+            makeTree(data, Ext.apply({
                 animate: animate
-            }, null, {
+            }, cfg), null, {
                 expanded: true
             });
         }
@@ -354,10 +644,10 @@ describe("Ext.tree.Panel", function(){
     });
     
     describe("auto height with expand/collapse", function() {
-        function makeAutoTree(animate, data) {
-            makeTree(data, {
+        function makeAutoTree(animate, data, cfg) {
+            makeTree(data, Ext.apply({
                 animate: animate
-            }, null, {
+            }, cfg), null, {
                 expanded: true
             });
         }
@@ -404,6 +694,52 @@ describe("Ext.tree.Panel", function(){
                     expect(tree.getHeight()).toBeLessThan(height);
                 });
             });
+
+            it("should not scroll up when collapse/expand nodes", function() {
+                var spy = jasmine.createSpy(),
+                    rec, node, expander, position;
+
+                makeAutoTree(true, [{
+                    secondaryId: 'root',
+                    id: 'a',
+                    text: 'Root',
+                    expanded: true,
+                    children: [
+                        {id: 'a', expanded: true},
+                        {id: 'b', leaf: true},
+                        {id: 'c', leaf: true},
+                        {id: 'd', leaf: true},
+                        {id: 'e', leaf: true},
+                        {id: 'f', leaf: true},
+                        {id: 'g', leaf: true},
+                        {id: 'h', leaf: true},
+                        {id: 'i', leaf: true},
+                        {id: 'j', leaf: true},
+                        {id: 'k', expanded: false, children: [{id: 'l', leaf: true}]}
+                    ]
+                }],{
+                    maxWidth: 400,
+                    maxHeight: 100
+                });
+
+                view.getScrollable().scrollTo(0, Infinity);
+                position = view.getScrollable().getPosition().y;
+
+                rec = store.getById('k');
+                node = view.getNodeByRecord(rec);
+                expander = node.querySelector('.x-tree-expander');
+                jasmine.fireMouseEvent(expander, 'click');
+
+                tree.on('afteritemexpand', spy);
+
+                waitsFor(function() {
+                    return spy.callCount;
+                });
+
+                runs(function(){
+                    expect(view.getScrollable().getPosition().y).toBe(position);
+                });
+            });
         });
 
         describe("with animate: false", function() {
@@ -437,7 +773,7 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
-    describe('collapsing when collapse zone overflows the rendered zone', function() {
+    describe("collapsing when collapse zone overflows the rendered zone", function() {
         beforeEach(function() {
             for (var i = 0; i < 100; i++) {
                 testNodes[0].children.push({
@@ -483,7 +819,7 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
-    describe('reconfigure', function() {
+    describe("reconfigure", function() {
         beforeEach(function() {
             makeTree(testNodes, {
                 rootVisible: false,
@@ -493,7 +829,7 @@ describe("Ext.tree.Panel", function(){
                 expanded: true
             });
         });
-        it('should preserve singleExpand:true', function() {
+        it("should preserve singleExpand:true", function() {
             // Expand childNodes[0]
             rootNode.childNodes[0].expand();
             expect(rootNode.childNodes[0].isExpanded()).toBe(true);
@@ -538,7 +874,7 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
-    describe('autoexpand collapsed ancestors', function() {
+    describe("autoexpand collapsed ancestors", function() {
         beforeEach(function() {
             makeTree(testNodes, {
                 height: 250
@@ -631,7 +967,7 @@ describe("Ext.tree.Panel", function(){
             expect(view.getRow(rootNode)).toHaveCls(cls);
             rootNode.collapse();
             expect(view.getRow(rootNode)).not.toHaveCls(cls);
-        })
+        });
     });
     
     describe("expandPath/selectPath", function(){
@@ -699,7 +1035,7 @@ describe("Ext.tree.Panel", function(){
                 });
 
                 describe("fully successful expand", function(){
-                    describe('Old API', function() {
+                    describe("Old API", function() {
                         it("should fire the callback with success true and the last node", function(){
                             tree.expandPath('/root/A/B', null, null, function(success, lastExpanded){
                                 expectedSuccess = success;
@@ -726,7 +1062,7 @@ describe("Ext.tree.Panel", function(){
                             expect(scope).toBe(o);
                         });
 
-                        it('should be able to start from any existing node', function() {
+                        it("should be able to start from any existing node", function() {
                             tree.expandPath('G', null, null, function(success, lastExpanded) {
                                 expectedSuccess = success;
                                 expectedNode = lastExpanded;
@@ -736,7 +1072,7 @@ describe("Ext.tree.Panel", function(){
                             expect(view.all.getCount()).toBe(9);
                         });
                     });
-                    describe('New API', function() {
+                    describe("New API", function() {
                         var lastHtmlNode;
 
                         it("should fire the callback with success true and the last node", function(){
@@ -785,7 +1121,7 @@ describe("Ext.tree.Panel", function(){
                             });
                         });
 
-                        it('should be able to start from any existing node', function() {
+                        it("should be able to start from any existing node", function() {
                             tree.expandPath('G', {
                                 callback: function(success , lastExpanded) {
                                     expectedSuccess = success;
@@ -879,7 +1215,7 @@ describe("Ext.tree.Panel", function(){
                 return tree.getSelectionModel().isSelected(node);
             }; 
 
-            var expectedSuccess, expectedNode;
+            var expectedSuccess;
             beforeEach(function() {
                 expectedSuccess = false;
                 makeTree(testNodes);
@@ -1044,7 +1380,7 @@ describe("Ext.tree.Panel", function(){
 
         describe("special cases", function() {
             it("should be able to select a path where the values are numeric", function() {
-                var NumericModel = Ext.define(null, {
+                Ext.define(null, {
                     extend: 'Ext.data.TreeModel',
                     fields: [{name: 'id', type: 'int'}]
                 });
@@ -1075,7 +1411,37 @@ describe("Ext.tree.Panel", function(){
                 });
 
                 tree.selectPath('2/3/4');
-                expect(tree.getSelectionModel().isSelected(store.getNodeById(4)));
+                
+                var selection = tree.getSelectionModel().getSelection();
+                
+                expect(selection.length).toBe(1);
+                expect(selection[0]).toBe(store.getNodeById(4));
+            });
+            
+            // https://sencha.jira.com/browse/EXTJS-16667
+            it("should be able to select absolute path with numeric ids", function() {
+                tree = Ext.create('Ext.tree.Panel', {
+                    renderTo: Ext.getBody(),
+                    store: {
+                        type: 'tree',
+                        root: {
+                            id: 0,
+                            text: 'root',
+                            expanded: true,
+                            children: [{
+                                id: 1,
+                                text: 'child1'
+                            }]
+                        }
+                    }
+                });
+                
+                tree.selectPath('/0/1');
+                
+                var selection = tree.getSelectionModel().getSelection();
+                
+                expect(selection.length).toBe(1);
+                expect(selection[0]).toBe(tree.getStore().getNodeById(1));
             });
 
             it("should be able to select a path when subclassing Ext.tree.Panel", function() {
@@ -1381,7 +1747,7 @@ describe("Ext.tree.Panel", function(){
         });
     });
     
-    describe('event order', function() {
+    describe("event order", function() {
         it("should fire 'beforeitemexpand' before 'beforeload'", function() {
             var order = 0,
                 beforeitemexpandOrder,
@@ -1486,6 +1852,14 @@ describe("Ext.tree.Panel", function(){
 
             expect(view.getNodeByRecord(store.getNodeById('M'))).toHaveCls(selectedItemCls);
         });
+        
+        it("should add the expanderIconOverCls class when mouseover the expander icon", function() {
+            var cell00 = view.getCell(0, 0);
+
+            expect(cell00.hasCls(view.expanderIconOverCls)).toBe(false);
+            jasmine.fireMouseEvent(cell00.down(view.expanderSelector), 'mouseover');
+            expect(cell00.hasCls(view.expanderIconOverCls)).toBe(true);
+        });
     });
     
     describe("renderer", function() {
@@ -1517,7 +1891,7 @@ describe("Ext.tree.Panel", function(){
                 }
             });
 
-        describe('String renderer in a column subclass', function() {
+        describe("String renderer in a column subclass", function() {
             it("should be able to use a named renderer in the column with no scope", function() {
                 tree = new Ext.tree.Panel({
                     animate: false,
@@ -1686,7 +2060,7 @@ describe("Ext.tree.Panel", function(){
             });
         });
 
-        describe('String renderer in a column definition', function() {
+        describe("String renderer in a column definition", function() {
             it("should be able to use a named renderer in the column with no scope", function() {
                 tree = new Ext.tree.Panel({
                     animate: false,
@@ -1923,7 +2297,7 @@ describe("Ext.tree.Panel", function(){
     
 
     // https://sencha.jira.com/browse/EXTJSIV-9533
-    describe('programmatic load', function() {
+    describe("programmatic load", function() {
         beforeEach(function() {
             Ext.define('spec.Foo', {
                 extend : 'Ext.data.Model',
@@ -1991,7 +2365,7 @@ describe("Ext.tree.Panel", function(){
             }];
         }
 
-        it('should reload the root node', function() {
+        it("should reload the root node", function() {
             var store = new Ext.data.TreeStore({
                 model       : 'spec.Foo',
                 proxy       : {
@@ -2024,16 +2398,10 @@ describe("Ext.tree.Panel", function(){
                 }]
             });
 
-            Ext.Ajax.mockComplete({
-                status: 200,
-                responseText: Ext.encode(getData())
-            });
-
             var lockedView = tree.lockedGrid.view,
                 normalView = tree.normalGrid.view;
 
             refreshSpy = spyOnEvent(store, 'refresh');
-            store.load();
 
             Ext.Ajax.mockComplete({
                 status: 200,
@@ -2046,7 +2414,51 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
-    describe('filtering', function() {
+    describe("rendering while a child node is loading and the root is specified on the tree", function() {
+        it("should render the correct number of nodes", function() {
+            var ProxyModel = Ext.define(null, {
+                extend: 'Ext.data.TreeModel',
+                fields: ['id', 'text', 'secondaryId'],
+                proxy: {
+                    type: 'ajax',
+                    url: 'fakeUrl'
+                }
+            });
+
+            makeTree(null, {
+                root: {
+                    expanded: true,
+                    children: [{
+                        id: 'node1',
+                        text: 'Node1',
+                        expandable: true,
+                        expanded: true
+                    }, {
+                        id: 'node2',
+                        text: 'Node2',
+                        expandable: true,
+                        expanded: false
+                    }]
+                }
+            }, {
+                model: ProxyModel,
+                root: null
+            });
+
+            expect(view.getNodes().length).toBe(3);
+
+            // At this point, node1 will be loading because it's expanded
+            Ext.Ajax.mockComplete({
+                status: 200,
+                responseText: Ext.encode([{
+                    id: 'node1.1'
+                }])
+            });
+            expect(view.getNodes().length).toBe(4);
+        });
+    });
+
+    describe("top down filtering", function() {
         var treeData = [{
             text: 'Top 1',
             children: [{
@@ -2113,7 +2525,7 @@ describe("Ext.tree.Panel", function(){
             return view.store.getAt(rowIdx).get('text') === value;
         }
 
-        it('should only show nodes which pass a filter', function() {
+        it("should only show nodes which pass a filter", function() {
             // When filtering the updating of the 'visible' field must not percolate a store update event out to views.
             var handleUpdateCallCount,
                 handleUpdateSpy = spyOn(view, 'handleUpdate').andCallThrough();
@@ -2125,24 +2537,12 @@ describe("Ext.tree.Panel", function(){
             expect(testRowText(1, 'Top 2')).toBe(true);
             expect(testRowText(2, 'Top 3')).toBe(true);
 
-            // Filter so that only "foo" nodes and their ancestors are visible
+            // Filter so that only "foo" nodes and their ancestors are visible.
+            // filterer = 'bottomup' means that visible leaf nodes cause their ancestors to be visible.
+            store.filterer = 'bottomup';
             store.filter({
                 filterFn: function(node) {
-                    var children = node.childNodes,
-                        len = children && children.length,
-
-                        // Visibility of leaf nodes is whether they pass the test.
-                        // Visibility of branch nodes depends on them having visible children.
-                        visible = node.isLeaf() ? node.get('text') === 'foo' : false,
-                        i;
-
-                    // We're visible if one of our child nodes is visible.
-                    // No loop body here. We are looping only while the visible flag remains false.
-                    // Child nodes are filtered before parents, so we can check them here.
-                    // As soon as we find a visible child, this branch node must be visible.
-                    for (i = 0; i < len && !(visible = children[i].get('visible')); i++);
-
-                    return visible;
+                    return  node.get('text') === 'foo';
                 },
                 id: 'testFilter'
             });
@@ -2181,21 +2581,7 @@ describe("Ext.tree.Panel", function(){
             // View should refresh.
             store.filter({
                 filterFn: function(node) {
-                    var children = node.childNodes,
-                        len = children && children.length,
-
-                        // Visibility of leaf nodes is whether they pass the test.
-                        // Visibility of branch nodes depends on them having visible children.
-                        visible = node.isLeaf() ? node.get('text') === 'bar' : false,
-                        i;
-
-                    // We're visible if one of our child nodes is visible.
-                    // No loop body here. We are looping only while the visible flag remains false.
-                    // Child nodes are filtered before parents, so we can check them here.
-                    // As soon as we find a visible child, this branch node must be visible.
-                    for (i = 0; i < len && !(visible = children[i].get('visible')); i++);
-
-                    return visible;
+                    return node.get('text') === 'bar';
                 },
                 id: 'testFilter'
             });
@@ -2246,8 +2632,8 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
-    describe('sorting', function() {
-        it('should sort nodes', function() {
+    describe("sorting", function() {
+        it("should sort nodes", function() {
             var bNode;
 
             makeTree(testNodes, null, {
@@ -2290,7 +2676,7 @@ describe("Ext.tree.Panel", function(){
         });
     });
     
-    describe('Buffered rendering large, expanded root node', function() {
+    describe("Buffered rendering large, expanded root node", function() {
         function makeNodes() {
             var nodes = [],
                 i, j,
@@ -2326,7 +2712,7 @@ describe("Ext.tree.Panel", function(){
             });
         }
 
-        it('should maintain scroll position on reload', function() {
+        it("should maintain scroll position on reload", function() {
             makeTree(null, {
                 height: 400,
                 width: 350
@@ -2344,6 +2730,12 @@ describe("Ext.tree.Panel", function(){
 
             completeWithNodes();
 
+            // Child nodes of expanded root must be in store.
+            expect(store.getCount()).toBe(51);
+
+            // Child nodes must be in view
+            expect(view.all.getCount()).toBe(Math.min(store.getCount(), view.bufferedRenderer.viewSize));
+
             view.setScrollY(500);
             store.reload();
 
@@ -2352,7 +2744,7 @@ describe("Ext.tree.Panel", function(){
             expect(view.getScrollY()).toBe(500);
         });
 
-        it('should negate the animate flag and not throw an error', function() {
+        it("should negate the animate flag and not throw an error", function() {
             makeTree(null, {
                 height: 400,
                 width: 350,
@@ -2374,7 +2766,7 @@ describe("Ext.tree.Panel", function(){
             expect(tree.view.bufferedRenderer instanceof Ext.grid.plugin.BufferedRenderer).toBe(true);
         });
 
-        it('should scroll to unloaded nodes by absolute path', function() {
+        it("should scroll to unloaded nodes by absolute path", function() {
             makeTree(null, {
                 height: 400,
                 width: 350
@@ -2401,7 +2793,7 @@ describe("Ext.tree.Panel", function(){
             expect(Ext.fly(view.getNode(store.getById('n50.50'))).getBox().bottom).toBeLessThanOrEqual(view.getBox().bottom);
         });
 
-        it('should throw an error when being asked to scroll to an invisible root node', function() {
+        it("should throw an error when being asked to scroll to an invisible root node", function() {
             makeTree(null, {
                 height: 400,
                 width: 350,
@@ -2433,7 +2825,7 @@ describe("Ext.tree.Panel", function(){
             });
         });
 
-        it('should scroll to loaded nodes by relative path', function() {
+        it("should scroll to loaded nodes by relative path", function() {
             makeTree(null, {
                 height: 400,
                 width: 350
@@ -2462,7 +2854,7 @@ describe("Ext.tree.Panel", function(){
         });
     });
     
-    describe('multi append node', function() {
+    describe("multi append node", function() {
         var layoutCounter,
             height;
 
@@ -2473,7 +2865,7 @@ describe("Ext.tree.Panel", function(){
             layoutCounter = view.componentLayoutCounter;
         });
 
-        it('should only update the view once when an array of nodes is passed', function() {
+        it("should only update the view once when an array of nodes is passed", function() {
             height = tree.getHeight();
             expect(view.all.getCount()).toEqual(4);
             tree.getRootNode().appendChild([{
@@ -2509,8 +2901,8 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
-    describe('tracking removed nodes', function() {
-        it('should not add nodes removed by virtue of their parent collapsing to the removed list', function() {
+    describe("tracking removed nodes", function() {
+        it("should not add nodes removed by virtue of their parent collapsing to the removed list", function() {
             var done = false;
             makeTree(testNodes, null, {
                 trackRemoved: true
@@ -2528,7 +2920,7 @@ describe("Ext.tree.Panel", function(){
             });
         });
         
-        it('should add descendants of collapsed nodes to the removed list', function() {
+        it("should add descendants of collapsed nodes to the removed list", function() {
             // Create tree with collapsed root node;
             makeTree(testNodes, null, {
                 trackRemoved: true
@@ -2541,7 +2933,7 @@ describe("Ext.tree.Panel", function(){
             });
         });
         
-        it('should add descendants of filtered out nodes to the removed list', function() {
+        it("should add descendants of filtered out nodes to the removed list", function() {
             var done = false;
 
             // Create tree with collapsed root node;
@@ -2571,8 +2963,8 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
-    describe('Changing root node', function() {
-        it('should remove all listeners from old root node', function() {
+    describe("Changing root node", function() {
+        it("should remove all listeners from old root node", function() {
             tree = new Ext.tree.Panel({
                 title: 'Test',
                 height: 200,
@@ -2613,8 +3005,8 @@ describe("Ext.tree.Panel", function(){
         });
     });
 
-    describe('sorting a collapsed node', function() {
-        it('should not expand a collapsed node upon sort', function() {
+    describe("sorting a collapsed node", function() {
+        it("should not expand a collapsed node upon sort", function() {
             makeTree(testNodes, null, {
                 folderSort: true,
                 sorters: [{
@@ -2634,6 +3026,155 @@ describe("Ext.tree.Panel", function(){
             expect(tree.store.indexOf(aNode.childNodes[0])).toBe(-1);
             expect(tree.store.indexOf(aNode.childNodes[1])).toBe(-1);
             expect(tree.store.indexOf(aNode.childNodes[2])).toBe(-1);
+        });
+    });
+
+    describe("key events", function() {
+        describe("not locked", function() {
+            it("should expand all nodes with asterisk", function() {
+                makeTree(testNodes);
+                var cell = tree.getView().getCell(rootNode, tree.down('treecolumn'));
+                jasmine.fireMouseEvent(cell, 'click', 5, 5);
+                spyOn(tree, 'expandAll').andCallThrough();
+                jasmine.fireKeyEvent(cell, 'keydown', Ext.event.Event.EIGHT, true);
+                expect(tree.expandAll.callCount).toBe(1);
+
+            });
+        });
+
+        describe("locked", function() {
+            it("should expand all nodes with asterisk", function() {
+                makeTree(testNodes, {
+                    columns: [{
+                        xtype: 'treecolumn',
+                        locked: true,
+                        width: 200,
+                        dataIndex: 'text'
+                    }, {
+                        width: 200,
+                        dataIndex: 'text'
+                    }]
+                });
+                var cell = tree.getView().getCell(rootNode, tree.down('treecolumn'));
+                jasmine.fireMouseEvent(cell, 'click', 5, 5);
+                spyOn(tree, 'expandAll').andCallThrough();
+                jasmine.fireKeyEvent(cell, 'keydown', Ext.event.Event.EIGHT, true);
+                expect(tree.expandAll.callCount).toBe(1);
+            }); 
+        });
+    });
+
+    describe("bottom up filtering", function() {
+        it("should show path to all filtered in leaf nodes", function() {
+            makeTree(testNodes, null, {
+                filterer: 'bottomup'
+            });
+            tree.expandAll();
+
+            // All nodes must be visible
+            expect(view.all.getCount()).toBe(15);
+
+            // This should only pass one leaf node.
+            // But its ancestors obviously have to be visible.
+            store.filter({
+                property: 'text',
+                operator: '=',
+                value: 'H'
+            });
+
+            // The H node must be visible
+            expect(view.getNode(store.getById('H'))).not.toBe(null);
+
+            // Just the path to the H node must be visible
+            expect(view.all.getCount()).toBe(5);
+        });
+    });
+
+    describe("glyphs for icons", function() {
+        it("should render glyphs using the specified font", function() {
+            makeTree(testNodes, {
+                columns: [{
+                    xtype: 'treecolumn',
+                    width: 200,
+                    dataIndex: 'text',
+                    renderer: function(v, metaData, record) {
+                        metaData.glyph = record.data.text + '@FontAwesome';
+                        return v;
+                    }
+                }, {
+                    width: 200,
+                    dataIndex: 'text'
+                }]
+            });
+            tree.expandAll();
+
+            // Check that the font-family is as specified
+            expect(view.getCellByPosition({row:0, column:0}).down('.x-tree-icon').getStyle('font-family')).toBe('FontAwesome');
+
+            // Check that the glyph is the first character of the text.
+            expect(view.getCellByPosition({row:0, column:0}).down('.x-tree-icon').dom.innerHTML).toBe(store.getAt(0).get('text').substr(0, 1));
+        });
+    });
+    
+    describe("ARIA", function() {
+        beforeEach(function() {
+            makeTree(testNodes);
+        });
+        
+        describe("role", function() {
+            it("should have treegrid role", function() {
+                expect(view).toHaveAttr('role', 'treegrid');
+            });
+        });
+        
+        describe("aria-level", function() {
+            beforeEach(function() {
+                tree.expandAll();
+            });
+            
+            it("should have aria-level on rows", function() {
+                // A
+                var row = view.getRow(1);
+                
+                expect(row).toHaveAttr('aria-level', '2');
+                
+                // B
+                row = view.getRow(2);
+                
+                expect(row).toHaveAttr('aria-level', '3');
+                
+                // C
+                row = view.getRow(3);
+                
+                expect(row).toHaveAttr('aria-level', '4');
+            });
+        });
+        
+        describe("aria-expanded", function() {
+            it("should be set to false when collapsed", function() {
+                // Root
+                var row = view.getRow(0);
+                
+                expect(row).toHaveAttr('aria-expanded', 'false');
+            });
+            
+            it("should be set to true when expanded", function() {
+                tree.getStore().getNodeById('A').expand();
+                
+                // A
+                var row = view.getRow(1);
+                
+                expect(row).toHaveAttr('aria-expanded', 'true');
+            });
+            
+            it("should not be present on leaf nodes", function() {
+                tree.getStore().getNodeById('A').expand();
+                
+                // C
+                var row = view.getRow(3);
+                
+                expect(row).not.toHaveAttr('aria-expanded');
+            });
         });
     });
 });

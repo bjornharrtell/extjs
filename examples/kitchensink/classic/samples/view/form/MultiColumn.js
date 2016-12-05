@@ -1,5 +1,5 @@
 /**
- * Demonstrates a simple contact form.
+ * Demonstrates a form with two columns.
  */
 Ext.define('KitchenSink.view.form.MultiColumn', {
     extend: 'Ext.form.Panel',
@@ -9,16 +9,16 @@ Ext.define('KitchenSink.view.form.MultiColumn', {
     exampleTitle: 'Multi Column Form',
     profiles: {
         classic: {
-            width: 520
-        },
-        gray: {
-            width: 520
+            width: 520,
+            height: 250
         },
         neptune: {
-            width: 590
+            width: 610,
+            height: 300
         },
         'neptune-touch': {
-            width: 700
+            width: 700,
+            height: 350
         }
     },
     //</example>
@@ -26,7 +26,9 @@ Ext.define('KitchenSink.view.form.MultiColumn', {
     title: 'Multi Column Form',
     frame: true,
     resizable: true,
-    minHeight: 200,
+    width: '${width}',
+    minWidth: '${width}',
+    minHeight: '${height}',
 
     layout: 'column',
     
@@ -56,11 +58,5 @@ Ext.define('KitchenSink.view.form.MultiColumn', {
     buttons: [
         { text: 'OK' },
         { text: 'Cancel' }
-    ],
-    
-    initComponent: function() {
-        this.width = this.profileInfo.width;
-        this.minWidth = this.profileInfo.width;
-        this.callParent();
-    }
+    ]
 });

@@ -9,11 +9,21 @@ Ext.define('KitchenSink.view.chart.Pie', {
         'Ext.chart.interactions.Rotate'
     ],
 
-    controller: {
-        type: 'chart'
-    },
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/Pie.js' 
+    }],
+    // </example>
+    
+    controller: 'chart',
 
     layout: 'fit',
+    shadow: true,
+
     items: [{
         xtype: 'toolbar',
         docked: 'top',
@@ -27,25 +37,14 @@ Ext.define('KitchenSink.view.chart.Pie', {
         }, {
             iconCls: 'x-fa fa-refresh',
             text: 'Refresh',
-            handler: function() {
-                Ext.getStore('Pie').generateData(5);
-            }
-        }, {
-            text: 'Reset',
-            handler: function() {
-                //ensure the query gets the chart for this kitchensink example
-                var chart = this.up().up().down('polar');
-
-                //reset the rotation
-                Ext.ComponentQuery.query('series', chart)[0].setRotation(0);
-
-                //reset the legend
-                chart.resetLegendStore();
-            }
+            handler: 'onRefresh'
         }]
     }, {
         xtype: 'polar',
-        store: 'Pie',
+        store: {
+            type: 'pie',
+            numRecords: 5
+        },
         interactions: ['rotate', 'itemhighlight'],
         legend: {
             position: 'right',
@@ -70,10 +69,5 @@ Ext.define('KitchenSink.view.chart.Pie', {
             }
         }],
         axes: []
-    }],
-
-    initialize: function() {
-        this.callParent();
-        Ext.getStore('Pie').generateData(5);
-    }
+    }]
 });

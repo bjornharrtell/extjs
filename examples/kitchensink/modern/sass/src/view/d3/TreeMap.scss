@@ -1,0 +1,30 @@
+.tip {
+    border: 2px solid dimgray;
+    .#{$prefix}panel-inner-tooltip {
+        background: #e67e22;
+        white-space: nowrap;
+        color: white;
+        font-weight: 300;
+    }
+}
+
+.tip-title {
+    padding: 8px;
+    border-radius: 8px;
+    margin-top: 5px;
+    margin-bottom: 8px;
+    background: #d35400;
+    font-size: 16px;
+    line-height: 16px;
+    height: 30px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.tip-symbol {
+    font-weight: bold;
+}
+
+.tip-company {
+    font-weight: bold;
+}

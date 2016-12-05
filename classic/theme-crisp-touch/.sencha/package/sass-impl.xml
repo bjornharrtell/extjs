@@ -238,11 +238,13 @@
 
                     <x-echo>Building @{cssfile} to ${css.output.name}</x-echo>
 
-                    <x-sass-build input="@{cssfile}"
-                                  output="${css.output.name}"
-                                  refId="package.web.server"
-                                  split="${build.css.selector.limit}"
-                                  compress="@{compress}"/>
+                    <x-sencha-command>
+                        fashion
+                        -compress=@{compress}
+                        -split=${build.css.selector.limit}
+                        @{cssfile}
+                        ${css.output.name}
+                    </x-sencha-command>
 
                 </sequential>
             </for>

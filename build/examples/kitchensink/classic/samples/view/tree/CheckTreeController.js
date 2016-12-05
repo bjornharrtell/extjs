@@ -13,7 +13,7 @@ Ext.define('KitchenSink.view.tree.CheckTreeController', {
 
     onBeforeCheckChange: function(record, checkedState, e) {
         if (record.get('text') === 'Take a nap' && !checkedState) {
-            Ext.toast('No rest for the wicked!', null, 't');
+            Ext.toast('No rest for the weary!', null, 't');
             return false;
         }
     },

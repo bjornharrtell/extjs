@@ -1,3 +1,5 @@
+/* global expect, Ext, jasmine */
+
 // TODO: splitters
 // TODO: expand/collapse
 // TODO: Adding regions (done partially)
@@ -65,7 +67,7 @@ describe('Ext.layout.container.Border', function() {
         var normalize = function(style) {
             if (style === 'auto') {
                 return '';
-            } else if (style == '0px') {
+            } else if (style === '0px') {
                 return '';
             }
             return style;
@@ -2044,7 +2046,7 @@ describe('Ext.layout.container.Border', function() {
             expect(fired).toBe(false);
         });
 
-        todoIt('should support a collapsed west region', function() {
+        it('should support a collapsed west region', function() {
             //
             //      +------+--------+
             //      |      | center |
@@ -2089,7 +2091,11 @@ describe('Ext.layout.container.Border', function() {
 
             // Click the placeholder to slide out the region
             jasmine.fireMouseEvent(westPh.el, 'mouseover');
-            jasmine.fireMouseEvent(westPh.el, 'click');
+            if (document.createTouch) {
+                Ext.testHelper.tap(westPh.el);
+            } else {
+                jasmine.fireMouseEvent(westPh.el, 'click');
+            }
 
             // Wait for 1 second animation to float out the region
             waitsFor(function() {
@@ -2107,6 +2113,98 @@ describe('Ext.layout.container.Border', function() {
                 return floated === false;
             });
             runs(Ext.emptyFn);
+        });
+
+        it('should expand a collapsed west region from floated', function() {
+            //
+            //      +------+--------+
+            //      |      | center |
+            //      |w: 28 | w: 172 |
+            //      |      | h: 200 |
+            //      | west |        |
+            //      +------+--------+
+            var ct = createBorderLayout([
+                {
+                    collapsed: true,
+                    flex: 2, // irrelevant
+                    region: 'west',
+                    xtype: 'panel',
+                    collapsible: true,
+                    floatable: true // We want to test floating
+                }, {
+                    region: 'center'
+                }
+            ]),
+            floated = false,
+            expanded = false,
+            westBox;
+
+            var west = ct.down('[region=west]:not([placeholderFor])');
+            var westPh = ct.down('[region=west][placeholderFor]');
+            var center = ct.down('[region=center]');
+
+            expect(westPh.getWidth()).toBe(VERTICAL_PLACEHOLDER_WIDTH);
+            expect(westPh.getHeight()).toBe(200);
+            expect(getLeft(ct, westPh)).toBe(0);
+            expect(getTop(ct, westPh)).toBe(0);
+
+            expect(center.getWidth()).toBe(200 - VERTICAL_PLACEHOLDER_WIDTH);
+            expect(center.getHeight()).toBe(200);
+            expect(getLeft(ct, center)).toBe(VERTICAL_PLACEHOLDER_WIDTH);
+            expect(getTop(ct, center)).toBe(0);
+
+            west.on('float', function() {
+                floated = true;
+            });
+            west.on('unfloat', function() {
+                floated = false;
+            });
+            west.on('expand', function() {
+                expanded = true;
+            });
+
+            // Click the placeholder to slide out the region
+            if (document.createTouch) {
+                Ext.testHelper.tap(westPh.el);
+            } else {
+                jasmine.fireMouseEvent(westPh.el, 'click');
+            }
+
+            // Wait for 1 second animation to float out the region
+            waitsFor(function() {
+                return floated;
+            });
+            runs(function() {
+                expect(floated).toBe(true);
+
+                if (document.createTouch) {
+                    Ext.testHelper.tap(westPh.expandTool.el);
+                } else {
+                    jasmine.fireMouseEvent(westPh.expandTool.el, 'click');
+                }
+            });
+
+            // Wait for region to be unfloated and expanded
+            waitsFor(function() {
+                return (!floated) && expanded;
+            });
+            runs(function() {
+                westBox = west.getBox();
+
+                if (document.createTouch) {
+                    Ext.testHelper.tap(center.el);
+                } else {
+                    jasmine.fireMouseEvent(center.el, 'click');
+                }
+            });
+
+            // We can't wait for anything, we are expecting nothing to happen
+            waits(1000);
+
+            // Nothing should have happened
+            runs(function() {
+                expect(west.getBox()).toEqual(westBox);
+            });
         });
 
         todoIt('should support a collapsed east region', function() {
@@ -2915,8 +3013,7 @@ describe('Ext.layout.container.Border', function() {
                 expect(west.isViewportBorderChild).toBe(true);
             });
             
-            // TODO
-            xit('should support adding a collapsed region', function() {
+            it('should support adding a collapsed region', function() {
                 //
                 //      +------+------+
                 //      | west |center|
@@ -2930,6 +3027,8 @@ describe('Ext.layout.container.Border', function() {
                 var ct = createBorderLayout([{
                     region: 'west',
                     width: 30
+                }, {
+                    region: 'center'
                 }]);
 
                 ct.add({
@@ -2957,6 +3056,36 @@ describe('Ext.layout.container.Border', function() {
                 expect(center.getHeight()).toBe(200 - HORIZONTAL_PLACEHOLDER_HEIGHT);
                 expect(getLeft(ct, center)).toBe(30);
                 expect(getTop(ct, center)).toBe(0);
+            });
+            
+            it("should support re-adding previously collapsed region", function() {
+                var ct = createBorderLayout([{
+                    xtype: 'panel',
+                    region: 'west',
+                    title: 'west',
+                    width: 30,
+                    collapsible: true,
+                    collapsed: false,
+                    animCollapse: false
+                }, {
+                    region: 'center'
+                }]);
+                
+                var west = ct.down('[region=west]');
+                var center = ct.down('[region=center]');
+                
+                west.collapse();
+                ct.remove(west, false);
+                
+                expect(center.getWidth()).toBe(200);
+                expect(center.getHeight()).toBe(200);
+                
+                ct.add(west);
+                
+                expect(west.el.isVisible()).toBe(false);
+                expect(west.placeholder.el.isVisible()).toBe(true);
+                expect(west.placeholder.getWidth()).toBe(VERTICAL_PLACEHOLDER_WIDTH);
+                expect(center.getWidth()).toBe(200 - VERTICAL_PLACEHOLDER_WIDTH);
             });
         });
     });

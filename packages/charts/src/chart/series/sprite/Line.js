@@ -14,7 +14,7 @@ Ext.define('Ext.chart.series.sprite.Line', {
                 /**
                  * @cfg {Boolean} [smooth=false]
                  * `true` if the sprite uses line smoothing.
-                 * Don't enable this if your data has gaps: NaN, undefined, etc.
+                 * Line smoothing only works with gapless data.
                  */
                 smooth: 'bool',
                 /**
@@ -28,6 +28,20 @@ Ext.define('Ext.chart.series.sprite.Line', {
                  * It is ignored if `smooth` is `true`.
                  */
                 step: 'bool',
+                /**
+                 * @cfg {"gap"/"connect"/"origin"} [nullStyle="gap"]
+                 * Possible values:
+                 * 'gap' - null points are rendered as gaps.
+                 * 'connect' - non-null points are connected across null points, so that
+                 * there is no gap, unless null points are at the beginning/end of the line.
+                 * Only the visible data points are connected - if a visible data point
+                 * is followed by a series of null points that go off screen and eventually
+                 * terminate with a non-null point, the connection won't be made.
+                 * 'origin' - null data points are rendered at the origin,
+                 * which is the y-coordinate of a point where the x and y axes meet.
+                 * This requires that at least the x-coordinate of a point is a valid value.
+                 */
+                nullStyle: 'enums(gap,connect,origin)',
                 /**
                  * @cfg {Boolean} [preciseStroke=true]
                  * `true` if the line uses precise stroke.
@@ -50,6 +64,7 @@ Ext.define('Ext.chart.series.sprite.Line', {
 
             defaults: {
                 smooth: false,
+                nullStyle: 'connect',
                 fillArea: false,
                 step: false,
                 preciseStroke: true,
@@ -102,19 +117,37 @@ Ext.define('Ext.chart.series.sprite.Line', {
     drawStraightStroke: function (surface, ctx, start, end, list, xAxis) {
         var me = this,
             attr = me.attr,
+            nullStyle = attr.nullStyle,
+            isConnect = nullStyle === 'connect',
+            isOrigin = nullStyle === 'origin',
             renderer = attr.renderer,
             step = attr.step,
             needMoveTo = true,
+            ln = list.length,
             lineConfig = {
                 type: 'line',
                 smooth: false,
                 step: step
-            },
-            strip = [], // Stores last continuous segment of the stroke.
-            lineConfig, changes, params, stripStartX,
+            };
+
+        var rendererChanges, params, stripStartX,
+            isValidX0, isValidX, isValidX1,
+            isValidPoint0, isValidPoint, isValidPoint1,
+            isGap, lastValidPoint, px, py,
             x, y, x0, y0, x1, y1, i;
 
-        for (i = 3; i < list.length; i += 3) {
+        // 'strip' stores last continuous segment of the stroke,
+        // which we may need to re-build, if there's a fill as well.
+        // For example, if the renderer returned a style that needs
+        // to be applied to the current step, or we reached a null
+        // point in the data, where we have to fill the current continuous
+        // segment, we build and close a path that will be filled, then
+        // re-build the stroke path, using coordinates saved in the 'strip',
+        // and render the stroke on top of the fill.
+        var strip = [];
+
+        ctx.beginPath();
+        for (i = 3; i < ln; i += 3) {
             x0 = list[i - 3];
             y0 = list[i - 2];
             x = list[i];
@@ -122,16 +155,79 @@ Ext.define('Ext.chart.series.sprite.Line', {
             x1 = list[i + 3];
             y1 = list[i + 4];
 
+            isValidX0 = Ext.isNumber(x0);
+            isValidX = Ext.isNumber(x);
+            isValidX1 = Ext.isNumber(x1);
+
+            isValidPoint0 = isValidX0 && Ext.isNumber(y0);
+            isValidPoint = isValidX && Ext.isNumber(y);
+            isValidPoint1 = isValidX1 && Ext.isNumber(y1);
+
+            if (isOrigin) {
+                // If only the y-component isn't a valid number,
+                // we can 'fix' it by setting it to value of y-origin.
+                if (!isValidPoint0 && isValidX0) {
+                    y0 = xAxis;
+                    isValidPoint0 = true;
+                }
+                if (!isValidPoint && isValidX) {
+                    y = xAxis;
+                    isValidPoint = true;
+                }
+                if (!isValidPoint1 && isValidX1) {
+                    y1 = xAxis;
+                    isValidPoint1 = true;
+                }
+            }
+
             if (renderer) {
                 lineConfig.x = x;
                 lineConfig.y = y;
                 lineConfig.x0 = x0;
                 lineConfig.y0 = y0;
                 params = [me, lineConfig, me.rendererData, start + i/3];
-                changes = Ext.callback(renderer, null, params, 0, me.getSeries());
+                // callback(fn, scope, args, delay, caller)
+                rendererChanges = Ext.callback(renderer, null, params, 0, me.getSeries());
             }
 
-            if (Ext.isNumber(x + y + x0 + y0)) {
+            if (isGap && isConnect && isValidPoint0 && lastValidPoint) {
+                px = lastValidPoint[0];
+                py = lastValidPoint[1];
+                if (needMoveTo) {
+                    ctx.beginPath();
+                    ctx.moveTo(px, py);
+                    strip.push(px, py);
+                    stripStartX = px;
+                    needMoveTo = false;
+                }
+
+                if (step) {
+                    ctx.lineTo(x0, py);
+                    strip.push(x0, py);
+                }
+                ctx.lineTo(x0, y0);
+                strip.push(x0, y0);
+
+                lastValidPoint = [x0, y0];
+                isGap = false;
+            }
+
+            // Special case where we have an uninterrupted segment, followed
+            // by a gap, then a valid point, then another gap. The uninterrupted
+            // segment should be connenected with the dot situated between the gaps.
+            if (isConnect && lastValidPoint && isValidPoint && !isValidPoint0) {
+                x0 = lastValidPoint[0];
+                y0 = lastValidPoint[1];
+                isValidPoint0 = true;
+            }
+
+            // Remember last valid point to connect the gap
+            // when the next valid point is encountered.
+            if (isValidPoint) {
+                lastValidPoint = [x, y];
+            }
+
+            if (isValidPoint0 && isValidPoint) {
                 if (needMoveTo) {
                     ctx.beginPath();
                     ctx.moveTo(x0, y0);
@@ -140,6 +236,7 @@ Ext.define('Ext.chart.series.sprite.Line', {
                     needMoveTo = false;
                 }
             } else {
+                isGap = true;
                 continue;
             }
 
@@ -150,25 +247,33 @@ Ext.define('Ext.chart.series.sprite.Line', {
             ctx.lineTo(x, y);
             strip.push(x, y);
 
-            if ( changes || !(Ext.isNumber(x1 + y1)) ) {
+            // If the next point is a gap, then we need to fill what
+            // has been already rendered so far. The same applies
+            // if the renderer returned some changes to apply to
+            // the current step.
+            if ( rendererChanges || !isValidPoint1 ) {
                 ctx.save();
-                    Ext.apply(ctx, changes);
+                Ext.apply(ctx, rendererChanges);
+                rendererChanges = null;
 
-                    if (attr.fillArea) {
-                        ctx.lineTo(x, xAxis);
-                        ctx.lineTo(stripStartX, xAxis);
-                        ctx.closePath();
-                        ctx.fill();
-                    }
+                if (attr.fillArea) {
+                    ctx.lineTo(x, xAxis);
+                    ctx.lineTo(stripStartX, xAxis);
+                    ctx.closePath();
+                    ctx.fill();
+                }
 
-                    // Draw the line on top of the filled area.
-                    ctx.beginPath();
-                    me.drawStrip(ctx, strip);
-                    strip = [];
-                    ctx.stroke();
+                // Draw the line on top of the filled area.
+                ctx.beginPath();
+                me.drawStrip(ctx, strip);
+                strip = [];
+                ctx.stroke();
                 ctx.restore();
 
                 ctx.beginPath();
+                // Take note that the starting point of a path has been reset
+                // (as a result of filling a sub-path) and needs to be set again
+                // for the line to continue in a proper manner.
                 needMoveTo = true;
             }
         }
@@ -399,6 +504,8 @@ Ext.define('Ext.chart.series.sprite.Line', {
             maxYs = aggregates.maxY,
             idx = aggregates.startIdx,
             isContinuousLine = true,
+            isValidMinX, isValidMaxX,
+            isValidMinY, isValidMaxY,
             xAxisOrigin, isVerticalX,
             x, y, i, index;
 
@@ -443,14 +550,39 @@ Ext.define('Ext.chart.series.sprite.Line', {
                 minY = minYs[i],
                 maxY = maxYs[i];
 
+            isValidMinX = Ext.isNumber(minX);
+            isValidMinY = Ext.isNumber(minY);
+            isValidMaxX = Ext.isNumber(maxX);
+            isValidMaxY = Ext.isNumber(maxY);
+
             if (minX < maxX) {
-                list.push(minX * xx + dx, minY * yy + dy, idx[i]);
-                list.push(maxX * xx + dx, maxY * yy + dy, idx[i]);
+                list.push(
+                    isValidMinX ? (minX * xx + dx) : null,
+                    isValidMinY ? (minY * yy + dy) : null,
+                    idx[i]
+                );
+                list.push(
+                    isValidMaxX ? (maxX * xx + dx) : null,
+                    isValidMaxY ? (maxY * yy + dy) : null,
+                    idx[i]
+                );
             } else if (minX > maxX) {
-                list.push(maxX * xx + dx, maxY * yy + dy, idx[i]);
-                list.push(minX * xx + dx, minY * yy + dy, idx[i]);
+                list.push(
+                    isValidMaxX ? (maxX * xx + dx) : null,
+                    isValidMaxY ? (maxY * yy + dy) : null,
+                    idx[i]
+                );
+                list.push(
+                    isValidMinX ? (minX * xx + dx) : null,
+                    isValidMinY ? (minY * yy + dy) : null,
+                    idx[i]
+                );
             } else {
-                list.push(maxX * xx + dx, maxY * yy + dy, idx[i]);
+                list.push(
+                    isValidMaxX ? (maxX * xx + dx) : null,
+                    isValidMaxY ? (maxY * yy + dy) : null,
+                    idx[i]
+                );
             }
         }
 
@@ -458,7 +590,7 @@ Ext.define('Ext.chart.series.sprite.Line', {
             for (i = 0; i < list.length; i += 3) {
                 x = list[i];
                 y = list[i + 1];
-                if (Ext.isNumber(x + y)) {
+                if (Ext.isNumber(x) && Ext.isNumber(y)) {
                     if (y > yCap) {
                         y = yCap;
                     } else if (y < -yCap) {
@@ -515,6 +647,10 @@ Ext.define('Ext.chart.series.sprite.Line', {
                         lastPointY = dataY[dataY.length - 1] * yy + dy,
                         firstPointX = dataX[0] * xx + dx - pixel,
                         firstPointY = dataY[0] * yy + dy;
+                    // Fill the area from the series to the xAxis in case there
+                    // are no gaps and no renderer is used, in which case the
+                    // area would be filled per uninterrupted segment or per
+                    // step, instead of being filled a single pass.
                     ctx.lineTo(lastPointX, lastPointY);
                     ctx.lineTo(lastPointX, xAxisOrigin - attr.lineWidth);
                     ctx.lineTo(firstPointX, xAxisOrigin - attr.lineWidth);

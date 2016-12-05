@@ -65,6 +65,7 @@ Ext.define('Ext.form.field.Spinner', {
                 type: 'spinner',
                 upHandler: 'onSpinnerUpClick',
                 downHandler: 'onSpinnerDownClick',
+                endHandler: 'onSpinEnd',
                 scope: 'this'
             }
         }
@@ -141,6 +142,17 @@ Ext.define('Ext.form.field.Spinner', {
      * @param {Ext.form.field.Spinner} this
      */
 
+    /**
+     * @event spinend
+     * Fires when a spin command has been finished. For example on mouseup
+     * on the spin buttons, when an `UP` or `DOWN` arrow key is released
+     * of when a mousewheel stops spinning.
+     *
+     * When this event fires, the field's value has stabilized.
+     * @param {Ext.form.field.Spinner} this
+     * @since 6.2.0
+     */
+
     applyTriggers: function(triggers) {
         var me = this,
             spinnerTrigger = triggers.spinner;
@@ -166,6 +178,10 @@ Ext.define('Ext.form.field.Spinner', {
                 scope: me,
                 up: me.spinUp,
                 down: me.spinDown
+            });
+            me.inputEl.on({
+                keyup: me.onInputElKeyUp,
+                scope: me
             });
         }
 
@@ -265,12 +281,24 @@ Ext.define('Ext.form.field.Spinner', {
                 me.spinDown();
             }
             e.stopEvent();
+            me.onSpinEnd();
         }
     },
 
-    onDestroy: function() {
+    onInputElKeyUp: function(e) {
+        if (e.keyCode === e.UP || e.keyCode === e.DOWN) {
+            this.onSpinEnd();
+        }
+    },
+
+    doDestroy: function() {
         Ext.destroyMembers(this, 'spinnerKeyNav');
+        
         this.callParent();
     }
 
+}, function(Spinner) {
+    Spinner.prototype.onSpinEnd = Ext.Function.createBuffered(function() {
+        this.fireEvent('spinend', this);
+    }, 100);
 });

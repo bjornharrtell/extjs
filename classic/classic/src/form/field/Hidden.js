@@ -71,36 +71,43 @@ Ext.define('Ext.form.field.Hidden', {
     initEvents: Ext.emptyFn,
 
     /**
+     * @method
      * @hide
      */
     setSize : Ext.emptyFn,
 
     /**
+     * @method
      * @hide
      */
     setWidth : Ext.emptyFn,
 
     /**
+     * @method
      * @hide
      */
     setHeight : Ext.emptyFn,
 
     /**
+     * @method
      * @hide
      */
     setPosition : Ext.emptyFn,
 
     /**
+     * @method
      * @hide
      */
     setPagePosition : Ext.emptyFn,
 
     /**
+     * @method
      * @hide
      */
     markInvalid : Ext.emptyFn,
 
     /**
+     * @method
      * @hide
      */
     clearInvalid : Ext.emptyFn

@@ -1,4 +1,973 @@
 /**
+ * Displays a value within the given interval as a gauge. For example:
+ *
+ *     @example
+ *     Ext.create({
+ *         xtype: 'panel',
+ *         renderTo: document.body,
+ *         width: 200,
+ *         height: 200,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'gauge',
+ *             padding: 20,
+ *             value: 55,
+ *             minValue: 40,
+ *             maxValue: 80
+ *         }
+ *     });
+ *
+ * It's also possible to use gauges to create loading indicators:
+ *
+ *     @example
+ *     Ext.create({
+ *         xtype: 'panel',
+ *         renderTo: document.body,
+ *         width: 200,
+ *         height: 200,
+ *         layout: 'fit',
+ *         items: {
+ *             xtype: 'gauge',
+ *             padding: 20,
+ *             trackStart: 0,
+ *             trackLength: 360,
+ *             value: 20,
+ *             valueStyle: {
+ *                 round: true
+ *             },
+ *             textTpl: 'Loading...',
+ *             animation: {
+ *                 easing: 'linear',
+ *                 duration: 100000
+ *             }
+ *         }
+ *     }).items.first().setAngleOffset(360 * 100);
+ */
+Ext.define('Ext.ux.Gauge', {
+    extend: 'Ext.Gadget',
+    xtype: 'gauge',
+    requires: [
+        'Ext.util.Region'
+    ],
+    config: {
+        baseCls: Ext.baseCSSPrefix + 'gauge',
+        /**
+         * @cfg {Number/String} padding Gauge sector padding in pixels or percent of
+         * width/height, whichever is smaller.
+         */
+        padding: 10,
+        /**
+         * @cfg {Number} trackStart
+         * The angle in the [0, 360) interval at which the gauge's track sector starts.
+         * E.g. 0 for 3 o-clock, 90 for 6 o-clock, 180 for 9 o-clock, 270 for noon.
+         */
+        trackStart: 135,
+        /**
+         * @cfg {Number} trackLength
+         * The angle in the (0, 360] interval to add to the {@link #trackStart} angle
+         * to determine the angle at which the track ends.
+         */
+        trackLength: 270,
+        /**
+         * @cfg {Number} angleOffset
+         * The angle at which the {@link #minValue} starts in case of a circular gauge.
+         */
+        angleOffset: 0,
+        /**
+         * @cfg {Number} minValue The minimum value that the gauge can represent.
+         */
+        minValue: 0,
+        /**
+         * @cfg {Number} maxValue The maximum value that the gauge can represent.
+         */
+        maxValue: 100,
+        /**
+         * @cfg {Number} start The current value of the gauge.
+         */
+        value: 50,
+        /**
+         * @cfg {Boolean} [clockwise=true]
+         * `true` - {@link #value} increments in a clockwise fashion
+         * `false` - {@link #value} increments in an anticlockwise fashion
+         */
+        clockwise: true,
+        /**
+         * @cfg {Ext.XTemplate} textTpl The template for the text in the center of the gauge.
+         * The available data values are:
+         * - `value` - The {@link #value} of the gauge.
+         * - `percent` - The value as a percentage between 0 and 100.
+         * - `minValue` - The value of the {@link #minValue} config.
+         * - `maxValue` - The value of the {@link #maxValue} config.
+         * - `delta` - The delta between the {@link #minValue} and {@link #maxValue}.
+         */
+        textTpl: [
+            '<tpl>{value:number("0.00")}%</tpl>'
+        ],
+        /**
+         * @cfg {String} [textAlign='c-c']
+         * If the gauge has a donut hole, the text will be centered inside it.
+         * Otherwise, the text will be centered in the middle of the gauge's
+         * bounding box. This config allows to alter the position of the text
+         * in the latter case. See the docs for the `align` option to the
+         * {@Ext.util.Region#alignTo} method for possible ways of alignment
+         * of the text to the guage's bounding box.
+         */
+        textAlign: 'c-c',
+        /**
+         * @cfg {Object} trackStyle Track sector styles.
+         * @cfg {String/Object[]} trackStyle.fill Track sector fill color. Defaults to CSS value.
+         * It's also possible to have a linear gradient fill that starts at the top-left corner
+         * of the gauge and ends at its bottom-right corner, by providing an array of color stop
+         * objects. For example:
+         *
+         *     trackStyle: {
+         *         fill: [{
+         *             offset: 0,
+         *             color: 'green',
+         *             opacity: 0.8
+         *         }, {
+         *             offset: 1,
+         *             color: 'gold'
+         *         }]
+         *     }
+         *
+         * @cfg {Number} trackStyle.fillOpacity Track sector fill opacity. Defaults to CSS value.
+         * @cfg {String} trackStyle.stroke Track sector stroke color. Defaults to CSS value.
+         * @cfg {Number} trackStyle.strokeOpacity Track sector stroke opacity. Defaults to CSS value.
+         * @cfg {Number} trackStyle.strokeWidth Track sector stroke width. Defaults to CSS value.
+         * @cfg {Number/String} [trackStyle.outerRadius='100%'] The outer radius of the track sector.
+         * For example:
+         *
+         *     outerRadius: '90%',      // 90% of the maximum radius
+         *     outerRadius: 100,        // radius of 100 pixels
+         *     outerRadius: '70% + 5',  // 70% of the maximum radius plus 5 pixels
+         *     outerRadius: '80% - 10', // 80% of the maximum radius minus 10 pixels
+         *
+         * @cfg {Number/String} [trackStyle.innerRadius='50%'] The inner radius of the track sector.
+         * See the `trackStyle.outerRadius` config documentation for more information.
+         * @cfg {Boolean} [trackStyle.round=false] Whether to round the track sector edges or not.
+         */
+        trackStyle: {
+            outerRadius: '100%',
+            innerRadius: '100% - 20',
+            round: false
+        },
+        /**
+         * @cfg {Object} valueStyle Value sector styles.
+         * @cfg {String/Object[]} valueStyle.fill Value sector fill color. Defaults to CSS value.
+         * See the `trackStyle.fill` config documentation for more information.
+         * @cfg {Number} valueStyle.fillOpacity Value sector fill opacity. Defaults to CSS value.
+         * @cfg {String} valueStyle.stroke Value sector stroke color. Defaults to CSS value.
+         * @cfg {Number} valueStyle.strokeOpacity Value sector stroke opacity. Defaults to CSS value.
+         * @cfg {Number} valueStyle.strokeWidth Value sector stroke width. Defaults to CSS value.
+         * @cfg {Number/String} [valueStyle.outerRadius='100% - 4'] The outer radius of the value sector.
+         * See the `trackStyle.outerRadius` config documentation for more information.
+         * @cfg {Number/String} [valueStyle.innerRadius='50% + 4'] The inner radius of the value sector.
+         * See the `trackStyle.outerRadius` config documentation for more information.
+         * @cfg {Boolean} [valueStyle.round=false] Whether to round the value sector edges or not.
+         */
+        valueStyle: {
+            outerRadius: '100% - 2',
+            innerRadius: '100% - 18',
+            round: false
+        },
+        /**
+         * @cfg {Object/Boolean} [animation=true]
+         * The animation applied to the gauge on changes to the {@link #value}
+         * and the {@link angleOffset} configs. Defaults to 1 second animation
+         * with the  'out' easing.
+         * @cfg {Number} animation.duration The duraction of the animation.
+         * @cfg {String} animation.easing The easing function to use for the animation.
+         * Possible values are:
+         * - `linear` - no easing, no acceleration
+         * - `in` - accelerating from zero velocity
+         * - `out` - (default) decelerating to zero velocity
+         * - `inOut` - acceleration until halfway, then deceleration
+         */
+        animation: true
+    },
+    template: [
+        {
+            reference: 'innerElement',
+            children: [
+                {
+                    reference: 'textElement',
+                    cls: Ext.baseCSSPrefix + 'gauge-text'
+                }
+            ]
+        }
+    ],
+    defaultBindProperty: 'value',
+    pathAttributes: {
+        // The properties in the `trackStyle` and `valueStyle` configs
+        // that are path attributes.
+        fill: true,
+        fillOpacity: true,
+        stroke: true,
+        strokeOpacity: true,
+        strokeWidth: true
+    },
+    easings: {
+        linear: Ext.identityFn,
+        // cubic easings
+        'in': function(t) {
+            return t * t * t;
+        },
+        out: function(t) {
+            return (--t) * t * t + 1;
+        },
+        inOut: function(t) {
+            return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+        }
+    },
+    resizeDelay: 0,
+    // in milliseconds
+    resizeTimerId: 0,
+    size: null,
+    // cached size
+    svgNS: 'http://www.w3.org/2000/svg',
+    svg: null,
+    // SVG document
+    defs: null,
+    // the `defs` section of the SVG document
+    trackArc: null,
+    valueArc: null,
+    trackGradient: null,
+    valueGradient: null,
+    fx: null,
+    // either the `value` or the `angleOffset` animation
+    fxValue: 0,
+    // the actual value rendered/animated
+    fxAngleOffset: 0,
+    constructor: function(config) {
+        var me = this;
+        me.fitSectorInRectCache = {
+            startAngle: null,
+            lengthAngle: null,
+            minX: null,
+            maxX: null,
+            minY: null,
+            maxY: null
+        };
+        me.interpolator = me.createInterpolator();
+        me.callParent([
+            config
+        ]);
+        me.on('resize', 'onElementResize', me);
+    },
+    doDestroy: function() {
+        var me = this;
+        me.un('resize', 'onElementResize', me);
+        me.stopAnimation();
+        me.callParent();
+    },
+    // <if classic>
+    afterComponentLayout: function(width, height, oldWidth, oldHeight) {
+        this.callParent([
+            width,
+            height,
+            oldWidth,
+            oldHeight
+        ]);
+        if (Ext.isIE9) {
+            this.handleResize();
+        }
+    },
+    // </if>
+    onElementResize: function(element, size) {
+        this.handleResize(size);
+    },
+    handleResize: function(size, instantly) {
+        var me = this,
+            el = me.element;
+        if (!(el && (size = size || el.getSize()) && size.width && size.height)) {
+            return;
+        }
+        clearTimeout(me.resizeTimerId);
+        if (instantly || me.resizeDelay) {
+            me.resizeTimerId = 0;
+        } else {
+            me.resizeTimerId = Ext.defer(me.handleResize, me.resizeDelay, me, [
+                size,
+                true
+            ]);
+            return;
+        }
+        me.size = size;
+        me.resizeHandler(size);
+    },
+    updateMinValue: function(minValue) {
+        var me = this;
+        me.interpolator.setDomain(minValue, me.getMaxValue());
+        if (!me.isConfiguring) {
+            me.render();
+        }
+    },
+    updateMaxValue: function(maxValue) {
+        var me = this;
+        me.interpolator.setDomain(me.getMinValue(), maxValue);
+        if (!me.isConfiguring) {
+            me.render();
+        }
+    },
+    updateAngleOffset: function(angleOffset, oldAngleOffset) {
+        var me = this,
+            animation = me.getAnimation();
+        me.fxAngleOffset = angleOffset;
+        if (!me.isConfiguring) {
+            if (animation.duration) {
+                me.animate(oldAngleOffset, angleOffset, animation.duration, me.easings[animation.easing], function(angleOffset) {
+                    me.fxAngleOffset = angleOffset;
+                    me.render();
+                });
+            } else {
+                me.render();
+            }
+        }
+    },
+    //<debug>
+    applyTrackStart: function(trackStart) {
+        if (trackStart < 0 || trackStart >= 360) {
+            Ext.raise("'trackStart' should be within [0, 360).");
+        }
+        return trackStart;
+    },
+    applyTrackLength: function(trackLength) {
+        if (trackLength <= 0 || trackLength > 360) {
+            Ext.raise("'trackLength' should be within (0, 360].");
+        }
+        return trackLength;
+    },
+    //</debug>
+    updateTrackStart: function(trackStart) {
+        var me = this;
+        if (!me.isConfiguring) {
+            me.render();
+        }
+    },
+    updateTrackLength: function(trackLength) {
+        var me = this;
+        me.interpolator.setRange(0, trackLength);
+        if (!me.isConfiguring) {
+            me.render();
+        }
+    },
+    applyPadding: function(padding) {
+        if (typeof padding === 'string') {
+            var ratio = parseFloat(padding) / 100;
+            return function(x) {
+                return x * ratio;
+            };
+        }
+        return function() {
+            return padding;
+        };
+    },
+    updatePadding: function() {
+        if (!this.isConfiguring) {
+            this.render();
+        }
+    },
+    applyValue: function(value) {
+        var minValue = this.getMinValue(),
+            maxValue = this.getMaxValue();
+        return Math.min(Math.max(value, minValue), maxValue);
+    },
+    updateValue: function(value, oldValue) {
+        var me = this,
+            animation = me.getAnimation();
+        me.fxValue = value;
+        if (!me.isConfiguring) {
+            me.writeText();
+            if (animation.duration) {
+                me.animate(oldValue, value, animation.duration, me.easings[animation.easing], function(value) {
+                    me.fxValue = value;
+                    me.render();
+                });
+            } else {
+                me.render();
+            }
+        }
+    },
+    applyTextTpl: function(textTpl) {
+        if (textTpl && !textTpl.isTemplate) {
+            textTpl = new Ext.XTemplate(textTpl);
+        }
+        return textTpl;
+    },
+    updateTextTpl: function() {
+        this.writeText();
+        if (!this.isConfiguring) {
+            this.centerText();
+        }
+    },
+    // text will be centered on first size
+    writeText: function(options) {
+        var me = this,
+            value = me.getValue(),
+            minValue = me.getMinValue(),
+            maxValue = me.getMaxValue(),
+            delta = maxValue - minValue,
+            textTpl = me.getTextTpl();
+        textTpl.overwrite(me.textElement, {
+            value: value,
+            percent: (value - minValue) / delta * 100,
+            minValue: minValue,
+            maxValue: maxValue,
+            delta: delta
+        });
+    },
+    centerText: function(cx, cy, sectorRegion, innerRadius, outerRadius) {
+        var textElement = this.textElement,
+            textAlign = this.getTextAlign(),
+            alignedRegion, textBox;
+        if (Ext.Number.isEqual(innerRadius, 0, 0.1) || sectorRegion.isOutOfBound({
+            x: cx,
+            y: cy
+        })) {
+            alignedRegion = textElement.getRegion().alignTo({
+                align: textAlign,
+                // align text region's center to sector region's center
+                target: sectorRegion
+            });
+            textElement.setLeft(alignedRegion.left);
+            textElement.setTop(alignedRegion.top);
+        } else {
+            textBox = textElement.getBox();
+            textElement.setLeft(cx - textBox.width / 2);
+            textElement.setTop(cy - textBox.height / 2);
+        }
+    },
+    camelCaseRe: /([a-z])([A-Z])/g,
+    /**
+     * @private
+     */
+    camelToHyphen: function(name) {
+        return name.replace(this.camelCaseRe, '$1-$2').toLowerCase();
+    },
+    applyTrackStyle: function(trackStyle) {
+        var me = this,
+            trackGradient;
+        trackStyle.innerRadius = me.getRadiusFn(trackStyle.innerRadius);
+        trackStyle.outerRadius = me.getRadiusFn(trackStyle.outerRadius);
+        if (Ext.isArray(trackStyle.fill)) {
+            trackGradient = me.getTrackGradient();
+            me.setGradientStops(trackGradient, trackStyle.fill);
+            trackStyle.fill = 'url(#' + trackGradient.getAttribute('id') + ')';
+        }
+        return trackStyle;
+    },
+    updateTrackStyle: function(trackStyle) {
+        var me = this,
+            trackArc = Ext.fly(me.getTrackArc()),
+            name;
+        for (name in trackStyle) {
+            if (name in me.pathAttributes) {
+                trackArc.setStyle(me.camelToHyphen(name), trackStyle[name]);
+            }
+        }
+    },
+    applyValueStyle: function(valueStyle) {
+        var me = this,
+            valueGradient;
+        valueStyle.innerRadius = me.getRadiusFn(valueStyle.innerRadius);
+        valueStyle.outerRadius = me.getRadiusFn(valueStyle.outerRadius);
+        if (Ext.isArray(valueStyle.fill)) {
+            valueGradient = me.getValueGradient();
+            me.setGradientStops(valueGradient, valueStyle.fill);
+            valueStyle.fill = 'url(#' + valueGradient.getAttribute('id') + ')';
+        }
+        return valueStyle;
+    },
+    updateValueStyle: function(valueStyle) {
+        var me = this,
+            valueArc = Ext.fly(me.getValueArc()),
+            name;
+        for (name in valueStyle) {
+            if (name in me.pathAttributes) {
+                valueArc.setStyle(me.camelToHyphen(name), valueStyle[name]);
+            }
+        }
+    },
+    /**
+     * @private
+     */
+    getRadiusFn: function(radius) {
+        var result, pos, ratio,
+            increment = 0;
+        if (Ext.isNumber(radius)) {
+            result = function() {
+                return radius;
+            };
+        } else if (Ext.isString(radius)) {
+            radius = radius.replace(/ /g, '');
+            ratio = parseFloat(radius) / 100;
+            pos = radius.search('%');
+            // E.g. '100% - 4'
+            if (pos < radius.length - 1) {
+                increment = parseFloat(radius.substr(pos + 1));
+            }
+            result = function(radius) {
+                return radius * ratio + increment;
+            };
+            result.ratio = ratio;
+        }
+        return result;
+    },
+    getSvg: function() {
+        var me = this,
+            svg = me.svg;
+        if (!svg) {
+            svg = me.svg = Ext.get(document.createElementNS(me.svgNS, 'svg'));
+            me.innerElement.append(svg);
+        }
+        return svg;
+    },
+    getTrackArc: function() {
+        var me = this,
+            trackArc = me.trackArc;
+        if (!trackArc) {
+            trackArc = me.trackArc = document.createElementNS(me.svgNS, 'path');
+            me.getSvg().append(trackArc);
+            // Note: Ext.dom.Element.addCls doesn't work on SVG elements,
+            // as it simply assigns a class string to el.dom.className,
+            // which in case of SVG is no simple string:
+            // SVGAnimatedString {baseVal: "x-gauge-track", animVal: "x-gauge-track"}
+            trackArc.setAttribute('class', Ext.baseCSSPrefix + 'gauge-track');
+        }
+        return trackArc;
+    },
+    getValueArc: function() {
+        var me = this,
+            valueArc = me.valueArc;
+        me.getTrackArc();
+        // make sure the track arc is created first for proper draw order
+        if (!valueArc) {
+            valueArc = me.valueArc = document.createElementNS(me.svgNS, 'path');
+            me.getSvg().append(valueArc);
+            valueArc.setAttribute('class', Ext.baseCSSPrefix + 'gauge-value');
+        }
+        return valueArc;
+    },
+    getDefs: function() {
+        var me = this,
+            defs = me.defs;
+        if (!defs) {
+            defs = me.defs = document.createElementNS(me.svgNS, 'defs');
+            me.getSvg().append(defs);
+        }
+        return defs;
+    },
+    /**
+     * @private
+     */
+    setGradientSize: function(gradient, x1, y1, x2, y2) {
+        gradient.setAttribute('x1', x1);
+        gradient.setAttribute('y1', y1);
+        gradient.setAttribute('x2', x2);
+        gradient.setAttribute('y2', y2);
+    },
+    /**
+     * @private
+     */
+    resizeGradients: function(size) {
+        var me = this,
+            trackGradient = me.getTrackGradient(),
+            valueGradient = me.getValueGradient(),
+            x1 = 0,
+            y1 = size.height / 2,
+            x2 = size.width,
+            y2 = size.height / 2;
+        me.setGradientSize(trackGradient, x1, y1, x2, y2);
+        me.setGradientSize(valueGradient, x1, y1, x2, y2);
+    },
+    /**
+     * @private
+     */
+    setGradientStops: function(gradient, stops) {
+        var ln = stops.length,
+            i, stopCfg, stopEl;
+        while (gradient.firstChild) {
+            gradient.removeChild(gradient.firstChild);
+        }
+        for (i = 0; i < ln; i++) {
+            stopCfg = stops[i];
+            stopEl = document.createElementNS(this.svgNS, 'stop');
+            gradient.appendChild(stopEl);
+            stopEl.setAttribute('offset', stopCfg.offset);
+            stopEl.setAttribute('stop-color', stopCfg.color);
+            ('opacity' in stopCfg) && stopEl.setAttribute('stop-opacity', stopCfg.opacity);
+        }
+    },
+    getTrackGradient: function() {
+        var me = this,
+            trackGradient = me.trackGradient;
+        if (!trackGradient) {
+            trackGradient = me.trackGradient = document.createElementNS(me.svgNS, 'linearGradient');
+            // Using absolute values for x1, y1, x2, y2 attributes.
+            trackGradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+            me.getDefs().appendChild(trackGradient);
+            Ext.get(trackGradient);
+        }
+        // assign unique ID
+        return trackGradient;
+    },
+    getValueGradient: function() {
+        var me = this,
+            valueGradient = me.valueGradient;
+        if (!valueGradient) {
+            valueGradient = me.valueGradient = document.createElementNS(me.svgNS, 'linearGradient');
+            // Using absolute values for x1, y1, x2, y2 attributes.
+            valueGradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+            me.getDefs().appendChild(valueGradient);
+            Ext.get(valueGradient);
+        }
+        // assign unique ID
+        return valueGradient;
+    },
+    getArcPoint: function(centerX, centerY, radius, degrees) {
+        var radians = degrees / 180 * Math.PI;
+        return [
+            centerX + radius * Math.cos(radians),
+            centerY + radius * Math.sin(radians)
+        ];
+    },
+    isCircle: function(startAngle, endAngle) {
+        return Ext.Number.isEqual(Math.abs(endAngle - startAngle), 360, 0.001);
+    },
+    getArcPath: function(centerX, centerY, innerRadius, outerRadius, startAngle, endAngle, round) {
+        var me = this,
+            isCircle = me.isCircle(startAngle, endAngle),
+            // It's not possible to draw a circle using arcs.
+            endAngle = endAngle - 0.01,
+            innerStartPoint = me.getArcPoint(centerX, centerY, innerRadius, startAngle),
+            innerEndPoint = me.getArcPoint(centerX, centerY, innerRadius, endAngle),
+            outerStartPoint = me.getArcPoint(centerX, centerY, outerRadius, startAngle),
+            outerEndPoint = me.getArcPoint(centerX, centerY, outerRadius, endAngle),
+            large = endAngle - startAngle <= 180 ? 0 : 1,
+            path = [
+                'M',
+                innerStartPoint[0],
+                innerStartPoint[1],
+                'A',
+                innerRadius,
+                innerRadius,
+                0,
+                large,
+                1,
+                innerEndPoint[0],
+                innerEndPoint[1]
+            ],
+            capRadius = (outerRadius - innerRadius) / 2;
+        if (isCircle) {
+            path.push('M', outerEndPoint[0], outerEndPoint[1]);
+        } else {
+            if (round) {
+                path.push('A', capRadius, capRadius, 0, 0, 0, outerEndPoint[0], outerEndPoint[1]);
+            } else {
+                path.push('L', outerEndPoint[0], outerEndPoint[1]);
+            }
+        }
+        path.push('A', outerRadius, outerRadius, 0, large, 0, outerStartPoint[0], outerStartPoint[1]);
+        if (round && !isCircle) {
+            path.push('A', capRadius, capRadius, 0, 0, 0, innerStartPoint[0], innerStartPoint[1]);
+        }
+        path.push('Z');
+        return path.join(' ');
+    },
+    resizeHandler: function(size) {
+        var me = this,
+            svg = me.getSvg();
+        svg.setSize(size);
+        me.resizeGradients(size);
+        me.render();
+    },
+    /**
+     * @private
+     */
+    createInterpolator: function(rangeCheck) {
+        var domainStart = 0,
+            domainDelta = 1,
+            rangeStart = 0,
+            rangeEnd = 1;
+        var interpolator = function(x, invert) {
+                var t = 0;
+                if (domainDelta) {
+                    t = (x - domainStart) / domainDelta;
+                    if (rangeCheck) {
+                        t = Math.max(0, t);
+                        t = Math.min(1, t);
+                    }
+                    if (invert) {
+                        t = 1 - t;
+                    }
+                }
+                return (1 - t) * rangeStart + t * rangeEnd;
+            };
+        interpolator.setDomain = function(a, b) {
+            domainStart = a;
+            domainDelta = b - a;
+            return this;
+        };
+        interpolator.setRange = function(a, b) {
+            rangeStart = a;
+            rangeEnd = b;
+            return this;
+        };
+        interpolator.getDomain = function() {
+            return [
+                domainStart,
+                domainStart + domainDelta
+            ];
+        };
+        interpolator.getRange = function() {
+            return [
+                rangeStart,
+                rangeEnd
+            ];
+        };
+        return interpolator;
+    },
+    applyAnimation: function(animation) {
+        if (true === animation) {
+            animation = {};
+        } else if (false === animation) {
+            animation = {
+                duration: 0
+            };
+        }
+        if (!('duration' in animation)) {
+            animation.duration = 1000;
+        }
+        if (!(animation.easing in this.easings)) {
+            animation.easing = 'out';
+        }
+        return animation;
+    },
+    updateAnimation: function() {
+        this.stopAnimation();
+    },
+    /**
+     * @private
+     */
+    animate: function(from, to, duration, easing, fn, scope) {
+        var me = this,
+            start = Ext.now(),
+            interpolator = me.createInterpolator().setRange(from, to);
+        function frame() {
+            var now = Ext.AnimationQueue.frameStartTime,
+                t = Math.min(now - start, duration) / duration,
+                value = interpolator(easing(t));
+            if (scope) {
+                if (typeof fn === 'string') {
+                    scope[fn].call(scope, value);
+                } else {
+                    fn.call(scope, value);
+                }
+            } else {
+                fn(value);
+            }
+            if (t >= 1) {
+                Ext.AnimationQueue.stop(frame, scope);
+                me.fx = null;
+            }
+        }
+        me.stopAnimation();
+        Ext.AnimationQueue.start(frame, scope);
+        me.fx = {
+            frame: frame,
+            scope: scope
+        };
+    },
+    /**
+     * Stops the current {@link #value} or {@link #angleOffset} animation.
+     */
+    stopAnimation: function() {
+        var me = this;
+        if (me.fx) {
+            Ext.AnimationQueue.stop(me.fx.frame, me.fx.scope);
+            me.fx = null;
+        }
+    },
+    unitCircleExtrema: {
+        0: [
+            1,
+            0
+        ],
+        90: [
+            0,
+            1
+        ],
+        180: [
+            -1,
+            0
+        ],
+        270: [
+            0,
+            -1
+        ],
+        360: [
+            1,
+            0
+        ],
+        450: [
+            0,
+            1
+        ],
+        540: [
+            -1,
+            0
+        ],
+        630: [
+            0,
+            -1
+        ]
+    },
+    /**
+     * @private
+     */
+    getUnitSectorExtrema: function(startAngle, lengthAngle) {
+        var extrema = this.unitCircleExtrema,
+            points = [],
+            angle;
+        for (angle in extrema) {
+            if (angle > startAngle && angle < startAngle + lengthAngle) {
+                points.push(extrema[angle]);
+            }
+        }
+        return points;
+    },
+    /**
+     * @private
+     * Given a rect with a known width and height, find the maximum radius of the donut
+     * sector that can fit into it, as well as the center point of such a sector.
+     * The end and start angles of the sector are also known, as well as the relationship
+     * between the inner and outer radii.
+     */
+    fitSectorInRect: function(width, height, startAngle, lengthAngle, ratio) {
+        if (Ext.Number.isEqual(lengthAngle, 360, 0.001)) {
+            return {
+                cx: width / 2,
+                cy: height / 2,
+                radius: Math.min(width, height) / 2,
+                region: new Ext.util.Region(0, width, height, 0)
+            };
+        }
+        var me = this,
+            points, xx, yy, minX, maxX, minY, maxY,
+            cache = me.fitSectorInRectCache,
+            sameAngles = cache.startAngle === startAngle && cache.lengthAngle === lengthAngle;
+        if (sameAngles) {
+            minX = cache.minX;
+            maxX = cache.maxX;
+            minY = cache.minY;
+            maxY = cache.maxY;
+        } else {
+            points = me.getUnitSectorExtrema(startAngle, lengthAngle).concat([
+                me.getArcPoint(0, 0, 1, startAngle),
+                // start angle outer radius point
+                me.getArcPoint(0, 0, ratio, startAngle),
+                // start angle inner radius point
+                me.getArcPoint(0, 0, 1, startAngle + lengthAngle),
+                // end angle outer radius point
+                me.getArcPoint(0, 0, ratio, startAngle + lengthAngle)
+            ]);
+            // end angle inner radius point
+            xx = points.map(function(point) {
+                return point[0];
+            });
+            yy = points.map(function(point) {
+                return point[1];
+            });
+            // The bounding box of a unit sector with the given properties.
+            minX = Math.min.apply(null, xx);
+            maxX = Math.max.apply(null, xx);
+            minY = Math.min.apply(null, yy);
+            maxY = Math.max.apply(null, yy);
+            cache.startAngle = startAngle;
+            cache.lengthAngle = lengthAngle;
+            cache.minX = minX;
+            cache.maxX = maxX;
+            cache.minY = minY;
+            cache.maxY = maxY;
+        }
+        var sectorWidth = maxX - minX,
+            sectorHeight = maxY - minY,
+            scaleX = width / sectorWidth,
+            scaleY = height / sectorHeight,
+            scale = Math.min(scaleX, scaleY),
+            // Region constructor takes: top, right, bottom, left.
+            sectorRegion = new Ext.util.Region(minY * scale, maxX * scale, maxY * scale, minX * scale),
+            rectRegion = new Ext.util.Region(0, width, height, 0),
+            alignedRegion = sectorRegion.alignTo({
+                align: 'c-c',
+                // align sector region's center to rect region's center
+                target: rectRegion
+            }),
+            dx = alignedRegion.left - minX * scale,
+            dy = alignedRegion.top - minY * scale;
+        return {
+            cx: dx,
+            cy: dy,
+            radius: scale,
+            region: alignedRegion
+        };
+    },
+    /**
+     * @private
+     */
+    fitSectorInPaddedRect: function(width, height, padding, startAngle, lengthAngle, ratio) {
+        var result = this.fitSectorInRect(width - padding * 2, height - padding * 2, startAngle, lengthAngle, ratio);
+        result.cx += padding;
+        result.cy += padding;
+        result.region.translateBy(padding, padding);
+        return result;
+    },
+    /**
+     * @private
+     */
+    normalizeAngle: function(angle) {
+        return (angle % 360 + 360) % 360;
+    },
+    render: function() {
+        if (!this.size) {
+            return;
+        }
+        var me = this,
+            trackArc = me.getTrackArc(),
+            valueArc = me.getValueArc(),
+            clockwise = me.getClockwise(),
+            value = me.fxValue,
+            angleOffset = me.fxAngleOffset,
+            trackLength = me.getTrackLength(),
+            width = me.size.width,
+            height = me.size.height,
+            paddingFn = me.getPadding(),
+            padding = paddingFn(Math.min(width, height)),
+            trackStart = me.normalizeAngle(me.getTrackStart() + angleOffset),
+            // in the range of [0, 360)
+            trackEnd = trackStart + trackLength,
+            // in the range of (0, 720)
+            valueLength = me.interpolator(value),
+            trackStyle = me.getTrackStyle(),
+            valueStyle = me.getValueStyle(),
+            sector = me.fitSectorInPaddedRect(width, height, padding, trackStart, trackLength, trackStyle.innerRadius.ratio),
+            cx = sector.cx,
+            cy = sector.cy,
+            radius = sector.radius,
+            trackInnerRadius = Math.max(0, trackStyle.innerRadius(radius)),
+            trackOuterRadius = Math.max(0, trackStyle.outerRadius(radius)),
+            valueInnerRadius = Math.max(0, valueStyle.innerRadius(radius)),
+            valueOuterRadius = Math.max(0, valueStyle.outerRadius(radius)),
+            trackPath = me.getArcPath(cx, cy, trackInnerRadius, trackOuterRadius, trackStart, trackEnd, trackStyle.round),
+            valuePath = me.getArcPath(cx, cy, valueInnerRadius, valueOuterRadius, clockwise ? trackStart : trackEnd - valueLength, clockwise ? trackStart + valueLength : trackEnd, valueStyle.round);
+        me.centerText(cx, cy, sector.region, trackInnerRadius, trackOuterRadius);
+        trackArc.setAttribute('d', trackPath);
+        valueArc.setAttribute('d', valuePath);
+    }
+});
+
+/**
  * This is a base class for more advanced "simlets" (simulated servers). A simlet is asked
  * to provide a response given a {@link Ext.ux.ajax.SimXhr} instance.
  */
@@ -15,7 +984,7 @@ Ext.define('Ext.ux.ajax.Simlet', function() {
                 value = parseInt(value, 10);
             } else if (floatRegex.test(value)) {
                 value = parseFloat(value);
-            } else if (!!(m = dateRegex.test(value))) {
+            } else if (!!(m = dateRegex.exec(value))) {
                 value = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]));
             }
         }
@@ -28,47 +997,34 @@ Ext.define('Ext.ux.ajax.Simlet', function() {
             'responseText',
             'responseXML',
             'status',
-            'statusText'
+            'statusText',
+            'responseHeaders'
         ],
         /**
-         * @cfg {Number} responseText
+         * @cfg {String/Function} responseText
          */
         /**
-         * @cfg {Number} responseXML
+         * @cfg {String/Function} responseXML
          */
         /**
-         * @cfg {Object} responseHeaders
+         * @cfg {Object/Function} responseHeaders
          */
         /**
-         * @cfg {Number} status
+         * @cfg {Number/Function} status
          */
         status: 200,
         /**
-         * @cfg {String} statusText
+         * @cfg {String/Function} statusText
          */
         statusText: 'OK',
         constructor: function(config) {
             Ext.apply(this, config);
         },
         doGet: function(ctx) {
-            var me = this,
-                ret = {};
-            Ext.Array.forEach(me.responseProps, function(prop) {
-                if (prop in me) {
-                    ret[prop] = me[prop];
-                }
-            });
-            return ret;
+            return this.handleRequest(ctx);
         },
         doPost: function(ctx) {
-            var me = this,
-                ret = {};
-            Ext.Array.forEach(me.responseProps, function(prop) {
-                if (prop in me) {
-                    ret[prop] = me[prop];
-                }
-            });
-            return ret;
+            return this.handleRequest(ctx);
         },
         doRedirect: function(ctx) {
             return false;
@@ -110,6 +1066,21 @@ Ext.define('Ext.ux.ajax.Simlet', function() {
                 url: url,
                 xhr: xhr
             };
+        },
+        handleRequest: function(ctx) {
+            var me = this,
+                ret = {},
+                val;
+            Ext.Array.forEach(me.responseProps, function(prop) {
+                if (prop in me) {
+                    val = me[prop];
+                    if (Ext.isFunction(val)) {
+                        val = val.call(me, ctx);
+                    }
+                    ret[prop] = val;
+                }
+            });
+            return ret;
         },
         openRequest: function(method, url, options, async) {
             var ctx = this.getCtx(method, url),
@@ -413,6 +1384,198 @@ Ext.define('Ext.ux.ajax.JsonSimlet', {
 });
 
 /**
+ * Pivot Simlet does remote pivot calculations.
+ * Filtering the pivot results doesn't work.
+ */
+Ext.define('Ext.ux.ajax.PivotSimlet', {
+    extend: 'Ext.ux.ajax.JsonSimlet',
+    alias: 'simlet.pivot',
+    lastPost: null,
+    // last Ajax params sent to this simlet
+    lastResponse: null,
+    // last JSON response produced by this simlet
+    keysSeparator: '',
+    grandTotalKey: '',
+    doPost: function(ctx) {
+        var me = this,
+            ret = me.callParent(arguments);
+        // pick up status/statusText
+        me.lastResponse = me.processData(me.getData(ctx), Ext.decode(ctx.xhr.body));
+        ret.responseText = Ext.encode(me.lastResponse);
+        return ret;
+    },
+    processData: function(data, params) {
+        var me = this,
+            len = data.length,
+            response = {
+                success: true,
+                leftAxis: [],
+                topAxis: [],
+                results: []
+            },
+            leftAxis = new Ext.util.MixedCollection(),
+            topAxis = new Ext.util.MixedCollection(),
+            results = new Ext.util.MixedCollection(),
+            i, j, k, leftKeys, topKeys, item, agg;
+        me.lastPost = params;
+        me.keysSeparator = params.keysSeparator;
+        me.grandTotalKey = params.grandTotalKey;
+        for (i = 0; i < len; i++) {
+            leftKeys = me.extractValues(data[i], params.leftAxis, leftAxis);
+            topKeys = me.extractValues(data[i], params.topAxis, topAxis);
+            // add record to grand totals
+            me.addResult(data[i], me.grandTotalKey, me.grandTotalKey, results);
+            for (j = 0; j < leftKeys.length; j++) {
+                // add record to col grand totals
+                me.addResult(data[i], leftKeys[j], me.grandTotalKey, results);
+                // add record to left/top keys pair
+                for (k = 0; k < topKeys.length; k++) {
+                    me.addResult(data[i], leftKeys[j], topKeys[k], results);
+                }
+            }
+            // add record to row grand totals
+            for (j = 0; j < topKeys.length; j++) {
+                me.addResult(data[i], me.grandTotalKey, topKeys[j], results);
+            }
+        }
+        // extract items from their left/top collections and build the json response
+        response.leftAxis = leftAxis.getRange();
+        response.topAxis = topAxis.getRange();
+        len = results.getCount();
+        for (i = 0; i < len; i++) {
+            item = results.getAt(i);
+            item.values = {};
+            for (j = 0; j < params.aggregate.length; j++) {
+                agg = params.aggregate[j];
+                item.values[agg.id] = me[agg.aggregator](item.records, agg.dataIndex, item.leftKey, item.topKey);
+            }
+            delete (item.records);
+            response.results.push(item);
+        }
+        leftAxis.clear();
+        topAxis.clear();
+        results.clear();
+        return response;
+    },
+    getKey: function(value) {
+        var me = this;
+        me.keysMap = me.keysMap || {};
+        if (!Ext.isDefined(me.keysMap[value])) {
+            me.keysMap[value] = Ext.id();
+        }
+        return me.keysMap[value];
+    },
+    extractValues: function(record, dimensions, col) {
+        var len = dimensions.length,
+            keys = [],
+            i, j, key, item, dim;
+        key = '';
+        for (j = 0; j < len; j++) {
+            dim = dimensions[j];
+            key += (j > 0 ? this.keysSeparator : '') + this.getKey(record[dim.dataIndex]);
+            item = col.getByKey(key);
+            if (!item) {
+                item = col.add(key, {
+                    key: key,
+                    value: record[dim.dataIndex],
+                    dimensionId: dim.id
+                });
+            }
+            keys.push(key);
+        }
+        return keys;
+    },
+    addResult: function(record, leftKey, topKey, results) {
+        var item = results.getByKey(leftKey + '/' + topKey);
+        if (!item) {
+            item = results.add(leftKey + '/' + topKey, {
+                leftKey: leftKey,
+                topKey: topKey,
+                records: []
+            });
+        }
+        item.records.push(record);
+    },
+    sum: function(records, measure, rowGroupKey, colGroupKey) {
+        var length = records.length,
+            total = 0,
+            i;
+        for (i = 0; i < length; i++) {
+            total += Ext.Number.from(records[i][measure], 0);
+        }
+        return total;
+    },
+    avg: function(records, measure, rowGroupKey, colGroupKey) {
+        var length = records.length,
+            total = 0,
+            i;
+        for (i = 0; i < length; i++) {
+            total += Ext.Number.from(records[i][measure], 0);
+        }
+        return length > 0 ? (total / length) : 0;
+    },
+    min: function(records, measure, rowGroupKey, colGroupKey) {
+        var data = [],
+            length = records.length,
+            i, v;
+        for (i = 0; i < length; i++) {
+            data.push(records[i][measure]);
+        }
+        v = Ext.Array.min(data);
+        return v;
+    },
+    max: function(records, measure, rowGroupKey, colGroupKey) {
+        var data = [],
+            length = records.length,
+            i;
+        for (i = 0; i < length; i++) {
+            data.push(records[i][measure]);
+        }
+        v = Ext.Array.max(data);
+        return v;
+    },
+    count: function(records, measure, rowGroupKey, colGroupKey) {
+        return records.length;
+    },
+    variance: function(records, measure, rowGroupKey, colGroupKey) {
+        var me = Ext.pivot.Aggregators,
+            length = records.length,
+            avg = me.avg.apply(me, arguments),
+            total = 0,
+            i;
+        if (avg > 0) {
+            for (i = 0; i < length; i++) {
+                total += Math.pow(Ext.Number.from(records[i][measure], 0) - avg, 2);
+            }
+        }
+        return (total > 0 && length > 1) ? (total / (length - 1)) : 0;
+    },
+    varianceP: function(records, measure, rowGroupKey, colGroupKey) {
+        var me = Ext.pivot.Aggregators,
+            length = records.length,
+            avg = me.avg.apply(me, arguments),
+            total = 0,
+            i;
+        if (avg > 0) {
+            for (i = 0; i < length; i++) {
+                total += Math.pow(Ext.Number.from(records[i][measure], 0) - avg, 2);
+            }
+        }
+        return (total > 0 && length > 0) ? (total / length) : 0;
+    },
+    stdDev: function(records, measure, rowGroupKey, colGroupKey) {
+        var me = Ext.pivot.Aggregators,
+            v = me.variance.apply(me, arguments);
+        return v > 0 ? Math.sqrt(v) : 0;
+    },
+    stdDevP: function(records, measure, rowGroupKey, colGroupKey) {
+        var me = Ext.pivot.Aggregators,
+            v = me.varianceP.apply(me, arguments);
+        return v > 0 ? Math.sqrt(v) : 0;
+    }
+});
+
+/**
  * Simulates an XMLHttpRequest object's methods and properties but is backed by a
  * {@link Ext.ux.ajax.Simlet} instance that provides the data.
  */
@@ -460,7 +1623,7 @@ Ext.define('Ext.ux.ajax.SimXhr', {
     },
     schedule: function() {
         var me = this,
-            delay = me.mgr.delay;
+            delay = me.simlet.delay || me.mgr.delay;
         if (delay) {
             me.timer = setTimeout(function() {
                 me.onTick();
@@ -2309,103 +3472,11 @@ Ext.define('Ext.ux.event.Recorder', function(Recorder) {
 });
 
 /**
- * This base class can be used by derived classes to dynamically require Google API's.
- */
-Ext.define('Ext.ux.google.Api', {
-    mixins: [
-        'Ext.mixin.Mashup'
-    ],
-    requiredScripts: [
-        '//www.google.com/jsapi'
-    ],
-    statics: {
-        loadedModules: {}
-    },
-    /*
-             *  feeds: [ callback1, callback2, .... ]  transitions to -> feeds : true  (when complete)
-             */
-    onClassExtended: function(cls, data, hooks) {
-        var onBeforeClassCreated = hooks.onBeforeCreated,
-            Api = this;
-        // the Ext.ux.google.Api class
-        hooks.onBeforeCreated = function(cls, data) {
-            var me = this,
-                apis = [],
-                requiresGoogle = Ext.Array.from(data.requiresGoogle),
-                loadedModules = Api.loadedModules,
-                remaining = 0,
-                callback = function() {
-                    if (!--remaining) {
-                        onBeforeClassCreated.call(me, cls, data, hooks);
-                    }
-                    Ext.env.Ready.unblock();
-                },
-                api, i, length;
-            /*
-             *  requiresGoogle: [
-             *      'feeds',
-             *      { api: 'feeds', version: '1.x',
-             *        callback : fn, nocss : true }  //optionals
-             *  ]
-             */
-            length = requiresGoogle.length;
-            for (i = 0; i < length; ++i) {
-                if (Ext.isString(api = requiresGoogle[i])) {
-                    apis.push({
-                        api: api
-                    });
-                } else if (Ext.isObject(api)) {
-                    apis.push(Ext.apply({}, api));
-                }
-            }
-            Ext.each(apis, function(api) {
-                var name = api.api,
-                    version = String(api.version || '1.x'),
-                    module = loadedModules[name];
-                if (!module) {
-                    ++remaining;
-                    Ext.env.Ready.block();
-                    loadedModules[name] = module = [
-                        callback
-                    ].concat(api.callback || []);
-                    delete api.api;
-                    delete api.version;
-                    //TODO:  window.google assertion?
-                    google.load(name, version, Ext.applyIf({
-                        callback: function() {
-                            loadedModules[name] = true;
-                            for (var n = module.length; n-- > 0; ) {
-                                module[n]();
-                            }
-                        }
-                    }, //iterate callbacks in reverse
-                    api));
-                } else if (module !== true) {
-                    module.push(callback);
-                }
-            });
-            if (!remaining) {
-                onBeforeClassCreated.call(me, cls, data, hooks);
-            }
-        };
-    }
-});
-
-/**
- * This class, when required, ensures that the Google RSS Feeds API is available.
- */
-Ext.define('Ext.ux.google.Feeds', {
-    extend: 'Ext.ux.google.Api',
-    requiresGoogle: {
-        api: 'feeds',
-        nocss: true
-    }
-});
-
-/**
  * Base class from Ext.ux.TabReorderer.
  */
 Ext.define('Ext.ux.BoxReorderer', {
+    extend: 'Ext.plugin.Abstract',
+    alias: 'plugin.boxreorderer',
     requires: [
         'Ext.dd.DD'
     ],
@@ -2460,7 +3531,8 @@ Ext.define('Ext.ux.BoxReorderer', {
      * @param {Number} idx The index at which the Component is being dropped.
      */
     constructor: function() {
-        this.mixins.observable.constructor.apply(this, arguments);
+        this.callParent(arguments);
+        this.mixins.observable.constructor.call(this);
     },
     init: function(container) {
         var me = this;
@@ -2994,7 +4066,7 @@ Ext.define('Ext.ux.CellDragDrop', {
 
 /**
  * @class Ext.ux.DataTip
- * @extends Ext.ToolTip.
+ * @extends Ext.tip.ToolTip
  * This plugin implements automatic tooltip generation for an arbitrary number of child nodes *within* a Component.
  *
  * This plugin is applied to a high level Component, which contains repeating elements, and depending on the host Component type,
@@ -3106,285 +4178,10 @@ Ext.define('Ext.ux.DataTip', function(DataTip) {
 });
 
 /**
- * @class Ext.ux.DataViewTransition
- * Transition plugin for DataViews
- */
-Ext.ux.DataViewTransition = Ext.extend(Object, {
-    /**
-     * @property defaults
-     * @type Object
-     * Default configuration options for all DataViewTransition instances
-     */
-    defaults: {
-        duration: 750,
-        idProperty: 'id'
-    },
-    /**
-     * Creates the plugin instance, applies defaults
-     * @constructor
-     * @param {Object} config Optional config object
-     */
-    constructor: function(config) {
-        Ext.apply(this, config || {}, this.defaults);
-    },
-    /**
-     * Initializes the transition plugin. Overrides the dataview's default refresh function
-     * @param {Ext.view.View} dataview The dataview
-     */
-    init: function(dataview) {
-        /**
-         * @property dataview
-         * @type Ext.view.View
-         * Reference to the DataView this instance is bound to
-         */
-        this.dataview = dataview;
-        var idProperty = this.idProperty;
-        dataview.blockRefresh = true;
-        dataview.updateIndexes = Ext.Function.createSequence(dataview.updateIndexes, function() {
-            this.getTargetEl().select(this.itemSelector).each(function(element, composite, index) {
-                element.id = element.dom.id = Ext.util.Format.format("{0}-{1}", dataview.id, dataview.store.getAt(index).get(idProperty));
-            }, this);
-        }, dataview);
-        /**
-         * @property dataviewID
-         * @type String
-         * The string ID of the DataView component. This is used internally when animating child objects
-         */
-        this.dataviewID = dataview.id;
-        /**
-         * @property cachedStoreData
-         * @type Object
-         * A cache of existing store data, keyed by id. This is used to determine
-         * whether any items were added or removed from the store on data change
-         */
-        this.cachedStoreData = {};
-        //var store = dataview.store;
-        //catch the store data with the snapshot immediately
-        this.cacheStoreData(dataview.store.snapshot);
-        dataview.store.on('datachanged', function(store) {
-            var parentEl = dataview.getTargetEl(),
-                calcItem = store.getAt(0),
-                added = this.getAdded(store),
-                removed = this.getRemoved(store),
-                previous = this.getRemaining(store),
-                existing = Ext.apply({}, previous, added);
-            //hide old items
-            Ext.each(removed, function(item) {
-                Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).animate({
-                    remove: false,
-                    duration: duration,
-                    opacity: 0,
-                    useDisplay: true
-                });
-            }, this);
-            //store is empty
-            if (calcItem == undefined) {
-                this.cacheStoreData(store);
-                return;
-            }
-            var el = Ext.get(this.dataviewID + "-" + calcItem.get(this.idProperty));
-            //calculate the number of rows and columns we have
-            var itemCount = store.getCount(),
-                itemWidth = el.getMargin('lr') + el.getWidth(),
-                itemHeight = el.getMargin('bt') + el.getHeight(),
-                dvWidth = parentEl.getWidth(),
-                columns = Math.floor(dvWidth / itemWidth),
-                rows = Math.ceil(itemCount / columns),
-                currentRows = Math.ceil(this.getExistingCount() / columns);
-            //make sure the correct styles are applied to the parent element
-            parentEl.applyStyles({
-                display: 'block',
-                position: 'relative'
-            });
-            //stores the current top and left values for each element (discovered below)
-            var oldPositions = {},
-                newPositions = {},
-                elCache = {};
-            //find current positions of each element and save a reference in the elCache
-            Ext.iterate(previous, function(id, item) {
-                var id = item.get(this.idProperty),
-                    el = elCache[id] = Ext.get(this.dataviewID + '-' + id);
-                oldPositions[id] = {
-                    top: el.getY() - parentEl.getY() - el.getMargin('t') - parentEl.getPadding('t'),
-                    left: el.getX() - parentEl.getX() - el.getMargin('l') - parentEl.getPadding('l')
-                };
-            }, this);
-            //set absolute positioning on all DataView items. We need to set position, left and 
-            //top at the same time to avoid any flickering
-            Ext.iterate(previous, function(id, item) {
-                var oldPos = oldPositions[id],
-                    el = elCache[id];
-                if (el.getStyle('position') != 'absolute') {
-                    elCache[id].applyStyles({
-                        position: 'absolute',
-                        left: oldPos.left + "px",
-                        top: oldPos.top + "px",
-                        //we set the width here to make ListViews work correctly. This is not needed for DataViews
-                        width: el.getWidth(!Ext.isIE || Ext.isStrict),
-                        height: el.getHeight(!Ext.isIE || Ext.isStrict)
-                    });
-                }
-            });
-            //get new positions
-            var index = 0;
-            Ext.iterate(store.data.items, function(item) {
-                var id = item.get(idProperty),
-                    el = elCache[id];
-                var column = index % columns,
-                    row = Math.floor(index / columns),
-                    top = row * itemHeight,
-                    left = column * itemWidth;
-                newPositions[id] = {
-                    top: top,
-                    left: left
-                };
-                index++;
-            }, this);
-            //do the movements
-            var startTime = new Date(),
-                duration = this.duration,
-                dataviewID = this.dataviewID;
-            var doAnimate = function() {
-                    var elapsed = new Date() - startTime,
-                        fraction = elapsed / duration;
-                    if (fraction >= 1) {
-                        for (var id in newPositions) {
-                            Ext.fly(dataviewID + '-' + id).applyStyles({
-                                top: newPositions[id].top + "px",
-                                left: newPositions[id].left + "px"
-                            });
-                        }
-                        Ext.TaskManager.stop(task);
-                    } else {
-                        //move each item
-                        for (var id in newPositions) {
-                            if (!previous[id])  {
-                                
-                                continue;
-                            }
-                            
-                            var oldPos = oldPositions[id],
-                                newPos = newPositions[id],
-                                oldTop = oldPos.top,
-                                newTop = newPos.top,
-                                oldLeft = oldPos.left,
-                                newLeft = newPos.left,
-                                diffTop = fraction * Math.abs(oldTop - newTop),
-                                diffLeft = fraction * Math.abs(oldLeft - newLeft),
-                                midTop = oldTop > newTop ? oldTop - diffTop : oldTop + diffTop,
-                                midLeft = oldLeft > newLeft ? oldLeft - diffLeft : oldLeft + diffLeft;
-                            Ext.fly(dataviewID + '-' + id).applyStyles({
-                                top: midTop + "px",
-                                left: midLeft + "px"
-                            });
-                        }
-                    }
-                };
-            var task = {
-                    run: doAnimate,
-                    interval: 20,
-                    scope: this
-                };
-            Ext.TaskManager.start(task);
-            //<debug>
-            var count = 0;
-            for (var k in added) {
-                count++;
-            }
-            if (Ext.global.console && Ext.global.console.log) {
-                Ext.global.console.log('added:', count);
-            }
-            //</debug>
-            //show new items
-            Ext.iterate(added, function(id, item) {
-                Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).applyStyles({
-                    top: newPositions[item.get(this.idProperty)].top + "px",
-                    left: newPositions[item.get(this.idProperty)].left + "px"
-                });
-                Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).animate({
-                    remove: false,
-                    duration: duration,
-                    opacity: 1
-                });
-            }, this);
-            this.cacheStoreData(store);
-        }, this);
-    },
-    /**
-     * Caches the records from a store locally for comparison later
-     * @param {Ext.data.Store} store The store to cache data from
-     */
-    cacheStoreData: function(store) {
-        this.cachedStoreData = {};
-        store.each(function(record) {
-            this.cachedStoreData[record.get(this.idProperty)] = record;
-        }, this);
-    },
-    /**
-     * Returns all records that were already in the DataView
-     * @return {Object} All existing records
-     */
-    getExisting: function() {
-        return this.cachedStoreData;
-    },
-    /**
-     * Returns the total number of items that are currently visible in the DataView
-     * @return {Number} The number of existing items
-     */
-    getExistingCount: function() {
-        var count = 0,
-            items = this.getExisting();
-        for (var k in items) count++;
-        return count;
-    },
-    /**
-     * Returns all records in the given store that were not already present
-     * @param {Ext.data.Store} store The updated store instance
-     * @return {Object} Object of records not already present in the dataview in format {id: record}
-     */
-    getAdded: function(store) {
-        var added = {};
-        store.each(function(record) {
-            if (this.cachedStoreData[record.get(this.idProperty)] == undefined) {
-                added[record.get(this.idProperty)] = record;
-            }
-        }, this);
-        return added;
-    },
-    /**
-     * Returns all records that are present in the DataView but not the new store
-     * @param {Ext.data.Store} store The updated store instance
-     * @return {Array} Array of records that used to be present
-     */
-    getRemoved: function(store) {
-        var removed = [];
-        for (var id in this.cachedStoreData) {
-            if (store.findExact(this.idProperty, Number(id)) == -1) {
-                removed.push(this.cachedStoreData[id]);
-            }
-        }
-        return removed;
-    },
-    /**
-     * Returns all records that are already present and are still present in the new store
-     * @param {Ext.data.Store} store The updated store instance
-     * @return {Object} Object of records that are still present from last time in format {id: record}
-     */
-    getRemaining: function(store) {
-        var remaining = {};
-        store.each(function(record) {
-            if (this.cachedStoreData[record.get(this.idProperty)] != undefined) {
-                remaining[record.get(this.idProperty)] = record;
-            }
-        }, this);
-        return remaining;
-    }
-});
-
-/**
  * Transition plugin for DataViews
  */
 Ext.define('Ext.ux.DataView.Animated', {
+    alias: 'plugin.ux-animated-dataview',
     /**
      * @property defaults
      * @type Object
@@ -3689,6 +4486,15 @@ Ext.define('Ext.ux.DataView.DragSelector', {
      * Initializes the plugin by setting up the drag tracker
      */
     init: function(dataview) {
+        var scroller = dataview.getScrollable();
+        // If the client dataview is scrollable, and this is a PointerEvents device
+        // we cannot intercept the pointer to inplement dragselect.
+        if (scroller && (scroller.getX() || scroller.getY()) && (Ext.supports.PointerEvents || Ext.supports.MSPointerEvents)) {
+            //<debug>
+            Ext.log.warn('DragSelector not available on PointerEvent devices');
+            //</debug>
+            return;
+        }
         /**
          * @property dataview
          * @type Ext.view.View
@@ -3721,11 +4527,10 @@ Ext.define('Ext.ux.DataView.DragSelector', {
         this.tracker = Ext.create('Ext.dd.DragTracker', {
             dataview: this.dataview,
             el: this.dataview.el,
-            dragSelector: this,
             onBeforeStart: this.onBeforeStart,
-            onStart: this.onStart,
-            onDrag: this.onDrag,
-            onEnd: this.onEnd
+            onStart: this.onStart.bind(this),
+            onDrag: this.onDrag.bind(this),
+            onEnd: Ext.Function.createDelayed(this.onEnd, 100, this)
         });
         /**
          * @property dragRegion
@@ -3741,7 +4546,7 @@ Ext.define('Ext.ux.DataView.DragSelector', {
      * DataView's el
      */
     onBeforeStart: function(e) {
-        return e.target == this.dataview.getEl().dom;
+        return e.target === this.dataview.getEl().dom;
     },
     /**
      * @private
@@ -3750,15 +4555,14 @@ Ext.define('Ext.ux.DataView.DragSelector', {
      * @param {Ext.event.Event} e The click event
      */
     onStart: function(e) {
-        var dragSelector = this.dragSelector,
-            dataview = this.dataview;
+        var dataview = this.dataview;
         // Flag which controls whether the cancelClick method vetoes the processing of the DataView's containerclick event.
         // On IE (where else), this needs to remain set for a millisecond after mouseup because even though the mouse has
         // moved, the mouseup will still trigger a click event.
         this.dragging = true;
         //here we reset and show the selection proxy element and cache the regions each item in the dataview take up
-        dragSelector.fillRegions();
-        dragSelector.getProxy().show();
+        this.fillRegions();
+        this.getProxy().show();
         dataview.getSelectionModel().deselectAll();
     },
     /**
@@ -3767,7 +4571,7 @@ Ext.define('Ext.ux.DataView.DragSelector', {
      * details
      */
     cancelClick: function() {
-        return !this.tracker.dragging;
+        return !this.dragging;
     },
     /**
      * @private
@@ -3777,15 +4581,14 @@ Ext.define('Ext.ux.DataView.DragSelector', {
      * @param {Ext.event.Event} e The drag event
      */
     onDrag: function(e) {
-        var dragSelector = this.dragSelector,
-            selModel = dragSelector.dataview.getSelectionModel(),
-            dragRegion = dragSelector.dragRegion,
-            bodyRegion = dragSelector.bodyRegion,
-            proxy = dragSelector.getProxy(),
-            regions = dragSelector.regions,
+        var selModel = this.dataview.getSelectionModel(),
+            dragRegion = this.dragRegion,
+            bodyRegion = this.bodyRegion,
+            proxy = this.getProxy(),
+            regions = this.regions,
             length = regions.length,
-            startXY = this.startXY,
-            currentXY = this.getXY(),
+            startXY = this.tracker.startXY,
+            currentXY = this.tracker.getXY(),
             minX = Math.min(startXY[0], currentXY[0]),
             minY = Math.min(startXY[1], currentXY[1]),
             width = Math.abs(startXY[0] - currentXY[0]),
@@ -3817,13 +4620,12 @@ Ext.define('Ext.ux.DataView.DragSelector', {
      * the containerclick event which the mouseup event will trigger.
      * @param {Ext.event.Event} e The event object
      */
-    onEnd: Ext.Function.createDelayed(function(e) {
+    onEnd: function(e) {
         var dataview = this.dataview,
-            selModel = dataview.getSelectionModel(),
-            dragSelector = this.dragSelector;
+            selModel = dataview.getSelectionModel();
         this.dragging = false;
-        dragSelector.getProxy().hide();
-    }, 1),
+        this.getProxy().hide();
+    },
     /**
      * @private
      * Creates a Proxy element that will be used to highlight the drag selection region
@@ -3947,20 +4749,28 @@ Ext.define('Ext.ux.DataView.Draggable', {
      * Called when the attached DataView is rendered. Sets up the internal DragZone
      */
     onRender: function() {
-        var config = Ext.apply({}, this.ddConfig || {}, {
-                dvDraggable: this,
-                dataview: this.dataview,
-                getDragData: this.getDragData,
-                getTreeNode: this.getTreeNode,
-                afterRepair: this.afterRepair,
-                getRepairXY: this.getRepairXY
+        var me = this,
+            config = Ext.apply({}, me.ddConfig || {}, {
+                dvDraggable: me,
+                dataview: me.dataview,
+                getDragData: me.getDragData,
+                getTreeNode: me.getTreeNode,
+                afterRepair: me.afterRepair,
+                getRepairXY: me.getRepairXY
             });
         /**
          * @property dragZone
          * @type Ext.dd.DragZone
          * The attached DragZone instane
          */
-        this.dragZone = Ext.create('Ext.dd.DragZone', this.dataview.getEl(), config);
+        me.dragZone = Ext.create('Ext.dd.DragZone', me.dataview.getEl(), config);
+        // This is for https://www.w3.org/TR/pointerevents/ platforms.
+        // On these platforms, the pointerdown event (single touchstart) is reserved for
+        // initiating a scroll gesture. Setting the items draggable defeats that and
+        // enables the touchstart event to trigger a drag.
+        //
+        // Two finger dragging will still scroll on these platforms.
+        me.dataview.setItemsDraggable(true);
     },
     getDragData: function(e) {
         var draggable = this.dvDraggable,
@@ -3969,6 +4779,9 @@ Ext.define('Ext.ux.DataView.Draggable', {
             target = e.getTarget(draggable.itemSelector),
             selected, dragData;
         if (target) {
+            // preventDefault is needed here to avoid the browser dragging the image
+            // instead of dragging the container like it's supposed to
+            e.preventDefault();
             if (!dataview.isSelected(target)) {
                 selModel.select(dataview.getRecord(target));
             }
@@ -4120,6 +4933,282 @@ Ext.define('Ext.ux.DataView.LabelEditor', {
     // update record
     onSave: function(ed, value) {
         this.activeRecord.set(this.dataIndex, value);
+    }
+});
+
+/**
+ * @class Ext.ux.DataViewTransition
+ * Transition plugin for DataViews
+ */
+Ext.ux.DataViewTransition = Ext.extend(Object, {
+    /**
+     * @property defaults
+     * @type Object
+     * Default configuration options for all DataViewTransition instances
+     */
+    defaults: {
+        duration: 750,
+        idProperty: 'id'
+    },
+    /**
+     * Creates the plugin instance, applies defaults
+     * @constructor
+     * @param {Object} config Optional config object
+     */
+    constructor: function(config) {
+        Ext.apply(this, config || {}, this.defaults);
+    },
+    /**
+     * Initializes the transition plugin. Overrides the dataview's default refresh function
+     * @param {Ext.view.View} dataview The dataview
+     */
+    init: function(dataview) {
+        /**
+         * @property dataview
+         * @type Ext.view.View
+         * Reference to the DataView this instance is bound to
+         */
+        this.dataview = dataview;
+        var idProperty = this.idProperty;
+        dataview.blockRefresh = true;
+        dataview.updateIndexes = Ext.Function.createSequence(dataview.updateIndexes, function() {
+            this.getTargetEl().select(this.itemSelector).each(function(element, composite, index) {
+                element.id = element.dom.id = Ext.util.Format.format("{0}-{1}", dataview.id, dataview.store.getAt(index).get(idProperty));
+            }, this);
+        }, dataview);
+        /**
+         * @property dataviewID
+         * @type String
+         * The string ID of the DataView component. This is used internally when animating child objects
+         */
+        this.dataviewID = dataview.id;
+        /**
+         * @property cachedStoreData
+         * @type Object
+         * A cache of existing store data, keyed by id. This is used to determine
+         * whether any items were added or removed from the store on data change
+         */
+        this.cachedStoreData = {};
+        //var store = dataview.store;
+        //catch the store data with the snapshot immediately
+        this.cacheStoreData(dataview.store.snapshot);
+        dataview.store.on('datachanged', function(store) {
+            var parentEl = dataview.getTargetEl(),
+                calcItem = store.getAt(0),
+                added = this.getAdded(store),
+                removed = this.getRemoved(store),
+                previous = this.getRemaining(store),
+                existing = Ext.apply({}, previous, added);
+            //hide old items
+            Ext.each(removed, function(item) {
+                Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).animate({
+                    remove: false,
+                    duration: duration,
+                    opacity: 0,
+                    useDisplay: true
+                });
+            }, this);
+            //store is empty
+            if (calcItem == undefined) {
+                this.cacheStoreData(store);
+                return;
+            }
+            var el = Ext.get(this.dataviewID + "-" + calcItem.get(this.idProperty));
+            //calculate the number of rows and columns we have
+            var itemCount = store.getCount(),
+                itemWidth = el.getMargin('lr') + el.getWidth(),
+                itemHeight = el.getMargin('bt') + el.getHeight(),
+                dvWidth = parentEl.getWidth(),
+                columns = Math.floor(dvWidth / itemWidth),
+                rows = Math.ceil(itemCount / columns),
+                currentRows = Math.ceil(this.getExistingCount() / columns);
+            //make sure the correct styles are applied to the parent element
+            parentEl.applyStyles({
+                display: 'block',
+                position: 'relative'
+            });
+            //stores the current top and left values for each element (discovered below)
+            var oldPositions = {},
+                newPositions = {},
+                elCache = {};
+            //find current positions of each element and save a reference in the elCache
+            Ext.iterate(previous, function(id, item) {
+                var id = item.get(this.idProperty),
+                    el = elCache[id] = Ext.get(this.dataviewID + '-' + id);
+                oldPositions[id] = {
+                    top: el.getY() - parentEl.getY() - el.getMargin('t') - parentEl.getPadding('t'),
+                    left: el.getX() - parentEl.getX() - el.getMargin('l') - parentEl.getPadding('l')
+                };
+            }, this);
+            //set absolute positioning on all DataView items. We need to set position, left and 
+            //top at the same time to avoid any flickering
+            Ext.iterate(previous, function(id, item) {
+                var oldPos = oldPositions[id],
+                    el = elCache[id];
+                if (el.getStyle('position') != 'absolute') {
+                    elCache[id].applyStyles({
+                        position: 'absolute',
+                        left: oldPos.left + "px",
+                        top: oldPos.top + "px",
+                        //we set the width here to make ListViews work correctly. This is not needed for DataViews
+                        width: el.getWidth(!Ext.isIE || Ext.isStrict),
+                        height: el.getHeight(!Ext.isIE || Ext.isStrict)
+                    });
+                }
+            });
+            //get new positions
+            var index = 0;
+            Ext.iterate(store.data.items, function(item) {
+                var id = item.get(idProperty),
+                    el = elCache[id];
+                var column = index % columns,
+                    row = Math.floor(index / columns),
+                    top = row * itemHeight,
+                    left = column * itemWidth;
+                newPositions[id] = {
+                    top: top,
+                    left: left
+                };
+                index++;
+            }, this);
+            //do the movements
+            var startTime = new Date(),
+                duration = this.duration,
+                dataviewID = this.dataviewID;
+            var doAnimate = function() {
+                    var elapsed = new Date() - startTime,
+                        fraction = elapsed / duration;
+                    if (fraction >= 1) {
+                        for (var id in newPositions) {
+                            Ext.fly(dataviewID + '-' + id).applyStyles({
+                                top: newPositions[id].top + "px",
+                                left: newPositions[id].left + "px"
+                            });
+                        }
+                        Ext.TaskManager.stop(task);
+                    } else {
+                        //move each item
+                        for (var id in newPositions) {
+                            if (!previous[id])  {
+                                
+                                continue;
+                            }
+                            
+                            var oldPos = oldPositions[id],
+                                newPos = newPositions[id],
+                                oldTop = oldPos.top,
+                                newTop = newPos.top,
+                                oldLeft = oldPos.left,
+                                newLeft = newPos.left,
+                                diffTop = fraction * Math.abs(oldTop - newTop),
+                                diffLeft = fraction * Math.abs(oldLeft - newLeft),
+                                midTop = oldTop > newTop ? oldTop - diffTop : oldTop + diffTop,
+                                midLeft = oldLeft > newLeft ? oldLeft - diffLeft : oldLeft + diffLeft;
+                            Ext.fly(dataviewID + '-' + id).applyStyles({
+                                top: midTop + "px",
+                                left: midLeft + "px"
+                            });
+                        }
+                    }
+                };
+            var task = {
+                    run: doAnimate,
+                    interval: 20,
+                    scope: this
+                };
+            Ext.TaskManager.start(task);
+            //<debug>
+            var count = 0;
+            for (var k in added) {
+                count++;
+            }
+            if (Ext.global.console && Ext.global.console.log) {
+                Ext.global.console.log('added:', count);
+            }
+            //</debug>
+            //show new items
+            Ext.iterate(added, function(id, item) {
+                Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).applyStyles({
+                    top: newPositions[item.get(this.idProperty)].top + "px",
+                    left: newPositions[item.get(this.idProperty)].left + "px"
+                });
+                Ext.fly(this.dataviewID + '-' + item.get(this.idProperty)).animate({
+                    remove: false,
+                    duration: duration,
+                    opacity: 1
+                });
+            }, this);
+            this.cacheStoreData(store);
+        }, this);
+    },
+    /**
+     * Caches the records from a store locally for comparison later
+     * @param {Ext.data.Store} store The store to cache data from
+     */
+    cacheStoreData: function(store) {
+        this.cachedStoreData = {};
+        store.each(function(record) {
+            this.cachedStoreData[record.get(this.idProperty)] = record;
+        }, this);
+    },
+    /**
+     * Returns all records that were already in the DataView
+     * @return {Object} All existing records
+     */
+    getExisting: function() {
+        return this.cachedStoreData;
+    },
+    /**
+     * Returns the total number of items that are currently visible in the DataView
+     * @return {Number} The number of existing items
+     */
+    getExistingCount: function() {
+        var count = 0,
+            items = this.getExisting();
+        for (var k in items) count++;
+        return count;
+    },
+    /**
+     * Returns all records in the given store that were not already present
+     * @param {Ext.data.Store} store The updated store instance
+     * @return {Object} Object of records not already present in the dataview in format {id: record}
+     */
+    getAdded: function(store) {
+        var added = {};
+        store.each(function(record) {
+            if (this.cachedStoreData[record.get(this.idProperty)] == undefined) {
+                added[record.get(this.idProperty)] = record;
+            }
+        }, this);
+        return added;
+    },
+    /**
+     * Returns all records that are present in the DataView but not the new store
+     * @param {Ext.data.Store} store The updated store instance
+     * @return {Array} Array of records that used to be present
+     */
+    getRemoved: function(store) {
+        var removed = [];
+        for (var id in this.cachedStoreData) {
+            if (store.findExact(this.idProperty, Number(id)) == -1) {
+                removed.push(this.cachedStoreData[id]);
+            }
+        }
+        return removed;
+    },
+    /**
+     * Returns all records that are already present and are still present in the new store
+     * @param {Ext.data.Store} store The updated store instance
+     * @return {Object} Object of records that are still present from last time in format {id: record}
+     */
+    getRemaining: function(store) {
+        var remaining = {};
+        store.each(function(record) {
+            if (this.cachedStoreData[record.get(this.idProperty)] != undefined) {
+                remaining[record.get(this.idProperty)] = record;
+            }
+        }, this);
+        return remaining;
     }
 });
 
@@ -4826,56 +5915,10 @@ Ext.define('Ext.ux.IFrame', {
         var me = this;
         return me.iframeEl.dom;
     },
-    beforeDestroy: function() {
-        this.cleanupListeners(true);
-        this.callParent();
-    },
-    cleanupListeners: function(destroying) {
-        var doc, prop;
-        if (this.rendered) {
-            try {
-                doc = this.getDoc();
-                if (doc) {
-                    Ext.get(doc).un(this._docListeners);
-                    if (destroying) {
-                        for (prop in doc) {
-                            if (doc.hasOwnProperty && doc.hasOwnProperty(prop)) {
-                                delete doc[prop];
-                            }
-                        }
-                    }
-                }
-            } catch (e) {}
-        }
-    },
     onLoad: function() {
         var me = this,
-            doc = me.getDoc(),
-            fn = me.onRelayedEvent;
+            doc = me.getDoc();
         if (doc) {
-            try {
-                // These events need to be relayed from the inner document (where they stop
-                // bubbling) up to the outer document. This has to be done at the DOM level so
-                // the event reaches listeners on elements like the document body. The effected
-                // mechanisms that depend on this bubbling behavior are listed to the right
-                // of the event.
-                Ext.get(doc).on(me._docListeners = {
-                    mousedown: fn,
-                    // menu dismisal (MenuManager) and Window onMouseDown (toFront)
-                    mousemove: fn,
-                    // window resize drag detection
-                    mouseup: fn,
-                    // window resize termination
-                    click: fn,
-                    // not sure, but just to be safe
-                    dblclick: fn,
-                    // not sure again
-                    scope: me
-                });
-            } catch (e) {}
-            // cannot do this xss
-            // We need to be sure we remove all our events from the iframe on unload or we're going to LEAK!
-            Ext.get(this.getWin()).on('beforeunload', me.cleanupListeners, me);
             this.el.unmask();
             this.fireEvent('load', this);
         } else if (me.src) {
@@ -4883,27 +5926,6 @@ Ext.define('Ext.ux.IFrame', {
             this.fireEvent('error', this);
         }
     },
-    onRelayedEvent: function(event) {
-        // relay event from the iframe's document to the document that owns the iframe...
-        var iframeEl = this.iframeEl,
-            // Get the left-based iframe position
-            iframeXY = iframeEl.getTrueXY(),
-            originalEventXY = event.getXY(),
-            // Get the left-based XY position.
-            // This is because the consumer of the injected event will
-            // perform its own RTL normalization.
-            eventXY = event.getTrueXY();
-        // the event from the inner document has XY relative to that document's origin,
-        // so adjust it to use the origin of the iframe in the outer document:
-        event.xy = [
-            iframeXY[0] + eventXY[0],
-            iframeXY[1] + eventXY[1]
-        ];
-        event.injectEvent(iframeEl);
-        // blame the iframe for the event...
-        event.xy = originalEventXY;
-    },
-    // restore the original XY (just for safety)
     load: function(src) {
         var me = this,
             text = me.loadMask,
@@ -4916,6 +5938,11 @@ Ext.define('Ext.ux.IFrame', {
         }
     }
 });
+/*
+ * Note: Event relayers are not needed here because the combination of the gesture system and 
+ * normal focus/blur will handle it.
+ * Tested with the examples/classic/desktop app.
+ */
 /*
  * TODO items:
  *
@@ -5233,7 +6260,7 @@ Ext.define('Ext.ux.statusbar.StatusBar', {
         o = o || {};
         var me = this,
             statusEl = me.statusEl;
-        if (o.threadId && o.threadId !== me.activeThreadId) {
+        if (me.destroyed || o.threadId && o.threadId !== me.activeThreadId) {
             // this means the current call was made internally, but a newer
             // thread has set a message since this call was deferred.  Since
             // we don't want to overwrite a newer message just ignore.
@@ -5708,6 +6735,7 @@ Ext.define('Ext.ux.PreviewPlugin', {
  * instead of plain text.
  */
 Ext.define('Ext.ux.ProgressBarPager', {
+    alias: 'plugin.ux-progressbarpager',
     requires: [
         'Ext.ProgressBar'
     ],
@@ -5738,7 +6766,6 @@ Ext.define('Ext.ux.ProgressBarPager', {
             Ext.apply(this, config);
         }
     },
-    //public
     init: function(parent) {
         var displayItem;
         if (parent.displayInfo) {
@@ -5767,8 +6794,8 @@ Ext.define('Ext.ux.ProgressBarPager', {
         }
     },
     /**
-     * @private
      * This method handles the click for the progress bar
+     * @private
      */
     handleProgressBarClick: function(e) {
         var parent = this.parent,
@@ -5776,17 +6803,19 @@ Ext.define('Ext.ux.ProgressBarPager', {
             box = this.progressBar.getBox(),
             xy = e.getXY(),
             position = xy[0] - box.x,
-            pages = Math.ceil(parent.store.getTotalCount() / parent.pageSize),
+            store = parent.store,
+            pageSize = parent.pageSize || store.pageSize,
+            pages = Math.ceil(store.getTotalCount() / pageSize),
             newPage = Math.max(Math.ceil(position / (displayItem.width / pages)), 1);
-        parent.store.loadPage(newPage);
+        store.loadPage(newPage);
     },
     /**
      * @private
      */
     parentOverrides: {
         /**
-         * @private
          * This method updates the information via the progress bar.
+         * @private
          */
         updateInfo: function() {
             if (this.displayItem) {
@@ -5814,6 +6843,7 @@ Ext.define('Ext.ux.RowExpander', {
  * Plugin for PagingToolbar which replaces the textfield input with a slider
  */
 Ext.define('Ext.ux.SlidingPager', {
+    alias: 'plugin.ux-slidingpager',
     requires: [
         'Ext.slider.Single',
         'Ext.slider.Tip'
@@ -6133,8 +7163,8 @@ Ext.define('Ext.ux.TabCloseMenu', {
         });
     },
     destroy: function() {
-        this.callParent();
         Ext.destroy(this.menu);
+        this.callParent();
     },
     /**
      * @private
@@ -6629,6 +7659,7 @@ Ext.define('Ext.ux.ToolbarDroppable', {
     },
     //</debug>
     /**
+     * @method
      * Called after a new button has been created and added to the toolbar. Add any required cleanup logic here
      */
     afterLayout: Ext.emptyFn
@@ -6895,7 +7926,7 @@ Ext.define('Ext.ux.colorpick.Selection', {
     },
     applyValue: function(color) {
         // Transform whatever incoming color we get to the proper format
-        var c = Ext.ux.colorpick.ColorUtils.parseColor(color);
+        var c = Ext.ux.colorpick.ColorUtils.parseColor(color || '#000000');
         return this.formatColor(c);
     },
     formatColor: function(color) {
@@ -8409,14 +9440,6 @@ Ext.define('Ext.ux.colorpick.SelectorController', {
     requires: [
         'Ext.ux.colorpick.ColorUtils'
     ],
-    initViewModel: function() {
-        var me = this,
-            view = me.getView();
-        // And ensure that the
-        view.childViewModel.bind('{selectedColor}', function(color) {
-            view.setColor(color);
-        });
-    },
     destroy: function() {
         var me = this,
             view = me.getView(),
@@ -8501,7 +9524,6 @@ Ext.define('Ext.ux.colorpick.SelectorController', {
         s = vm.get('saturation');
         v = vm.get('value');
         a = vm.get('alpha');
-        console.log('h=' + h);
         // Reposition the colormap's & sliders' drag handles
         refs.colorMap.setPosition(vm.getData());
         refs.hueSlider.setHue(h);
@@ -8523,9 +9545,9 @@ Ext.define('Ext.ux.colorpick.ColorPreview', {
     ],
     //hack to solve issue with IE, when applying a filter the click listener is not being fired.
     style: 'position: relative',
-    html: '<div class="filter" style="height:100%; width:100%; position: absolute;"></div>' + '<a class="btn" style="height:100%; width:100%; position: absolute;"></a>',
+    html: '<div class="' + Ext.baseCSSPrefix + 'colorpreview-filter" style="height:100%; width:100%; position: absolute;"></div>' + '<a class="btn" style="height:100%; width:100%; position: absolute;"></a>',
     //eo hack
-    cls: 'x-colorpreview',
+    cls: Ext.baseCSSPrefix + 'colorpreview',
     height: 256,
     onRender: function() {
         var me = this;
@@ -8551,7 +9573,8 @@ Ext.define('Ext.ux.colorpick.ColorPreview', {
     applyBgStyle: function(color) {
         var me = this,
             colorUtils = Ext.ux.colorpick.ColorUtils,
-            el = me.getEl().down('.filter'),
+            filterSelector = '.' + Ext.baseCSSPrefix + 'colorpreview-filter',
+            el = me.getEl().down(filterSelector),
             hex, alpha, rgba, bgStyle;
         hex = colorUtils.rgb2hex(color.r, color.g, color.b);
         alpha = Ext.util.Format.hex(Math.floor(color.a * 255), 2);
@@ -8643,10 +9666,15 @@ Ext.define('Ext.ux.colorpick.Slider', {
     extend: 'Ext.container.Container',
     xtype: 'colorpickerslider',
     controller: 'colorpick-slidercontroller',
+    afterRender: function() {
+        this.callParent(arguments);
+        var width = this.width,
+            dragCt = this.lookupReference('dragHandleContainer'),
+            dragWidth = dragCt.getWidth();
+        dragCt.el.setStyle('left', ((width - dragWidth) / 2) + 'px');
+    },
     baseCls: Ext.baseCSSPrefix + 'colorpicker-slider',
-    layout: 'center',
     requires: [
-        'Ext.layout.container.Center',
         'Ext.ux.colorpick.SliderController'
     ],
     referenceHolder: true,
@@ -8703,7 +9731,7 @@ Ext.define('Ext.ux.colorpick.SliderAlpha', {
         'Ext.XTemplate'
     ],
     gradientStyleTpl: Ext.create('Ext.XTemplate', Ext.isIE && Ext.ieVersion < 10 ? 'filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0, startColorstr=\'#FF{hex}\', endColorstr=\'#00{hex}\');' : /* IE6-9 */
-    'background: -mox-linear-gradient(top, rgba({r}, {g}, {b}, 1) 0%, rgba({r}, {g}, {b}, 0) 100%);' + /* FF3.6+ */
+    'background: -moz-linear-gradient(top, rgba({r}, {g}, {b}, 1) 0%, rgba({r}, {g}, {b}, 0) 100%);' + /* FF3.6+ */
     'background: -webkit-linear-gradient(top,rgba({r}, {g}, {b}, 1) 0%, rgba({r}, {g}, {b}, 0) 100%);' + /* Chrome10+,Safari5.1+ */
     'background: -o-linear-gradient(top, rgba({r}, {g}, {b}, 1) 0%, rgba({r}, {g}, {b}, 0) 100%);' + /* Opera 11.10+ */
     'background: -ms-linear-gradient(top, rgba({r}, {g}, {b}, 1) 0%, rgba({r}, {g}, {b}, 0) 100%);' + /* IE10+ */
@@ -8730,7 +9758,7 @@ Ext.define('Ext.ux.colorpick.SliderAlpha', {
         // Position dragger
         el = dragHandle.getEl();
         el.setStyle({
-            top: top
+            top: top + 'px'
         });
     },
     // Called via data binding whenever selectedColor.h changes; hue param is 0-1
@@ -8744,7 +9772,7 @@ Ext.define('Ext.ux.colorpick.SliderAlpha', {
         }
         // Determine HEX for new hue and set as background based on template
         hex = Ext.ux.colorpick.ColorUtils.rgb2hex(color.r, color.g, color.b);
-        el = container.getEl().down('.x-autocontainer-innerCt');
+        el = container.getEl().first();
         el.applyStyles(me.gradientStyleTpl.apply({
             hex: hex,
             r: color.r,
@@ -8925,7 +9953,7 @@ Ext.define('Ext.ux.colorpick.SliderHue', {
             return;
         }
         // y-axis of slider with value 0-1 translates to reverse of "hue"
-        top = containerHeight * (360 - hue) / 360;
+        top = containerHeight * (1 - hue);
         // Position dragger
         el = dragHandle.getEl();
         el.setStyle({
@@ -9048,6 +10076,9 @@ Ext.define('Ext.ux.colorpick.Selector', {
             me.getSliderAndAField(childViewModel),
             me.getPreviewAndButtons(childViewModel, config)
         ];
+        me.childViewModel.bind('{selectedColor}', function(color) {
+            me.setColor(color);
+        });
         me.callParent(arguments);
     },
     updateColor: function(color) {
@@ -9160,12 +10191,13 @@ Ext.define('Ext.ux.colorpick.Selector', {
     // Splits up view declaration for readability
     // Slider and H field 
     getSliderAndHField: function(childViewModel) {
-        var me = this;
+        var me = this,
+            fieldWidth = me.fieldWidth;
         return {
             xtype: 'container',
             viewModel: childViewModel,
             cls: Ext.baseCSSPrefix + 'colorpicker-escape-overflow',
-            width: me.fieldWidth,
+            width: fieldWidth,
             layout: {
                 type: 'vbox',
                 align: 'stretch'
@@ -9178,6 +10210,7 @@ Ext.define('Ext.ux.colorpick.Selector', {
                     bind: {
                         hue: '{selectedColor.h}'
                     },
+                    width: fieldWidth,
                     listeners: {
                         handledrag: 'onHueSliderHandleDrag'
                     }
@@ -9186,7 +10219,6 @@ Ext.define('Ext.ux.colorpick.Selector', {
                     xtype: 'numberfield',
                     fieldLabel: 'H',
                     labelAlign: 'top',
-                    width: me.fieldWidth,
                     labelSeparator: '',
                     bind: '{hue}',
                     hideTrigger: true,
@@ -9201,12 +10233,13 @@ Ext.define('Ext.ux.colorpick.Selector', {
     // Splits up view declaration for readability
     // Slider and S field 
     getSliderAndSField: function(childViewModel) {
-        var me = this;
+        var me = this,
+            fieldWidth = me.fieldWidth;
         return {
             xtype: 'container',
             viewModel: childViewModel,
             cls: Ext.baseCSSPrefix + 'colorpicker-escape-overflow',
-            width: me.fieldWidth,
+            width: fieldWidth,
             layout: {
                 type: 'vbox',
                 align: 'stretch'
@@ -9224,6 +10257,7 @@ Ext.define('Ext.ux.colorpick.Selector', {
                         saturation: '{saturation}',
                         hue: '{selectedColor.h}'
                     },
+                    width: fieldWidth,
                     listeners: {
                         handledrag: 'onSaturationSliderHandleDrag'
                     }
@@ -9246,12 +10280,13 @@ Ext.define('Ext.ux.colorpick.Selector', {
     // Splits up view declaration for readability
     // Slider and V field 
     getSliderAndVField: function(childViewModel) {
-        var me = this;
+        var me = this,
+            fieldWidth = me.fieldWidth;
         return {
             xtype: 'container',
             viewModel: childViewModel,
             cls: Ext.baseCSSPrefix + 'colorpicker-escape-overflow',
-            width: me.fieldWidth,
+            width: fieldWidth,
             layout: {
                 type: 'vbox',
                 align: 'stretch'
@@ -9265,6 +10300,7 @@ Ext.define('Ext.ux.colorpick.Selector', {
                         value: '{value}',
                         hue: '{selectedColor.h}'
                     },
+                    width: fieldWidth,
                     listeners: {
                         handledrag: 'onValueSliderHandleDrag'
                     }
@@ -9287,12 +10323,13 @@ Ext.define('Ext.ux.colorpick.Selector', {
     // Splits up view declaration for readability
     // Slider and A field 
     getSliderAndAField: function(childViewModel) {
-        var me = this;
+        var me = this,
+            fieldWidth = me.fieldWidth;
         return {
             xtype: 'container',
             viewModel: childViewModel,
             cls: Ext.baseCSSPrefix + 'colorpicker-escape-overflow',
-            width: me.fieldWidth,
+            width: fieldWidth,
             layout: {
                 type: 'vbox',
                 align: 'stretch'
@@ -9312,6 +10349,7 @@ Ext.define('Ext.ux.colorpick.Selector', {
                             deep: true
                         }
                     },
+                    width: fieldWidth,
                     listeners: {
                         handledrag: 'onAlphaSliderHandleDrag'
                     }
@@ -9711,237 +10749,6 @@ Ext.define('Ext.ux.colorpick.Field', {
 });
 
 /**
- * This view is created by the "google-rss" `Ext.dashboard.Dashboard` part.
- */
-Ext.define('Ext.ux.dashboard.GoogleRssView', {
-    extend: 'Ext.Component',
-    requires: [
-        'Ext.tip.ToolTip',
-        'Ext.ux.google.Feeds'
-    ],
-    feedCls: Ext.baseCSSPrefix + 'dashboard-googlerss',
-    previewCls: Ext.baseCSSPrefix + 'dashboard-googlerss-preview',
-    closeDetailsCls: Ext.baseCSSPrefix + 'dashboard-googlerss-close',
-    nextCls: Ext.baseCSSPrefix + 'dashboard-googlerss-next',
-    prevCls: Ext.baseCSSPrefix + 'dashboard-googlerss-prev',
-    /**
-     * The RSS feed URL. Some example RSS Feeds:
-     *
-     *   * http://rss.slashdot.org/Slashdot/slashdot
-     *   * http://sports.espn.go.com/espn/rss/news (ESPN Top News)
-     *   * http://news.google.com/news?ned=us&topic=t&output=rss (Sci/Tech - Google News)
-     *   * http://rss.news.yahoo.com/rss/software (Yahoo Software News)
-     *   * http://feeds.feedburner.com/extblog (Sencha Blog)
-     *   * http://sencha.com/forum/external.php?type=RSS2 (Sencha Forums)
-     *   * http://feeds.feedburner.com/ajaxian (Ajaxian)
-     *   * http://rss.cnn.com/rss/edition.rss (CNN Top Stories)
-     */
-    feedUrl: null,
-    scrollable: true,
-    maxFeedEntries: 10,
-    previewTips: false,
-    mode: 'detail',
-    //closeDetailsGlyph: '10008@',
-    closeDetailsGlyph: '8657@',
-    // black triangles
-    prevGlyph: '9664@',
-    nextGlyph: '9654@',
-    // hollow triangles
-    //prevGlyph: '9665@', nextGlyph: '9655@',
-    // black pointing index
-    //prevGlyph: '9754@', nextGlyph: '9755@',
-    // white pointing index
-    //prevGlyph: '9756@', nextGlyph: '9758@',
-    // double arrows
-    //prevGlyph: '8656@', nextGlyph: '8658@',
-    // closed arrows
-    //prevGlyph: '8678@', nextGlyph: '8680@',
-    detailTpl: '<tpl for="entries[currentEntry]">' + '<div class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-detail-header">' + '<div class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-detail-nav">' + '<tpl if="parent.hasPrev">' + '<span class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-prev ' + Ext.baseCSSPrefix + 'dashboard-googlerss-glyph">' + '{parent.prevGlyph}' + '</span> ' + '</tpl>' + ' {[parent.currentEntry+1]}/{parent.numEntries} ' + '<span class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-next ' + Ext.baseCSSPrefix + 'dashboard-googlerss-glyph"' + '<tpl if="!parent.hasNext">' + ' style="visibility:hidden"' + '</tpl>' + '> {parent.nextGlyph}' + '</span> ' + '<span class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-close ' + Ext.baseCSSPrefix + 'dashboard-googlerss-glyph"> ' + '{parent.closeGlyph}' + '</span> ' + '</div>' + '<div class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-title">' + '<a href="{link}" target=_blank>{title}</a>' + '</div>' + '<div class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-author">By {author} - {publishedDate:this.date}</div>' + '</div>' + '<div class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-detail">' + '{content}' + '</div>' + '</tpl>',
-    summaryTpl: '<tpl for="entries">' + '<div class="' + Ext.baseCSSPrefix + 'dashboard-googlerss">' + '<span class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-title">' + '<a href="{link}" target=_blank>{title}</a>' + '</span> ' + '<img src="' + Ext.BLANK_IMAGE_URL + '" data-index="{#}" class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-preview"><br>' + '<span class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-author">By {author} - {publishedDate:this.date}</span><br>' + '<span class="' + Ext.baseCSSPrefix + 'dashboard-googlerss-snippet">{contentSnippet}</span><br>' + '</div>' + '</tpl>',
-    initComponent: function() {
-        var me = this;
-        me.feedMgr = new google.feeds.Feed(me.feedUrl);
-        me.callParent();
-    },
-    afterRender: function() {
-        var me = this;
-        me.callParent();
-        if (me.feedMgr) {
-            me.refresh();
-        }
-        me.el.on({
-            click: me.onClick,
-            scope: me
-        });
-        if (me.previewTips) {
-            me.tip = new Ext.tip.ToolTip({
-                target: me.el,
-                delegate: '.' + me.previewCls,
-                maxWidth: 800,
-                showDelay: 750,
-                autoHide: false,
-                scrollable: true,
-                anchor: 'top',
-                listeners: {
-                    beforeshow: 'onBeforeShowTip',
-                    scope: me
-                }
-            });
-        }
-    },
-    formatDate: function(date) {
-        if (!date) {
-            return '';
-        }
-        date = new Date(date);
-        var now = new Date(),
-            d = Ext.Date.clearTime(now, true),
-            notime = Ext.Date.clearTime(date, true).getTime();
-        if (notime === d.getTime()) {
-            return 'Today ' + Ext.Date.format(date, 'g:i a');
-        }
-        d = Ext.Date.add(d, 'd', -6);
-        if (d.getTime() <= notime) {
-            return Ext.Date.format(date, 'D g:i a');
-        }
-        if (d.getYear() === now.getYear()) {
-            return Ext.Date.format(date, 'D M d \\a\\t g:i a');
-        }
-        return Ext.Date.format(date, 'D M d, Y \\a\\t g:i a');
-    },
-    getTitle: function() {
-        var data = this.data;
-        return data && data.title;
-    },
-    onBeforeShowTip: function(tip) {
-        if (this.mode !== 'summary') {
-            return false;
-        }
-        var el = tip.triggerElement,
-            index = parseInt(el.getAttribute('data-index'), 10);
-        tip.maxHeight = Ext.Element.getViewportHeight() / 2;
-        tip.update(this.data.entries[index - 1].content);
-    },
-    onClick: function(e) {
-        var me = this,
-            entry = me.data.currentEntry,
-            target = Ext.fly(e.getTarget());
-        if (target.hasCls(me.nextCls)) {
-            me.setCurrentEntry(entry + 1);
-        } else if (target.hasCls(me.prevCls)) {
-            me.setCurrentEntry(entry - 1);
-        } else if (target.hasCls(me.closeDetailsCls)) {
-            me.setMode('summary');
-        } else if (target.hasCls(me.previewCls)) {
-            me.setMode('detail', parseInt(target.getAttribute('data-index'), 10));
-        }
-    },
-    refresh: function() {
-        var me = this;
-        if (!me.feedMgr) {
-            return;
-        }
-        me.fireEvent('beforeload', me);
-        //setTimeout(function () {
-        me.feedMgr.setNumEntries(me.maxFeedEntries);
-        me.feedMgr.load(function(result) {
-            me.setFeedData(result.feed);
-            me.fireEvent('load', me);
-        });
-    },
-    //}, 2000);
-    setCurrentEntry: function(current) {
-        this.setMode(this.mode, current);
-    },
-    setFeedData: function(feedData) {
-        var me = this,
-            entries = feedData.entries,
-            count = entries && entries.length || 0,
-            data = Ext.apply({
-                numEntries: count,
-                closeGlyph: me.wrapGlyph(me.closeDetailsGlyph),
-                prevGlyph: me.wrapGlyph(me.prevGlyph),
-                nextGlyph: me.wrapGlyph(me.nextGlyph),
-                currentEntry: 0
-            }, feedData);
-        me.data = data;
-        me.setMode(me.mode);
-    },
-    setMode: function(mode, currentEntry) {
-        var me = this,
-            data = me.data,
-            current = (currentEntry === undefined) ? data.currentEntry : currentEntry;
-        me.tpl = me.getTpl(mode + 'Tpl');
-        me.tpl.date = me.formatDate;
-        me.mode = mode;
-        data.currentEntry = current;
-        data.hasNext = current + 1 < data.numEntries;
-        data.hasPrev = current > 0;
-        me.update(data);
-        me.el.dom.scrollTop = 0;
-    },
-    wrapGlyph: function(glyph) {
-        var glyphFontFamily = Ext._glyphFontFamily,
-            glyphParts, html;
-        if (typeof glyph === 'string') {
-            glyphParts = glyph.split('@');
-            glyph = glyphParts[0];
-            glyphFontFamily = glyphParts[1];
-        }
-        html = '&#' + glyph + ';';
-        if (glyphFontFamily) {
-            html = '<span style="font-family:' + glyphFontFamily + '">' + html + '</span>';
-        }
-        return html;
-    },
-    /**
-     * @private
-     */
-    beforeDestroy: function() {
-        Ext.destroy(this.tip);
-        this.callParent();
-    }
-});
-
-/**
- * This `part` implements a Google RSS Feed for use in a `Dashboard`.
- */
-Ext.define('Ext.ux.dashboard.GoogleRssPart', {
-    extend: 'Ext.dashboard.Part',
-    alias: 'part.google-rss',
-    requires: [
-        'Ext.window.MessageBox',
-        'Ext.ux.dashboard.GoogleRssView'
-    ],
-    viewTemplate: {
-        layout: 'fit',
-        items: {
-            xclass: 'Ext.ux.dashboard.GoogleRssView',
-            feedUrl: '{feedUrl}'
-        }
-    },
-    type: 'google-rss',
-    config: {
-        suggestedFeed: 'http://rss.slashdot.org/Slashdot/slashdot'
-    },
-    formTitleAdd: 'Add RSS Feed',
-    formTitleEdit: 'Edit RSS Feed',
-    formLabel: 'RSS Feed URL',
-    displayForm: function(instance, currentConfig, callback, scope) {
-        var me = this,
-            suggestion = currentConfig ? currentConfig.feedUrl : me.getSuggestedFeed(),
-            title = instance ? me.formTitleEdit : me.formTitleAdd;
-        Ext.Msg.prompt(title, me.formLabel, function(btn, text) {
-            if (btn === 'ok') {
-                callback.call(scope || me, {
-                    feedUrl: text
-                });
-            }
-        }, me, false, suggestion);
-    }
-});
-
-/**
  * Paging Memory Proxy, allows to use paging grid with in memory dataset
  */
 Ext.define('Ext.ux.data.PagingMemoryProxy', {
@@ -10014,24 +10821,52 @@ Ext.define('Ext.ux.data.PagingMemoryProxy', {
     }
 });
 
-// A DropZone which cooperates with DragZones whose dragData contains
-// a "field" property representing a form Field. Fields may be dropped onto
-// grid data cells containing a matching data type.
+/**
+ * This class is used as a grid `plugin`. It provides a DropZone which cooperates with
+ * DragZones whose dragData contains a "field" property representing a form Field.
+ * Fields may be dropped onto grid data cells containing a matching data type.
+ */
 Ext.define('Ext.ux.dd.CellFieldDropZone', {
     extend: 'Ext.dd.DropZone',
+    alias: 'plugin.ux-cellfielddropzone',
+    containerScroll: true,
+    /**
+     * @cfg {Function/String} onCellDrop
+     * The function to call on a cell data drop, or the name of the function on the
+     * corresponding `{@link Ext.app.ViewController controller}`. For details on the
+     * parameters, see `{@link #method!onCellDrop onCellDrop}`.
+     */
+    /**
+     * This method is called when a field is dropped on a cell. This method is normally
+     * replaced by the `{@link #cfg!onCellDrop onCellDrop}` config property passed to the
+     * constructor.
+     * @param {String} fieldName The name of the field.
+     * @param {Mixed} value The value of the field.
+     * @method onCellDrop
+     */
+    onCellDrop: Ext.emptyFn,
     constructor: function(cfg) {
-        cfg = cfg || {};
-        if (cfg.onCellDrop) {
-            this.onCellDrop = cfg.onCellDrop;
-        }
-        if (cfg.ddGroup) {
-            this.ddGroup = cfg.ddGroup;
+        if (cfg) {
+            var me = this,
+                ddGroup = cfg.ddGroup,
+                onCellDrop = cfg.onCellDrop;
+            if (onCellDrop) {
+                if (typeof onCellDrop === 'string') {
+                    me.onCellDropFn = onCellDrop;
+                    me.onCellDrop = me.callCellDrop;
+                } else {
+                    me.onCellDrop = onCellDrop;
+                }
+            }
+            if (ddGroup) {
+                me.ddGroup = ddGroup;
+            }
         }
     },
-    //  Call the DropZone constructor using the View's scrolling element
-    //  only after the grid has been rendered.
     init: function(grid) {
         var me = this;
+        // Call the DropZone constructor using the View's scrolling element
+        // only after the grid has been rendered.
         if (grid.rendered) {
             me.grid = grid;
             grid.getView().on({
@@ -10047,19 +10882,17 @@ Ext.define('Ext.ux.dd.CellFieldDropZone', {
             });
         }
     },
-    //  Scroll the main configured Element when we drag close to the edge
-    containerScroll: true,
     getTargetFromEvent: function(e) {
         var me = this,
             v = me.view;
-        //      Ascertain whether the mousemove is within a grid cell
+        // Ascertain whether the mousemove is within a grid cell
         var cell = e.getTarget(v.getCellSelector());
         if (cell) {
-            //          We *are* within a grid cell, so ask the View exactly which one,
-            //          Extract data from the Model to create a target object for
-            //          processing in subsequent onNodeXXXX methods. Note that the target does
-            //          not have to be a DOM element. It can be whatever the noNodeXXX methods are
-            //          programmed to expect.
+            // We *are* within a grid cell, so ask the View exactly which one,
+            // Extract data from the Model to create a target object for
+            // processing in subsequent onNodeXXXX methods. Note that the target does
+            // not have to be a DOM element. It can be whatever the noNodeXXX methods are
+            // programmed to expect.
             var row = v.findItemByChild(cell),
                 columnIndex = cell.cellIndex;
             if (row && Ext.isDefined(columnIndex)) {
@@ -10071,19 +10904,20 @@ Ext.define('Ext.ux.dd.CellFieldDropZone', {
             }
         }
     },
-    //  On Node enter, see if it is valid for us to drop the field on that type of column.
     onNodeEnter: function(target, dd, e, dragData) {
+        // On Node enter, see if it is valid for us to drop the field on that type of
+        // column.
         delete this.dropOK;
         if (!target) {
             return;
         }
-        //      Check that a field is being dragged.
+        // Check that a field is being dragged.
         var f = dragData.field;
         if (!f) {
             return;
         }
-        //      Check whether the data type of the column being dropped on accepts the
-        //      dragged field type. If so, set dropOK flag, and highlight the target node.
+        // Check whether the data type of the column being dropped on accepts the
+        // dragged field type. If so, set dropOK flag, and highlight the target node.
         var field = target.record.fieldsMap[target.fieldName];
         if (field.isNumeric) {
             if (!f.isXType('numberfield')) {
@@ -10101,17 +10935,16 @@ Ext.define('Ext.ux.dd.CellFieldDropZone', {
         this.dropOK = true;
         Ext.fly(target.node).addCls('x-drop-target-active');
     },
-    //  Return the class name to add to the drag proxy. This provides a visual indication
-    //  of drop allowed or not allowed.
     onNodeOver: function(target, dd, e, dragData) {
+        // Return the class name to add to the drag proxy. This provides a visual
+        // indication of drop allowed or not allowed.
         return this.dropOK ? this.dropAllowed : this.dropNotAllowed;
     },
-    //  highlight the target node.
     onNodeOut: function(target, dd, e, dragData) {
         Ext.fly(target.node).removeCls('x-drop-target-active');
     },
-    //  Process the drop event if we have previously ascertained that a drop is OK.
     onNodeDrop: function(target, dd, e, dragData) {
+        // Process the drop event if we have previously ascertained that a drop is OK.
         if (this.dropOK) {
             var value = dragData.field.getValue();
             target.record.set(target.fieldName, value);
@@ -10119,19 +10952,28 @@ Ext.define('Ext.ux.dd.CellFieldDropZone', {
             return true;
         }
     },
-    onCellDrop: Ext.emptyFn
+    callCellDrop: function(fieldName, value) {
+        Ext.callback(this.onCellDropFn, null, [
+            fieldName,
+            value
+        ], 0, this.grid);
+    }
 });
 
 Ext.define('Ext.ux.dd.PanelFieldDragZone', {
     extend: 'Ext.dd.DragZone',
+    alias: 'plugin.ux-panelfielddragzone',
+    scroll: false,
     constructor: function(cfg) {
-        cfg = cfg || {};
-        if (cfg.ddGroup) {
-            this.ddGroup = cfg.ddGroup;
+        if (cfg) {
+            if (cfg.ddGroup) {
+                this.ddGroup = cfg.ddGroup;
+            }
         }
     },
-    //  Call the DRagZone's constructor. The Panel must have been rendered.
     init: function(panel) {
+        var el;
+        // Call the DragZone's constructor. The Panel must have been rendered.
         // Panel is an HtmlElement
         if (panel.nodeType) {
             // Called via dragzone::init
@@ -10140,7 +10982,9 @@ Ext.define('Ext.ux.dd.PanelFieldDragZone', {
         {
             // Called via plugin::init
             if (panel.rendered) {
-                Ext.ux.dd.PanelFieldDragZone.superclass.constructor.call(this, panel.getEl());
+                el = panel.getEl();
+                el.unselectable();
+                Ext.ux.dd.PanelFieldDragZone.superclass.constructor.call(this, el);
             } else {
                 panel.on('afterrender', this.init, this, {
                     single: true
@@ -10148,12 +10992,11 @@ Ext.define('Ext.ux.dd.PanelFieldDragZone', {
             }
         }
     },
-    scroll: false,
-    //  On mousedown, we ascertain whether it is on one of our draggable Fields.
-    //  If so, we collect data about the draggable object, and return a drag data
-    //  object which contains our own data, plus a "ddel" property which is a DOM
-    //  node which provides a "view" of the dragged data.
     getDragData: function(e) {
+        // On mousedown, we ascertain whether it is on one of our draggable Fields.
+        // If so, we collect data about the draggable object, and return a drag data
+        // object which contains our own data, plus a "ddel" property which is a DOM
+        // node which provides a "view" of the dragged data.
         var targetLabel = e.getTarget('label', null, true),
             text, oldMark, field, dragEl;
         if (targetLabel) {
@@ -10175,14 +11018,13 @@ Ext.define('Ext.ux.dd.PanelFieldDragZone', {
                     field: field,
                     ddel: dragEl
                 };
-            } else {
-                e.stopEvent();
             }
+            e.stopEvent();
             field.preventMark = oldMark;
         }
     },
-    //  The coordinates to slide the drag proxy back to on failed drop.
     getRepairXY: function() {
+        // The coordinates to slide the drag proxy back to on failed drop.
         return this.dragData.field.getEl().getXY();
     }
 });
@@ -10778,7 +11620,8 @@ Ext.define('Ext.ux.desktop.ShortcutModel', {
     extend: 'Ext.data.Model',
     fields: [
         {
-            name: 'name'
+            name: 'name',
+            convert: Ext.String.createVarName
         },
         {
             name: 'iconCls'
@@ -11059,7 +11902,7 @@ Ext.define('Ext.ux.desktop.TrayClock', {
         Ext.Function.defer(me.updateTime, 100, me);
         me.callParent();
     },
-    onDestroy: function() {
+    doDestroy: function() {
         var me = this;
         if (me.timer) {
             window.clearTimeout(me.timer);
@@ -11089,7 +11932,6 @@ Ext.define('Ext.ux.desktop.TrayClock', {
 */
 /**
  * From code originally written by David Davis
- * <http://www.sencha.com/blog/html5-video-canvas-and-ext-js>
  *
  * For HTML5 video to work, your server must
  * send the right content type, for more info see:
@@ -11175,7 +12017,7 @@ Ext.define('Ext.ux.desktop.Video', {
         me.supported = false;
         me.body.createChild(me.getFallback());
     },
-    onDestroy: function() {
+    doDestroy: function() {
         var me = this;
         var video = me.video;
         if (me.supported && video) {
@@ -11624,15 +12466,6 @@ Ext.define('Ext.ux.form.MultiSelect', {
         var me = this;
         me.items = me.setupItems();
         me.bindStore(me.store, true);
-        if (me.store.autoCreated) {
-            me.valueField = me.displayField = 'field1';
-            if (!me.store.expanded) {
-                me.displayField = 'field2';
-            }
-        }
-        if (!Ext.isDefined(me.valueField)) {
-            me.valueField = me.displayField;
-        }
         me.callParent();
         me.initField();
     },
@@ -11950,16 +12783,39 @@ Ext.define('Ext.ux.form.MultiSelect', {
         }
         return errors;
     },
-    onDestroy: function() {
+    doDestroy: function() {
         var me = this;
         me.bindStore(null);
         Ext.destroy(me.dragZone, me.dropZone, me.keyNav);
         me.callParent();
     },
     onBindStore: function(store) {
-        var boundList = this.boundList;
+        var me = this,
+            boundList = this.boundList;
+        if (store.autoCreated) {
+            me.resolveDisplayField();
+        }
+        if (!Ext.isDefined(me.valueField)) {
+            me.valueField = me.displayField;
+        }
         if (boundList) {
             boundList.bindStore(store);
+        }
+    },
+    /**
+     * Applies auto-created store fields to field and boundlist
+     * @private
+     */
+    resolveDisplayField: function() {
+        var me = this,
+            boundList = me.boundList,
+            store = me.getStore();
+        me.valueField = me.displayField = 'field1';
+        if (!store.expanded) {
+            me.displayField = 'field2';
+        }
+        if (boundList) {
+            boundList.setDisplayField(me.displayField);
         }
     }
 });
@@ -12279,10 +13135,20 @@ Ext.define('Ext.ux.form.ItemSelector', {
         Ext.resumeLayouts(true);
     },
     onBindStore: function(store, initial) {
-        var me = this;
-        if (me.fromField) {
-            me.fromField.store.removeAll();
-            me.toField.store.removeAll();
+        var me = this,
+            fromField = me.fromField,
+            toField = me.toField;
+        if (fromField) {
+            fromField.store.removeAll();
+            toField.store.removeAll();
+            if (store.autoCreated) {
+                fromField.resolveDisplayField();
+                toField.resolveDisplayField();
+                me.resolveDisplayField();
+            }
+            if (!Ext.isDefined(me.valueField)) {
+                me.valueField = me.displayField;
+            }
             // Add everything to the from field as soon as the Store is loaded
             if (store.getCount()) {
                 me.populateFromStore(store);
@@ -12317,7 +13183,7 @@ Ext.define('Ext.ux.form.ItemSelector', {
             btn.disable();
         });
     },
-    onDestroy: function() {
+    doDestroy: function() {
         this.bindStore(null);
         this.callParent();
     }
@@ -12402,11 +13268,11 @@ Ext.define('Ext.ux.grid.SubTable', {
     extend: 'Ext.grid.plugin.RowExpander',
     alias: 'plugin.subtable',
     rowBodyTpl: [
-        '<table class="' + Ext.baseCSSPrefix + 'grid-subtable"><tbody>',
+        '<table class="' + Ext.baseCSSPrefix + 'grid-subtable">',
         '{%',
         'this.owner.renderTable(out, values);',
         '%}',
-        '</tbody></table>'
+        '</table>'
     ],
     init: function(grid) {
         var me = this,
@@ -12452,7 +13318,7 @@ Ext.define('Ext.ux.grid.SubTable', {
         for (j = 0; j < numColumns; j++) {
             out.push('<th class="' + Ext.baseCSSPrefix + 'grid-subtable-header">', columns[j].text, '</th>');
         }
-        out.push('</thead>');
+        out.push('</thead><tbody>');
         for (i = 0; i < recCount; i++) {
             rec = associatedRecords[i];
             out.push('<tr>');
@@ -12470,6 +13336,7 @@ Ext.define('Ext.ux.grid.SubTable', {
             }
             out.push('</tr>');
         }
+        out.push('</tbody>');
     },
     getRowBodyContentsFn: function(rowBodyTpl) {
         var me = this;
@@ -12557,10 +13424,69 @@ Ext.define('Ext.ux.grid.TransformGrid', {
             data.parentNode.removeChild(data);
         }
     },
-    onDestroy: function() {
-        this.callParent();
+    doDestroy: function() {
         this.table.remove();
-        delete this.table;
+        this.tabl = null;
+        this.callParent();
+    }
+});
+
+/**
+ * This plugin ensures that its associated grid or tree always has a selection record. The
+ * only exception is, of course, when there are no records in the store.
+ * @since 6.0.2
+ */
+Ext.define('Ext.ux.grid.plugin.AutoSelector', {
+    extend: 'Ext.plugin.Abstract',
+    alias: 'plugin.gridautoselector',
+    config: {
+        store: null
+    },
+    init: function(grid) {
+        //<debug>
+        if (!grid.isXType('tablepanel')) {
+            Ext.raise('The gridautoselector plugin is designed only for grids and trees');
+        }
+        //</debug>
+        var me = this;
+        me.grid = grid;
+        me.watchGrid();
+        grid.on({
+            reconfigure: me.watchGrid,
+            scope: me
+        });
+    },
+    destroy: function() {
+        this.setStore(null);
+        this.grid = null;
+        this.callParent();
+    },
+    ensureSelection: function() {
+        var grid = this.grid,
+            store = grid.getStore(),
+            selection;
+        if (store.getCount()) {
+            selection = grid.getSelection();
+            if (!selection || !selection.length) {
+                grid.getSelectionModel().select(0);
+            }
+        }
+    },
+    watchGrid: function() {
+        this.setStore(this.grid.getStore());
+        this.ensureSelection();
+    },
+    updateStore: function(store) {
+        var me = this;
+        Ext.destroy(me.storeListeners);
+        me.storeListeners = store && store.on({
+            // We could go from 0 records to 1+ records... now we can select one!
+            add: me.ensureSelection,
+            // We might remove the selected record...
+            remove: me.ensureSelection,
+            destroyable: true,
+            scope: me
+        });
     }
 });
 
@@ -13240,6 +14166,7 @@ Ext.define('Ext.ux.rating.Picker', {
  */
 Ext.define('Ext.ux.statusbar.ValidationStatus', {
     extend: 'Ext.Component',
+    alias: 'plugin.validationstatus',
     requires: [
         'Ext.util.MixedCollection'
     ],
@@ -13287,8 +14214,7 @@ Ext.define('Ext.ux.statusbar.ValidationStatus', {
         sb.on({
             single: true,
             scope: me,
-            render: me.onStatusbarRender,
-            beforedestroy: me.destroy
+            render: me.onStatusbarRender
         });
         sb.on({
             click: {
@@ -13308,15 +14234,22 @@ Ext.define('Ext.ux.statusbar.ValidationStatus', {
         me.errors = Ext.create('Ext.util.MixedCollection');
         me.listAlign = (sb.statusAlign === 'right' ? 'br-tr?' : 'bl-tl?');
         if (me.form) {
-            me.formPanel = Ext.getCmp(me.form);
+            // Allow either an id, or a reference to be specified as the form name.
+            me.formPanel = Ext.getCmp(me.form) || me.statusBar.lookupController().lookupReference(me.form);
             me.basicForm = me.formPanel.getForm();
             me.startMonitoring();
-            me.basicForm.on('beforeaction', function(f, action) {
-                if (action.type === 'submit') {
-                    // Ignore monitoring while submitting otherwise the field validation
-                    // events cause the status message to reset too early
-                    me.monitor = false;
+            me.basicForm.on({
+                beforeaction: function(f, action) {
+                    if (action.type === 'submit') {
+                        // Ignore monitoring while submitting otherwise the field validation
+                        // events cause the status message to reset too early
+                        me.monitor = false;
+                    }
                 }
+            });
+            me.formPanel.on({
+                beforedestroy: me.destroy,
+                scope: me
             });
             me.basicForm.on('actioncomplete', startMonitor);
             me.basicForm.on('actionfailed', startMonitor);
@@ -13334,14 +14267,18 @@ Ext.define('Ext.ux.statusbar.ValidationStatus', {
      * @private
      */
     stopMonitoring: function() {
-        this.basicForm.getFields().each(function(f) {
-            f.un('validitychange', this.onFieldValidation, this);
-        }, this);
+        var form = this.basicForm;
+        if (!form.destroyed) {
+            form.getFields().each(function(f) {
+                f.un('validitychange', this.onFieldValidation, this);
+            }, this);
+        }
     },
-    onDestroy: function() {
+    doDestroy: function() {
+        Ext.destroy(this.msgEl);
         this.stopMonitoring();
         this.statusBar.statusEl.un('click', this.onStatusClick, this);
-        this.callParent(arguments);
+        this.callParent();
     },
     /**
      * @private

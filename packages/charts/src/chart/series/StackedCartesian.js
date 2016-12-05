@@ -300,10 +300,13 @@ Ext.define('Ext.chart.series.StackedCartesian', {
                 } else if (single) {
                     name = title;
                 }
-            } else if (Ext.isArray(field)) {
-                name = field[i];
-            } else {
-                name = me.getId();
+            }
+            if (!title || !name) {
+                if (Ext.isArray(field)) {
+                    name = field[i];
+                } else {
+                    name = me.getId();
+                }
             }
             target.push({
                 name: name,

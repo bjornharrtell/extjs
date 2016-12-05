@@ -1,9 +1,12 @@
+/* global expect, Ext, spyOn */
+
 describe('Ext.util.Scheduler', function () {
     var scheduler,
         Item,
-        log;
-    var busy, idle;
-    var sorts = 0;
+        log,
+        busy,
+        idle,
+        sorts = 0;
 
     function setup () {
         setup = Ext.emptyFn;
@@ -66,14 +69,28 @@ describe('Ext.util.Scheduler', function () {
     });
 
     describe("notify", function() {
-        it("should suspend/resume on notify", function() {
+        it("should suspend/resume on notify when there are notifications to deliver", function() {
             var suspend = spyOn(Ext, 'suspendLayouts').andCallThrough(),
-                resume = spyOn(Ext, 'resumeLayouts').andCallThrough();
+                resume = spyOn(Ext, 'resumeLayouts').andCallThrough(),
+                item1 = new Item('item1'),
+                schedulerPasses = scheduler.passes;
 
+            scheduler.add(item1);
+            item1.schedule();
             scheduler.notify();
             expect(suspend.callCount).toBe(1);
             expect(resume.callCount).toBe(1);
+            expect(scheduler.passes).toBe(schedulerPasses + 1);
+        });
+        it("should not suspend/resume on notify when there are no notifications to deliver", function() {
+            var suspend = spyOn(Ext, 'suspendLayouts').andCallThrough(),
+                resume = spyOn(Ext, 'resumeLayouts').andCallThrough(),
+                schedulerPasses = scheduler.passes;
 
+            scheduler.notify();
+            expect(suspend).not.toHaveBeenCalled();
+            expect(resume).not.toHaveBeenCalled();
+            expect(scheduler.passes).toBe(schedulerPasses);
         });
     });
 

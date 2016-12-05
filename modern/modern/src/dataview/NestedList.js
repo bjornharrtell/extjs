@@ -122,7 +122,7 @@ Ext.define('Ext.dataview.NestedList', {
 
         /**
          * @cfg {Boolean} updateTitleText
-         * Update the title with the currently selected category.
+         * Update the title text with the currently selected category.
          * @accessor
          */
         updateTitleText: true,
@@ -258,7 +258,6 @@ Ext.define('Ext.dataview.NestedList', {
          * @cfg {Object} backButton The configuration for the back button used in the nested list.
          */
         backButton: {
-            ui: 'back',
             hidden: true
         },
 
@@ -304,6 +303,15 @@ Ext.define('Ext.dataview.NestedList', {
 
         clearSelectionOnListChange: true
     },
+
+    /**
+     * @private
+     * @property {String} [listMode=title]
+     * This hold the current list mode, values could be: `title`, `node`, `deep`. `title` when the list is at the top level,
+     * `node` for first level and `deep` for any level lower than that.
+     * This will be used by the `updateTitle` method in order to change the appropriate component's text value.
+     */
+    listMode: 'title',
 
     /**
      * @event itemtap
@@ -409,6 +417,20 @@ Ext.define('Ext.dataview.NestedList', {
             }
         }
         this.callParent([config]);
+    },
+
+    changeListMode: function(node) {
+        var me = this,
+            store = me.getStore(),
+            rootNode = store && store.getRoot();
+
+        if (node === rootNode) {
+            me.listMode = 'title';
+        } else if (node.parentNode === rootNode) {
+            me.listMode = 'node';
+        } else {
+            me.listMode = 'deep';
+        }
     },
 
     onItemInteraction: function () {
@@ -663,10 +685,16 @@ Ext.define('Ext.dataview.NestedList', {
 
     updateTitle: function (newTitle) {
         var me = this,
-            toolbar = me.getToolbar();
+            backButton = me.getBackButton();
 
-        if (toolbar && me.getUpdateTitleText()) {
-            toolbar.setTitle(newTitle);
+        if (me.getUpdateTitleText()) {
+            if (me.listMode === 'title') {
+                me.setToolbarTitle(newTitle);
+            } else if (backButton && me.getUseTitleAsBackText() && me.listMode === 'node') {
+                backButton.setText(newTitle);
+            }
+        } else {
+            me.setToolbarTitle(newTitle);
         }
     },
 
@@ -700,7 +728,7 @@ Ext.define('Ext.dataview.NestedList', {
         }
 
         if (node.isRoot()) {
-            var initialTitle = this.getInitialConfig('title');
+            var initialTitle = this.getTitle();
             return (forBackButton && initialTitle === '') ? this.getInitialConfig('backText') : initialTitle;
         }
 
@@ -782,7 +810,7 @@ Ext.define('Ext.dataview.NestedList', {
         me.fireEvent('listchange', me, me.getActiveItem());
 
         me.setLastNode(node);
-
+        me.changeListMode(node);
         me.syncToolbar();
     },
 
@@ -852,7 +880,7 @@ Ext.define('Ext.dataview.NestedList', {
         }
 
         if (node) {
-            me.setTitle(me.renderTitleText(node));
+            me.setToolbarTitle(me.renderTitleText(node));
         }
     },
 
@@ -918,6 +946,20 @@ Ext.define('Ext.dataview.NestedList', {
             }],
             itemTpl: '<span<tpl if="leaf == true"> class="x-list-item-leaf"</tpl>>' + me.getItemTextTpl(node) + '</span>'
         }, me.getListConfig());
+    },
+    privates: {
+        /**
+         * @private
+         * This method will change the toolbar title without changing the List title.
+         */
+        setToolbarTitle: function(newTitle) {
+            var me = this,
+                toolbar = me.getToolbar();
+
+            if (toolbar) {
+                toolbar.setTitle(newTitle);    
+            }
+        }
     }
 });
 

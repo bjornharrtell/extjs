@@ -123,6 +123,7 @@ Ext.define('Ext.view.BoundList', {
      // Only when the show is triggered by a touch does the BoundList
      // get explicitly focused so that the keyboard does not appear.
     focusOnToFront: false,
+    alignOnScroll: false,
 
     initComponent: function() {
         var me = this,
@@ -133,8 +134,7 @@ Ext.define('Ext.view.BoundList', {
         if (me.trackOver) {
             me.overItemCls = baseCls + '-item-over';
         }
-        me.itemSelector = "." + itemCls;
-        me.scrollerSelector = 'ul.' + Ext.baseCSSPrefix + 'list-plain';
+        me.itemSelector = '.' + itemCls;
 
         if (me.floating) {
             me.addCls(baseCls + '-floating');
@@ -143,11 +143,7 @@ Ext.define('Ext.view.BoundList', {
         if (!me.tpl) {
             // should be setting aria-posinset based on entire set of data
             // not filtered set
-            me.tpl = new Ext.XTemplate(
-                '<tpl for=".">',
-                    '<li role="option" unselectable="on" class="' + itemCls + '">' + me.getInnerTpl(me.displayField) + '</li>',
-                '</tpl>'
-            );
+            me.generateTpl();
         } else if (!me.tpl.isTemplate) {
             me.tpl = new Ext.XTemplate(me.tpl);
         }
@@ -157,6 +153,30 @@ Ext.define('Ext.view.BoundList', {
         }
 
         me.callParent();
+    },
+
+    /**
+     * Allow tpl to be generated programmatically to respond to changes in displayField
+     * @private
+     */
+    generateTpl: function () {
+        var me = this;
+
+        me.tpl = new Ext.XTemplate(
+            '<tpl for=".">',
+                '<li role="option" unselectable="on" class="' + me.itemCls + '">' + me.getInnerTpl(me.displayField) + '</li>',
+            '</tpl>'
+        );
+    },
+
+    /**
+     * Updates the display field for this view. This will automatically trigger
+     * an regeneration of the tpl so that the updated displayField can be used
+     * @param {String} displayField
+     */
+    setDisplayField: function (displayField) {
+        this.displayField = displayField;
+        this.generateTpl();
     },
 
     getRefOwner: function() {
@@ -174,13 +194,15 @@ Ext.define('Ext.view.BoundList', {
     },
 
     createPagingToolbar: function() {
-        return Ext.widget('pagingtoolbar', {
-            id: this.id + '-paging-toolbar',
-            pageSize: this.pageSize,
-            store: this.dataSource,
+        var me = this;
+        
+        return new Ext.toolbar.Paging({
+            id: me.id + '-paging-toolbar',
+            pageSize: me.pageSize,
+            store: me.dataSource,
             border: false,
-            ownerCt: this,
-            ownerLayout: this.getComponentLayout()
+            ownerCt: me,
+            ownerLayout: me.getComponentLayout()
         });
     },
 
@@ -188,7 +210,7 @@ Ext.define('Ext.view.BoundList', {
         return this.listEl;
     },
 
-    refresh: function(){
+    refresh: function() {
         var me = this,
             tpl = me.tpl;
 
@@ -196,13 +218,53 @@ Ext.define('Ext.view.BoundList', {
         tpl.field = me.pickerField;
         tpl.store = me.store;
         me.callParent();
-        tpl.field =  tpl.store = null;
+        tpl.field = tpl.store = null;
+        
+        if (!me.ariaStaticRoles[me.ariaRole]) {
+            me.refreshAriaAttributes();
+        }
 
         // The view selectively removes item nodes, so the toolbar
         // will be preserved in the DOM
     },
+    
+    refreshAriaAttributes: function() {
+        var me = this,
+            store = me.store,
+            selModel = me.getSelectionModel(),
+            multiSelect, totalCount, nodes, node, record, index, i, len;
+        
+        // When the store is filtered or paged, we want to let the Assistive Technology
+        // users know that there are more records than currently displayed. This is not
+        // a requirement when the whole dataset fits the DOM.
+        // Note that it is possible for the store to be filtered but not fit the DOM.
+        // In that case we use filtered count as the set size.
+        totalCount = store.isFiltered() ? store.getCount() : store.getTotalCount() || store.getCount();
+        nodes = me.getNodes();
+        
+        multiSelect = me.pickerField && me.pickerField.multiSelect;
+        
+        for (i = 0, len = nodes.length; i < len; i++) {
+            node = nodes[i];
+            record = null;
+            
+            if (totalCount !== len) {
+                record = me.getRecord(node);
+                index = store.indexOf(record);
+                
+                node.setAttribute('aria-setsize', totalCount);
+                node.setAttribute('aria-posinset', index);
+            }
+            
+            // For single-select combos aria-selected must be undefined
+            if (multiSelect) {
+                record = record || me.getRecord(node);
+                node.setAttribute('aria-selected', selModel.isSelected(record));
+            }
+        }
+    },
 
-    bindStore : function(store, initial) {
+    bindStore: function(store, initial) {
         var toolbar = this.pagingToolbar;
 
         this.callParent(arguments);
@@ -253,6 +315,42 @@ Ext.define('Ext.view.BoundList', {
             field.alignPicker();
         }
     },
+    
+    onItemSelect: function(record) {
+        var me = this,
+            node;
+        
+        node = me.callParent([record]);
+        
+        if (node) {
+            if (me.ariaSelectable) {
+                node.setAttribute('aria-selected', 'true');
+            }
+            else {
+                node.removeAttribute('aria-selected');
+            }
+        }
+        
+        return node;
+    },
+    
+    onItemDeselect: function(record) {
+        var me = this,
+            node;
+        
+        node = me.callParent([record]);
+        
+        if (node && me.ariaSelectable) {
+            if (me.pickerField && me.pickerField.multiSelect) {
+                node.setAttribute('aria-selected', 'false');
+            }
+            else {
+                node.removeAttribute('aria-selected');
+            }
+        }
+        
+        return node;
+    },
 
     // Clicking on an already selected item collapses the picker
     onItemClick: function(record) {
@@ -278,17 +376,30 @@ Ext.define('Ext.view.BoundList', {
     },
 
     onContainerClick: function(e) {
-        var toolbar = this.pagingToolbar;
+        var toolbar = this.pagingToolbar,
+            clientRegion;
+        
         // Ext.view.View template method
         // Do not continue to process the event as a container click if it is within the pagingToolbar
         if (toolbar && toolbar.rendered && e.within(toolbar.el)) {
             return false;
         }
+        
+        // IE10 and IE11 will fire pointer events when user drags listWrap scrollbars,
+        // which may result in selection being reset.
+        if (Ext.isIE10 || Ext.isIE11) {
+            clientRegion = this.listWrap.getClientRegion();
+            
+            if (!e.getPoint().isContainedBy(clientRegion)) {
+                return false;
+            }
+        }
     },
 
-    onDestroy: function() {
+    doDestroy: function() {
+        this.pagingToolbar = Ext.destroy(this.pagingToolbar);
+        
         this.callParent();
-        Ext.destroyMembers(this, 'pagingToolbar', 'listWrap', 'listEl');
     },
 
     privates: {

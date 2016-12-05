@@ -278,10 +278,11 @@ Ext.define('Ext.dashboard.Dashboard', {
          this.updateLayout();
     },
 
-    beforeDestroy : function() {
+    doDestroy: function() {
         if (this.dd) {
             Ext.destroy(this.dd);
         }
+        
         this.callParent();
     },
 

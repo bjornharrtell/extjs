@@ -20,7 +20,7 @@ Ext.define('Ext.chart.grid.HorizontalGrid3D', {
         }
     },
 
-    render: function (surface, ctx, clipRect) {
+    render: function (surface, ctx, rect) {
         var attr = this.attr,
             x = surface.roundPixel(attr.x),
             y = surface.roundPixel(attr.y),
@@ -30,29 +30,29 @@ Ext.define('Ext.chart.grid.HorizontalGrid3D', {
             depth = attr.depth,
             left, top;
 
-        if (y <= clipRect[1]) {
+        if (y <= rect[1]) {
             return;
         }
 
         // Horizontal stripe.
 
-        left = clipRect[0] + depth - dx;
+        left = rect[0] + depth - dx;
         top  = y + halfLineWidth - depth;
 
         ctx.beginPath();
-        ctx.rect(left, top, clipRect[2], height);
+        ctx.rect(left, top, rect[2], height);
         ctx.fill();
 
         // Horizontal line.
 
         ctx.beginPath();
         ctx.moveTo(left,               top);
-        ctx.lineTo(left + clipRect[2], top);
+        ctx.lineTo(left + rect[2], top);
         ctx.stroke();
 
         // Diagonal stripe.
 
-        left = clipRect[0] + x - dx;
+        left = rect[0] + x - dx;
         top  = y + halfLineWidth;
 
         ctx.beginPath();

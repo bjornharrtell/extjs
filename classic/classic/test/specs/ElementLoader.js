@@ -160,7 +160,7 @@ describe("Ext.ElementLoader", function(){
             });
             expect(function() {
                 loader.load();
-            }).toRaiseExtError('You must specify the URL from which content should be loaded');
+            }).toThrow('You must specify the URL from which content should be loaded');
         });    
             
         it("should use the url in the config", function(){
@@ -509,7 +509,7 @@ describe("Ext.ElementLoader", function(){
             });
             expect(function() {
                 loader.load();
-            }).toRaiseExtError('A valid target is required when loading content');
+            }).toThrow('A valid target is required when loading content');
         });
     });
     
@@ -1098,7 +1098,7 @@ describe("Ext.ElementLoader", function(){
             makeLoader();
             loader.startAutoRefresh(50);
             loader.destroy();
-            expect(loader.isAutoRefreshing()).toBe(false);
+            expect(loader.autoRefresh).toBe(null);
         });
         
         it("should stop refreshing when stopAutoRefresh is called", function(){
@@ -1108,5 +1108,4 @@ describe("Ext.ElementLoader", function(){
             expect(loader.isAutoRefreshing()).toBe(false);
         });
     });
-    
 });

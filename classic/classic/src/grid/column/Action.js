@@ -56,6 +56,17 @@ Ext.define('Ext.grid.column.Action', {
     alias: ['widget.actioncolumn'],
     alternateClassName: 'Ext.grid.ActionColumn',
 
+    requires: [
+        'Ext.grid.column.ActionProxy',
+        'Ext.Glyph'
+    ],
+
+    /**
+     * @cfg {Number/String} glyph
+     * @inheritdoc Ext.panel.Header#glyph
+     * @since 6.2.0
+     */
+
     /**
      * @cfg {String} [icon=Ext#BLANK_IMAGE_URL]
      * @inheritdoc Ext.panel.Header#icon
@@ -76,7 +87,7 @@ Ext.define('Ext.grid.column.Action', {
      * @cfg {Event} handler.e The click event.
      * @cfg {Ext.data.Model} handler.record The Record underlying the clicked row.
      * @cfg {HTMLElement} handler.row The table row clicked upon.
-     * @declarativeHandler
+     * @controllable
      */
     /**
      * @cfg {Object} scope
@@ -216,6 +227,12 @@ Ext.define('Ext.grid.column.Action', {
      *
      * @cfg {String} items.iconCls A CSS class to apply to the icon element. To 
      * determine the class dynamically, configure the item with a `getClass` function.
+     *
+     * @cfg {Number} items.tabIndex The tabIndex attribute value for the action item. If this
+     * value is not defined, {@link #itemTabIndex} will be used instead.
+     *
+     * @cfg {String} items.ariaRole The ARIA role attribute value for the action item. If this
+     * value is not defined, {@link #itemAriaRole} will be used instead.
      * 
      * For information on using the icons provided in the SDK see {@link #iconCls}.
      *
@@ -289,6 +306,18 @@ Ext.define('Ext.grid.column.Action', {
      * Text to display in this column's menu item if no {@link #text} was specified as a header.
      */
     menuText: '<i>Actions</i>',
+    
+    /**
+     * @cfg {Number} [itemTabIndex=0] Default tabIndex attribute value for each action item.
+     */
+    itemTabIndex: 0,
+    
+    /**
+     * @cfg {String} [itemAriaRole="button"] Default ARIA role for each action item.
+     */
+    itemAriaRole: 'button',
+
+    maskOnDisable: false, // Disable means the action(s)
 
     ignoreExport: true,
 
@@ -304,8 +333,7 @@ Ext.define('Ext.grid.column.Action', {
             // Items may be defined on the prototype
             items = cfg.items || me.items || [me],
             hasGetClass,
-            i,
-            len;
+            i, len, item;
 
         me.origRenderer = cfg.renderer || me.renderer;
         me.origScope = cfg.scope || me.scope;
@@ -320,9 +348,19 @@ Ext.define('Ext.grid.column.Action', {
         me.items = items;
 
         for (i = 0, len = items.length; i < len; ++i) {
-            if (items[i].getClass) {
+            item = items[i];
+            if (item.substr && item[0] === '@') {
+                item = me.getAction(item.substr(1));
+            }
+            if (item.isAction) {
+                items[i] = item.initialConfig;
+
+                // Register an ActinoProxy as a Component with the Action.
+                // Action methods will be relayed down into the targeted item set.
+                item.addComponent(new Ext.grid.column.ActionProxy(me, items[i], i));
+            }
+            if (item.getClass) {
                 hasGetClass = true;
-                break;
             }
         }
 
@@ -347,7 +385,7 @@ Ext.define('Ext.grid.column.Action', {
             scope = me.origScope || me,
             items = me.items,
             len = items.length,
-            i, item, ret, disabled, tooltip, altText, icon;
+            i, item, ret, disabled, tooltip, altText, icon, glyph, tabIndex, ariaRole;
 
         // Allow a configured renderer to create initial value (And set the other values in the "metadata" argument!)
         // Assign a new variable here, since if we modify "v" it will also modify the arguments collection, meaning
@@ -358,10 +396,11 @@ Ext.define('Ext.grid.column.Action', {
         for (i = 0; i < len; i++) {
             item = items[i];
             icon = item.icon;
+            glyph = item.glyph;
 
-            disabled = item.disabled || (item.isDisabled ? item.isDisabled.call(item.scope || scope, view, rowIdx, colIdx, item, record) : false);
-            tooltip = disabled ? null : (item.tooltip || (item.getTip ? item.getTip.apply(item.scope || scope, arguments) : null));
-            altText = item.getAltText ? item.getAltText.apply(item.scope || scope, arguments) : item.altText || me.altText;
+            disabled = item.disabled || (item.isDisabled ? Ext.callback(item.isDisabled, item.scope || me.origScope, [view, rowIdx, colIdx, item, record], 0, me) : false);
+            tooltip  = item.tooltip  || (item.getTip     ? Ext.callback(item.getTip, item.scope || me.origScope, arguments, 0, me) : null);
+            altText  =                   item.getAltText ? Ext.callback(item.getAltText, item.scope || me.origScope, arguments, 0, me) : item.altText || me.altText;
 
             // Only process the item action setup once.
             if (!item.hasActionConfiguration) {
@@ -372,12 +411,27 @@ Ext.define('Ext.grid.column.Action', {
                 item.hasActionConfiguration = true;
             }
 
-            ret += '<' + (icon ? 'img' : 'div') + ' tabIndex="0" role="button"' + (icon ? (' alt="' + altText + '" src="' + item.icon + '"') : '') +
+            // If the ActionItem is using a glyph, convert it to an Ext.Glyph instance so we can extract the data easily.
+            if (glyph) {
+                glyph = Ext.Glyph.fly(glyph);
+            }
+
+            // Pull in tabIndex and ariarRols from item, unless the item is this, in which case
+            // that would be wrong, and the icon would get column header values.
+            tabIndex = (item !== me && item.tabIndex !== undefined) ? item.tabIndex : me.itemTabIndex;
+            ariaRole = (item !== me && item.ariaRole !== undefined) ? item.ariaRole : me.itemAriaRole;
+
+            ret += '<' + (icon ? 'img' : 'div') + 
+                (typeof tabIndex === 'number' ? ' tabIndex="' + tabIndex + '"' : '') +
+                (ariaRole ? ' role="' + ariaRole + '"' : ' role="presentation"') +
+                (icon ? (' alt="' + altText + '" src="' + item.icon + '"') : '') +
                 ' class="' + me.actionIconCls + ' ' + Ext.baseCSSPrefix + 'action-col-' + String(i) + ' ' +
                 (disabled ? me.disabledCls + ' ' : ' ') +
-                (Ext.isFunction(item.getClass) ? item.getClass.apply(item.scope || scope, arguments) : (item.iconCls || me.iconCls || '')) + '"' +
-                (tooltip ? ' data-qtip="' + tooltip + '"' : '') + (icon ? '/>' : '></div>');
+                (item.hidden ? Ext.baseCSSPrefix + 'hidden-display ' : '') +
+                (item.getClass ? Ext.callback(item.getClass, item.scope || me.origScope, arguments, undefined, me) : (item.iconCls || me.iconCls || '')) + '"' +
+                (tooltip ? ' data-qtip="' + tooltip + '"' : '') + (icon ? '/>' : glyph ? (' style="font-family:' + glyph.fontFamily + '">' + glyph.character + '</div>') : '></div>');
         }
+        
         return ret;
     },
 
@@ -426,11 +480,12 @@ Ext.define('Ext.grid.column.Action', {
         }
     },
 
-    beforeDestroy: function() {
-        // Don't delete the items, if we're subclassed with items then we'll be
-        // left with an items array.
+    doDestroy: function() {
+        // Action column items property is an array, unlike the normal Container's MixedCollection.
+        // If we don't null it here, parent doDestroy() can blow up.
         this.renderer = this.items = null;
-        return this.callParent(arguments);
+        
+        return this.callParent();
     },
 
     /**
@@ -439,7 +494,7 @@ Ext.define('Ext.grid.column.Action', {
      * Also fires any configured click handlers. By default, cancels the mousedown event to prevent selection.
      * Returns the event handler's status to allow canceling of GridView's bubbling process.
      */
-    processEvent : function(type, view, cell, recordIndex, cellIndex, e, record, row){
+    processEvent: function(type, view, cell, recordIndex, cellIndex, e, record, row) {
         var me = this,
             target = e.getTarget(),
             key = type === 'keydown' && e.getKey(),
@@ -466,9 +521,11 @@ Ext.define('Ext.grid.column.Action', {
         // NOTE: The statement below tests the truthiness of an assignment.
         if (target && (match = target.className.match(me.actionIdRe))) {
             item = me.items[parseInt(match[1], 10)];
-            disabled = item.disabled || (item.isDisabled ? item.isDisabled.call(item.scope || me.origScope || me, view, recordIndex, cellIndex, item, record) : false);
-            if (item && !disabled) {
+            disabled = item.disabled || (item.isDisabled ?
+                Ext.callback(item.isDisabled, item.scope || me.origScope,
+                    [view, recordIndex, cellIndex, item, record], 0, me) : false);
 
+            if (item && !disabled) {
                 // Do not allow focus to follow from this mousedown unless the grid is already in actionable mode
                 if (type === 'mousedown' && !me.getView().actionableMode) {
                     e.preventDefault();
@@ -477,10 +534,21 @@ Ext.define('Ext.grid.column.Action', {
                 else if (type === 'click' || (key === e.ENTER || key === e.SPACE)) {
                     Ext.callback(item.handler || me.handler, item.scope || me.origScope, [view, recordIndex, cellIndex, item, e, record, row], undefined, me);
 
+                    // Handler could possibly destroy the grid, so check we're still available.
+                    // 
                     // If the handler moved focus outside of the view, do not allow this event to propagate
                     // to cause any navigation.
-                    if (!view.el.contains(Ext.Element.getActiveElement())) {
+                    if (view.destroyed) {
                         return false;
+                    } else {
+                        // If the record was deleted by the handler, refresh
+                        // the position based upon coordinates.
+                        if (!e.position.getNode()) {
+                            e.position.refresh();
+                        }
+                        if (!view.el.contains(Ext.Element.getActiveElement())) {
+                            return false;
+                        }
                     }
                 }
             }

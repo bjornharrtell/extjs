@@ -66,6 +66,10 @@
     @include font-icon($panel-tool-plus-icon);
 }
 
+.#{$prefix}tool-menu {
+    @include font-icon($panel-tool-menu-icon);
+}
+
 .#{$prefix}tool-minus {
     @include font-icon($panel-tool-minus-icon);
 }

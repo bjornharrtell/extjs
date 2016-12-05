@@ -122,7 +122,7 @@ Ext.define('Ext.form.field.Time', {
      * The format text to be announced by screen readers when the field is focused.
      */
     /** @ignore */
-    formatText: 'Expected time format: HH:MM space am/pm',
+    formatText: 'Expected time format HH:MM space AM or PM',
     //</locale>
 
     /**
@@ -205,6 +205,18 @@ Ext.define('Ext.form.field.Time', {
         // Ensure time constraints are applied to the store.
         // TimePicker does this on create.
         me.getPicker();
+    },
+    
+    afterQuery: function(queryPlan) {
+        var me = this;
+
+        me.callParent([queryPlan]);
+        // Check the field for null value (TimeField returns null for invalid dates).
+        // If value is null and a rawValue is present, then we we should manually
+        // validate the field to display errors.
+        if (me.value === null && me.getRawValue() && me.validateOnChange) {
+            me.validate();
+        }
     },
 
     /**
@@ -318,24 +330,30 @@ Ext.define('Ext.form.field.Time', {
                 item = data[i];
                 item = item.date || item.disp;
                 date = me.parseDate(item);
+
                 if (!date) {
                     errors.push(format(me.invalidText, item, Ext.Date.unescapeFormat(me.format)));
                     continue;
-                }
-
-                if (minValue && date < minValue) {
-                    errors.push(format(me.minText, me.formatDate(minValue)));
-                }
-
-                if (maxValue && date > maxValue) {
-                    errors.push(format(me.maxText, me.formatDate(maxValue)));
-                }
+                }                
             }
-        } else if (raw.length && !me.parseDate(raw)) {
-            // If we don't have any data & a rawValue, it means an invalid time was entered.
-            errors.push(format(me.invalidText, raw, Ext.Date.unescapeFormat(me.format)));
+        } else if (raw.length) {
+            date = me.parseDate(raw);
+            if (!date) {
+                // If we don't have any data & a rawValue, it means an invalid time was entered.
+                errors.push(format(me.invalidText, raw, Ext.Date.unescapeFormat(me.format)));
+            }
         }
-
+        // if we have a valid date, we need to check if it's within valid range
+        // this is out of the loop because as the user types a date/time, the value
+        // needs to be converted before it can be compared to min/max value
+        if(!errors.length) {
+            if (minValue && date < minValue) {
+                errors.push(format(me.minText, me.formatDate(minValue)));
+            }
+            if (maxValue && date > maxValue) {
+                errors.push(format(me.maxText, me.formatDate(maxValue)));
+            }
+        }
         return errors;
     },
 

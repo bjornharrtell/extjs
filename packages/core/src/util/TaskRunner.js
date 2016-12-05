@@ -181,6 +181,10 @@ Ext.define('Ext.util.TaskRunner', {
      * @param {Object[]} [task.args] An array of arguments to be passed to the function
      * specified by `run`. If not specified, the current invocation count is passed.
      *
+     * @param {Boolean} [task.addCountToArgs=false] True to add the current invocation count as 
+     * one of the arguments of args. 
+     * Note: This only takes effect when args is specified.
+     *
      * @param {Object} [task.scope] The scope (`this` reference) in which to execute the
      * `run` function. Defaults to the task config object.
      *
@@ -263,12 +267,12 @@ Ext.define('Ext.util.TaskRunner', {
     onTick: function () {
         var me = this,
             tasks = me.tasks,
+            fireIdleEvent = me.fireIdleEvent,
             now = Ext.Date.now(),
             nextExpires = 1e99,
             len = tasks.length,
             globalEvents = Ext.GlobalEvents,
-            expires, newTasks, i, task, rt, remove,
-            fireIdleEvent;
+            expires, newTasks, i, task, rt, remove, args;
 
         me.timerId = null;
         me.firing = true; // ensure we don't startTimer during this loop...
@@ -292,30 +296,53 @@ Ext.define('Ext.util.TaskRunner', {
                     } else {
                         fireIdleEvent = me.fireIdleEvent;
                     }
+                    
+                    task.taskRunCount++;
 
-                    try {
-                        rt = task.run.apply(task.scope || task, task.args || [++task.taskRunCount]);
-                    } catch (taskError) {
+                    if (task.args) {
+                        args = task.addCountToArgs ? task.args.concat([task.taskRunCount]) : task.args;
+                    } else {
+                        args = [task.taskRunCount];
+                    }
+
+                    // We want the exceptions not to get caught while unit testing
+                    //<debug>
+                    if (me.disableTryCatch) {
+                        rt = task.run.apply(task.scope || task, args);
+                    }
+                    else {
+                    //</debug>
                         try {
-                            // <debug>
-                            Ext.log({
-                                fn: task.run,
-                                prefix: 'Error while running task',
-                                stack: taskError.stack,
-                                msg: taskError,
-                                level: 'error'
-                            });
-                            // </debug>
-                            if (task.onError) {
-                                rt = task.onError.call(task.scope || task, task, taskError);
-                            }
-                        } catch (ignore) { }
+                            rt = task.run.apply(task.scope || task, args);
                         }
+                        catch (taskError) {
+                            try {
+                                // <debug>
+                                Ext.log({
+                                    fn: task.run,
+                                    prefix: 'Error while running task',
+                                    stack: taskError.stack,
+                                    msg: taskError,
+                                    level: 'error'
+                                });
+                                // </debug>
+                                if (task.onError) {
+                                    rt = task.onError.call(task.scope || task, task, taskError);
+                                }
+                            }
+                            catch (ignore) { }
+                        }
+                    //<debug>
+                    }
+                    //</debug>
+                    
                     task.taskRunTime = now;
+
                     if (rt === false || task.taskRunCount === task.repeat) {
                         me.stop(task);
                         remove = true;
-                    } else {
+                    }
+                    else {
                         remove = task.stopped; // in case stop was called by run
                         expires = now + task.interval;
                     }

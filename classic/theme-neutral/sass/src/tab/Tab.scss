@@ -1584,6 +1584,16 @@
         $table: true
     );
 
+    @if $include-ie {
+        @mixin ie-tab-rotate($rotate) {
+            -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=#{$rotate})";
+        }
+
+        @mixin ie-tab-alpharotate($alpha, $rotate) {
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$alpha * 100}),progid:DXImageTransform.Microsoft.BasicImage(rotation=#{$rotate})";
+        }
+    }
+
     .#{$prefix}tab-#{$ui} {
         border-color: $ui-border-color;
         @if not is-null($ui-cursor) {
@@ -1598,15 +1608,13 @@
             @if $include-ie {
                 &.#{$prefix}tab-rotate-left {
                     .#{$prefix}ie8 & {
-                        filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity * 100}),
-                                progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                        @include ie-tab-alpharotate($ui-opacity, 3);
                     }
                 }
 
                 &.#{$prefix}tab-rotate-right {
                     .#{$prefix}ie8 & {
-                        filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity * 100}),
-                                progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                        @include ie-tab-alpharotate($ui-opacity, 1);
                     }
                 }
             }
@@ -1620,13 +1628,13 @@
                 // turns black, so we will just have to do without background opacity in IE8
                 &.#{$prefix}tab-rotate-left {
                     .#{$prefix}ie8 & {
-                        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                        @include ie-tab-rotate(3);
                     }
                 }
 
                 &.#{$prefix}tab-rotate-right {
                     .#{$prefix}ie8 & {
-                        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                        @include ie-tab-rotate(1);
                     }
                 }
             }
@@ -2216,15 +2224,13 @@
             @if $include-ie {
                 &.#{$prefix}tab-rotate-left {
                     .#{$prefix}ie8 & {
-                        filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-focus * 100}),
-                                progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                        @include ie-tab-alpharotate($ui-opacity-focus, 3);
                     }
                 }
 
                 &.#{$prefix}tab-rotate-right {
                     .#{$prefix}ie8 & {
-                        filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-focus * 100}),
-                                progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                        @include ie-tab-alpharotate($ui-opacity-focus, 1);
                     }
                 }
             }
@@ -2239,13 +2245,13 @@
                 // turns black, so we will just have to do without background opacity in IE8
                 &.#{$prefix}tab-rotate-left {
                     .#{$prefix}ie8 & {
-                        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                        @include ie-tab-rotate(3);
                     }
                 }
 
                 &.#{$prefix}tab-rotate-right {
                     .#{$prefix}ie8 & {
-                        filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                        @include ie-tab-rotate(1);
                     }
                 }
             }
@@ -2354,15 +2360,13 @@
                 @if $include-ie {
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-over * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-alpharotate($ui-opacity-over, 3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-over * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-alpharotate($ui-opacity-over, 1);
                         }
                     }
                 }
@@ -2377,13 +2381,13 @@
                     // turns black, so we will just have to do without background opacity in IE8
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-rotate(3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-rotate(1);
                         }
                     }
                 }
@@ -2468,15 +2472,13 @@
                 @if $include-ie {
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-focus-over * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-alpharotate($ui-opacity-focus-over, 3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-focus-over * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-alpharotate($ui-opacity-focus-over, 1);
                         }
                     }
                 }
@@ -2491,13 +2493,13 @@
                     // turns black, so we will just have to do without background opacity in IE8
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-rotate(3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-rotate(1);
                         }
                     }
                 }
@@ -2585,15 +2587,13 @@
                 @if $include-ie {
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-active * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-alpharotate($ui-opacity-active, 3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-active * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-alpharotate($ui-opacity-active, 1);
                         }
                     }
                 }
@@ -2608,13 +2608,13 @@
                     // turns black, so we will just have to do without background opacity in IE8
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-rotate(3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-rotate(1);
                         }
                     }
                 }
@@ -2698,15 +2698,13 @@
                 @if $include-ie {
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-focus-active * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-alpharotate($ui-opacity-focus-active, 3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-focus-active * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-alpharotate($ui-opacity-focus-active, 1);
                         }
                     }
                 }
@@ -2721,13 +2719,13 @@
                     // turns black, so we will just have to do without background opacity in IE8
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-rotate(3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-rotate(1);
                         }
                     }
                 }
@@ -2816,15 +2814,13 @@
                 @if $include-ie {
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-disabled * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-alpharotate($ui-opacity-disabled, 3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$ui-opacity-disabled * 100}),
-                                    progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-alpharotate($ui-opacity-disabled, 1);
                         }
                     }
                 }
@@ -2839,13 +2835,13 @@
                     // turns black, so we will just have to do without background opacity in IE8
                     &.#{$prefix}tab-rotate-left {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+                            @include ie-tab-rotate(3);
                         }
                     }
 
                     &.#{$prefix}tab-rotate-right {
                         .#{$prefix}ie8 & {
-                            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=1);
+                            @include ie-tab-rotate(1);
                         }
                     }
                 }
@@ -2987,7 +2983,7 @@
         .#{$prefix}tab-#{$ui}-tr,
         .#{$prefix}tab-#{$ui}-br {
             // hack to make IE8 render partially transparent pixels in corners of rotated tabs:
-            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#00FFFFFF,endColorstr=#00FFFFFF);
+            -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#00FFFFFF,endColorstr=#00FFFFFF)";
         }
     }
 

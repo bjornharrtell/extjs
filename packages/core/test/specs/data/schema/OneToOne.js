@@ -435,6 +435,53 @@ describe("Ext.data.schema.OneToOne", function() {
             });
         });
     });
+
+    describe("id change of the non-key holder", function() {
+        function createSuite(withSession) {
+            describe(withSession ? "with session" : "without session", function() {
+                var session, address;
+
+                beforeEach(function() {
+                    defineUser();
+                    if (withSession) {
+                        session = new Ext.data.Session();
+                    }
+
+                    address = new Address(null, session);
+                });
+
+                afterEach(function() {
+                    if (withSession) {
+                        session.destroy();
+                    }
+                    session = address = null;
+                });
+
+                it("should not cause an exception if the key holder is not created", function() {
+                    expect(function() {
+                        address.setId(100);
+                    }).not.toThrow();
+                });
+
+                it("should update the foreign key", function() {
+                    var user = new User({
+                        id: 1
+                    }, session);
+
+                    address.setUser(user);
+
+                    expect(user.get('addressId')).toBe(address.id);
+
+                    address.setId(100);
+
+                    expect(user.get('addressId')).toBe(100);
+                });
+            });
+        }
+
+        createSuite(false);
+        createSuite(true);
+    });
     
     describe("getters/setters", function() {
         function createSuite(withSession) {

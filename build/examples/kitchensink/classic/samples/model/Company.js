@@ -1,11 +1,15 @@
 Ext.define('KitchenSink.model.Company', {
     extend: 'KitchenSink.model.Base',
+    requires: [
+        "KitchenSink.model.field.PhoneNumber"
+    ],
     fields: [
         {name: 'name'},
+        {name: 'phone', type: 'phonenumber' },
         {name: 'price', type: 'float'},
         {name: 'change', type: 'float'},
         {name: 'pctChange', type: 'float'},
-        {name: 'lastChange', type: 'date',  dateFormat: 'n/j h:ia'},
+        {name: 'lastChange', type: 'date',  dateFormat: 'n/j'},
         {name: 'industry'},
         {name: 'desc'},
         // Trend begins with the cerrent price. Changes get pushed onto the end
@@ -23,16 +27,29 @@ Ext.define('KitchenSink.model.Company', {
         {
             name: 'rating',
             type: 'int',
-            convert: function(value, record) {
-                var pct = record.get('pctChange');
-                if (pct < 0)
-                    return 2;
-                if (pct < 1)
-                    return 1;
-                return 0;
+            convert: function (value, rec) {
+                if (value !== undefined) { // allow rating to be set
+                    return value;
+                }
+
+                var pct = rec.data.pctChange;
+
+                return (pct < 0) ? 2 : ((pct < 1) ? 1 : 0);
             }
         }
     ],
+
+    proxy: {
+        type: 'ajax',
+        reader: {
+            type: 'json'
+        },
+        url: '/KitchenSink/Company'
+    },
+
+    validators: {
+        name: 'presence'
+    },
 
     // Override to keep the last 10 prices in the trend field
     set: function(fieldName, value) {

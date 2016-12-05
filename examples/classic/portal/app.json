@@ -35,6 +35,7 @@
      */
     "requires": [
         "charts",
+        "google",
         "ux"
     ],
 
@@ -205,20 +206,20 @@
             }
         ]
     },
-    
+
     /**
-     * override objects for setting build environment specific 
+     * override objects for setting build environment specific
      * settings.
      */
     "production": {
     },
-    
+
     "testing": {
     },
-    
+
     "development": {
     },
-    
+
     /**
      * Controls the name of the manifest file used by the microloader for
      * dev and build modes
@@ -227,33 +228,33 @@
         "name": "app.json",
         "bootstrap": "bootstrap.json"
     },
-    
+
     /**
      *  Controls the output directory for build resources.  May be set with
      *  either a string:
-     *  
+     *
      *      outputDir: ""
-     *  
-     *  or an object containing 5 possible values for various types of 
+     *
+     *  or an object containing 5 possible values for various types of
      *  build artifacts:
-     *  
+     *
      *  outputDir: {
      *      // this is the base of the output directory.  all other paths
      *      // are relative to this
      *      base: ""
-     *      
+     *
      *      // output dir for the index.html and manifest.json files.
      *      // defaults to base
      *      page:".",
      *
-     *      // output dir for compile js files.  
+     *      // output dir for compile js files.
      *      // defaults to base
      *      js: ".",
-     *      
+     *
      *      // output dir for compiled app css content.
      *      // defaults to "resources" under the base location
      *      css: "./resources",
-     *      
+     *
      *      // output dir for all other page resources (images, etc.)
      *      // defaults to the css location
      *      resources: ""
@@ -261,7 +262,7 @@
      *
      */
     "output": "${ext.dir}/build/examples/classic/portal",
-    
+
     /**
      * Uniquely generated id for this application, used as prefix for localStorage keys.
      * Normally you should never change this value.

@@ -561,6 +561,12 @@ Ext.define('Ext.dd.DragDrop', {
 
         me.initTarget(id, sGroup, config);
         Ext.get(me.id).on(me.triggerEvent, me.handleMouseDown, me);
+
+        // Longpress fires contextmenu in some touch platforms, so if we are using longpress
+        // inhibit the contextmenu on this element
+        if (Ext.supports.Touch && me.triggerEvent === 'longpress') {
+            Ext.get(me.id).swallowEvent('contextmenu', true);
+        }
     },
 
     /**

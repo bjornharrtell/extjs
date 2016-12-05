@@ -1,29 +1,20 @@
 describe("Ext.form.field.Display", function() {
+    var component;
 
-    var component,
-        makeComponent;
-
-    beforeEach(function() {
-        makeComponent = function(config) {
-            config = config || {};
-            if (!config.name) {
-                config.name = 'fieldname';
-            }
-            if (!config.renderTo) {
-                config.renderTo = Ext.getBody();
-            }
-            component = new Ext.form.field.Display(config);
-        };
-    });
+    function makeComponent (config) {
+        config = Ext.apply({
+            name: 'fieldname',
+            renderTo: Ext.getBody()
+        }, config);
+        
+        return component = new Ext.form.field.Display(config);
+    };
 
     afterEach(function() {
-        if (component && component.destroy) {
-            component.destroy();
-        }
+        Ext.destroy(component);
+        
         component = null;
     });
-
-
 
     it("should be registered as xtype 'displayfield'", function() {
         component = Ext.create("Ext.form.field.Display", {name: 'test'});

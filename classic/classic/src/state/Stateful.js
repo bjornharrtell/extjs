@@ -11,60 +11,82 @@ Ext.define('Ext.state.Stateful', {
         'Ext.util.TaskRunner'
     ],
 
-    /**
-     * @cfg {Boolean} stateful
-     * A flag which causes the object to attempt to restore the state of
-     * internal properties from a saved state on startup. The object must have
-     * a {@link #stateId} for state to be managed.
-     *
-     * Auto-generated ids are not guaranteed to be stable across page loads and
-     * cannot be relied upon to save and restore the same state for a object.
-     *
-     * For state saving to work, the state manager's provider must have been
-     * set to an implementation of {@link Ext.state.Provider} which overrides the
-     * {@link Ext.state.Provider#set set} and {@link Ext.state.Provider#get get}
-     * methods to save and recall name/value pairs. A built-in implementation,
-     * {@link Ext.state.CookieProvider} is available.
-     *
-     * To set the state provider for the current page:
-     *
-     *    Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
-     *        expires: new Date(new Date().getTime()+(1000*60*60*24*7)), //7 days from now
-     *    }));
-     *
-     * A stateful object attempts to save state when one of the events
-     * listed in the {@link #stateEvents} configuration fires.
-     *
-     * To save state, a stateful object first serializes its state by
-     * calling *{@link #getState}*.
-     *
-     * The Component base class implements {@link #getState} to save its width and height within the state
-     * only if they were initially configured, and have changed from the configured value.
-     *
-     * The Panel class saves its collapsed state in addition to that.
-     *
-     * The Grid class saves its column state and store state (sorters and filters and grouper) in addition to its superclass state.
-     *
-     * If there is more application state to be save, the developer must provide an implementation which
-     * first calls the superclass method to inherit the above behaviour, and then injects new properties
-     * into the returned object.
-     *
-     * The value yielded by getState is passed to {@link Ext.state.Manager#set}
-     * which uses the configured {@link Ext.state.Provider} to save the object
-     * keyed by the {@link #stateId}.
-     *
-     * During construction, a stateful object attempts to *restore* its state by calling
-     * {@link Ext.state.Manager#get} passing the {@link #stateId}
-     *
-     * The resulting object is passed to {@link #applyState}*. The default implementation of
-     * {@link #applyState} simply copies properties into the object, but a developer may
-     * override this to support restoration of more complex application state.
-     *
-     * You can perform extra processing on state save and restore by attaching
-     * handlers to the {@link #beforestaterestore}, {@link #staterestore},
-     * {@link #beforestatesave} and {@link #statesave} events.
-     */
-    stateful: false,
+    config: {
+        /**
+         * @cfg {Boolean/Object} [stateful=false]
+         * A flag which causes the object to attempt to restore the state of
+         * internal properties from a saved state on startup. The object must have
+         * a {@link #stateId} for state to be managed.
+         *
+         * Auto-generated ids are not guaranteed to be stable across page loads and
+         * cannot be relied upon to save and restore the same state for a object.
+         *
+         * For state saving to work, the state manager's provider must have been
+         * set to an implementation of {@link Ext.state.Provider} which overrides the
+         * {@link Ext.state.Provider#set set} and {@link Ext.state.Provider#get get}
+         * methods to save and recall name/value pairs. A built-in implementation,
+         * {@link Ext.state.CookieProvider} is available.
+         *
+         * To set the state provider for the current page:
+         *
+         *    Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
+         *        expires: new Date(new Date().getTime()+(1000*60*60*24*7)), //7 days from now
+         *    }));
+         *
+         * A stateful object attempts to save state when one of the events
+         * listed in the {@link #stateEvents} configuration fires.
+         *
+         * To save state, a stateful object first serializes its state by
+         * calling *{@link #getState}*.
+         *
+         * The Component base class implements {@link #getState} to save its width and
+         * height within the state only if they were initially configured, and have
+         * changed from the configured value.
+         *
+         * The Panel class saves its collapsed state in addition to that.
+         *
+         * The Grid class saves its column state and store state (sorters and filters and grouper) in addition to its superclass state.
+         *
+         * If there is more application state to be save, the developer must provide an implementation which
+         * first calls the superclass method to inherit the above behaviour, and then injects new properties
+         * into the returned object.
+         *
+         * The value yielded by `getState` is passed to {@link Ext.state.Manager#set}
+         * which uses the configured {@link Ext.state.Provider} to save the object
+         * keyed by the {@link #stateId}.
+         *
+         * During construction, a stateful object attempts to *restore* its state by calling
+         * {@link Ext.state.Manager#get} passing the {@link #stateId}
+         *
+         * The resulting object is passed to {@link #applyState}*. The default implementation of
+         * {@link #applyState} simply copies properties into the object, but a developer may
+         * override this to support restoration of more complex application state.
+         *
+         * You can perform extra processing on state save and restore by attaching
+         * handlers to the {@link #beforestaterestore}, {@link #staterestore},
+         * {@link #beforestatesave} and {@link #statesave} events. In some simple cases,
+         * passing an object for the `stateful` config may suffice. If an object is
+         * provided, the properties of that object are used to include or exclude stateful
+         * properties returned by `getState`. For example:
+         *
+         *      stateful: {
+         *          height: false, // never persist the height
+         *          width: true    // always persist the width
+         *      }
+         *
+         * The above is roughly equivalent to the following:
+         *
+         *      getState: function () {
+         *          var state = this.callParent();
+         *
+         *          delete state.height;
+         *          state.width = this.width;
+         *
+         *          return state;
+         *      }
+         */
+        stateful: null
+    },
 
     /**
      * @cfg {String} stateId
@@ -136,7 +158,9 @@ Ext.define('Ext.state.Stateful', {
             me.stateEvents = [];
         }
 
-        if (me.stateful !== false) {
+        // NOTE: The stateful config will be initConfig'd before we get here, so the
+        // stateful property will be correct...
+        if (me.stateful) {
             me.addStateEvents(me.stateEvents);
             me.initState();
         }
@@ -208,9 +232,10 @@ Ext.define('Ext.state.Stateful', {
      */
     saveState: function() {
         var me = this,
-            id = me.stateful && me.getStateId(),
+            stateful = me.getStateful(),
+            id = stateful && me.getStateId(),
             hasListeners = me.hasListeners,
-            plugins,
+            cfg, configs, plugins,
             plugin,
             i, len,
             state,
@@ -218,6 +243,22 @@ Ext.define('Ext.state.Stateful', {
 
         if (id) {
             state = me.getState() || {};    //pass along for custom interactions
+
+            if (Ext.isObject(stateful)) {
+                configs = me.self.getConfigurator();
+                configs = configs.configs;  // configs[name]: Ext.Config(name)
+
+                for (i in stateful) {
+                    if (stateful[i]) {
+                        if (!(i in state)) {
+                            cfg = configs[i]; // if class declared this as a config
+                            state[i] = cfg ? me[cfg.get]() : me[i];
+                        }
+                    } else {
+                        delete state[i];
+                    }
+                }
+            }
 
             /*
              * Gather state from those plugins that implement a getState method
@@ -368,15 +409,14 @@ Ext.define('Ext.state.Stateful', {
     /**
      * Destroys this stateful object.
      */
-    destroy: function(){
-        var me = this,
-            task = me.stateTask;
+    destroy: function() {
+        var task = this.stateTask;
 
         if (task) {
             task.destroy();
-            me.stateTask = null;
+            this.stateTask = null;
         }
-
-        me.clearListeners();
+        
+        // No callParent() here, it's a mixin.
     }
 });

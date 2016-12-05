@@ -1,0 +1,22 @@
+.qtip-item {
+    color: #FFF;
+    padding: 5px 10px;
+    text-align: center;
+    cursor: default;
+
+    &.color1  {
+        background-color: #E91E63;
+    }
+
+    &.color2 {
+        background-color: #2196F3;
+    }
+
+    &.color3 {
+        background-color: #FF5722;
+    }
+
+    &.color4 {
+        background-color: #607D8B;
+    }   
+}

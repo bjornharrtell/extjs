@@ -2,7 +2,8 @@
 // When using the buffered renderer plugin, the view rows are positioned by using CSS transforms.
 // However, b/c of the browser bug, the scrollbar will be covered by the itemcontainer when scrolled
 // to a point where the view is refreshed so we need to bump up its z-index. See EXTJS-15608.
-.#{$prefix}grid-view {
+.#{$prefix}grid-view,
+.#{$prefix}tree-view {
     z-index: 1;
 }
 
@@ -11,14 +12,6 @@
     border-width: $grid-body-border-width;
     border-style: $grid-body-border-style;
     border-color: $grid-body-border-color;
-}
-
-// The min-height ensures we get a horizontal scroll bar 
-// if necessary, even when the grid has no items in it.
-.#{$prefix}grid-item-container {
-    min-height: 1px;
-    position: relative;
-    overflow: hidden;
 }
 
 .#{$prefix}grid-empty {

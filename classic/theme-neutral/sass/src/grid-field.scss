@@ -51,6 +51,14 @@
         );
     }
 
+    @if $include-tag-field-grid-ui and $include-ext-form-field-tag {
+        @include extjs-tag-field-ui(
+            $ui: 'grid-cell',
+            $ui-padding: $grid-cell-tag-field-padding,
+            $ui-item-margin: $grid-cell-tag-field-item-margin
+        );
+    }
+
     @if $include-spinner-trigger-grid-ui and $include-ext-form-field-spinner {
         @include extjs-spinner-trigger-ui(
             $ui: 'grid-cell',

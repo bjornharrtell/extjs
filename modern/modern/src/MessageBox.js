@@ -19,9 +19,6 @@ Ext.define('Ext.MessageBox', {
     extend  : 'Ext.Sheet',
     xtype: 'messagebox',
     requires: [
-        'Ext.Toolbar',
-        'Ext.field.Text',
-        'Ext.field.TextArea',
         'Ext.util.InputBlocker'
     ],
 
@@ -60,11 +57,6 @@ Ext.define('Ext.MessageBox', {
         },
 
         /**
-         * Override the default `zIndex` so it is normally always above floating components.
-         */
-        zIndex: 999,
-
-        /**
          * @cfg {Number} defaultTextHeight
          * The default height in pixels of the message box's multiline textarea if displayed.
          * @accessor
@@ -81,8 +73,21 @@ Ext.define('Ext.MessageBox', {
         /**
          * @cfg {Array/Object} buttons
          * An array of buttons, or an object of a button to be displayed in the toolbar of this {@link Ext.MessageBox}.
+         * @cmd-auto-dependency {defaultType: 'Ext.Button', requires: ['Ext.Toolbar']}
          */
         buttons: null,
+        /**
+         * @cfg {Object}
+         * Configure the toolbar that holds the buttons inside the MessageBox
+         */
+        buttonToolbar: {
+            docked: 'bottom',
+            defaultType: 'button',
+            layout: {
+                type: 'hbox',
+                pack: 'center'
+            }
+        },
 
         /**
          * @cfg {String} message
@@ -112,6 +117,7 @@ Ext.define('Ext.MessageBox', {
          *     }
          *
          * @accessor
+         * @cmd-auto-dependency { requires: ['Ext.field.Text', 'Ext.field.TextArea'] }
          */
         prompt: null,
 
@@ -131,8 +137,8 @@ Ext.define('Ext.MessageBox', {
     },
 
     statics: {
-        OK    : {text: 'OK',     itemId: 'ok',  ui: 'action'},
-        YES   : {text: 'Yes',    itemId: 'yes', ui: 'action'},
+        OK    : {text: 'OK',     itemId: 'ok'},
+        YES   : {text: 'Yes',    itemId: 'yes'},
         NO    : {text: 'No',     itemId: 'no'},
         CANCEL: {text: 'Cancel', itemId: 'cancel'},
 
@@ -143,16 +149,16 @@ Ext.define('Ext.MessageBox', {
 
         OKCANCEL: [
             {text: 'Cancel', itemId: 'cancel'},
-            {text: 'OK',     itemId: 'ok',  ui : 'action'}
+            {text: 'OK',     itemId: 'ok'}
         ],
         YESNOCANCEL: [
             {text: 'Cancel', itemId: 'cancel'},
             {text: 'No',     itemId: 'no'},
-            {text: 'Yes',    itemId: 'yes', ui: 'action'}
+            {text: 'Yes',    itemId: 'yes'}
         ],
         YESNO: [
             {text: 'No',  itemId: 'no'},
-            {text: 'Yes', itemId: 'yes', ui: 'action'}
+            {text: 'Yes', itemId: 'yes'}
         ]
     },
 
@@ -190,25 +196,11 @@ Ext.define('Ext.MessageBox', {
      * @private
      */
     applyTitle: function(config) {
-        if (typeof config == "string") {
-            config = {
-                title: config
-            };
+        if (typeof config === "string") {
+            return config;
         }
 
-        Ext.applyIf(config, {
-            docked: 'top',
-            ui: Ext.filterPlatform('blackberry') ? 'light' : null,
-            cls   : this.getBaseCls() + '-title'
-        });
-
-        if (Ext.theme.is.Tizen) {
-            Ext.applyIf(config, {
-                centered: false
-            });
-        }
-
-        return Ext.factory(config, Ext.Toolbar, this.getTitle());
+        return config.title;
     },
 
     /**
@@ -216,8 +208,13 @@ Ext.define('Ext.MessageBox', {
      * @private
      */
     updateTitle: function(newTitle) {
-        if (newTitle) {
-            this.add(newTitle);
+        var header = this.getHeader() || {};
+
+        if (Ext.isSimpleObject(header)) {
+            header.title = newTitle;
+            this.setHeader(header);
+        } else if (Ext.isFunction(header.setTitle)) {
+            header.setTitle(newTitle);
         }
     },
 
@@ -226,7 +223,9 @@ Ext.define('Ext.MessageBox', {
      * @private
      */
     updateButtons: function(newButtons) {
-        var me = this;
+        var create = Ext.create,
+            me = this,
+            buttonToolbarConfig = this.getButtonToolbar(), config;
 
         // If there are no new buttons or it is an empty array, set newButtons
         // to false
@@ -238,25 +237,12 @@ Ext.define('Ext.MessageBox', {
                 me.buttonsToolbar.removeAll();
                 me.buttonsToolbar.setItems(newButtons);
             } else {
-                var layout = {
-                    type: 'hbox',
-                    pack: 'center'
-                };
-
-                var isFlexed = Ext.theme.is.MountainView  || Ext.theme.is.Blackberry;
-
-                me.buttonsToolbar = Ext.create('Ext.Toolbar', {
-                    docked: 'bottom',
-                    defaultType: 'button',
-                    defaults: {
-                        flex: (isFlexed) ? 1 : undefined,
-                        ui: (Ext.theme.is.Blackberry) ? 'action' : undefined
-                    },
-                    layout: layout,
+                config = Ext.apply({
                     ui: me.getUi(),
                     cls: me.getBaseCls() + '-buttons',
                     items: newButtons
-                });
+                }, buttonToolbarConfig);
+                me.buttonsToolbar = create('Ext.Toolbar', config);
 
                 me.add(me.buttonsToolbar);
             }
@@ -298,17 +284,21 @@ Ext.define('Ext.MessageBox', {
      * @private
      */
     applyIconCls: function(config) {
-        config = {
-            xtype : 'component',
-            docked: 'left',
-            width : 40,
-            height: 40,
-            baseCls: Ext.baseCSSPrefix + 'icon',
-            hidden: (config) ? false : true,
-            cls: config
-        };
 
-        return Ext.factory(config, Ext.Component, this._iconCls);
+        if (config) {
+            config = {
+                xtype: 'component',
+                docked: 'left',
+                width: 40,
+                height: 40,
+                baseCls: Ext.baseCSSPrefix + 'icon',
+                hidden: (config) ? false : true,
+                cls: config
+            };
+            return Ext.factory(config, Ext.Component, this._iconCls);
+        }
+
+        return config;
     },
 
     /**
@@ -354,9 +344,9 @@ Ext.define('Ext.MessageBox', {
 
             if (config.multiLine) {
                 config.height = Ext.isNumber(config.multiLine) ? parseFloat(config.multiLine) : this.getDefaultTextHeight();
-                return Ext.factory(config, Ext.field.TextArea, this.getPrompt());
+                return Ext.factory(config, Ext.field['TextArea'], this.getPrompt());
             } else {
-                return Ext.factory(config, Ext.field.Text, this.getPrompt());
+                return Ext.factory(config, Ext.field['Text'], this.getPrompt());
             }
         }
 
@@ -401,10 +391,6 @@ Ext.define('Ext.MessageBox', {
                     single: true,
                     scope: this
                 });
-            }
-
-            if (config.input) {
-                config.input.dom.blur();
             }
         }
 
@@ -705,7 +691,7 @@ Ext.define('Ext.MessageBox', {
          *     @example preview
          *     Ext.Msg.confirm("Confirmation", "Are you sure you want to do that?", Ext.emptyFn);
          */
-        Ext.Msg = new MessageBox();
+        Ext.Msg = new Ext.MessageBox();
     });
 });
 

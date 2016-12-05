@@ -17,11 +17,24 @@
 @if $include-rtl {
     .#{$prefix}grid-locked-split .#{$prefix}rtl.#{$prefix}grid-inner-normal {
         border-width: 0 $grid-lockable-separator-border-width 0 0;
+        border-right-color: $grid-lockable-separator-border-color;
     }
 }
 
 .#{$prefix}grid-locking-body {
     border-width: $grid-lockable-body-border-width;
+
+    // When locking grid is used with a border layout we give the views a background-color
+    // to prevent the background-color of the border layout from bleeding through.
+    // This causes the splitter area to lose its background color since splitters are transparent.
+    // To fix this we have to give the splitter an explicit background color.
+    > .#{$prefix}splitter {
+        background-color: $border-layout-ct-background-color;
+    }
+
+    > .#{$prefix}splitter-active {
+        background-color: $splitter-active-background-color;
+    }
 }
 
 .#{$prefix}grid-inner-locked {
@@ -78,5 +91,46 @@
         }
     } @else {
         background-image: theme-background-image('grid/hmenu-unlock');
+    }
+}
+
+// When locked grid is used with a border layout we need a background-color on the normal
+// views to keep the border-layout background from bleeding through when the columns are
+//too narrow to fill up the available width.
+.#{$prefix}grid-scrollbar-clipper {
+    > .#{$prefix}grid-view,
+    > .#{$prefix}tree-view {
+        background-color: $grid-body-background-color;
+    }
+}
+
+// Use same borders on the clipper elements which should exaactly mirror the grid panels.
+.#{$prefix}grid-scrollbar-clipper-locked,
+.#{$prefix}grid-scrollbar-locked {
+    border-width: 0 $grid-lockable-separator-border-width 0 0;
+    border-style: $grid-lockable-separator-border-style;
+    border-color: $grid-lockable-separator-border-color;
+}
+@if $include-rtl {
+    .#{$prefix}grid-locked {
+        .#{$prefix}rtl.#{$prefix}grid-scrollbar-clipper-locked,
+        .#{$prefix}rtl.#{$prefix}grid-scrollbar-locked, {
+            border-width: 0 0 0 $grid-lockable-separator-border-width;
+        }
+    }
+}
+
+.#{$prefix}grid-scroll-container {
+    background-color: $grid-body-background-color;
+}
+
+@if $include-rtl {
+    .#{$prefix}rtl {
+        > .#{$prefix}grid-scroll-container {
+            direction: rtl;
+            > .#{$prefix}grid-scroll-body {
+                direction: rtl;
+            }
+        }
     }
 }

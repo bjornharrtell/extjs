@@ -5,6 +5,9 @@
 @import 'mixins/border';
 @import 'mixins/font';
 @import 'mixins/font-icon';
+@import 'mixins/icon';
+@import 'mixins/transform';
+@import 'mixins/animation';
 
 // Background property support for vendor prefixing within values.
 @mixin background($background-1,
@@ -111,15 +114,6 @@ $image-10: false) {
     left: $left;
 }
 
-/**
- * Makes the element text overflow to use ellipsis.
- */
-@mixin ellipsis {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
 @mixin absolute-position($top: 0, $right: 0, $bottom: 0, $left: 0) {
     position: absolute;
     top: $top;
@@ -135,15 +129,15 @@ $image-10: false) {
 }
 
 @mixin st-box() {
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
+    display: flex;
 }
 
 @mixin st-inline-box() {
-    display: inline-flex;
     display: -webkit-inline-box;
     display: -ms-inline-flexbox;
+    display: inline-flex;
 }
 
 @mixin st-box-align($align: stretch) {
@@ -222,12 +216,10 @@ $image-10: false) {
 @mixin st-box-flex($flex: 1, $preferredSize: auto, $important: no) {
     @if $important == important {
         -webkit-box-flex: $flex !important;
-        -ms-flex: $flex 0 $preferredSize !important;
-        flex: $flex 0 $preferredSize !important;
+        flex: $flex $flex $preferredSize !important;
     } @else {
         -webkit-box-flex: $flex;
-        -ms-flex: $flex 0 $preferredSize;
-        flex: $flex 0 $preferredSize;
+        flex: $flex $flex $preferredSize;
     }
 }
 
@@ -301,14 +293,32 @@ $image-10: false) {
     }
 
     /* Rotate each of the 4 Spans */
-    .x-loading-spinner > span.x-loading-top {    -webkit-transform: rotate(0deg);    -moz-transform: rotate(0deg);   -ms-transform: rotate(0deg); }
-    .x-loading-spinner > span.x-loading-right {  -webkit-transform: rotate(90deg);   -moz-transform: rotate(90deg);  -ms-transform: rotate(90deg); }
-    .x-loading-spinner > span.x-loading-bottom { -webkit-transform: rotate(180deg);  -moz-transform: rotate(180deg); -ms-transform: rotate(180deg); }
-    .x-loading-spinner > span.x-loading-left {   -webkit-transform: rotate(270deg);  -moz-transform: rotate(270deg); -ms-transform: rotate(270deg); }
+    .x-loading-spinner > span.x-loading-top {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    .x-loading-spinner > span.x-loading-right {
+        -webkit-transform: rotate(90deg);
+        transform: rotate(90deg);
+    }
+    .x-loading-spinner > span.x-loading-bottom {
+        -webkit-transform: rotate(180deg);
+        transform: rotate(180deg);
+    }
+    .x-loading-spinner > span.x-loading-left {
+        -webkit-transform: rotate(270deg);
+        transform: rotate(270deg);
+    }
 
     /* These are the two lines that surround each of the 4 Span lines */
-    .x-loading-spinner > span::before {-webkit-transform: rotate(30deg);   -moz-transform: rotate(30deg);  -ms-transform: rotate(30deg); }
-    .x-loading-spinner > span::after { -webkit-transform: rotate(-30deg);  -moz-transform: rotate(-30deg); -ms-transform: rotate(-30deg); }
+    .x-loading-spinner > span::before {
+        -webkit-transform: rotate(30deg);
+        transform: rotate(30deg);
+    }
+    .x-loading-spinner > span::after {
+        -webkit-transform: rotate(-30deg);
+        transform: rotate(-30deg);
+    }
 
     /* Set Animation */
     .x-loading-spinner {

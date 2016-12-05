@@ -3,6 +3,7 @@ Ext.define('KitchenSink.model.Widget', {
     fields: [
        {name: 'name'},
        {name: 'progress', type: 'float'},
+       'mode',
        'sequence1',
        'sequence2',
        'sequence3',

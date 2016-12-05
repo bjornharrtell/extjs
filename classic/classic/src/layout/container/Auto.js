@@ -759,12 +759,13 @@ Ext.define('Ext.layout.container.Auto', {
 
     getContentTarget: function(){
         return this.innerCt;
-    },
-
-    getScrollerEl: function() {
-        return this.outerCt;
     }
 
-}, function(){
-    this.prototype.chromeCellMeasureBug = Ext.isChrome && Ext.chromeVersion >= 26;
+}, function(Cls) {
+    var v = Ext.chromeVersion;
+    // This was likely fixed much earlier, on the bug tracker marked as fixed on 2014/04/01.
+    // 34 was the most recently released version after this date. Google doesn't release older
+    // versions to test on so it's not possible to say. However due to the auto update nature it's
+    // highly unlikely anyone is running this range anyway.
+    Cls.prototype.chromeCellMeasureBug = Ext.isChrome && v >= 26 && v <= 34;
 });

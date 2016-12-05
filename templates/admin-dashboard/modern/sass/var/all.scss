@@ -10,7 +10,7 @@ $mask-page-background-color: dynamic($mask-background-color);
 $main-nav-width: 260px;
 $main-nav-collapsed-width: 64px;
 $main-toolbar-height: 65px;
-$main-phone-toolbar-height: 45px;
+$main-phone-toolbar-height: 56px;
 
 @mixin list-item-title() {
     font-weight: 600;

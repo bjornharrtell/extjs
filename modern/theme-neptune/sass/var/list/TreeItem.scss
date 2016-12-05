@@ -3,7 +3,7 @@
 $treelist-padding: dynamic(0 8px);
 $treelist-item-line-height: dynamic(24px);
 $treelist-item-line-height-big: dynamic(32px);
-$treelist-item-text-color: dynamic($list-item-color);
+$treelist-item-text-color: dynamic($listitem-color);
 $treelist-item-text-icon-gap: dynamic(4px);
 
 $treelist-item-expander-color: dynamic($neutral-dark-color);
@@ -25,5 +25,5 @@ $treelist-item-icon-font-size-big: dynamic(24px);
 $treelist-item-icon-width: dynamic($treelist-item-icon-font-size);
 $treelist-item-icon-width-big: dynamic($treelist-item-icon-font-size-big);
 
-$treelist-row-selected-background-color: dynamic($list-item-selected-background-color);
-$treelist-row-over-background-color: dynamic($list-item-pressed-background-color);
+$treelist-row-selected-background-color: dynamic($listitem-selected-background-color);
+$treelist-row-over-background-color: dynamic($listitem-pressed-background-color);

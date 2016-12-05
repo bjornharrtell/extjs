@@ -1,5 +1,5 @@
 /**
- * Carousels, like [tabs](#!/guide/tabs), are a great way to allow the user to swipe through multiple full-screen pages.
+ * Carousels, like tabs, are a great way to allow the user to swipe through multiple full-screen pages.
  * A Carousel shows only one of its pages at a time but allows you to swipe through with your finger.
  *
  * Carousels can be oriented either horizontally or vertically and are easy to configure - they just work like any other
@@ -147,6 +147,13 @@ Ext.define('Ext.carousel.Carousel', {
     painted: false,
 
     activeIndex: -1,
+
+    touchAction: {
+        // This pevents the touchstart from being captured
+        // by the platform for scrolling.
+        panX: false,
+        panY: false
+    },
 
     beforeInitialize: function() {
         var me = this;
@@ -791,7 +798,7 @@ Ext.define('Ext.carousel.Carousel', {
         }
     },
 
-    destroy: function() {
+    doDestroy: function() {
         var me = this,
             carouselItems = me.carouselItems.slice();
 
@@ -800,6 +807,5 @@ Ext.define('Ext.carousel.Carousel', {
         Ext.destroy(carouselItems, me.getIndicator(), me.translatable);
 
         me.callParent();
-        delete me.carouselItems;
     }
 });

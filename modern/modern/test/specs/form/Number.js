@@ -30,7 +30,7 @@ describe('Ext.field.Number', function() {
                 it("should add the min attribute to the inputEl", function() {
                     create(defaultConfig);
                     render();
-                    expect(field.getComponent().input.getAttribute('min')).toEqual('10');
+                    expect(field.getComponent().inputElement.getAttribute('min')).toEqual('10');
                 });
             });
 
@@ -41,7 +41,7 @@ describe('Ext.field.Number', function() {
                             create();
                             field.setMinValue(10);
                             render();
-                            expect(field.getComponent().input.getAttribute('min')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('min')).toEqual('10');
                         });
                     });
 
@@ -50,7 +50,7 @@ describe('Ext.field.Number', function() {
                             create();
                             render();
                             field.setMinValue(10);
-                            expect(field.getComponent().input.getAttribute('min')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('min')).toEqual('10');
                         });
                     });
                 });
@@ -62,7 +62,7 @@ describe('Ext.field.Number', function() {
                             create(defaultConfig);
                             field.setMinValue(null);
                             render();
-                            expect(field.getComponent().input.getAttribute('min')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('min')).toBeNull();
                         });
 
                     });
@@ -72,7 +72,7 @@ describe('Ext.field.Number', function() {
                             create(defaultConfig);
                             render();
                             field.setMinValue(null);
-                            expect(field.getComponent().input.getAttribute('min')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('min')).toBeNull();
                         });
 
                     });
@@ -89,7 +89,7 @@ describe('Ext.field.Number', function() {
                 it("should add the max attribute to the inputEl", function() {
                     create(defaultConfig);
                     render();
-                    expect(field.getComponent().input.getAttribute('max')).toEqual('10');
+                    expect(field.getComponent().inputElement.getAttribute('max')).toEqual('10');
                 });
             });
 
@@ -100,7 +100,7 @@ describe('Ext.field.Number', function() {
                             create();
                             field.setMaxValue(10);
                             render();
-                            expect(field.getComponent().input.getAttribute('max')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('max')).toEqual('10');
                         });
                     });
 
@@ -109,7 +109,7 @@ describe('Ext.field.Number', function() {
                             create();
                             render();
                             field.setMaxValue(10);
-                            expect(field.getComponent().input.getAttribute('max')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('max')).toEqual('10');
                         });
                     });
                 });
@@ -121,7 +121,7 @@ describe('Ext.field.Number', function() {
                             create(defaultConfig);
                             field.setMaxValue(null);
                             render();
-                            expect(field.getComponent().input.getAttribute('max')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('max')).toBeNull();
                         });
                     });
 
@@ -130,7 +130,7 @@ describe('Ext.field.Number', function() {
                             create(defaultConfig);
                             render();
                             field.setMaxValue(null);
-                            expect(field.getComponent().input.getAttribute('max')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('max')).toBeNull();
                         });
                     });
 
@@ -149,7 +149,7 @@ describe('Ext.field.Number', function() {
                 it("should add the step attribute to the inputEl", function() {
                     create(defaultConfig);
                     render();
-                    expect(field.getComponent().input.getAttribute('step')).toEqual('10');
+                    expect(field.getComponent().inputElement.getAttribute('step')).toEqual('10');
                 });
             });
 
@@ -160,7 +160,7 @@ describe('Ext.field.Number', function() {
                             create();
                             field.setStepValue(10);
                             render();
-                            expect(field.getComponent().input.getAttribute('step')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('step')).toEqual('10');
                         });
                     });
 
@@ -169,7 +169,7 @@ describe('Ext.field.Number', function() {
                             create();
                             render();
                             field.setStepValue(10);
-                            expect(field.getComponent().input.getAttribute('step')).toEqual('10');
+                            expect(field.getComponent().inputElement.getAttribute('step')).toEqual('10');
                         });
                     });
                 });
@@ -181,7 +181,7 @@ describe('Ext.field.Number', function() {
                             create(defaultConfig);
                             field.setStepValue(null);
                             render();
-                            expect(field.getComponent().input.getAttribute('step')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('step')).toBeNull();
                         });
 
                     });
@@ -191,7 +191,7 @@ describe('Ext.field.Number', function() {
                             create(defaultConfig);
                             render();
                             field.setStepValue(null);
-                            expect(field.getComponent().input.getAttribute('step')).toBeNull();
+                            expect(field.getComponent().inputElement.getAttribute('step')).toBeNull();
                         });
 
                     });

@@ -26,16 +26,29 @@ Ext.define('Ext.grid.cell.Text', {
          * a separate config to avoid writting the same formatted result to the DOM.
          * @protected
          */
-        rawValue: null
+        rawValue: null,
+
+        /**
+         * @cfg {String} zeroValue
+         *
+         * A replacement value for 0.
+         *
+         * If the cell value is 0 and you want to display it or hide it then you can define
+         * a not null value here.
+         *
+         * Set it as an empty string if you want to hide cells that have 0s.
+         */
+        zeroValue: null
     },
 
     updateRawValue: function (rawValue) {
-        var dom = this.innerElement.dom;
+        var dom = this.innerElement.dom,
+            value = rawValue == null ? '' : rawValue;
 
         if (this.getEncodeHtml()) {
-            dom.textContent = rawValue;
+            dom.textContent = value;
         } else {
-            dom.innerHTML = rawValue;
+            dom.innerHTML = value;
         }
     },
 
@@ -43,7 +56,23 @@ Ext.define('Ext.grid.cell.Text', {
         this.writeValue();
     },
 
+    updateZeroValue: function(){
+        if(!this.isConfiguring) {
+            this.writeValue();
+        }
+    },
+
     writeValue: function() {
-        this.setRawValue(this.getValue());
+        var me = this,
+            v = me.getValue(),
+            format = me.getColumn().getFormatter(),
+            zeroValue = me.getZeroValue();
+
+        if(v === 0 && zeroValue !== null) {
+            v = zeroValue;
+        }else if(typeof format === 'function'){
+            v = format(v);
+        }
+        me.setRawValue(v);
     }
 });

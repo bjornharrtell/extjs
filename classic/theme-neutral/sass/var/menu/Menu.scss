@@ -261,6 +261,13 @@ $menu-item-icon-horizontal-spacing: dynamic(3px 5px);
 $menu-item-arrow-horizontal-spacing: dynamic(5px 0);
 
 /**
+ * @var {number}
+ * The space to the left and right of the {@link Ext.menu.Bar Menu item} arrows. Can be specified
+ * as a number or as a list with 2 values.
+ */
+$menubar-item-arrow-horizontal-spacing: dynamic(5px 5px);
+
+/**
  * @var {number/list}
  * The margin of {@link Ext.menu.Separator Menu Separators}
  */
@@ -274,9 +281,28 @@ $menu-item-arrow-height: dynamic(9px);
 
 /**
  * @var {number}
+ * Vertical offset for arrow el.
+ * @private
+ */
+$menubar-item-arrow-vertical-offset: dynamic(round($menubar-item-arrow-height / 2));
+
+/**
+ * @var {number}
  * The width of {@link Ext.menu.Item Menu Item} arrows
  */
 $menu-item-arrow-width: dynamic(12px);
+
+/**
+ * @var {number}
+ * The height of the {@link Ext.menu.Bar Menu item} arrows
+ */
+$menubar-item-arrow-height: dynamic(6px);
+
+/**
+ * @var {number}
+ * The width of the {@link Ext.menu.Bar Menu item} arrows
+ */
+$menubar-item-arrow-width: dynamic(9px);
 
 /**
  * @var {number/list}
@@ -314,6 +340,18 @@ $menu-item-arrow-glyph: dynamic($fa-var-caret-right $menu-item-arrow-glyph-font-
  * Glyph for the RTL menu arrow icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
 $menu-item-arrow-glyph-rtl: dynamic($fa-var-caret-left $menu-item-arrow-glyph-font-size $font-icon-font-family);
+
+/**
+ * @var {string/list}
+ * Glyph for the menu bar item arrow icon when {@link Global_CSS#$enable-font-icons} is `true`.
+ */
+$menubar-item-arrow-glyph: dynamic($fa-var-caret-down $menu-item-arrow-glyph-font-size $font-icon-font-family);
+
+/**
+ * @var {string/list}
+ * Glyph for the RTL menu bar item arrow icon when {@link Global_CSS#$enable-font-icons} is `true`.
+ */
+$menubar-item-arrow-glyph-rtl: dynamic($fa-var-caret-down $menu-item-arrow-glyph-font-size $font-icon-font-family);
 
 /**
  * @var {number}

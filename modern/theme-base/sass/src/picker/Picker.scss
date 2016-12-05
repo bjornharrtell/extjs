@@ -31,11 +31,6 @@
     }
 }
 
-.x-picker-slot .x-scroll-view {
-    z-index: 2;
-    position: relative;
-}
-
 .x-picker-mask {
     position: absolute;
     top: 0;
@@ -69,10 +64,6 @@
         vertical-align: middle;
         height: 30px;
         line-height: 30px;
-
-        &.x-item-selected {
-            font-weight: bold;
-        }
     }
 
     .x-picker-item {

@@ -100,7 +100,7 @@ Ext.define('Ext.chart.interactions.ItemInfo', {
             item = me.item;
         if (item) {
             item.series.setAttributesForItem(item, { highlighted: false });
-            delete me.item;
+            me.item = null;
             me.sync();
         }
     }

@@ -7,6 +7,8 @@
 }
 
 /**
+ * @class Ext.list.TreeItem
+ *
  * This private mixin handle styling all elements inside the x-treelist root element.
  * The public treelist-ui mixin calls this inside a proper selector for the ui while
  * the default styling (handled below) call this mixin at global scope (to produce a
@@ -82,6 +84,10 @@
     $item-text-over-color: null,
     $item-text-font-size: null,
     $item-text-overflow: null,
+
+    $item-icon-over-transition: null,
+    $item-text-over-transition: null,
+    $item-expander-over-transition: null,
 
     $row-indicator-selected-color: null,
     $row-indicator-selected-over-color: null, 
@@ -170,6 +176,15 @@
     .#{$prefix}treelist-item-tool,
     .#{$prefix}treelist-item-expander {
         text-align: center;
+
+        // Loading status may use a background image.
+        background-repeat: no-repeat;
+        background-position: 0 center;
+    }
+
+    .#{$prefix}treelist-item-loading .#{$prefix}treelist-item-icon {
+        background-image: theme-background-image('tree/loading', 'gif');
+        color: transparent;
     }
 
     .#{$prefix}treelist-item-icon,
@@ -328,15 +343,15 @@
         .#{$prefix}treelist-item-over > * {
             > .#{$prefix}treelist-item-icon {
                 color: $item-icon-over-color;
-                transition: color 0.5s;
+                transition: $item-icon-over-transition;
             }
             > .#{$prefix}treelist-item-text {
                 color: $item-text-over-color;
-                transition: color 0.5s;
+                transition: $item-text-over-transition;
             }
             > .#{$prefix}treelist-item-expander {
                 color: $item-expander-over-color;
-                transition: color 0.5s;
+                transition: $item-expander-over-transition;
             }
         }
     }
@@ -346,15 +361,15 @@
 
         > * > .#{$prefix}treelist-item-icon {
             color: $item-icon-over-color;
-            transition: color 0.5s;
+            transition: $item-icon-over-transition;
         }
         > * > .#{$prefix}treelist-item-text {
             color: $item-text-over-color;
-            transition: color 0.5s;
+            transition: $item-text-over-transition;
         }
         > * > .#{$prefix}treelist-item-expander {
             color: $item-expander-over-color;
-            transition: color 0.5s;
+            transition: $item-expander-over-transition;
         }
     }
 
@@ -446,6 +461,10 @@
     $item-text-font-size: null,
     $item-text-overflow: null,
 
+    $item-icon-over-transition: null,
+    $item-text-over-transition: null,
+    $item-expander-over-transition: null,
+
     $row-indicator-selected-color: null,
     $row-indicator-selected-over-color: null, 
     $row-indicator-over-color: null,
@@ -517,6 +536,10 @@
             $item-text-over-color: $item-text-over-color,
             $item-text-font-size: $item-text-font-size,
             $item-text-overflow: $item-text-overflow,
+
+            $item-icon-over-transition: $item-icon-over-transition,
+            $item-text-over-transition: $item-text-over-transition,
+            $item-expander-over-transition: $item-expander-over-transition,
 
             $row-indicator-selected-color: $row-indicator-selected-color,
             $row-indicator-selected-over-color: $row-indicator-selected-over-color, 
@@ -664,6 +687,10 @@
     $item-text-over-color: $treelist-item-text-over-color,
     $item-text-font-size: $treelist-item-text-font-size,
     $item-text-overflow: $treelist-item-text-overflow,
+
+    $item-icon-over-transition: $item-icon-over-transition,
+    $item-text-over-transition: $item-text-over-transition,
+    $item-expander-over-transition: $item-expander-over-transition,
 
     $row-indicator-selected-color: $treelist-row-indicator-selected-color,
     $row-indicator-selected-over-color: $treelist-row-indicator-selected-over-color, 

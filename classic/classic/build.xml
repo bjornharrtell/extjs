@@ -206,6 +206,34 @@ var Ext = Ext || {};
         </x-compile>
     </target>
 
+    <target name="d3" depends="init">
+        <x-compile refid="${compiler.ref.id}">
+            <![CDATA[
+            classpath
+                +new
+                -name=d3
+                -path=${framework.dir}/../packages/d3/classic/src
+            and
+            classpath
+                -name=d3
+                -path=${framework.dir}/../packages/d3/src
+            and
+            classpath
+                -name=d3
+                -path=${framework.dir}/../packages/d3/classic/overrides
+                -tags=overrides
+            and
+            classpath
+                -name=d3
+                -path=${framework.dir}/../packages/d3/overrides
+                -tags=overrides
+            and
+            include
+                -all
+        ]]>
+        </x-compile>
+    </target>
+
     <target name="ux" depends="init">
         <x-compile refid="${compiler.ref.id}">
             <![CDATA[
@@ -294,7 +322,7 @@ var Ext = Ext || {};
         <local name="base.path"/>
         <property name="base.path" value="${framework.dir}"/>
 
-        <delete file="${base.dir}/bootstrap-manifest.js"/>
+        <delete file="${base.path}/bootstrap-manifest.js"/>
 
         <x-compile refid="${compiler.ref.id}">
             <![CDATA[
@@ -362,5 +390,5 @@ Ext.Boot.loadSyncBasePrefix([
 
     <target name="bootstrap"
             description="*** Regenerate files needed by standalone examples and unit tests ***"
-            depends="charts,ux,exporter,pivot,core-bootstrap,test-bootstrap"/>
+            depends="charts,d3,ux,exporter,pivot,core-bootstrap,test-bootstrap"/>
 </project>

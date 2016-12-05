@@ -39,7 +39,7 @@ Ext.define('Ext.theme.triton.Component', {
 Ext.define('Ext.theme.triton.list.TreeItem', {
     override: 'Ext.list.TreeItem',
     compatibility: Ext.isIE8,
-    updateFloated: function(floated, wasFloated) {
+    setFloated: function(floated, wasFloated) {
         this.callParent([
             floated,
             wasFloated
@@ -469,6 +469,19 @@ Ext.define('Ext.theme.triton.grid.column.Column', {
     }
 });
 
+Ext.define('Ext.theme.triton.grid.column.Check', {
+    override: 'Ext.grid.column.Check',
+    compatibility: Ext.isIE8,
+    setRecordCheck: function(record, checked, cell) {
+        this.callParent([
+            record,
+            checked,
+            cell
+        ]);
+        cell.syncRepaint();
+    }
+});
+
 Ext.define('Ext.theme.neptune.grid.column.RowNumberer', {
     override: 'Ext.grid.column.RowNumberer',
     width: 25
@@ -552,6 +565,17 @@ Ext.define('Ext.theme.triton.grid.selection.SpreadsheetModel', {
 
 Ext.define('Ext.theme.triton.selection.CheckboxModel', {
     override: 'Ext.selection.CheckboxModel',
-    headerWidth: 32
+    headerWidth: 32,
+    onHeaderClick: function(headerCt, header, e) {
+        this.callParent([
+            headerCt,
+            header,
+            e
+        ]);
+        // Every checkbox needs repainting.
+        if (Ext.isIE8) {
+            header.getView().ownerGrid.el.syncRepaint();
+        }
+    }
 });
 

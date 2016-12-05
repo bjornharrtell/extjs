@@ -1,0 +1,3052 @@
+{
+    "path": "/Users/vitalykravchenko/Sites/d3",
+    "name": "d3",
+    "children": [
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/test",
+            "name": "test",
+            "children": [
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/xhr",
+                    "name": "xhr",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/xhr/html-test.js",
+                            "name": "html-test.js",
+                            "size": 1072
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/xhr/json-test.js",
+                            "name": "json-test.js",
+                            "size": 1572
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/xhr/text-test.js",
+                            "name": "text-test.js",
+                            "size": 1301
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/xhr/xhr-test.js",
+                            "name": "xhr-test.js",
+                            "size": 2496
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/xhr/xml-test.js",
+                            "name": "xml-test.js",
+                            "size": 1380
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/arrays",
+                    "name": "arrays",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/ascending-test.js",
+                            "name": "ascending-test.js",
+                            "size": 1432
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/zip-test.js",
+                            "name": "zip-test.js",
+                            "size": 916
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/descending-test.js",
+                            "name": "descending-test.js",
+                            "size": 1453
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/deviation-test.js",
+                            "name": "deviation-test.js",
+                            "size": 1755
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/entries-test.js",
+                            "name": "entries-test.js",
+                            "size": 1087
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/extent-test.js",
+                            "name": "extent-test.js",
+                            "size": 2162
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/keys-test.js",
+                            "name": "keys-test.js",
+                            "size": 741
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/map-test.js",
+                            "name": "map-test.js",
+                            "size": 11346
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/max-test.js",
+                            "name": "max-test.js",
+                            "size": 1919
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/mean-test.js",
+                            "name": "mean-test.js",
+                            "size": 1684
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/median-test.js",
+                            "name": "median-test.js",
+                            "size": 2096
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/merge-test.js",
+                            "name": "merge-test.js",
+                            "size": 1686
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/min-test.js",
+                            "name": "min-test.js",
+                            "size": 1908
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/bisect-test.js",
+                            "name": "bisect-test.js",
+                            "size": 15371
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/one-time-number.js",
+                            "name": "one-time-number.js",
+                            "size": 194
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/pairs-test.js",
+                            "name": "pairs-test.js",
+                            "size": 956
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/permute-test.js",
+                            "name": "permute-test.js",
+                            "size": 1812
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/quantile-test.js",
+                            "name": "quantile-test.js",
+                            "size": 2160
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/range-test.js",
+                            "name": "range-test.js",
+                            "size": 4125
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/set-test.js",
+                            "name": "set-test.js",
+                            "size": 6672
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/shuffle-test.js",
+                            "name": "shuffle-test.js",
+                            "size": 1437
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/sum-test.js",
+                            "name": "sum-test.js",
+                            "size": 1467
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/transpose-test.js",
+                            "name": "transpose-test.js",
+                            "size": 1010
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/values-test.js",
+                            "name": "values-test.js",
+                            "size": 828
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/variance-test.js",
+                            "name": "variance-test.js",
+                            "size": 1620
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/arrays/nest-test.js",
+                            "name": "nest-test.js",
+                            "size": 9479
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/assert.js",
+                    "name": "assert.js",
+                    "size": 4695
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/color",
+                    "name": "color",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/color/hcl-test.js",
+                            "name": "hcl-test.js",
+                            "size": 5340
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/color/hsl-test.js",
+                            "name": "hsl-test.js",
+                            "size": 5601
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/color/lab-test.js",
+                            "name": "lab-test.js",
+                            "size": 3873
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/color/rgb-test.js",
+                            "name": "rgb-test.js",
+                            "size": 3935
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/core",
+                    "name": "core",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/core/document-test.js",
+                            "name": "document-test.js",
+                            "size": 2140
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/core/functor-test.js",
+                            "name": "functor-test.js",
+                            "size": 729
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/core/ns-test.js",
+                            "name": "ns-test.js",
+                            "size": 1955
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/core/rebind-test.js",
+                            "name": "rebind-test.js",
+                            "size": 2122
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/core/version-test.js",
+                            "name": "version-test.js",
+                            "size": 364
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/data",
+                    "name": "data",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/data/ocean.json",
+                            "name": "ocean.json",
+                            "size": 2378568
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/data/sample.csv",
+                            "name": "sample.csv",
+                            "size": 26
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/data/sample.html",
+                            "name": "sample.html",
+                            "size": 72
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/data/sample.json",
+                            "name": "sample.json",
+                            "size": 37
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/data/sample.tsv",
+                            "name": "sample.tsv",
+                            "size": 26
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/data/sample.txt",
+                            "name": "sample.txt",
+                            "size": 14
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/data/sample.xml",
+                            "name": "sample.xml",
+                            "size": 81
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/data/us-counties.json",
+                            "name": "us-counties.json",
+                            "size": 1770438
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/data/world-countries.json",
+                            "name": "world-countries.json",
+                            "size": 3925444
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/dsv",
+                    "name": "dsv",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/dsv/csv-test.js",
+                            "name": "csv-test.js",
+                            "size": 7884
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/dsv/tsv-test.js",
+                            "name": "tsv-test.js",
+                            "size": 7830
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/event",
+                    "name": "event",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/event/dispatch-test.js",
+                            "name": "dispatch-test.js",
+                            "size": 5507
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/event/mouse-test.html",
+                            "name": "mouse-test.html",
+                            "size": 448
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/event/timer-test.js",
+                            "name": "timer-test.js",
+                            "size": 2087
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/event/touch-test.html",
+                            "name": "touch-test.html",
+                            "size": 1207
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/format",
+                    "name": "format",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/format/format-test.js",
+                            "name": "format-test.js",
+                            "size": 20669
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/format/formatPrefix-test.js",
+                            "name": "formatPrefix-test.js",
+                            "size": 4949
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/format/requote-test.js",
+                            "name": "requote-test.js",
+                            "size": 1402
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/format/round-test.js",
+                            "name": "round-test.js",
+                            "size": 2475
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/geo",
+                    "name": "geo",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/albers-test.js",
+                            "name": "albers-test.js",
+                            "size": 1608
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/transverse-mercator-test.js",
+                            "name": "transverse-mercator-test.js",
+                            "size": 2500
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/area-benchmark.js",
+                            "name": "area-benchmark.js",
+                            "size": 295
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/area-test.js",
+                            "name": "area-test.js",
+                            "size": 7465
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/azimuthal-equal-area-test.js",
+                            "name": "azimuthal-equal-area-test.js",
+                            "size": 2136
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/azimuthal-equidistant-test.js",
+                            "name": "azimuthal-equidistant-test.js",
+                            "size": 2143
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/bounds-test.js",
+                            "name": "bounds-test.js",
+                            "size": 8596
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/centroid-test.js",
+                            "name": "centroid-test.js",
+                            "size": 10677
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/circle-test.js",
+                            "name": "circle-test.js",
+                            "size": 1677
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/clip-extent-test.js",
+                            "name": "clip-extent-test.js",
+                            "size": 5750
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/conic-conformal-test.js",
+                            "name": "conic-conformal-test.js",
+                            "size": 2119
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/conic-equal-area-test.js",
+                            "name": "conic-equal-area-test.js",
+                            "size": 2120
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/conic-equidistant-test.js",
+                            "name": "conic-equidistant-test.js",
+                            "size": 2127
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/distance-test.js",
+                            "name": "distance-test.js",
+                            "size": 597
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/equirectangular-test.js",
+                            "name": "equirectangular-test.js",
+                            "size": 2122
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/gnomonic-test.js",
+                            "name": "gnomonic-test.js",
+                            "size": 2094
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/albers-usa-test.js",
+                            "name": "albers-usa-test.js",
+                            "size": 1453
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/greatArc-test.js",
+                            "name": "greatArc-test.js",
+                            "size": 1015
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/interpolate-test.js",
+                            "name": "interpolate-test.js",
+                            "size": 686
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/length-test.js",
+                            "name": "length-test.js",
+                            "size": 2465
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/mercator-test.js",
+                            "name": "mercator-test.js",
+                            "size": 2094
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/orthographic-test.js",
+                            "name": "orthographic-test.js",
+                            "size": 2068
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/path-benchmark",
+                            "name": "path-benchmark",
+                            "size": 2831
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/path-test.js",
+                            "name": "path-test.js",
+                            "size": 47526
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/point-in-polygon-mock.js",
+                            "name": "point-in-polygon-mock.js",
+                            "size": 436
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/point-in-polygon-test.js",
+                            "name": "point-in-polygon-test.js",
+                            "size": 12746
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/projection-test-suite.js",
+                            "name": "projection-test-suite.js",
+                            "size": 851
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/projection-test.js",
+                            "name": "projection-test.js",
+                            "size": 1830
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/rotation-test.js",
+                            "name": "rotation-test.js",
+                            "size": 1062
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/stereographic-test.js",
+                            "name": "stereographic-test.js",
+                            "size": 2114
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/stream-test.js",
+                            "name": "stream-test.js",
+                            "size": 8036
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geo/graticule-test.js",
+                            "name": "graticule-test.js",
+                            "size": 9590
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/geom",
+                    "name": "geom",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geom/hull-test.js",
+                            "name": "hull-test.js",
+                            "size": 3912
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geom/polygon-test.js",
+                            "name": "polygon-test.js",
+                            "size": 5638
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geom/quadtree-test.js",
+                            "name": "quadtree-test.js",
+                            "size": 5613
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geom/voronoi-benchmark",
+                            "name": "voronoi-benchmark",
+                            "size": 582
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/geom/voronoi-test.js",
+                            "name": "voronoi-test.js",
+                            "size": 9816
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/XMLHttpRequest.js",
+                    "name": "XMLHttpRequest.js",
+                    "size": 1422
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate",
+                    "name": "interpolate",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/array-test.js",
+                            "name": "array-test.js",
+                            "size": 888
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/string-test.js",
+                            "name": "string-test.js",
+                            "size": 2767
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/hcl-test.js",
+                            "name": "hcl-test.js",
+                            "size": 2118
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/hsl-test.js",
+                            "name": "hsl-test.js",
+                            "size": 2134
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/interpolate-string-benchmark",
+                            "name": "interpolate-string-benchmark",
+                            "size": 1073
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/interpolate-test.js",
+                            "name": "interpolate-test.js",
+                            "size": 7011
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/ease-test.js",
+                            "name": "ease-test.js",
+                            "size": 5112
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/lab-test.js",
+                            "name": "lab-test.js",
+                            "size": 1230
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/number-test.js",
+                            "name": "number-test.js",
+                            "size": 589
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/object-test.js",
+                            "name": "object-test.js",
+                            "size": 1650
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/rgb-test.js",
+                            "name": "rgb-test.js",
+                            "size": 1223
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/round-test.js",
+                            "name": "round-test.js",
+                            "size": 459
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/interpolate/interpolate-transform-test.js",
+                            "name": "interpolate-transform-test.js",
+                            "size": 2380
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/layout",
+                    "name": "layout",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/chord-test.js",
+                            "name": "chord-test.js",
+                            "size": 8012
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/cluster-test.js",
+                            "name": "cluster-test.js",
+                            "size": 1259
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/force-test.js",
+                            "name": "force-test.js",
+                            "size": 3159
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/hierarchy-test.js",
+                            "name": "hierarchy-test.js",
+                            "size": 1503
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/histogram-test.js",
+                            "name": "histogram-test.js",
+                            "size": 2809
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/pack-test.js",
+                            "name": "pack-test.js",
+                            "size": 5196
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/partition-test.js",
+                            "name": "partition-test.js",
+                            "size": 1435
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/pie-test.js",
+                            "name": "pie-test.js",
+                            "size": 628
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/tree-test.js",
+                            "name": "tree-test.js",
+                            "size": 1571
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/layout/treemap-test.js",
+                            "name": "treemap-test.js",
+                            "size": 8087
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/load.js",
+                    "name": "load.js",
+                    "size": 1429
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/locale",
+                    "name": "locale",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/locale/locale-caes-test.js",
+                            "name": "locale-caes-test.js",
+                            "size": 4565
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/locale/locale-fifi-test.js",
+                            "name": "locale-fifi-test.js",
+                            "size": 4620
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/locale/locale-huhu-test.js",
+                            "name": "locale-huhu-test.js",
+                            "size": 4572
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/locale/locale-ptbr-test.js",
+                            "name": "locale-ptbr-test.js",
+                            "size": 4552
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/locale/locale-test.js",
+                            "name": "locale-test.js",
+                            "size": 4770
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/math",
+                    "name": "math",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/math/random-test.js",
+                            "name": "random-test.js",
+                            "size": 4116
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/math/transform-null-matrix-test.html",
+                            "name": "transform-null-matrix-test.html",
+                            "size": 589
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/math/transform-null-test.html",
+                            "name": "transform-null-test.html",
+                            "size": 579
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/math/transform-rotate-origin-test.html",
+                            "name": "transform-rotate-origin-test.html",
+                            "size": 875
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/math/transform-rotate-test.html",
+                            "name": "transform-rotate-test.html",
+                            "size": 3667
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/math/transform-test.html",
+                            "name": "transform-test.html",
+                            "size": 2139
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/scale",
+                    "name": "scale",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/category-test.js",
+                            "name": "category-test.js",
+                            "size": 2499
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/identity-test.js",
+                            "name": "identity-test.js",
+                            "size": 6873
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/linear-test.js",
+                            "name": "linear-test.js",
+                            "size": 15180
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/log-test.js",
+                            "name": "log-test.js",
+                            "size": 15914
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/ordinal-test.js",
+                            "name": "ordinal-test.js",
+                            "size": 16508
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/pow-test.js",
+                            "name": "pow-test.js",
+                            "size": 11221
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/quantile-test.js",
+                            "name": "quantile-test.js",
+                            "size": 5011
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/quantize-test.js",
+                            "name": "quantize-test.js",
+                            "size": 3607
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/sqrt-test.js",
+                            "name": "sqrt-test.js",
+                            "size": 11127
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/scale/threshold-test.js",
+                            "name": "threshold-test.js",
+                            "size": 2305
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/selection",
+                    "name": "selection",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/append-test.js",
+                            "name": "append-test.js",
+                            "size": 6038
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/text-test.js",
+                            "name": "text-test.js",
+                            "size": 4292
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/call-test.js",
+                            "name": "call-test.js",
+                            "size": 2286
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/classed-test.js",
+                            "name": "classed-test.js",
+                            "size": 12086
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/data-benchmark.js",
+                            "name": "data-benchmark.js",
+                            "size": 714
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/data-test.js",
+                            "name": "data-test.js",
+                            "size": 10198
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/datum-test.js",
+                            "name": "datum-test.js",
+                            "size": 3035
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/each-test.js",
+                            "name": "each-test.js",
+                            "size": 2770
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/empty-test.js",
+                            "name": "empty-test.js",
+                            "size": 1429
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/enter-test.js",
+                            "name": "enter-test.js",
+                            "size": 983
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/filter-test.js",
+                            "name": "filter-test.js",
+                            "size": 2681
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/html-test.js",
+                            "name": "html-test.js",
+                            "size": 5272
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/insert-test.js",
+                            "name": "insert-test.js",
+                            "size": 6838
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/interrupt-test.js",
+                            "name": "interrupt-test.js",
+                            "size": 4810
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/attr-test.js",
+                            "name": "attr-test.js",
+                            "size": 8618
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/on-test.js",
+                            "name": "on-test.js",
+                            "size": 5768
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/order-test.js",
+                            "name": "order-test.js",
+                            "size": 988
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/property-test.js",
+                            "name": "property-test.js",
+                            "size": 4421
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/remove-test.js",
+                            "name": "remove-test.js",
+                            "size": 1184
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/select-test.js",
+                            "name": "select-test.js",
+                            "size": 3520
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/selectAll-test.js",
+                            "name": "selectAll-test.js",
+                            "size": 1879
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/selection-select-test.js",
+                            "name": "selection-select-test.js",
+                            "size": 5306
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/selection-selectAll-test.js",
+                            "name": "selection-selectAll-test.js",
+                            "size": 5507
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/selection-test.js",
+                            "name": "selection-test.js",
+                            "size": 1374
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/size-test.js",
+                            "name": "size-test.js",
+                            "size": 1374
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/sort-test.js",
+                            "name": "sort-test.js",
+                            "size": 3355
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/style-test.js",
+                            "name": "style-test.js",
+                            "size": 6172
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/selection/node-test.js",
+                            "name": "node-test.js",
+                            "size": 1567
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/start.js",
+                    "name": "start.js",
+                    "size": 39
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/svg",
+                    "name": "svg",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/svg/arc-test.js",
+                            "name": "arc-test.js",
+                            "size": 9077
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/svg/area-radial-test.js",
+                            "name": "area-radial-test.js",
+                            "size": 9759
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/svg/area-test.js",
+                            "name": "area-test.js",
+                            "size": 7549
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/svg/axis-test.js",
+                            "name": "axis-test.js",
+                            "size": 20498
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/svg/brush-test.js",
+                            "name": "brush-test.js",
+                            "size": 4606
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/svg/diagonal-test.js",
+                            "name": "diagonal-test.js",
+                            "size": 2698
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/svg/line-radial-test.js",
+                            "name": "line-radial-test.js",
+                            "size": 5433
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/svg/line-test.js",
+                            "name": "line-test.js",
+                            "size": 11068
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/svg/symbol-test.js",
+                            "name": "symbol-test.js",
+                            "size": 5309
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/time",
+                    "name": "time",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/day-test.js",
+                            "name": "day-test.js",
+                            "size": 8689
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/years-test.js",
+                            "name": "years-test.js",
+                            "size": 2311
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/days-test.js",
+                            "name": "days-test.js",
+                            "size": 3053
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/format-iso-test.js",
+                            "name": "format-iso-test.js",
+                            "size": 1007
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/format-test.js",
+                            "name": "format-test.js",
+                            "size": 15873
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/format-utc-test.js",
+                            "name": "format-utc-test.js",
+                            "size": 9705
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/hour-test.js",
+                            "name": "hour-test.js",
+                            "size": 11602
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/hours-test.js",
+                            "name": "hours-test.js",
+                            "size": 3687
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/minute-test.js",
+                            "name": "minute-test.js",
+                            "size": 5964
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/minutes-test.js",
+                            "name": "minutes-test.js",
+                            "size": 3289
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/dayOfYear-test.js",
+                            "name": "dayOfYear-test.js",
+                            "size": 396
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/months-test.js",
+                            "name": "months-test.js",
+                            "size": 3011
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/scale-test.js",
+                            "name": "scale-test.js",
+                            "size": 28972
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/second-test.js",
+                            "name": "second-test.js",
+                            "size": 6720
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/seconds-test.js",
+                            "name": "seconds-test.js",
+                            "size": 3469
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/time.js",
+                            "name": "time.js",
+                            "size": 942
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/week-test.js",
+                            "name": "week-test.js",
+                            "size": 7736
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/weeks-test.js",
+                            "name": "weeks-test.js",
+                            "size": 3047
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/year-test.js",
+                            "name": "year-test.js",
+                            "size": 5838
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/time/month-test.js",
+                            "name": "month-test.js",
+                            "size": 6766
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/transition",
+                    "name": "transition",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-attr.js",
+                            "name": "transition-test-attr.js",
+                            "size": 2044
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test.js",
+                            "name": "transition-test.js",
+                            "size": 2751
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-call.js",
+                            "name": "transition-test-call.js",
+                            "size": 963
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-delay.js",
+                            "name": "transition-test-delay.js",
+                            "size": 2620
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-duration.js",
+                            "name": "transition-test-duration.js",
+                            "size": 3039
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-each.js",
+                            "name": "transition-test-each.js",
+                            "size": 6218
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-filter.js",
+                            "name": "transition-test-filter.js",
+                            "size": 2839
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-id.js",
+                            "name": "transition-test-id.js",
+                            "size": 655
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-node.js",
+                            "name": "transition-test-node.js",
+                            "size": 1274
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-remove.js",
+                            "name": "transition-test-remove.js",
+                            "size": 1788
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-attrTween.js",
+                            "name": "transition-test-attrTween.js",
+                            "size": 1915
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-selectAll.js",
+                            "name": "transition-test-selectAll.js",
+                            "size": 2132
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-size.js",
+                            "name": "transition-test-size.js",
+                            "size": 1087
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-style.js",
+                            "name": "transition-test-style.js",
+                            "size": 1955
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-styleTween.js",
+                            "name": "transition-test-styleTween.js",
+                            "size": 2191
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-text.js",
+                            "name": "transition-test-text.js",
+                            "size": 780
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-time.js",
+                            "name": "transition-test-time.js",
+                            "size": 1283
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-transition.js",
+                            "name": "transition-test-transition.js",
+                            "size": 1497
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-tween.js",
+                            "name": "transition-test-tween.js",
+                            "size": 1867
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/test/transition/transition-test-select.js",
+                            "name": "transition-test-select.js",
+                            "size": 2139
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/test/index-test.js",
+                    "name": "index-test.js",
+                    "size": 274
+                }
+            ]
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/CONTRIBUTING.md",
+            "name": "CONTRIBUTING.md",
+            "size": 2794
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/LICENSE",
+            "name": "LICENSE",
+            "size": 1429
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/Makefile",
+            "name": "Makefile",
+            "size": 759
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/README.md",
+            "name": "README.md",
+            "size": 709
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/bower.json",
+            "name": "bower.json",
+            "size": 350
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/component.json",
+            "name": "component.json",
+            "size": 330
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/composer.json",
+            "name": "composer.json",
+            "size": 614
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/d3.js",
+            "name": "d3.js",
+            "size": 336413
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/d3.min.js",
+            "name": "d3.min.js",
+            "size": 151143
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/index.js",
+            "name": "index.js",
+            "size": 211
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/lib",
+            "name": "lib",
+            "children": [
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/lib/colorbrewer",
+                    "name": "colorbrewer",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/colorbrewer/LICENSE",
+                            "name": "LICENSE",
+                            "size": 1710
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/colorbrewer/colorbrewer.css",
+                            "name": "colorbrewer.css",
+                            "size": 59899
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/colorbrewer/colorbrewer.js",
+                            "name": "colorbrewer.js",
+                            "size": 18990
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/lib/geographiclib",
+                    "name": "geographiclib",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/geographiclib/LICENSE",
+                            "name": "LICENSE",
+                            "size": 1130
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/lib/penner",
+                    "name": "penner",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/penner/LICENSE",
+                            "name": "LICENSE",
+                            "size": 1540
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/lib/polymaps",
+                    "name": "polymaps",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/polymaps/LICENSE",
+                            "name": "LICENSE",
+                            "size": 1468
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/lib/protovis",
+                    "name": "protovis",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/protovis/LICENSE",
+                            "name": "LICENSE",
+                            "size": 1504
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/lib/rhill-voronoi",
+                    "name": "rhill-voronoi",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/rhill-voronoi/LICENSE",
+                            "name": "LICENSE",
+                            "size": 1179
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/lib/science",
+                    "name": "science",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/science/LICENSE",
+                            "name": "LICENSE",
+                            "size": 1429
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/science/science.js",
+                            "name": "science.js",
+                            "size": 5744
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/science/science.lin.js",
+                            "name": "science.lin.js",
+                            "size": 599
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/science/science.lin.min.js",
+                            "name": "science.lin.min.js",
+                            "size": 209
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/science/science.min.js",
+                            "name": "science.min.js",
+                            "size": 3087
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/science/science.stats.js",
+                            "name": "science.stats.js",
+                            "size": 18779
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/lib/science/science.stats.min.js",
+                            "name": "science.stats.min.js",
+                            "size": 7081
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/package.js",
+            "name": "package.js",
+            "size": 365
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/package.json",
+            "name": "package.json",
+            "size": 1089
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/src",
+            "name": "src",
+            "children": [
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/xhr",
+                    "name": "xhr",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/xhr/html.js",
+                            "name": "html.js",
+                            "size": 308
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/xhr/index.js",
+                            "name": "index.js",
+                            "size": 73
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/xhr/json.js",
+                            "name": "json.js",
+                            "size": 189
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/xhr/text.js",
+                            "name": "text.js",
+                            "size": 91
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/xhr/xhr.js",
+                            "name": "xhr.js",
+                            "size": 4043
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/xhr/xml.js",
+                            "name": "xml.js",
+                            "size": 89
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/behavior",
+                    "name": "behavior",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/behavior/behavior.js",
+                            "name": "behavior.js",
+                            "size": 18
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/behavior/drag.js",
+                            "name": "drag.js",
+                            "size": 2887
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/behavior/index.js",
+                            "name": "index.js",
+                            "size": 49
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/behavior/zoom.js",
+                            "name": "zoom.js",
+                            "size": 11072
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/color",
+                    "name": "color",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/color/color.js",
+                            "name": "color.js",
+                            "size": 118
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/color/hcl.js",
+                            "name": "hcl.js",
+                            "size": 1032
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/color/hsl.js",
+                            "name": "hsl.js",
+                            "size": 1428
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/color/index.js",
+                            "name": "index.js",
+                            "size": 86
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/color/lab.js",
+                            "name": "lab.js",
+                            "size": 1676
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/color/rgb.js",
+                            "name": "rgb.js",
+                            "size": 7535
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/color/xyz.js",
+                            "name": "xyz.js",
+                            "size": 217
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/compat",
+                    "name": "compat",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/compat/array.js",
+                            "name": "array.js",
+                            "size": 391
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/compat/date.js",
+                            "name": "date.js",
+                            "size": 62
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/compat/index.js",
+                            "name": "index.js",
+                            "size": 47
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/compat/style.js",
+                            "name": "style.js",
+                            "size": 987
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/core",
+                    "name": "core",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/array.js",
+                            "name": "array.js",
+                            "size": 126
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/zero.js",
+                            "name": "zero.js",
+                            "size": 35
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/document.js",
+                            "name": "document.js",
+                            "size": 464
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/functor.js",
+                            "name": "functor.js",
+                            "size": 118
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/identity.js",
+                            "name": "identity.js",
+                            "size": 40
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/index.js",
+                            "name": "index.js",
+                            "size": 48
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/noop.js",
+                            "name": "noop.js",
+                            "size": 22
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/class.js",
+                            "name": "class.js",
+                            "size": 187
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/rebind.js",
+                            "name": "rebind.js",
+                            "size": 599
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/source.js",
+                            "name": "source.js",
+                            "size": 45
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/subclass.js",
+                            "name": "subclass.js",
+                            "size": 364
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/target.js",
+                            "name": "target.js",
+                            "size": 45
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/true.js",
+                            "name": "true.js",
+                            "size": 38
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/vendor.js",
+                            "name": "vendor.js",
+                            "size": 365
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/core/ns.js",
+                            "name": "ns.js",
+                            "size": 556
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/d3.js",
+                    "name": "d3.js",
+                    "size": 365
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/dsv",
+                    "name": "dsv",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/dsv/csv.js",
+                            "name": "csv.js",
+                            "size": 49
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/dsv/dsv.js",
+                            "name": "dsv.js",
+                            "size": 3779
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/dsv/index.js",
+                            "name": "index.js",
+                            "size": 42
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/dsv/tsv.js",
+                            "name": "tsv.js",
+                            "size": 67
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/end.js",
+                    "name": "end.js",
+                    "size": 161
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/event",
+                    "name": "event",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/event/dispatch.js",
+                            "name": "dispatch.js",
+                            "size": 1635
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/event/drag.js",
+                            "name": "drag.js",
+                            "size": 1155
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/event/event.js",
+                            "name": "event.js",
+                            "size": 1703
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/event/index.js",
+                            "name": "index.js",
+                            "size": 101
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/event/mouse.js",
+                            "name": "mouse.js",
+                            "size": 1319
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/event/timer.js",
+                            "name": "timer.js",
+                            "size": 2133
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/event/touch.js",
+                            "name": "touch.js",
+                            "size": 369
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/event/touches.js",
+                            "name": "touches.js",
+                            "size": 346
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/format",
+                    "name": "format",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/format/collapse.js",
+                            "name": "collapse.js",
+                            "size": 68
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/format/format.js",
+                            "name": "format.js",
+                            "size": 68
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/format/formatPrefix.js",
+                            "name": "formatPrefix.js",
+                            "size": 727
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/format/index.js",
+                            "name": "index.js",
+                            "size": 74
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/format/precision.js",
+                            "name": "precision.js",
+                            "size": 98
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/format/requote.js",
+                            "name": "requote.js",
+                            "size": 129
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/format/round.js",
+                            "name": "round.js",
+                            "size": 115
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/geo",
+                    "name": "geo",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/albers-usa.js",
+                            "name": "albers-usa.js",
+                            "size": 3878
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/transverse-mercator.js",
+                            "name": "transverse-mercator.js",
+                            "size": 823
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/area.js",
+                            "name": "area.js",
+                            "size": 2045
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/azimuthal-equal-area.js",
+                            "name": "azimuthal-equal-area.js",
+                            "size": 360
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/azimuthal-equidistant.js",
+                            "name": "azimuthal-equidistant.js",
+                            "size": 380
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/azimuthal.js",
+                            "name": "azimuthal.js",
+                            "size": 561
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/bounds.js",
+                            "name": "bounds.js",
+                            "size": 4841
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/cartesian.js",
+                            "name": "cartesian.js",
+                            "size": 889
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/centroid.js",
+                            "name": "centroid.js",
+                            "size": 4691
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/circle.js",
+                            "name": "circle.js",
+                            "size": 2275
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/clip-antimeridian.js",
+                            "name": "clip-antimeridian.js",
+                            "size": 2882
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/clip-circle.js",
+                            "name": "clip-circle.js",
+                            "size": 5883
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/clip-extent.js",
+                            "name": "clip-extent.js",
+                            "size": 5483
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/clip-polygon.js",
+                            "name": "clip-polygon.js",
+                            "size": 3056
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/clip.js",
+                            "name": "clip.js",
+                            "size": 4267
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/compose.js",
+                            "name": "compose.js",
+                            "size": 250
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/conic-conformal.js",
+                            "name": "conic-conformal.js",
+                            "size": 1055
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/conic-equal-area.js",
+                            "name": "conic-equal-area.js",
+                            "size": 755
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/conic-equidistant.js",
+                            "name": "conic-equidistant.js",
+                            "size": 817
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/conic.js",
+                            "name": "conic.js",
+                            "size": 372
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/distance.js",
+                            "name": "distance.js",
+                            "size": 581
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/equirectangular.js",
+                            "name": "equirectangular.js",
+                            "size": 256
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/geo.js",
+                            "name": "geo.js",
+                            "size": 13
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/albers.js",
+                            "name": "albers.js",
+                            "size": 223
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/graticule.js",
+                            "name": "graticule.js",
+                            "size": 3028
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/greatArc.js",
+                            "name": "greatArc.js",
+                            "size": 1042
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/index.js",
+                            "name": "index.js",
+                            "size": 703
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/interpolate.js",
+                            "name": "interpolate.js",
+                            "size": 1068
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/length.js",
+                            "name": "length.js",
+                            "size": 1175
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/mercator.js",
+                            "name": "mercator.js",
+                            "size": 1175
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/orthographic.js",
+                            "name": "orthographic.js",
+                            "size": 259
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/path-area.js",
+                            "name": "path-area.js",
+                            "size": 1041
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/path-bounds.js",
+                            "name": "path-bounds.js",
+                            "size": 543
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/path-buffer.js",
+                            "name": "path-buffer.js",
+                            "size": 1345
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/path-centroid.js",
+                            "name": "path-centroid.js",
+                            "size": 2171
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/path-context.js",
+                            "name": "path-context.js",
+                            "size": 1027
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/path.js",
+                            "name": "path.js",
+                            "size": 2939
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/point-in-polygon.js",
+                            "name": "point-in-polygon.js",
+                            "size": 2478
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/projection.js",
+                            "name": "projection.js",
+                            "size": 3463
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/resample.js",
+                            "name": "resample.js",
+                            "size": 3229
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/rotation.js",
+                            "name": "rotation.js",
+                            "size": 2351
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/spherical.js",
+                            "name": "spherical.js",
+                            "size": 280
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/stereographic.js",
+                            "name": "stereographic.js",
+                            "size": 325
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/stream.js",
+                            "name": "stream.js",
+                            "size": 2514
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/transform.js",
+                            "name": "transform.js",
+                            "size": 1023
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geo/gnomonic.js",
+                            "name": "gnomonic.js",
+                            "size": 266
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/arrays",
+                    "name": "arrays",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/ascending.js",
+                            "name": "ascending.js",
+                            "size": 114
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/zip.js",
+                            "name": "zip.js",
+                            "size": 343
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/descending.js",
+                            "name": "descending.js",
+                            "size": 88
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/deviation.js",
+                            "name": "deviation.js",
+                            "size": 128
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/entries.js",
+                            "name": "entries.js",
+                            "size": 136
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/extent.js",
+                            "name": "extent.js",
+                            "size": 569
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/index.js",
+                            "name": "index.js",
+                            "size": 418
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/keys.js",
+                            "name": "keys.js",
+                            "size": 100
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/map.js",
+                            "name": "map.js",
+                            "size": 1974
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/max.js",
+                            "name": "max.js",
+                            "size": 464
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/mean.js",
+                            "name": "mean.js",
+                            "size": 379
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/median.js",
+                            "name": "median.js",
+                            "size": 463
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/merge.js",
+                            "name": "merge.js",
+                            "size": 336
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/bisect.js",
+                            "name": "bisect.js",
+                            "size": 898
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/nest.js",
+                            "name": "nest.js",
+                            "size": 2116
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/pairs.js",
+                            "name": "pairs.js",
+                            "size": 191
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/permute.js",
+                            "name": "permute.js",
+                            "size": 160
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/quantile.js",
+                            "name": "quantile.js",
+                            "size": 239
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/range.js",
+                            "name": "range.js",
+                            "size": 641
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/set.js",
+                            "name": "set.js",
+                            "size": 557
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/shuffle.js",
+                            "name": "shuffle.js",
+                            "size": 283
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/sum.js",
+                            "name": "sum.js",
+                            "size": 346
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/transpose.js",
+                            "name": "transpose.js",
+                            "size": 87
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/values.js",
+                            "name": "values.js",
+                            "size": 113
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/variance.js",
+                            "name": "variance.js",
+                            "size": 561
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/arrays/min.js",
+                            "name": "min.js",
+                            "size": 464
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate",
+                    "name": "interpolate",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/array.js",
+                            "name": "array.js",
+                            "size": 446
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/zoom.js",
+                            "name": "zoom.js",
+                            "size": 1148
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/hcl.js",
+                            "name": "hcl.js",
+                            "size": 525
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/hsl.js",
+                            "name": "hsl.js",
+                            "size": 525
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/index.js",
+                            "name": "index.js",
+                            "size": 235
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/interpolate.js",
+                            "name": "interpolate.js",
+                            "size": 713
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/lab.js",
+                            "name": "lab.js",
+                            "size": 341
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/ease.js",
+                            "name": "ease.js",
+                            "size": 2576
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/object.js",
+                            "name": "object.js",
+                            "size": 406
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/rgb.js",
+                            "name": "rgb.js",
+                            "size": 428
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/round.js",
+                            "name": "round.js",
+                            "size": 149
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/string.js",
+                            "name": "string.js",
+                            "size": 1881
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/transform.js",
+                            "name": "transform.js",
+                            "size": 1637
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/uninterpolate.js",
+                            "name": "uninterpolate.js",
+                            "size": 262
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/interpolate/number.js",
+                            "name": "number.js",
+                            "size": 158
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/layout",
+                    "name": "layout",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/bundle.js",
+                            "name": "bundle.js",
+                            "size": 1518
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/treemap.js",
+                            "name": "treemap.js",
+                            "size": 6549
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/cluster.js",
+                            "name": "cluster.js",
+                            "size": 2670
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/force.js",
+                            "name": "force.js",
+                            "size": 9458
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/hierarchy.js",
+                            "name": "hierarchy.js",
+                            "size": 3525
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/histogram.js",
+                            "name": "histogram.js",
+                            "size": 3510
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/index.js",
+                            "name": "index.js",
+                            "size": 222
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/chord.js",
+                            "name": "chord.js",
+                            "size": 3573
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/pack.js",
+                            "name": "pack.js",
+                            "size": 5278
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/partition.js",
+                            "name": "partition.js",
+                            "size": 1147
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/pie.js",
+                            "name": "pie.js",
+                            "size": 1960
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/stack.js",
+                            "name": "stack.js",
+                            "size": 5478
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/tree.js",
+                            "name": "tree.js",
+                            "size": 7592
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/layout/layout.js",
+                            "name": "layout.js",
+                            "size": 16
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/locale",
+                    "name": "locale",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/ca-ES.js",
+                            "name": "ca-ES.js",
+                            "size": 634
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/zh-CN.js",
+                            "name": "zh-CN.js",
+                            "size": 722
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/de-DE.js",
+                            "name": "de-DE.js",
+                            "size": 624
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/en-CA.js",
+                            "name": "en-CA.js",
+                            "size": 610
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/en-GB.js",
+                            "name": "en-GB.js",
+                            "size": 611
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/en-US.js",
+                            "name": "en-US.js",
+                            "size": 610
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/es-ES.js",
+                            "name": "es-ES.js",
+                            "size": 624
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/fi-FI.js",
+                            "name": "fi-FI.js",
+                            "size": 681
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/fr-CA.js",
+                            "name": "fr-CA.js",
+                            "size": 609
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/fr-FR.js",
+                            "name": "fr-FR.js",
+                            "size": 650
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/he-IL.js",
+                            "name": "he-IL.js",
+                            "size": 734
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/hu-HU.js",
+                            "name": "hu-HU.js",
+                            "size": 669
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/it-IT.js",
+                            "name": "it-IT.js",
+                            "size": 636
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/de-CH.js",
+                            "name": "de-CH.js",
+                            "size": 624
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/ko-KR.js",
+                            "name": "ko-KR.js",
+                            "size": 625
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/locale.js",
+                            "name": "locale.js",
+                            "size": 192
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/mk-MK.js",
+                            "name": "mk-MK.js",
+                            "size": 795
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/nl-NL.js",
+                            "name": "nl-NL.js",
+                            "size": 620
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/number-format.js",
+                            "name": "number-format.js",
+                            "size": 5642
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/pl-PL.js",
+                            "name": "pl-PL.js",
+                            "size": 800
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/pt-BR.js",
+                            "name": "pt-BR.js",
+                            "size": 618
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/ru-RU.js",
+                            "name": "ru-RU.js",
+                            "size": 794
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/sv-SE.js",
+                            "name": "sv-SE.js",
+                            "size": 618
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/time-format.js",
+                            "name": "time-format.js",
+                            "size": 12250
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/time-scale.js",
+                            "name": "time-scale.js",
+                            "size": 0
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/locale/ja-JP.js",
+                            "name": "ja-JP.js",
+                            "size": 643
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/math",
+                    "name": "math",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/math/abs.js",
+                            "name": "abs.js",
+                            "size": 20
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/math/adder.js",
+                            "name": "adder.js",
+                            "size": 990
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/math/index.js",
+                            "name": "index.js",
+                            "size": 37
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/math/number.js",
+                            "name": "number.js",
+                            "size": 106
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/math/random.js",
+                            "name": "random.js",
+                            "size": 791
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/math/transform.js",
+                            "name": "transform.js",
+                            "size": 1686
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/math/trigonometry.js",
+                            "name": "trigonometry.js",
+                            "size": 1054
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/scale",
+                    "name": "scale",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/bilinear.js",
+                            "name": "bilinear.js",
+                            "size": 212
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/threshold.js",
+                            "name": "threshold.js",
+                            "size": 680
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/identity.js",
+                            "name": "identity.js",
+                            "size": 653
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/index.js",
+                            "name": "index.js",
+                            "size": 190
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/linear.js",
+                            "name": "linear.js",
+                            "size": 4698
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/log.js",
+                            "name": "log.js",
+                            "size": 2647
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/nice.js",
+                            "name": "nice.js",
+                            "size": 618
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/category.js",
+                            "name": "category.js",
+                            "size": 1501
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/polylinear.js",
+                            "name": "polylinear.js",
+                            "size": 569
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/pow.js",
+                            "name": "pow.js",
+                            "size": 1289
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/quantile.js",
+                            "name": "quantile.js",
+                            "size": 1223
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/quantize.js",
+                            "name": "quantize.js",
+                            "size": 869
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/scale.js",
+                            "name": "scale.js",
+                            "size": 283
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/sqrt.js",
+                            "name": "sqrt.js",
+                            "size": 101
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/scale/ordinal.js",
+                            "name": "ordinal.js",
+                            "size": 3260
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/selection",
+                    "name": "selection",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/append.js",
+                            "name": "append.js",
+                            "size": 701
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/transition.js",
+                            "name": "transition.js",
+                            "size": 683
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/call.js",
+                            "name": "call.js",
+                            "size": 187
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/classed.js",
+                            "name": "classed.js",
+                            "size": 2512
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/data.js",
+                            "name": "data.js",
+                            "size": 2862
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/datum.js",
+                            "name": "datum.js",
+                            "size": 174
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/each.js",
+                            "name": "each.js",
+                            "size": 436
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/empty.js",
+                            "name": "empty.js",
+                            "size": 90
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/enter-insert.js",
+                            "name": "enter-insert.js",
+                            "size": 538
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/enter-select.js",
+                            "name": "enter-select.js",
+                            "size": 678
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/enter.js",
+                            "name": "enter.js",
+                            "size": 676
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/filter.js",
+                            "name": "filter.js",
+                            "size": 676
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/html.js",
+                            "name": "html.js",
+                            "size": 380
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/index.js",
+                            "name": "index.js",
+                            "size": 20
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/attr.js",
+                            "name": "attr.js",
+                            "size": 1974
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/interrupt.js",
+                            "name": "interrupt.js",
+                            "size": 721
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/node.js",
+                            "name": "node.js",
+                            "size": 265
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/on.js",
+                            "name": "on.js",
+                            "size": 2878
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/order.js",
+                            "name": "order.js",
+                            "size": 375
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/property.js",
+                            "name": "property.js",
+                            "size": 1379
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/remove.js",
+                            "name": "remove.js",
+                            "size": 289
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/select.js",
+                            "name": "select.js",
+                            "size": 825
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/selectAll.js",
+                            "name": "selectAll.js",
+                            "size": 686
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/selection.js",
+                            "name": "selection.js",
+                            "size": 1933
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/size.js",
+                            "name": "size.js",
+                            "size": 134
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/sort.js",
+                            "name": "sort.js",
+                            "size": 471
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/style.js",
+                            "name": "style.js",
+                            "size": 2125
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/text.js",
+                            "name": "text.js",
+                            "size": 388
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/selection/insert.js",
+                            "name": "insert.js",
+                            "size": 297
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/start.js",
+                    "name": "start.js",
+                    "size": 54
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/svg",
+                    "name": "svg",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/arc.js",
+                            "name": "arc.js",
+                            "size": 8788
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/symbol.js",
+                            "name": "symbol.js",
+                            "size": 2405
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/area.js",
+                            "name": "area.js",
+                            "size": 2819
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/axis.js",
+                            "name": "axis.js",
+                            "size": 5366
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/brush.js",
+                            "name": "brush.js",
+                            "size": 13119
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/chord.js",
+                            "name": "chord.js",
+                            "size": 2067
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/area-radial.js",
+                            "name": "area-radial.js",
+                            "size": 406
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/diagonal.js",
+                            "name": "diagonal.js",
+                            "size": 985
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/index.js",
+                            "name": "index.js",
+                            "size": 211
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/line-radial.js",
+                            "name": "line-radial.js",
+                            "size": 532
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/line.js",
+                            "name": "line.js",
+                            "size": 12011
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/svg.js",
+                            "name": "svg.js",
+                            "size": 13
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/svg/diagonal-radial.js",
+                            "name": "diagonal-radial.js",
+                            "size": 652
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/time",
+                    "name": "time",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/day.js",
+                            "name": "day.js",
+                            "size": 597
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/year.js",
+                            "name": "year.js",
+                            "size": 375
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/format-utc.js",
+                            "name": "format-utc.js",
+                            "size": 62
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/format.js",
+                            "name": "format.js",
+                            "size": 107
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/hour.js",
+                            "name": "hour.js",
+                            "size": 452
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/index.js",
+                            "name": "index.js",
+                            "size": 238
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/interval.js",
+                            "name": "interval.js",
+                            "size": 1505
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/format-iso.js",
+                            "name": "format-iso.js",
+                            "size": 511
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/month.js",
+                            "name": "month.js",
+                            "size": 367
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/scale-utc.js",
+                            "name": "scale-utc.js",
+                            "size": 856
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/scale.js",
+                            "name": "scale.js",
+                            "size": 4394
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/second.js",
+                            "name": "second.js",
+                            "size": 391
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/time.js",
+                            "name": "time.js",
+                            "size": 1652
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/week.js",
+                            "name": "week.js",
+                            "size": 1007
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/time/minute.js",
+                            "name": "minute.js",
+                            "size": 391
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/transition",
+                    "name": "transition",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/attr.js",
+                            "name": "attr.js",
+                            "size": 2046
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/tween.js",
+                            "name": "tween.js",
+                            "size": 767
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/duration.js",
+                            "name": "duration.js",
+                            "size": 471
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/each.js",
+                            "name": "each.js",
+                            "size": 796
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/ease.js",
+                            "name": "ease.js",
+                            "size": 387
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/filter.js",
+                            "name": "filter.js",
+                            "size": 579
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/index.js",
+                            "name": "index.js",
+                            "size": 21
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/delay.js",
+                            "name": "delay.js",
+                            "size": 435
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/select.js",
+                            "name": "select.js",
+                            "size": 771
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/selectAll.js",
+                            "name": "selectAll.js",
+                            "size": 843
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/style.js",
+                            "name": "style.js",
+                            "size": 1998
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/subtransition.js",
+                            "name": "subtransition.js",
+                            "size": 714
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/text.js",
+                            "name": "text.js",
+                            "size": 268
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/transition.js",
+                            "name": "transition.js",
+                            "size": 3500
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/transition/remove.js",
+                            "name": "remove.js",
+                            "size": 238
+                        }
+                    ]
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/src/geom",
+                    "name": "geom",
+                    "children": [
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/clip-line.js",
+                            "name": "clip-line.js",
+                            "size": 1337
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/delaunay.js",
+                            "name": "delaunay.js",
+                            "size": 162
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/geom.js",
+                            "name": "geom.js",
+                            "size": 14
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/hull.js",
+                            "name": "hull.js",
+                            "size": 2812
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/index.js",
+                            "name": "index.js",
+                            "size": 104
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/point.js",
+                            "name": "point.js",
+                            "size": 93
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/polygon.js",
+                            "name": "polygon.js",
+                            "size": 2473
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/quadtree.js",
+                            "name": "quadtree.js",
+                            "size": 6948
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/voronoi",
+                            "name": "voronoi",
+                            "children": [
+                                {
+                                    "path": "/Users/vitalykravchenko/Sites/d3/src/geom/voronoi/beach.js",
+                                    "name": "beach.js",
+                                    "size": 4710
+                                },
+                                {
+                                    "path": "/Users/vitalykravchenko/Sites/d3/src/geom/voronoi/cell.js",
+                                    "name": "cell.js",
+                                    "size": 1825
+                                },
+                                {
+                                    "path": "/Users/vitalykravchenko/Sites/d3/src/geom/voronoi/circle.js",
+                                    "name": "circle.js",
+                                    "size": 1683
+                                },
+                                {
+                                    "path": "/Users/vitalykravchenko/Sites/d3/src/geom/voronoi/clip.js",
+                                    "name": "clip.js",
+                                    "size": 1936
+                                },
+                                {
+                                    "path": "/Users/vitalykravchenko/Sites/d3/src/geom/voronoi/edge.js",
+                                    "name": "edge.js",
+                                    "size": 1573
+                                },
+                                {
+                                    "path": "/Users/vitalykravchenko/Sites/d3/src/geom/voronoi/index.js",
+                                    "name": "index.js",
+                                    "size": 1530
+                                },
+                                {
+                                    "path": "/Users/vitalykravchenko/Sites/d3/src/geom/voronoi/red-black.js",
+                                    "name": "red-black.js",
+                                    "size": 5507
+                                }
+                            ]
+                        },
+                        {
+                            "path": "/Users/vitalykravchenko/Sites/d3/src/geom/voronoi.js",
+                            "name": "voronoi.js",
+                            "size": 3009
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "path": "/Users/vitalykravchenko/Sites/d3/bin",
+            "name": "bin",
+            "children": [
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/bin/component",
+                    "name": "component",
+                    "size": 358
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/bin/meteor",
+                    "name": "meteor",
+                    "size": 576
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/bin/start",
+                    "name": "start",
+                    "size": 143
+                },
+                {
+                    "path": "/Users/vitalykravchenko/Sites/d3/bin/uglify",
+                    "name": "uglify",
+                    "size": 890
+                }
+            ]
+        }
+    ]
+}

@@ -1,14 +1,17 @@
 Ext.define('KitchenSink.view.binding.Formula', {
     extend: 'Ext.form.Panel',
 
-    //<example>
+    // <example>
     otherContent: [{
         type: 'ViewModel',
         path: 'modern/src/view/binding/FormulaModel.js'
     }],
-    //</example>
+    // </example>
     
     viewModel: 'binding-formula',
+
+    shadow: true,
+    cls: 'demo-solid-background',
 
     items: {
         xtype: 'fieldset',

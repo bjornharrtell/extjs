@@ -80,18 +80,20 @@
  * Note that if {@link Ext.grid.plugin.CellEditing cell editing} or the {@link Ext.selection.CellModel cell selection model} are going
  * to be used, then the {@link Ext.grid.feature.RowBody RowBody} feature, or {@link Ext.grid.plugin.RowExpander RowExpander} plugin MUST
  * be used for intra-cell navigation to be correct.
+ *
+ * **Note:** The {@link Ext.grid.plugin.RowExpander rowexpander} plugin and the rowbody
+ * feature are exclusive and cannot both be set on the same grid / tree.
  */
 Ext.define('Ext.grid.feature.RowBody', {
     extend: 'Ext.grid.feature.Feature',
     alias: 'feature.rowbody',
 
     rowBodyCls: Ext.baseCSSPrefix + 'grid-row-body',
+    innerSelector: '.' + Ext.baseCSSPrefix + 'grid-rowbody',
     rowBodyHiddenCls: Ext.baseCSSPrefix + 'grid-row-body-hidden',
     rowBodyTdSelector: 'td.' + Ext.baseCSSPrefix + 'grid-cell-rowbody',
     eventPrefix: 'rowbody',
     eventSelector: 'tr.' + Ext.baseCSSPrefix + 'grid-rowbody-tr',
-
-    colSpanDecrement: 0,
 
     /**
      * @cfg {Boolean} [bodyBefore=false]
@@ -101,12 +103,29 @@ Ext.define('Ext.grid.feature.RowBody', {
 
     outerTpl: {
         fn: function(out, values, parent) {
-            var view = values.view,
-                rowValues = view.rowValues;
+            var me = this.rowBody,
+                view = values.view,
+                columns = view.getVisibleColumnManager().getColumns(),
+                rowValues = view.rowValues,
+                rowExpanderCol = me.rowExpander && me.rowExpander.expanderColumn;
 
-            this.rowBody.setup(values.rows, rowValues);
+            rowValues.rowBodyColspan = columns.length;
+            rowValues.rowBodyCls = me.rowBodyCls;
+            rowValues.rowIdCls = me.rowIdCls;
+            
+            if (rowExpanderCol && rowExpanderCol.getView() === view) {
+                view.grid.removeCls(Ext.baseCSSPrefix + 'grid-hide-row-expander-spacer');
+                rowValues.addSpacerCell = true;
+                rowValues.rowBodyColspan -= 1;
+                rowValues.spacerCellCls = Ext.baseCSSPrefix + 'grid-cell ' + Ext.baseCSSPrefix + 'grid-row-expander-spacer ' +  Ext.baseCSSPrefix + 'grid-cell-special';
+            } else {
+                view.grid.addCls(Ext.baseCSSPrefix + 'grid-hide-row-expander-spacer');
+                rowValues.addSpacerCell = false;
+            }
+
             this.nextTpl.applyOut(values, out, parent);
-            this.rowBody.cleanup(values.rows, rowValues);
+
+            rowValues.rowBodyCls = rowValues.rowBodyColspan = rowValues.rowBody = null;
         },
         priority: 100
     },
@@ -122,7 +141,10 @@ Ext.define('Ext.grid.feature.RowBody', {
             '}',
             'values.view.rowBodyFeature.setupRowData(values.record, values.recordIndex, values);',
         '%}',
-        '<tr class="' + Ext.baseCSSPrefix + 'grid-rowbody-tr {rowBodyCls}" {ariaRowAttr}>',
+        '<tr class="' + Ext.baseCSSPrefix + 'grid-rowbody-tr {rowBodyCls} {rowIdCls}" {ariaRowAttr}>',
+            '<tpl if="addSpacerCell">',
+                '<td class="{spacerCellCls}"></td>',
+            '</tpl>',
             '<td class="' + Ext.baseCSSPrefix + 'grid-td ' + Ext.baseCSSPrefix + 'grid-cell-rowbody" colspan="{rowBodyColspan}" {ariaCellAttr}>',
                 '<div class="' + Ext.baseCSSPrefix + 'grid-rowbody {rowBodyDivCls}" {ariaCellInnerAttr}>{rowBody}</div>',
             '</td>',
@@ -155,15 +177,15 @@ Ext.define('Ext.grid.feature.RowBody', {
         var me = this,
             view = me.view = grid.getView();
 
+        // <debug>
+        if (!me.rowExpander && grid.findPlugin('rowexpander')) {
+            Ext.raise('The RowBody feature shouldn\'t be manually added when the grid has a RowExpander.');
+        }
+        // </debug>
+
         // The extra data means variableRowHeight
         grid.variableRowHeight = view.variableRowHeight = true;
         view.rowBodyFeature = me;
-
-        grid.mon(view, {
-            element: 'el',
-            click: me.onClick,
-            scope: me
-        });
 
         view.headerCt.on({
             columnschanged: me.onColumnsChanged,
@@ -172,19 +194,6 @@ Ext.define('Ext.grid.feature.RowBody', {
         view.addTpl(me.outerTpl).rowBody = me;
         view.addRowTpl(Ext.XTemplate.getTpl(this, 'extraRowTpl')).rowBody = me;
         me.callParent(arguments);
-    },
-
-    // Needed to select the data row when clicked on the body row.
-    onClick: function(e) {
-        var me = this,
-            tableRow = e.getTarget(me.eventSelector);
-
-        // If we have clicked on a row body TR and its previous (or next - we can put the body first) sibling is a grid row,
-        // pass that onto the view for processing
-        if (tableRow && Ext.fly(tableRow = (tableRow.previousSibling || tableRow.nextSibling)).is(me.view.rowSelector)) {
-            e.target = tableRow;
-            me.view.handleEvent(e);
-        }
     },
 
     getSelectedRow: function(view, rowIndex) {
@@ -238,15 +247,6 @@ Ext.define('Ext.grid.feature.RowBody', {
         if (this.getAdditionalData) {
             Ext.apply(rowValues, this.getAdditionalData(record.data, rowIndex, record, rowValues));
         }
-    },
-
-    setup: function(rows, rowValues) {
-        rowValues.rowBodyCls = this.rowBodyCls;
-        rowValues.rowBodyColspan = this.view.headerCt.visibleColumnManager.getColumns().length - this.colSpanDecrement;
-    },
-
-    cleanup: function(rows, rowValues) {
-        rowValues.rowBodyCls = rowValues.rowBodyColspan = rowValues.rowBody = null;
     }
     
     /**

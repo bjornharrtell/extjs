@@ -19,7 +19,8 @@ Ext.define('Ext.form.field.Picker', {
         triggers: {
             picker: {
                 handler: 'onTriggerClick',
-                scope: 'this'
+                scope: 'this',
+                focusOnMousedown: true
             }
         }
     },
@@ -31,8 +32,15 @@ Ext.define('Ext.form.field.Picker', {
          * selecting a value from the picker. In this state, the picker can also be opened by clicking directly on the input
          * field itself.
          */
-        editable: true        
+        editable: true
     },
+    
+    keyMap: {
+        scope: 'this',
+        DOWN: 'onDownArrow',
+        ESC: 'onEsc'
+    },
+    keyMapTarget: 'inputEl',
 
     /**
      * @property {Boolean} isPickerField
@@ -109,18 +117,18 @@ Ext.define('Ext.form.field.Picker', {
     
     getSubTplData: function(fieldData) {
         var me = this,
-            data, inputElAttr;
+            data, ariaAttr;
         
         data = me.callParent([fieldData]);
         
-        if (me.ariaRole) {
-            inputElAttr = data.inputElAriaAttributes;
+        if (!me.ariaStaticRoles[me.ariaRole]) {
+            ariaAttr = data.ariaElAttributes;
             
-            if (inputElAttr) {
-                inputElAttr['aria-haspopup'] = true;
+            if (ariaAttr) {
+                ariaAttr['aria-haspopup'] = true;
                 
                 // Picker fields start as collapsed
-                inputElAttr['aria-expanded'] = false;
+                ariaAttr['aria-expanded'] = false;
             }
         }
         
@@ -128,24 +136,11 @@ Ext.define('Ext.form.field.Picker', {
     },
 
     initEvents: function() {
-        var me = this;
-        me.callParent();
-
-        // Add handlers for keys to expand/collapse the picker
-        me.keyNav = new Ext.util.KeyNav(me.inputEl, {
-            down: me.onDownArrow,
-            esc: {
-                handler: me.onEsc,
-                scope: me,
-                defaultEventAction: false
-            },
-            scope: me,
-            forceKeyDown: true
-        });
+        this.callParent();
 
         // Disable native browser autocomplete
         if (Ext.isGecko) {
-            me.inputEl.dom.setAttribute('autocomplete', 'off');
+            this.inputEl.dom.setAttribute('autocomplete', 'off');
         }
     },
 
@@ -192,11 +187,11 @@ Ext.define('Ext.form.field.Picker', {
 
             // Don't call expand() directly as there may be additional processing involved before
             // expanding, e.g. in the case of a ComboBox query.
-            me.onTriggerClick();
+            me.onTriggerClick(e);
             
             me.lastDownArrow = e.time;
         }
-        else if (!e.isStopped && (e.time - me.lastDownArrow) < 150) {
+        else if (!e.stopped && (e.time - me.lastDownArrow) < 150) {
             delete me.lastDownArrow;
         }
     },
@@ -206,7 +201,7 @@ Ext.define('Ext.form.field.Picker', {
      */
     expand: function() {
         var me = this,
-            bodyEl, ariaDom, picker, doc;
+            bodyEl, picker, doc;
 
         if (me.rendered && !me.isExpanded && !me.destroyed) {
             bodyEl = me.bodyEl;
@@ -224,11 +219,12 @@ Ext.define('Ext.form.field.Picker', {
             me.alignPicker();
             bodyEl.addCls(me.openCls);
             
-            if (me.ariaRole) {
-                ariaDom = me.ariaEl.dom;
+            if (!me.ariaStaticRoles[me.ariaRole]) {
+                if (!me.ariaEl.dom.hasAttribute('aria-owns')) {
+                    me.ariaEl.dom.setAttribute('aria-owns', picker.listEl ? picker.listEl.id : picker.el.id);
+                }
                 
-                ariaDom.setAttribute('aria-owns', picker.listEl ? picker.listEl.id : picker.el.id);
-                ariaDom.setAttribute('aria-expanded', true);
+                me.ariaEl.dom.setAttribute('aria-expanded', true);
             }
 
             // Collapse on touch outside this component tree.
@@ -265,11 +261,14 @@ Ext.define('Ext.form.field.Picker', {
      * @protected
      */
     alignPicker: function() {
-        if (!this.destroyed) {
-            var picker = this.getPicker();
+        var me = this,
+            picker;
+
+        if (me.rendered && !me.destroyed) {
+            picker = me.getPicker();
 
             if (picker.isVisible() && picker.isFloating()) {
-                this.doAlign();
+                me.doAlign();
             }
         }
     },
@@ -282,11 +281,19 @@ Ext.define('Ext.form.field.Picker', {
         var me = this,
             picker = me.picker,
             aboveSfx = '-above',
+            newPos,
             isAbove;
 
         // Align to the trigger wrap because the border isn't always on the input element, which
         // can cause the offset to be off
-        me.picker.alignTo(me.triggerWrap, me.pickerAlign, me.pickerOffset);
+        picker.el.alignTo(me.triggerWrap, me.pickerAlign, me.pickerOffset);
+
+        // We used *element* alignTo to bypass the automatic reposition on scroll which
+        // Floating#alignTo does. So we must sync the Component state.
+        newPos = picker.floatParent ? picker.getOffsetsTo(picker.floatParent.getTargetEl()) : picker.getXY();
+        picker.x = newPos[0];
+        picker.y = newPos[1];
+
         // add the {openCls}-above class if the picker was aligned above
         // the field due to hitting the bottom of the viewport
         isAbove = picker.el.getY() < me.inputEl.getY();
@@ -313,7 +320,7 @@ Ext.define('Ext.form.field.Picker', {
             me.bodyEl.removeCls([openCls, openCls + aboveSfx]);
             picker.el.removeCls(picker.baseCls + aboveSfx);
             
-            if (me.ariaRole) {
+            if (!me.ariaStaticRoles[me.ariaRole]) {
                 me.ariaEl.dom.setAttribute('aria-expanded', false);
             }
 
@@ -404,34 +411,25 @@ Ext.define('Ext.form.field.Picker', {
         }
     },
 
-    beforeDestroy : function(){
+    doDestroy: function(){
         var me = this,
             picker = me.picker;
 
-        me.callParent();
         Ext.un('resize', me.alignPicker, me);
         Ext.destroy(me.keyNav, picker);
+        
         if (picker) {
             me.picker = picker.pickerField = null;
         }
+
+        me.callParent();
     },
 
     privates: {
         onGlobalScroll: function (scroller) {
-            var scrollPosition,
-               newScrollPosition,
-               targetEl = this.el;
-
-            // Collapse if this field being moved by the scroll the scroll
-            if (scroller.getElement().contains(targetEl)) {
-                scrollPosition = scroller.getPosition();
-                newScrollPosition = targetEl.getScrollIntoViewXY(scroller.getElement(), scrollPosition.x, scrollPosition.y);
-
-                // If this field is part of a fixed position component, or
-                //    this field is out of the scroller element's view in any way, collapse
-                if (this.up('[fixed]') || newScrollPosition.y !== scrollPosition.y || newScrollPosition.x !== scrollPosition.x) {
-                    this.collapse();
-                }
+            // Collapse if the scroll is anywhere but inside the picker
+            if (!this.picker.owns(scroller.getElement())) {
+                this.collapse();
             }
         }
     }

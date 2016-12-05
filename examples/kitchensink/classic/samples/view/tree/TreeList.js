@@ -25,7 +25,7 @@ Ext.define('KitchenSink.view.tree.TreeList', {
     title: 'TreeList',
     controller: 'tree-list',
 
-    iconCls: 'fa fa-gears',
+    iconCls: 'x-fa fa-gears',
     layout: 'border',
 
     viewModel: {

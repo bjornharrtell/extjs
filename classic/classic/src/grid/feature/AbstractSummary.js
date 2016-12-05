@@ -194,7 +194,7 @@ Ext.define('Ext.grid.feature.AbstractSummary', {
 
             switch (type) {
                 case 'count':
-                    return item.count(field);
+                    return item.count();
                 case 'min':
                     return item.min(field);
                 case 'max':

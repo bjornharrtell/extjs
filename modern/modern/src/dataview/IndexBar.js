@@ -44,10 +44,11 @@
  *        hideOnMaskTap: false
  *     });
  *
-*/
+ */
 Ext.define('Ext.dataview.IndexBar', {
     extend: 'Ext.Component',
     alternateClassName: 'Ext.IndexBar',
+    xtype: 'indexbar',
 
     /**
      * @event index
@@ -58,23 +59,12 @@ Ext.define('Ext.dataview.IndexBar', {
      */
 
     config: {
-        baseCls: Ext.baseCSSPrefix + 'indexbar',
-
-        /**
-         * @cfg {String} direction
-         * Layout direction, can be either 'vertical' or 'horizontal'
-         * @accessor
-         */
-        direction: 'vertical',
-
         /**
          * @cfg {Array} letters
          * The letters to show on the index bar.
          * @accessor
          */
         letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
-
-        ui: 'alphabet',
 
         /**
          * @cfg {String} listPrefix
@@ -85,43 +75,63 @@ Ext.define('Ext.dataview.IndexBar', {
         listPrefix: null
     },
 
-    /**
-     * @private
-     */
-    itemCls: Ext.baseCSSPrefix + '',
 
-    updateDirection: function(newDirection, oldDirection) {
-        var baseCls = this.getBaseCls();
+    cachedConfig: {
+        /**
+         * @private
+         * The parent list that created this index bar
+         */
+        parentList: null // this is a cachedConfig so that it is available from updateUi
+    },
 
-        this.element.replaceCls(baseCls + '-' + oldDirection, baseCls + '-' + newDirection);
+    classCls: Ext.baseCSSPrefix + 'indexbar',
+    verticalCls: Ext.baseCSSPrefix + 'vertical',
+    horizontalCls: Ext.baseCSSPrefix + 'horizontal',
+    indexedCls: Ext.baseCSSPrefix + 'indexed',
+    pressedCls: Ext.baseCSSPrefix + 'pressed',
+    indexedVerticalCls: Ext.baseCSSPrefix + 'indexed-vertical',
+    indexedHorizontalCls: Ext.baseCSSPrefix + 'indexed-horizontal',
+
+    eventedConfig: {
+        /**
+         * @cfg {String} direction
+         * Layout direction, can be either 'vertical' or 'horizontal'
+         * @accessor
+         */
+        direction: 'vertical'
+    },
+
+    updateDirection: function(direction) {
+        var me = this,
+            verticalCls = me.verticalCls,
+            horizontalCls = me.horizontalCls,
+            indexedVerticalCls = me.indexedVerticalCls,
+            indexedHorizontalCls = me.indexedHorizontalCls,
+            oldCls, newCls, oldIndexedCls, newIndexedCls;
+
+        if (direction === 'vertical') {
+            oldCls = horizontalCls;
+            newCls = verticalCls;
+            oldIndexedCls = indexedHorizontalCls;
+            newIndexedCls = indexedVerticalCls
+        } else {
+            oldCls = verticalCls;
+            newCls = horizontalCls;
+            oldIndexedCls = indexedVerticalCls;
+            newIndexedCls = indexedHorizontalCls;
+        }
+
+        me.element.replaceCls(oldCls, newCls);
+        me.wrapper.replaceCls(oldCls, newCls);
+        me.getParentList().element.replaceCls(oldIndexedCls, newIndexedCls);
     },
 
     getElementConfig: function() {
-        // Blackberry Specific code for Index Bar Indicator
-        if(Ext.theme.is.Blackberry) {
-            return {
-                reference: 'wrapper',
-                classList: ['x-centered', 'x-indexbar-wrapper'],
-                children: [
-                    {
-                        reference: 'indicator',
-                        classList: ['x-indexbar-indicator'],
-                        hidden: true,
-                        children: [{
-                            reference: 'indicatorInner',
-                            classList: ['x-indexbar-indicator-inner']
-                        }]
-                    },
-                    this.callParent()
-                ]
-            };
-        } else {
-            return {
-                reference: 'wrapper',
-                classList: ['x-centered', 'x-indexbar-wrapper'],
-                children: [this.callParent()]
-            };
-        }
+        return {
+            reference: 'wrapper',
+            classList: ['x-center', 'x-indexbar-wrapper'],
+            children: [this.callParent()]
+        };
     },
 
     updateLetters: function(letters) {
@@ -133,6 +143,7 @@ Ext.define('Ext.dataview.IndexBar', {
 
             for (i = 0; i < ln; i++) {
                 this.innerElement.createChild({
+                    cls: 'x-indexbar-item',
                     html: letters[i]
                 });
             }
@@ -147,101 +158,99 @@ Ext.define('Ext.dataview.IndexBar', {
         }
     },
 
+    updateUi: function(ui, oldUi) {
+        var me = this,
+            list = me.getParentList(),
+            listElement = list.element,
+            indexedCls = me.indexedCls;
+
+        // list element needs the x-indexed-[indexBarUi] class added so that it can pad
+        // its items to account for the presence of the index bar
+        if (oldUi) {
+            listElement.removeCls(oldUi, indexedCls);
+        }
+
+        if (ui) {
+            listElement.addCls(ui, indexedCls);
+        }
+
+        me.callParent([ui, oldUi]);
+    },
+
+    updateParentList: function(parentList) {
+        if (parentList) {
+            parentList.element.addCls(this.indexedCls);
+        }
+    },
+
     /**
      * @private
      */
     initialize: function() {
-        this.callParent();
+        var me = this;
 
-        this.innerElement.on({
-            touchstart: this.onTouchStart,
-            touchend: this.onTouchEnd,
-            dragend: this.onDragEnd,
-            drag: this.onDrag,
-            scope: this
+        me.callParent();
+
+        me.innerElement.on({
+            touchstart: 'onTouchStart',
+            drag: 'onDrag',
+            dragEnd: 'onDragEnd',
+            scope: me
         });
+
+        me.innerElement.addClsOnClick(this.pressedCls);
+    },
+
+    isVertical: function() {
+        return this.getDirection() === 'vertical';
     },
 
     onTouchStart: function(e) {
-        e.stopPropagation();
-        this.innerElement.addCls(this.getBaseCls() + '-pressed');
-        this.pageBox = this.innerElement.getBox();
-        this.onDrag(e);
+        var me = this;
+
+        me.pageBox = me.innerElement.getBox();
+        me.onDrag(e);
     },
 
-    onTouchEnd: function(e) {
-        this.onDragEnd();
-    },
-
-    /**
-     * @private
-     */
-    onDragEnd: function() {
-        this.innerElement.removeCls(this.getBaseCls() + '-pressed');
-
-        // Blackberry Specific code for Index Bar Indicator
-        if(this.indicator) {
-            this.indicator.hide();
-        }
-    },
+    onDragEnd: Ext.emptyFn,
 
     /**
      * @private
      */
     onDrag: function(e) {
-        var point = Ext.util.Point.fromEvent(e),
+        var me = this,
+            el = me.element,
+            point = Ext.util.Point.fromEvent(e),
             target, isValidTarget,
-            pageBox = this.pageBox;
+            pageBox = me.pageBox;
 
         if (!pageBox) {
-            pageBox = this.pageBox = this.el.getBox();
+            pageBox = me.pageBox = me.el.getBox();
         }
 
 
-        if (this.getDirection() === 'vertical') {
+        if (me.getDirection() === 'vertical') {
             if (point.y > pageBox.bottom || point.y < pageBox.top) {
                 return;
             }
             target = Ext.Element.fromPoint(pageBox.left + (pageBox.width / 2), point.y);
-            isValidTarget = target.getParent() == this.element;
+            isValidTarget = target && target.getParent() === el;
 
-            // Blackberry Specific code for Index Bar Indicator
-            if(this.indicator) {
-                this.indicator.show();
-
-                var halfIndicatorHeight = this.indicator.getHeight() / 2,
-                    y = point.y - this.element.getY();
-
-                y = Math.min(Math.max(y, halfIndicatorHeight), this.element.getHeight() - halfIndicatorHeight);
-
-                if (this.indicatorInner && isValidTarget) {
-                    this.indicatorInner.setHtml(target.getHtml().toUpperCase());
-                }
-                this.indicator.setTop(y - (halfIndicatorHeight));
-            }
-        }
-        else {
+            me.onVerticalDrag(point, target, isValidTarget);
+        } else {
             if (point.x > pageBox.right || point.x < pageBox.left) {
                 return;
             }
             target = Ext.Element.fromPoint(point.x, pageBox.top + (pageBox.height / 2));
-            isValidTarget = target.getParent() == this.element;
+            isValidTarget = target && target.getParent() === el;
         }
 
         if (target && isValidTarget) {
-            this.fireEvent('index', this, target.dom.innerHTML, target);
+            me.fireEvent('index', me, target.dom.innerHTML, target);
         }
     },
 
-    destroy: function() {
-        var me = this,
-            elements = Array.prototype.slice.call(me.innerElement.dom.childNodes),
-            ln = elements.length,
-            i = 0;
-
-        for (; i < ln; i++) {
-            Ext.removeNode(elements[i]);
-        }
-        this.callParent();
+    privates: {
+        onVerticalDrag: Ext.privateFn
     }
 });

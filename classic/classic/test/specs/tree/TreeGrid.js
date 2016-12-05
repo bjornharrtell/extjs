@@ -1,4 +1,15 @@
+/* global expect, Ext, spyOn */
+
 describe("Ext.tree.TreeGrid", function() {
+
+    function spyOnEvent(object, eventName, fn) {
+        var obj = {
+            fn: fn || Ext.emptyFn
+        },
+        spy = spyOn(obj, "fn");
+        object.addListener(eventName, obj.fn);
+        return spy;
+    }
 
     var TreeGridItem = Ext.define(null, {
             extend: 'Ext.data.Model',
@@ -141,7 +152,13 @@ describe("Ext.tree.TreeGrid", function() {
         },
         synchronousLoad = true,
         treeStoreLoad = Ext.data.TreeStore.prototype.load,
-        loadStore;
+        loadStore = function() {
+            treeStoreLoad.apply(this, arguments);
+            if (synchronousLoad) {
+                this.flushLoad.apply(this, arguments);
+            }
+            return this;
+        };
     
     function makeTreeGrid(cfg, storeCfg) {
         tree = new Ext.tree.Panel(Ext.apply({
@@ -170,13 +187,7 @@ describe("Ext.tree.TreeGrid", function() {
 
     beforeEach(function() {
         // Override so that we can control asynchronous loading
-        loadStore = Ext.data.TreeStore.prototype.load = function() {
-            treeStoreLoad.apply(this, arguments);
-            if (synchronousLoad) {
-                this.flushLoad.apply(this, arguments);
-            }
-            return this;
-        };
+        Ext.data.TreeStore.prototype.load = loadStore;
     });
 
     afterEach(function(){
@@ -320,10 +331,68 @@ describe("Ext.tree.TreeGrid", function() {
             tree.collapseAll();
             rootNode.expand();
             tree.view.setScrollY(40);
-            tree.getRootNode().childNodes[1].expand();
+
+            // Wait for scroll position to be read
+            waitsFor(function() {
+                return tree.view.getScrollable().getPosition().y === 40;
+            });
+            
+            runs(function() {
+                tree.getRootNode().childNodes[1].expand();
+            });
+
+            // We must wait until the Scroller knows about the scroll position
+            // at which point it fires a scrollend event
+            waitsForEvent(tree.getView().getScrollable(), 'scrollend', 'Tree scrollend');
 
             // Expanding a node should not scroll.
-            expect(tree.view.getScrollY()).toEqual(40);
+            runs(function() {
+                expect(tree.view.getScrollY()).toEqual(40);
+            });
+        });
+        it("should not not scroll horizontally upon node toggle", function() {
+            // MUST be no scroll so that the non buffered rendering pathway is used
+            // and the row count changes and a layout is triggered.
+            tree.setHideHeaders(false);
+            tree.setHeight(600);
+            tree.collapseAll();
+            tree.columns[0].setWidth(200);
+
+            rootNode.expand();
+            tree.view.setScrollX(40);
+
+            // Wait for scroll syncing to complete
+            waitsFor(function() {
+                return tree.headerCt.getScrollable().getPosition().x === 40;
+            });
+
+            runs(function() {
+                tree.getRootNode().childNodes[1].expand();
+            });
+
+            // We must wait until the Scroller knows about the scroll position
+            // at which point it fires a scrollend event
+            waitsForEvent(tree.getView().getScrollable(), 'scrollend', 'Tree scrollend');
+
+            // Expanding a node should not scroll.
+            runs(function() {
+                expect(tree.view.getScrollX()).toEqual(40);
+
+                // Another operation should also not scroll.
+                // https://sencha.jira.com/browse/EXTJS-21084
+                // Saved scroll position was being discarded by restoreState
+                // even though it may be needed multiple times.
+                tree.getRootNode().childNodes[1].collapse();
+            });
+
+            // We must wait until the Scroller knows about the scroll position
+            // at which point it fires a scrollend event
+            waitsForEvent(tree.getView().getScrollable(), 'scrollend', 'Tree scrollend');
+
+            // Expanding a node should not scroll.
+            runs(function() {
+                expect(tree.view.getScrollX()).toEqual(40);
+            });
         });
     });
 
@@ -430,27 +499,34 @@ describe("Ext.tree.TreeGrid", function() {
 
             tree.collapseAll();
             rootNode.expand();
-            normalView.setScrollY(30);
+            tree.getScrollable().scrollBy(0, 30);
             waits(200); // Wait for the scroll listener (deferred to next animation Frame)
             runs(function() {
-                expect(lockedView.getScrollY()).toEqual(30);
+                expect(tree.getScrollable().getPosition().y).toEqual(30);
 
                 // Now, at 120px high, the entire tree is rendered, scrolling will not triggert action by the buffered renderer
                 // Scrolling should still sync
                 tree.setHeight(120);
 
                 normalView.setScrollY(45);
-                waits(200); // Wait for the scroll listener (deferred to next animation Frame)
+
+                // See where we've managed to scroll it to (May not be enough content to get 45)
+                var yPos = normalView.getScrollY();
+
+                rootNode.childNodes[2].expand();
+
+                // Root node, its 6 children, and child[2]'s 4 children: 11 records in NodeStore
+                expect(normalView.store.getCount()).toEqual(11);
+
+                // We cannot wait for an event. We are expecting nothing to happen
+                // if all goes well. The scroll caused by the header layout will
+                // be undone, and then 50ms later, scroll listening will be restored
+                waits(100);
+
                 runs(function() {
-                    expect(lockedView.getScrollY()).toEqual(45);
-
-                    rootNode.childNodes[2].expand();
-
-                    // Root node, its 6 children, and child[2]'s 4 children: 11 records in NodeStore
-                    expect(normalView.store.getCount()).toEqual(11);
 
                     // But scroll position should not change
-                    expect(lockedView.el.dom.scrollTop).toEqual(45);
+                    expect(lockedView.el.dom.scrollTop).toEqual(yPos);
                 });
             });
         });
@@ -594,5 +670,122 @@ describe("Ext.tree.TreeGrid", function() {
             Ext.undefine('ReconfigureTestNewTask');
         });
     });
-    
+
+    describe('collapsing locked TreeGrid', function() {
+        it('should allow animated collapse and expand', function() {
+            tree = new Ext.tree.Panel({
+                renderTo : Ext.getBody(),
+                layout: 'border',
+                width  : 400,
+                height : 200,
+                store   : new Ext.data.TreeStore({
+                    fields : ['Name', 'Age'],
+                    root: {
+                        Name: 'root',
+                        expanded: true,
+                        children: [{
+                            Name : '1', Age : 1
+                        }, {
+                            Name : '2', Age : 2
+                        }]
+                    }
+                }),
+                syncRowHeight: false, 
+                lockedGridConfig    : {
+                    collapsible : true,
+                    collapseDirection: 'left'
+                },
+                columns : [
+                    { xtype: 'treecolumn', dataIndex : 'Name', width : 100, locked : true },
+                    { dataIndex : 'Age', flex : 1 }
+                ]
+            });
+            var collapseSpy = spyOnEvent(tree.lockedGrid, 'collapse'),
+                expandSpy = spyOnEvent(tree.lockedGrid, 'expand');
+
+            // None of the columns have a text or title config, so the headers should be hidden.
+            expect(tree.lockedGrid.headerCt.getHeight()).toBe(0);
+            expect(tree.normalGrid.headerCt.getHeight()).toBe(0);
+
+            // Because locked side is collapsible, it will acquire a header.
+            // Normal side should sync with this and have a header even though
+            // we have not configured it with a title.
+            expect(tree.lockedGrid.getHeader()).toBeTruthy();
+            expect(tree.normalGrid.getHeader()).toBeTruthy();
+
+            tree.lockedGrid.collapse();
+
+            // Wait for the collapse event
+            waitsFor(function() {
+                return collapseSpy.callCount === 1;
+            });
+
+            runs(function() {
+                tree.lockedGrid.expand();
+            });
+
+            // Wait for the expand event
+            waitsFor(function() {
+                return expandSpy.callCount === 1;
+            });
+        });
+    });
+
+    describe('auto hide headers, then headers arriging from a bind', function() {
+        var store = Ext.create('Ext.data.TreeStore', {
+            autoDestroy: true,
+            root: {
+                expanded: true,
+                children: [{
+                    text: 'detention',
+                    leaf: true
+                }, {
+                    text: 'homework',
+                    expanded: true,
+                    children: [{
+                        text: 'book report',
+                        leaf: true
+                    }, {
+                        text: 'algebra',
+                        leaf: true
+                    }]
+                }, {
+                    text: 'buy lottery tickets',
+                    leaf: true
+                }]
+            }
+        });
+
+        it('should show the headers as soon as any header acquires text', function() {
+            tree = Ext.create('Ext.tree.Panel', {
+                title: 'Simple Tree',
+                width: 300,
+                hideHeaders: null,
+                viewModel: {
+                    data: {
+                        headerText: 'A header'
+                    }
+                },
+                store: store,
+                rootVisible: false,
+                renderTo: Ext.getBody(),
+                columns: [{
+                    bind: {
+                        text: '{headerText}'
+                    },
+                    xtype: 'treecolumn',
+                    dataIndex: 'text',
+                    flex: 1
+                }]
+            });
+
+            // No header text anywhere in the Panel
+            expect(tree.headerCt.getHeight()).toBe(0);
+
+            // When they arrive from the bind, that should change
+            waitsFor(function() {
+                return tree.headerCt.getHeight() > 0;
+            });
+        });
+    });
 });

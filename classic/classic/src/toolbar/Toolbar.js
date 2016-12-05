@@ -193,7 +193,8 @@ Ext.define('Ext.toolbar.Toolbar', {
     ],
     uses: [
         'Ext.toolbar.Fill',
-        'Ext.toolbar.Separator'
+        'Ext.toolbar.Separator',
+        'Ext.toolbar.Spacer'
     ],
     alias: 'widget.toolbar',
     alternateClassName: 'Ext.Toolbar',
@@ -422,7 +423,7 @@ Ext.define('Ext.toolbar.Toolbar', {
         var args = arguments,
             shortcut, T;
 
-        if (typeof c === 'string') {
+        if (typeof c === 'string' && c[0] !== '@') {
             T = Ext.toolbar.Toolbar;
             shortcut = T.shortcutsHV[this.vertical ? 1 : 0][c] || T.shortcuts[c];
 
@@ -474,15 +475,23 @@ Ext.define('Ext.toolbar.Toolbar', {
     },
 
     onAdd: function(component) {
+        var me = this;
+        
         // If we encounter a child component that needs to handle arrow keys
         // (input fields, sliders) we opt out of FocusableContainer behavior
-        // because it becomes highly confusing for the users.
-        if (component.needArrowKeys && this.enableFocusableContainer) {
-            this.enableFocusableContainer = false;
+        // because it becomes highly confusing for the keyboard users. We also
+        // change the ARIA role because toolbars are expected to behave the way
+        // WAI-ARIA spec defines them, i.e. navigable with arrow keys.
+        // A widget that is announced as a toolbar but is *not* navigable
+        // with arrow keys is highly confusing to disabled users relying on
+        // hearing.
+        if (component.needArrowKeys && me.enableFocusableContainer) {
+            me.enableFocusableContainer = false;
+            me.ariaRole = 'group';
         }
         
-        this.callParent(arguments);
-        this.trackMenu(component);
+        me.callParent(arguments);
+        me.trackMenu(component);
     },
 
     onRemove: function (c) {

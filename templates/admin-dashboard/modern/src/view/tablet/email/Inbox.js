@@ -14,7 +14,7 @@ Ext.define('Admin.view.tablet.email.Inbox', {
     },
 
     plugins: {
-        type: 'gridmultiselection',
+        type: 'multiselection',
 
         selectionColumn: {
             hidden: false,
@@ -23,6 +23,7 @@ Ext.define('Admin.view.tablet.email.Inbox', {
     },
 
     rowLines: false,
+    striped: false,
 
     columns: [
         {

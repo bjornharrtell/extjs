@@ -30,8 +30,9 @@
     font-size: 80%;
     position: absolute;
     right: 12px;
-    vertical-align: middle;
     color: silver;
+    top: 50%;
+    margin-top: -8px;
 }
 
 .x-button-presence.online:after {
@@ -47,4 +48,10 @@
 .email-toolbox {
     padding-top: 1.25rem;
     padding-bottom: 1.25rem;
+}
+
+.friends-list {
+    .x-button {
+        display: block;
+    }
 }

@@ -20,7 +20,7 @@ Ext.require([
 Ext.onReady(function() {
     Ext.create('Ext.org.OrgPanel', {
         renderTo: Ext.getBody(),
-        height: 490,
+        height: 450,
         width : 700
     });
 });

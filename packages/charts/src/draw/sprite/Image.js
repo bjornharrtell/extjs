@@ -1,7 +1,7 @@
 /**
  * @class Ext.draw.sprite.Image
  * @extends Ext.draw.sprite.Rect
- * 
+ *
  * A sprite that represents an image.
  */
 Ext.define('Ext.draw.sprite.Image', {
@@ -19,6 +19,16 @@ Ext.define('Ext.draw.sprite.Image', {
                  * @cfg {String} [src=''] The image source of the sprite.
                  */
                 src: 'string'
+                /**
+                 * @private
+                 * @cfg {Number} radius
+                 */
+            },
+            triggers: {
+                src: 'src'
+            },
+            updaters: {
+                src: 'updateSource'
             },
             defaults: {
                 src: '',
@@ -40,27 +50,28 @@ Ext.define('Ext.draw.sprite.Image', {
         }
     },
 
-    render: function (surface, ctx) {
+    updateSurface: function (surface) {
+        if (surface) {
+            this.updateSource(this.attr);
+        }
+    },
+
+    updateSource: function (attr) {
         var me = this,
-            attr = me.attr,
-            mat = attr.matrix,
             src = attr.src,
-            x = attr.x,
-            y = attr.y,
+            surface = me.getSurface(),
+            loadingStub = Ext.draw.sprite.Image.imageLoaders[src],
             width = attr.width,
             height = attr.height,
-            loadingStub = Ext.draw.sprite.Image.imageLoaders[src],
             imageLoader,
-            image,
             i;
 
-        if (loadingStub && loadingStub.done) {
-            mat.toContext(ctx);
-            image = loadingStub.image;
-            ctx.drawImage(image, x, y,
-                    width || (image.naturalWidth || image.width) / surface.devicePixelRatio,
-                    height || (image.naturalHeight || image.height) / surface.devicePixelRatio);
-        } else if (!loadingStub) {
+        if (!surface) {
+            // First time this is called the sprite won't have a surface yet.
+            return;
+        }
+
+        if (!loadingStub) {
             imageLoader = new Image();
             loadingStub = Ext.draw.sprite.Image.imageLoaders[src] = {
                 image: imageLoader,
@@ -71,13 +82,25 @@ Ext.define('Ext.draw.sprite.Image', {
             imageLoader.width = width;
             imageLoader.height = height;
             imageLoader.onload = function () {
+                var item;
+                
                 if (!loadingStub.done) {
                     loadingStub.done = true;
+                    
                     for (i = 0; i < loadingStub.pendingSprites.length; i++) {
-                        loadingStub.pendingSprites[i].setDirty(true);
+                        item = loadingStub.pendingSprites[i];
+                        
+                        if (!item.destroyed) {
+                            item.setDirty(true);
+                        }
                     }
-                    for (i in loadingStub.pendingSurfaces) {
-                        loadingStub.pendingSurfaces[i].renderFrame();
+                    
+                    for (i = 0; i < loadingStub.pendingSurfaces.length; i++) {
+                        item = loadingStub.pendingSurfaces[i];
+                        
+                        if (!item.destroyed) {
+                            item.renderFrame();
+                        }
                     }
                 }
             };
@@ -86,6 +109,27 @@ Ext.define('Ext.draw.sprite.Image', {
             Ext.Array.include(loadingStub.pendingSprites, me);
             Ext.Array.include(loadingStub.pendingSurfaces, surface);
         }
+    },
+
+    render: function (surface, ctx) {
+        var me = this,
+            attr = me.attr,
+            mat = attr.matrix,
+            src = attr.src,
+            x = attr.x,
+            y = attr.y,
+            width = attr.width,
+            height = attr.height,
+            loadingStub = Ext.draw.sprite.Image.imageLoaders[src],
+            image;
+
+        if (loadingStub && loadingStub.done) {
+            mat.toContext(ctx);
+            image = loadingStub.image;
+            ctx.drawImage(image, x, y,
+                width || (image.naturalWidth || image.width) / surface.devicePixelRatio,
+                height || (image.naturalHeight || image.height) / surface.devicePixelRatio);
+        }
 
         //<debug>
         var debug = attr.debug || this.statics().debug || Ext.draw.sprite.Sprite.debug;
@@ -93,5 +137,18 @@ Ext.define('Ext.draw.sprite.Image', {
             debug.bbox && this.renderBBox(surface, ctx);
         }
         //</debug>
+    },
+
+    /**
+     * @private
+     */
+    isVisible: function () {
+        var attr = this.attr,
+            parent = this.getParent(),
+            hasParent = parent && (parent.isSurface || parent.isVisible()),
+            isSeen = hasParent && !attr.hidden && attr.globalAlpha;
+
+        return !!isSeen;
     }
+
 });

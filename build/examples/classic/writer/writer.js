@@ -244,7 +244,7 @@ Ext.define('Writer.Grid', {
         edit.cancelEdit();
         this.store.insert(0, rec);
         edit.startEditByPosition({
-            row: 0,
+            row: rec,
             column: 1
         });
     }

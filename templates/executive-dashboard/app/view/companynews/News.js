@@ -70,7 +70,7 @@ Ext.define('ExecDashboard.view.companynews.News', {
 
     plugins: [{
         ptype: 'ux-rowexpander',
-        pluginId: 'rowexpander'
+        id: 'rowexpander'
     }],
 
     // This XTemplate is used by the controller to format the title column.

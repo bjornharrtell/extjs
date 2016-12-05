@@ -73,7 +73,7 @@ Ext.define('Ext.panel.Tool', {
      * this will be an `Ext.Panel` (as specified by the `toolOwner` config).
      * @cfg {Ext.panel.Tool} handler.tool The tool that is calling.
      * @cfg {Ext.event.Event} handler.event The click event.
-     * @declarativeHandler
+     * @controllable
      */
     handler: null,
 
@@ -174,6 +174,7 @@ Ext.define('Ext.panel.Tool', {
             maximize:1,
             minimize:1,
             minus:1,
+            menu: 1,
             //move:1,
             next:1,
             pin:1,

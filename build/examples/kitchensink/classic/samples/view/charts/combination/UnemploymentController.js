@@ -461,7 +461,7 @@ Ext.define('KitchenSink.view.charts.combination.UnemploymentController', {
         Ext.draw.TextMeasurer.precise = true;
     },
 
-    onDestroy: function () {
+    destroy: function () {
         var regions = this.regions,
             i, region;
 
@@ -473,6 +473,8 @@ Ext.define('KitchenSink.view.charts.combination.UnemploymentController', {
         this.regionIndex = 0;
 
         Ext.draw.TextMeasurer.precise = false;
+
+        this.callParent();
     }
 
 });

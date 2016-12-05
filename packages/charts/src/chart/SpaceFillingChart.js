@@ -29,8 +29,8 @@ Ext.define('Ext.chart.SpaceFillingChart', {
                 width = chartRect[2] - padding.left - padding.right,
                 height = chartRect[3] - padding.top - padding.bottom,
                 mainRect = [padding.left, padding.top, width, height],
-                seriesList = me.getSeries(), series,
-                i, ln;
+                seriesList = me.getSeries(),
+                series, i, ln;
 
             me.getSurface().setRect(mainRect);
             me.setMainRect(mainRect);
@@ -44,21 +44,15 @@ Ext.define('Ext.chart.SpaceFillingChart', {
                 series.getOverlaySurface().setRect(chartRect);
             }
             me.redraw();
-        } catch (e) { // catch is required in IE8 (try/finally not supported)
-            //<debug>
-            Ext.log.error(me.$className + ': Unhandled Exception: ', e.description || e.message);
-            //</debug>
-            throw e;
-        }
-        finally {
+        } finally {
             me.animationSuspendCount--;
         }
     },
 
     redraw: function () {
         var me = this,
-            seriesList = me.getSeries(), series,
-            i, ln;
+            seriesList = me.getSeries(),
+            series, i, ln;
 
         for (i = 0, ln = seriesList.length; i < ln; i++) {
             series = seriesList[i];
@@ -66,6 +60,6 @@ Ext.define('Ext.chart.SpaceFillingChart', {
         }
 
         me.renderFrame();
-        me.callParent(arguments);
+        me.callParent();
     }
 });

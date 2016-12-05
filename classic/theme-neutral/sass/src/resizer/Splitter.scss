@@ -174,7 +174,10 @@
 .#{$prefix}layout-split-right {
     top: 50%;
     margin-top: round(-$collapse-tool-size / 2);
-    width: $splitter-size;
+
+    // Splitter width is configurable.
+    // Tool must stretch within splitter.
+    width: 100%;
     height: $collapse-tool-size;
 }
 
@@ -182,7 +185,10 @@
 .#{$prefix}layout-split-bottom {
     left: 50%;
     width: $collapse-tool-size;
-    height: $splitter-size;
+
+    // Splitter height is configurable.
+    // Tool must stretch within splitter.
+    height: 100%;
     margin-left: round(-$collapse-tool-size / 2);
     @if $enable-font-icons {
         $splitter-collapse-tool-horizontal-line-height: $splitter-size;

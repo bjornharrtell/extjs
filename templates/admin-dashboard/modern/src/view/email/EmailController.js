@@ -58,6 +58,14 @@ Ext.define('Admin.view.email.EmailController', {
             Ext.Viewport.add(actions);
         }
 
+        actions.on('hide',
+            function () {
+                me.actionsVisible = false;
+            },
+            null,
+            { single: true }
+        );
+
         actions.show();
         me.actionsVisible = true;
     }

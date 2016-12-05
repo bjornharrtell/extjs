@@ -122,7 +122,7 @@ Ext.Config.prototype = {
      * @cfg {Boolean} [evented=false]
      * When set as `true` the config property will be treated as a {@link Ext.Evented Evented Config}.
      * @private
-     * @since 5.5.0
+     * @since 6.0.0
      */
 
     /**

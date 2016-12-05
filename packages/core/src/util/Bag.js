@@ -44,26 +44,47 @@ Ext.define('Ext.util.Bag', {
      */
     length: 0,
 
+    beginUpdate: Ext.emptyFn,
+
+    endUpdate: Ext.emptyFn,
+
     add: function (item) {
         var me = this,
-            id = me.getKey(item),
-            map = me.map,
             items = me.items,
-            idx = map[id],
-            old;
+            map = me.map,
+            n = 1,
+            old, i, idx, id, it, ret, was;
 
-        if (idx === undefined) {
-            items.push(item);
-            map[id] = me.length++;
-            old = item;
-        } else {
-            old = items[idx];
-            items[idx] = item;
+        if (Ext.isArray(item)) {
+            old = ret = [];
+            n = item.length;
+        }
+
+        for (i = 0; i < n; i++) {
+            id = me.getKey(it = old ? item[i] : item);
+            idx = map[id];
+
+            if (idx === undefined) {
+                items.push(it);
+                map[id] = me.length++;
+                if (old) {
+                    old.push(it);
+                } else {
+                    ret = it;
+                }
+            } else {
+                was = items[idx];
+                if (old) {
+                    old.push(was);
+                } else {
+                    ret = was;
+                }
+                items[idx] = it;
+            }
         }
 
         ++me.generation;
-
-        return old;
+        return ret;
     },
 
     clear: function () {
@@ -119,6 +140,26 @@ Ext.define('Ext.util.Bag', {
         this.callParent();
     },
 
+    each: function (fn, scope) {
+        var items = this.items,
+            len = items.length,
+            i, ret;
+
+        if (len) {
+            scope = scope || this;
+            items = items.slice(0); // safe for re-entrant calls
+
+            for (i = 0; i < len; i++) {
+                ret = fn.call(scope, items[i], i, len);
+                if (ret === false) {
+                    break;
+                }
+            }
+        }
+
+        return ret;
+    },
+
     getAt: function(index) {
         var out = null;
         if (index < this.length) {
@@ -127,14 +168,66 @@ Ext.define('Ext.util.Bag', {
         return out;
     },
 
+    get: function(key) {
+        return this.getByKey(key);
+    },
+
     getByKey: function(key) {
         var map = this.map,
-            ret = null;
+            ret = (key in map) ? this.items[map[key]] : null;
 
-        if (key in map) {
-            ret = this.items[map[key]];
-        }
         return ret;
+    },
+
+    indexOfKey: function(key) {
+        var map = this.map,
+            ret = (key in map) ? map[key] : -1;
+
+        return ret;
+    },
+
+    last: function() {
+        return this.items[this.length - 1];
+    },
+
+    updateKey: function(item, oldKey) {
+        var me = this,
+            map = me.map,
+            newKey;
+
+        if (!item || !oldKey) {
+            return;
+        }
+
+        if ((newKey = me.getKey(item)) !== oldKey) {
+            if (me.getAt(map[oldKey]) === item && !(newKey in map)) {
+                me.generation++;
+                map[newKey] = map[oldKey];
+                delete map[oldKey];
+            }
+        }
+        //<debug>
+        else {
+            // It may be that the item is (somehow) already in the map using the
+            // newKey or that there is no item in the map with the oldKey. These
+            // are not errors.
+
+            if (newKey in map && me.getAt(map[newKey]) !== item) {
+                // There is a different item in the map with the newKey which is an
+                // error. To properly handle this, add the item instead.
+                Ext.raise('Duplicate newKey "' + newKey +
+                                '" for item with oldKey "' + oldKey + '"');
+            }
+
+            if (oldKey in map && me.getAt(map[oldKey]) !== item) {
+                // There is a different item in the map with the oldKey which is also
+                // an error. Do not call this method for items that are not part of
+                // the collection.
+                Ext.raise('Incorrect oldKey "' + oldKey +
+                                '" for item with newKey "' + newKey + '"');
+            }
+        }
+        //</debug>
     },
 
     getCount: function() {
@@ -145,31 +238,63 @@ Ext.define('Ext.util.Bag', {
         return item.id || item.getId();
     },
 
+    getRange: function (begin, end) {
+        var items = this.items,
+            length = items.length,
+            range;
+
+        if (!length) {
+            range = [];
+        } else {
+            range = Ext.Number.clipIndices(length, [begin, end]);
+            range = items.slice(range[0], range[1]);
+        }
+
+        return range;
+    },
+
     remove: function (item) {
         var me = this,
             map = me.map,
             items = me.items,
-            old = null,
-            idx, id, last;
+            ret = null,
+            n = 1,
+            changed, old, i, idx, id, last, was;
+
+        if (Ext.isArray(item)) {
+            n = item.length;
+            old = ret = [];
+        }
 
         if (me.length) {
-            idx = map[id = me.getKey(item)];
+            for (i = 0; i < n; i++) {
+                idx = map[id = me.getKey(old ? item[i] : item)];
+    
+                if (idx !== undefined) {
+                    delete map[id];
+                    was = items[idx];
+                    if (old) {
+                        old.push(was);
+                    } else {
+                        ret = was;
+                    }
 
-            if (idx !== undefined) {
-                delete map[id];
-                old = items[idx];
-                last = items.pop();
-
-                if (idx < --me.length) {
-                    items[idx] = last;
-                    map[me.getKey(last)] = idx;
+                    last = items.pop();
+                    if (idx < --me.length) {
+                        items[idx] = last;
+                        map[me.getKey(last)] = idx;
+                    }
+    
+                    changed = true;
                 }
-
+            }
+            
+            if (changed) {
                 ++me.generation;
             }
         }
 
-        return old;
+        return ret;
     },
 
     removeByKey: function(key) {
@@ -178,6 +303,11 @@ Ext.define('Ext.util.Bag', {
             this.remove(item);
         }
         return item || null;
+    },
+
+    replace: function (item) {
+        this.add(item);
+        return item;
     },
 
     sort: function (fn) {

@@ -5,7 +5,16 @@
  * DropZone} are attached to the grid view.  The DropZone will participate in drops 
  * from DragZones having the same {@link #ddGroup} including drops from within the same 
  * grid.
- * 
+ *
+ * Note that where touch gestures are available, the `longpress` gesture will initiate
+ * the drag in order that the `touchstart` may still be used to initiate a scroll.
+ *
+ * On platforms which implement the [Pointer Events standard](https://www.w3.org/TR/pointerevents/) (IE),
+ * the `touchstart` event is usually claimed by the platform, however, this plugin
+ * uses the `longpress` event to trigger drags, so `touchstart` will not initiate a scroll.
+ * On these platforms, a two finger drag gesture will scroll the content, or a single
+ * finger drag on an empty area of the view will scroll the content.
+ *
  * During the drop operation a data object is passed to a participating DropZone's drop 
  * handlers.  The drag data object has the following properties:
  *

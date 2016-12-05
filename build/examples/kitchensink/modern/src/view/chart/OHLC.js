@@ -19,19 +19,29 @@ Ext.define('KitchenSink.view.chart.OHLC', {
         }
     },
 
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/StockPrice.js' 
+    }],
+    // </example>
+    
     layout: 'fit',
+    shadow: true,
+
     items: [{
         xtype: 'toolbar',
         docked: 'top',
         cls: 'charttoolbar',
         items: [{
             xtype: 'spacer'
-        }, {
-            text: 'Reset',
-            handler: 'onReset'
         }]
     }, {
         xtype: 'cartesian',
+        store: 'StockPrice',
         background: 'white',
         interactions: [{
             type: 'panzoom',
@@ -48,7 +58,6 @@ Ext.define('KitchenSink.view.chart.OHLC', {
             }
         }],
         series: [{
-            store: 'StockPrice',
             type: 'candlestick',
             xField: 'time',
             openField: 'open',
@@ -91,9 +100,11 @@ Ext.define('KitchenSink.view.chart.OHLC', {
 
     initialize: function() {
         this.callParent();
+        
         var toolbar = Ext.ComponentQuery.query('toolbar', this)[0],
             interaction = Ext.ComponentQuery.query('interaction', this)[0];
-        if (toolbar && interaction && !interaction.isMultiTouch()) {
+        
+        if (toolbar && interaction) {
             toolbar.add(interaction.getModeToggleButton());
         }
     }

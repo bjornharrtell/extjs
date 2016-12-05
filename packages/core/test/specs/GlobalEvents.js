@@ -1,128 +1,165 @@
+/* global Ext, xit, expect, jasmine */
+
 describe("Ext.GlobalEvents", function() {
     describe('idle event', function() {
         var delay = Ext.isIE ? 50 : 10,
-            idleFired, done;
+            store, loadSpy, idleSpy,
+            forumData = {
+                "totalCount":"6679",
+                "topics":[  
+                    {  
+                        "title":"XTemplate with in EditorGridPanel",
+                        "threadid":"133690",
+                        "username":"kpr@emco",
+                        "userid":"272497",
+                        "dateline":"1305604761",
+                        "postid":"602876",
+                        "forumtitle":"Ext 3.x: Help",
+                        "forumid":"40",
+                        "replycount":"2",
+                        "lastpost":"1305857807",
+                        "excerpt":""
+                    },
+                    {  
+                        "title":"IFrame error  &quot;_flyweights is undefined&quot;",
+                        "threadid":"133571",
+                        "username":"Daz",
+                        "userid":"52119",
+                        "dateline":"1305533577",
+                        "postid":"602456",
+                        "forumtitle":"Ext 3.x: Help",
+                        "forumid":"40",
+                        "replycount":"1",
+                        "lastpost":"1305857313",
+                        "excerpt":""
+                    }
+                ]
+            };
 
-        function onIdle() {
-            idleFired = true;
+
+        function completeRequest(url, data) {
+            Ext.data.JsonP.mockComplete(url, data);
         }
 
         beforeEach(function() {
-            idleFired = false;
-            done = false;
-            Ext.on('idle', onIdle);
+            MockAjaxManager.addMethods();
+            loadSpy = jasmine.createSpy('store load');
+            idleSpy = jasmine.createSpy('idle');
+            
+            Ext.on('idle', idleSpy);
         });
 
         afterEach(function() {
-            Ext.un('idle', onIdle);
+            Ext.un('idle', idleSpy);
+            
+            if (store) {
+                store.destroy();
+            }
+            
+            MockAjaxManager.removeMethods();
+            loadSpy = idleSpy = store = null;
         });
 
         it("should fire after DOM event handler are invoked, but before control is returned to the browser", function() {
-            var element = Ext.getBody().createChild(),
-                handledCount = 0;
+            var element = Ext.getBody().createChild();
 
             function expectFalse() {
-                expect(idleFired).toBe(false);
-                handledCount ++;
+                expect(idleSpy).not.toHaveBeenCalled();
             }
+            
+            var mousedownSpy = jasmine.createSpy('mousedown');
 
             // attach a couple mousedown listeners, the idle event should fire after both
             // handlers have fired
-            element.on('mousedown', expectFalse);
+            element.on('mousedown', mousedownSpy);
             element.on('mousedown', function() {
-                expectFalse();
+                mousedownSpy();
             });
 
             jasmine.fireMouseEvent(element, 'mousedown');
 
-            expect(handledCount).toBe(2);
-            expect(idleFired).toBe(true);
+            expect(mousedownSpy.callCount).toBe(2);
+            expect(idleSpy).toHaveBeenCalled();
 
             element.destroy();
         });
 
         it("should fire after a JsonPProxy processes a return packet", function() {
-            var store = Ext.create('Ext.data.Store', {
+            store = Ext.create('Ext.data.Store', {
+                asynchronousLoad: false,
                 proxy: {
                     type: 'jsonp',
                     reader: {
                         rootProperty: 'topics',
                         totalProperty: 'totalCount'
                     },
-                    url: 'http://www.sencha.com/forum/remote_topics/index.php'
+                    url: 'fakeForumUrl'
                 },
                 fields: ['title'],
                 listeners: {
-                    load: function() {
-                        done = true;
-                    }
+                    load: loadSpy
                 }
             });
+            
             store.loadPage(1);
-            waitsFor(function() {
-                return done === true;
-            });
+            completeRequest('fakeForumUrl', forumData);
+            
+            waitForSpy(loadSpy);
+            
+            waits(delay);
+            
             runs(function() {
-                waits(delay);
-                runs(function() {
-                    expect(idleFired).toBe(true);
-                    store.destroy();
-                });
+                expect(idleSpy).toHaveBeenCalled();
             });
         });
 
         it("should fire after a JsonP request is processed", function() {
-            Ext.data.JsonP.request({
-                url: 'http://www.sencha.com/forum/remote_topics/index.php?page=1&start=0&limit=100',
-                callback: function() {
-                    done = true;
-                }
+            var request = Ext.data.JsonP.request({
+                url: 'fakeRequest',
+                callback: loadSpy
             });
-            waitsFor(function() {
-                return done === true;
-            });
+            
+            completeRequest(request, forumData);
+            
+            waitForSpy(loadSpy);
+            
+            waits(delay);
+            
             runs(function() {
-                waits(delay);
-                runs(function() {
-                    expect(idleFired).toBe(true);
-                });
+                expect(idleSpy).toHaveBeenCalled();
             });
         });
         
         it("should fire after an Ajax request is processed", function() {
-            Ext.Ajax.request({
-                url: 'resources/foo.json',
-                callback: function() {
-                    done = true;
-                }
+            var request = Ext.Ajax.request({
+                url: 'fakeUrl',
+                callback: loadSpy
             });
-            waitsFor(function() {
-                return done === true;
-            });
+            
+            Ext.Ajax.mockCompleteWithData({}, request.id);
+            
+            waitForSpy(loadSpy);
+            
+            waits(delay);
+            
             runs(function() {
-                waits(delay);
-                runs(function() {
-                    expect(idleFired).toBe(true);
-                });
+                expect(idleSpy).toHaveBeenCalled();
             });
         });
 
         it("should fire after a scheduled Task is run", function() {
             Ext.TaskManager.newTask({
-                run: function(){
-                    done = true;
-                }, 
+                run: loadSpy,
                 repeat: 1, 
                 interval: 1
             }).start();
-            waitsFor(function() {
-                return done === true;
-            });
+            
+            waitForSpy(loadSpy);
+            
+            waits(delay);
+            
             runs(function() {
-                waits(delay);
-                runs(function() {
-                    expect(idleFired).toBe(true);
-                });
+                expect(idleSpy).toHaveBeenCalled();
             });
         });
     });
@@ -130,19 +167,26 @@ describe("Ext.GlobalEvents", function() {
     describe('scroll event', function() {
         var stretcher,
             scrollingPanel,
-            scrolledElements = [],
-            runIt = Ext.supports.touchScroll ? xit : it;
+            scrolledElements = [];
+
+        function onGlobalScroll(scroller) {
+            // Check for duplicates because on iOS a single call to scrollBy can trigger multiple scroll events
+            var element = scroller.getElement();
+
+            if (!Ext.Array.contains(scrolledElements, element)) {
+                scrolledElements.push(element);
+            }
+        }
 
         afterEach(function() {
+            Ext.un('scroll', onGlobalScroll);
+            scrolledElements = [];
+            
             stretcher.destroy();
             scrollingPanel.destroy();
         });
 
-        function onGlobalScroll(scroller) {
-            scrolledElements.push(scroller.getElement());
-        }
-
-        runIt('should fire the global scroll event whenever anything scrolls', function() {
+        it('should fire the global scroll event whenever anything scrolls', function() {
             stretcher = Ext.getBody().createChild({
                 style: 'height:10000px'
             });
@@ -151,8 +195,8 @@ describe("Ext.GlobalEvents", function() {
             scrollingPanel = new Ext.Panel({
                 renderTo: document.body,
                 floating: true,
-                x: 0,
-                y: 0,
+                left: 0,
+                top: 0,
                 width: 300,
                 height: 300,
                 
@@ -169,13 +213,13 @@ describe("Ext.GlobalEvents", function() {
             Ext.on({
                 scroll: onGlobalScroll
             });
-            Ext.scroll.DomScroller.document.scrollBy(null, 100);
+            Ext.getViewportScroller().scrollBy(null, 100);
 
             // Wait for scroll events to fire (may be async)
             waitsFor(function() {
                 return scrolledElements.length === 1 &&
-                       scrolledElements[0] === Ext.scroll.DomScroller.document.getElement();
-            });
+                       scrolledElements[0] === Ext.scroll.Scroller.viewport.getElement();
+            }, 'Scroll of document to fire through the Ext.scroll.Scroller.viewport Scroller');
             
             runs(function() {
                 scrollingPanel.getScrollable().scrollBy(null, 100);
@@ -185,7 +229,7 @@ describe("Ext.GlobalEvents", function() {
             waitsFor(function() {
                 return scrolledElements.length === 2 &&
                        scrolledElements[1] === scrollingPanel.getScrollable().getElement();
-            });
+            }, 'Scroll of panel to fire through the Ext.scroll.Scroller.viewport Scroller');
         });
     });
 });

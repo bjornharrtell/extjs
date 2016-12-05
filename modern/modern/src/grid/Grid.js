@@ -233,6 +233,8 @@ Ext.define('Ext.grid.Grid', {
     extend: 'Ext.dataview.List',
     xtype: 'grid',
 
+    isGrid: true,
+
     requires: [
         'Ext.grid.Row',
         'Ext.grid.column.Column',
@@ -284,12 +286,6 @@ Ext.define('Ext.grid.Grid', {
         columns: null,
 
         /**
-         * @cfg baseCls
-         * @inheritdoc
-         */
-        baseCls: Ext.baseCSSPrefix + 'grid',
-
-        /**
          * @cfg {Boolean} variableHeights
          * This configuration is best left to false on a Grid for performance reasons.
          * @private
@@ -308,13 +304,16 @@ Ext.define('Ext.grid.Grid', {
          */
         hideHeaders: false,
 
+        pinnedHeader: {
+            xtype: 'rowheader'
+        },
+
         /**
          * @cfg {Boolean} striped
          * @inherit
          */
         striped: true,
 
-        itemCls: Ext.baseCSSPrefix + 'list-item',
         scrollToTopOnRefresh: false,
 
         titleBar: {
@@ -326,7 +325,14 @@ Ext.define('Ext.grid.Grid', {
          * @cfg {String} title
          * The title that will be displayed in the TitleBar at the top of this Grid.
          */
-        title: ''
+        title: '',
+
+        /**
+         * @cfg {Number} totalColumnWidth
+         * The total column width
+         * @private
+         */
+        totalColumnWidth: null
     },
 
     /**
@@ -383,25 +389,38 @@ Ext.define('Ext.grid.Grid', {
      * @param {String} direction The direction of the sort on this Column. Either 'asc' or 'desc'.
      */
 
+    classCls: Ext.baseCSSPrefix + 'grid',
+    itemSelector: '.' + Ext.baseCSSPrefix + 'gridrow',
+
+    getElementConfig: function() {
+        var config = this.callParent();
+
+        config.children.push({
+            reference: 'resizeMarkerElement',
+            className: Ext.baseCSSPrefix + 'resize-marker-el',
+            hidden: true
+        });
+
+        return config;
+    },
+
     initialize: function() {
         var me = this,
             titleBar = me.getTitleBar(),
             headerContainer = me.getHeaderContainer(),
-            scrollable = me.getScrollable(),
-            container;
+            scrollable = me.getScrollable();
 
         me.callParent();
+
+        me.on('resize', 'onResize', me);
 
         if (scrollable) {
             headerContainer.getScrollable().addPartner(scrollable, 'x');
         }
-        container = me.container;
         if (titleBar) {
-            container.add(me.getTitleBar());
+            me.add(titleBar);
         }
-        container.add(headerContainer);
-
-        me.scrollElement.addCls(Ext.baseCSSPrefix + 'grid-scrollelement');
+        me.add(headerContainer);
     },
 
     applyTitleBar: function(titleBar) {
@@ -503,7 +522,7 @@ Ext.define('Ext.grid.Grid', {
                 row.insertColumn(columnIndex, column);
             }
 
-            me.updateTotalColumnWidth();
+            me.refreshScroller();
 
             me.fireEvent('columnadd', me, column, columnIndex);
         }
@@ -531,6 +550,10 @@ Ext.define('Ext.grid.Grid', {
             items, ln, i, row;
 
         if (me.initialized && !me.destroying) {
+            if (column === me.sortedColumn) {
+                me.sortedColumn = null;
+            }
+
             items = me.listItems;
             ln = items.length;
 
@@ -539,22 +562,22 @@ Ext.define('Ext.grid.Grid', {
                 row.removeColumn(column);
             }
 
-            me.updateTotalColumnWidth();
+            me.refreshScroller();
 
             me.fireEvent('columnremove', me, column);
         }
     },
 
     updateColumns: function(columns) {
+        var header = this.getHeaderContainer();
+
+        if(header) {
+            header.removeAll(true, true);
+        }
+
         if (columns && columns.length) {
-            var ln = columns.length,
-                i;
-
-            for (i = 0; i < ln; i++) {
-                this.addColumn(columns[i]);
-            }
-
-            this.updateTotalColumnWidth();
+            this.addColumn(columns);
+            this.refreshScroller();
         }
     },
 
@@ -574,9 +597,9 @@ Ext.define('Ext.grid.Grid', {
                 row.setColumnWidth(column, width);
             }
             if (me.initialized) {
-                me.updateTotalColumnWidth();
+                me.refreshScroller();
                 // Will be null on the first time
-                if (oldWidth !== null && !column.getHidden()) {
+                if (oldWidth && !column.getHidden()) {
                     me.fireEvent('columnresize', me, column, width);
                 }
             }
@@ -591,7 +614,7 @@ Ext.define('Ext.grid.Grid', {
             items = me.listItems;
             ln = items.length;
 
-            me.updateTotalColumnWidth();
+            me.refreshScroller();
             if (!column.getFlex()) {
                 w = column.getWidth();
             }
@@ -617,7 +640,7 @@ Ext.define('Ext.grid.Grid', {
             items = me.listItems;
             ln = items.length;
 
-            me.updateTotalColumnWidth();
+            me.refreshScroller();
             for (i = 0; i < ln; i++) {
                 row = items[i];
                 row.hideColumn(column);
@@ -641,45 +664,101 @@ Ext.define('Ext.grid.Grid', {
         me.fireEvent('columnsort', me, column, direction);
     },
 
-    refreshScroller: function(skipOnRefresh) {
-        this.callParent([skipOnRefresh]);
-        this.getHeaderContainer().updateSpacer();
+    onResize: function() {
+        this.refreshScroller();
     },
 
-    getTotalColumnWidth: function() {
-        var me = this,
-            columns = me.getColumns(),
-            ln = columns.length,
-            totalWidth = 0,
-            i, column, parent;
+    calculateTotalColumnWidth: function() {
+        return this.getColumnsWidth(this.getColumns());
+    },
 
+    getColumnsWidth: function(columns) {
+        var width = 0,
+            ln = columns.length,
+            i, column;
 
         for (i = 0; i < ln; i++) {
             column = columns[i];
-            parent = column.getParent();
 
-            if (!column.isHidden() && (!parent.isHeaderGroup || !parent.isHidden())) {
-                totalWidth += column.getComputedWidth();
+            if (column.isHeaderGroup && !column.isHidden()) {
+                width += this.getColumnsWidth(column.getColumns());
+            } else if (!column.isHeaderGroup && !column.isHidden()) {
+                width += column.element.getWidth(false, true);
+            }
+        }
+        return width;
+    },
+
+    getVisibleColumns: function() {
+        var columns = this.getColumns,
+            len = columns.length, i, column,
+            result = [];
+
+        for (i = 0; i < len; i++) {
+            column = columns[i];
+            if (!column.isHeaderGroup && !column.isHidden()) {
+                result.push(column);
+            }
+        }
+        return result;
+    },
+
+    refreshScroller: function(skipOnRefresh) {
+        var me = this,
+            scroller = me.getScrollable(),
+            headerContainer = me.getHeaderContainer(),
+            headerScroller = headerContainer.getScrollable(),
+            totalWidth = me.calculateTotalColumnWidth(),
+            pinned = me.getPinnedHeader(),
+            scrollbarSize;
+
+        if (totalWidth && !isNaN(totalWidth)) {
+            me.setTotalColumnWidth(totalWidth);
+            if (scroller) {
+                scroller.setSize({
+                    x: totalWidth,
+                    y: me.getInfinite() ? me.getItemMap().getTotalHeight() : null
+                });
+
+                scrollbarSize = me.getVerticalScrollbarSize();
+
+                if (scrollbarSize) {
+                    totalWidth -= scrollbarSize;
+
+                    scroller.setSize({
+                        x: totalWidth
+                    });
+                }
+            }
+
+            if (headerScroller) {
+                scrollbarSize = scrollbarSize || me.getVerticalScrollbarSize();
+
+                headerScroller.setSize({
+                    x: totalWidth + scrollbarSize,
+                    y: null
+                });
+            }
+
+            scrollbarSize = scrollbarSize || 0;
+            headerContainer.setScrollbarSpacer(scrollbarSize);
+            // Because it's pinned it sits outside of the scrolling container, which is why we need this madness.
+            if (pinned) {
+                if (scrollbarSize) {
+                    pinned.setWidth(Ext.String.format('calc(100% - {0}px)', scrollbarSize + 1));
+                } else {
+                    pinned.setWidth('100%');
+                }
             }
         }
 
-        return totalWidth;
+        me.afterRefreshScroller(scroller, skipOnRefresh);
     },
 
-    updateTotalColumnWidth: function() {
-        var me = this,
-            scroller = me.getScrollable(),
-            totalWidth = this.getTotalColumnWidth(),
-            header = me.getHeaderContainer();
+    getVerticalScrollbarSize: function() {
+        var scroller = this.getScrollable();
 
-        me.scrollElement.setWidth(totalWidth);
-        header.setTotalWidth(totalWidth);
-        header.updateSpacer();
-
-        scroller.setSize({
-            x: totalWidth,
-            y: scroller.getSize().y
-        });
+        return (scroller && scroller.getMaxUserPosition().y) && (Ext.getScrollbarSize().width || 0);
     },
 
     createItem: function(config) {
@@ -688,9 +767,42 @@ Ext.define('Ext.grid.Grid', {
         return this.callParent([config]);
     },
 
-    destroy: function() {
-        this.destroying = true;
+    doDestroy: function() {
+        this.sortedColumn = null;
+        
         this.callParent();
-        this.destroying = false;
+    },
+
+    privates: {
+        getCellFromEvent: function(e) {
+            var selector = Ext.grid.cell.Base.prototype.cellSelector,
+                target = e.getTarget(selector, this.element),
+                ret;
+
+            if (target) {
+                ret = Ext.getCmp(target.id);
+            }
+            return ret || null;
+        },
+
+        applyTotalColumnWidth: function(totalColumnWidth) {
+            var rows = this.listItems;
+            // If we don't have any items yet, wait
+            return rows.length === 0 ? undefined : totalColumnWidth;
+        },
+
+        updateTotalColumnWidth: function(totalColumnWidth) {
+            var rows = this.listItems,
+                len = rows.length,
+                i, header;
+
+            for (i = 0; i < len; ++i) {
+                header = rows[i].getHeader();
+                if (header) {
+                    header.setMinWidth('100%');
+                    header.setWidth(totalColumnWidth);
+                }
+            }
+        }
     }
 });

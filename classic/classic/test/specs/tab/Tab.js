@@ -306,7 +306,7 @@ describe("Ext.tab.Tab", function() {
             it("should stop the keydown event", function() {
                 var args = enterSpy.mostRecentCall.args;
                 
-                expect(args[0].isStopped).toBe(true);
+                expect(args[0].stopped).toBe(true);
             });
             
             it("should return false to stop Event propagation loop", function() {
@@ -328,7 +328,7 @@ describe("Ext.tab.Tab", function() {
             it("should stop the keydown event", function() {
                 var args = enterSpy.mostRecentCall.args;
                 
-                expect(args[0].isStopped).toBe(true);
+                expect(args[0].stopped).toBe(true);
             });
             
             it("should return false to stop Event propagation loop", function() {
@@ -350,7 +350,7 @@ describe("Ext.tab.Tab", function() {
             it("should stop the keydown event", function() {
                 var args = deleteSpy.mostRecentCall.args;
                 
-                expect(args[0].isStopped).toBe(true);
+                expect(args[0].stopped).toBe(true);
             });
             
             it("should return false to stop Event propagation loop", function() {

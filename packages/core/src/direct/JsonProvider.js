@@ -4,7 +4,6 @@
  *
  * @abstract
  */
-
 Ext.define('Ext.direct.JsonProvider', {
     extend: 'Ext.direct.Provider',
     alias:  'direct.jsonprovider',
@@ -25,7 +24,8 @@ Ext.define('Ext.direct.JsonProvider', {
     parseResponse: function(response) {
         var text = response && response.responseText;
         
-        if (text) {
+        // Empty string should blow up in JSON decoder
+        if (text != null) {
             if (Ext.isObject(text) || Ext.isArray(text)) {
                 return text;
             }
@@ -54,6 +54,7 @@ Ext.define('Ext.direct.JsonProvider', {
         }
         catch (e) {
             event = new Ext.direct.ExceptionEvent({
+                parsingError: true,
                 data: e,
                 xhr: response,
                 code: Ext.direct.Manager.exceptions.PARSE,

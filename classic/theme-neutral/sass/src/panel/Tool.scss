@@ -2,16 +2,13 @@
     cursor: $tool-cursor;
 }
 
-.#{$prefix}tool-img {
+.#{$prefix}tool-tool-el {
     overflow: hidden;
     width: $tool-size;
     height: $tool-size;
-    background-image: theme-background-image($tool-background-image);
     margin: 0;
-    @if $enable-font-icons {
-        color: $tool-glyph-color;
-        text-align: center;
-    }
+    color: $tool-glyph-color;
+    text-align: center;
     @if $tool-opacity != 1 {
         @include opacity($tool-opacity);
     }
@@ -25,6 +22,21 @@
             @include opacity($tool-opacity-pressed);
         }
     }
+}
+
+// Default rules for focused tools when they are used in other contexts
+// than a panel header. They must still look like panel header tools
+.#{$prefix}tool-focus {
+    @include css-outline(
+        $width: $tool-focus-outline-width,
+        $style: $tool-focus-outline-style,
+        $color: $tool-focus-outline-color,
+        $offset: $tool-focus-outline-offset
+    );
+}
+
+.#{$prefix}tool-img {
+    background-image: theme-background-image($tool-background-image);
 }
 
 .#{$prefix}tool-placeholder {

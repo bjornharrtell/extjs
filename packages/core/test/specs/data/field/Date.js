@@ -188,6 +188,48 @@ describe("Ext.data.field.Date", function() {
                 expect(v).toBe('2000-01-01');
                 expect(format).toBe('Y-m-d');
             });
+
+            it("should return formatted date when useStrict false", function() {
+                var d = new Date(),
+                    v, format, useStrict;
+                make({
+                    dateFormat: 'm/d/Y h:i A',
+                    useStrict: false
+                });
+
+                spyOn(Ext.Date, 'parse').andCallFake(function(arg1, arg2, arg3) {
+                    v = arg1;
+                    format = arg2;
+                    useStrict = arg3;
+                    return d;
+                });
+
+                expect(field.convert('03/13/2016 02:35 AM')).toBe(d);
+                expect(v).toBe('03/13/2016 02:35 AM');
+                expect(format).toBe('m/d/Y h:i A');
+                expect(useStrict).toBe(false);
+            });
+
+            it("should return null when useStrict true", function() {
+                var d = new Date(),
+                    v, format, useStrict;
+                make({
+                    dateFormat: 'm/d/Y h:i A',
+                    useStrict: true
+                });
+
+                spyOn(Ext.Date, 'parse').andCallFake(function(arg1, arg2, arg3) {
+                    v = arg1;
+                    format = arg2;
+                    useStrict = arg3;
+                    return d;
+                });
+
+                expect(field.convert('03/13/2016 02:35 AM')).toBe(d);
+                expect(v).toBe('03/13/2016 02:35 AM');
+                expect(format).toBe('m/d/Y h:i A');
+                expect(useStrict).toBe(true);
+            });
         });
         
         describe("without format", function() {

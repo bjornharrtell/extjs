@@ -23,6 +23,12 @@ Ext.define('Ext.rtl.grid.column.Column', {
         var me = this;
         return (!me.getInherited().rtl !== !Ext.rootInheritedState.rtl) ? // jshint ignore:line
             (e.getXY()[0] - me.getX() <= me.getHandleWidth(e)) : me.callParent([e, margin]);
-    }
+    },
 
+    privates: {
+        _alignMap: {
+            start: 'right',
+            end: 'left'
+        }
+    }
 });

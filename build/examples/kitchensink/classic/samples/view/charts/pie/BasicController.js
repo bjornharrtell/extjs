@@ -3,6 +3,10 @@ Ext.define('KitchenSink.view.charts.pie.BasicController', {
     alias: 'controller.pie-basic',
 
     onPreview: function () {
+        if (Ext.isIE8) {
+            Ext.Msg.alert('Unsupported Operation', 'This operation requires a newer version of Internet Explorer.');
+            return;
+        }
         var chart = this.lookupReference('chart');
         chart.preview();
     },

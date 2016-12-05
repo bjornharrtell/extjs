@@ -64,7 +64,7 @@ Ext.define('Ext.slider.Tip', {
         var me = this,
             align,
             offsets;
-        
+
         if (!me.position) {
             me.position = slider.vertical ? me.defaultVerticalPosition : me.defaultHorizontalPosition;
         }
@@ -113,8 +113,8 @@ Ext.define('Ext.slider.Tip', {
      */
     onSlide : function(slider, e, thumb) {
         var me = this;
-        me.show();
         me.update(me.getText(thumb));
+        me.show();
         me.el.alignTo(thumb.el, me.align, me.offsets);
     },
 

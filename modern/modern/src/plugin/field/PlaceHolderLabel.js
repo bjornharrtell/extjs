@@ -29,8 +29,9 @@
  *             }
  *         ]
  *      });
+ *
+ * @deprecated 6.2.0 Placeholder as Label is now available as a config using the Neptune Theme
  */
-
 Ext.define('Ext.plugin.field.PlaceHolderLabel', {
     extend : 'Ext.AbstractPlugin',
     alias  : 'plugin.placeholderlabel',

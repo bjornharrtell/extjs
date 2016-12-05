@@ -1,3 +1,5 @@
+/* global expect, Ext, MockAjaxManager, jasmine, spyOn */
+
 describe("Ext.data.ChainedStore", function() {
     var fakeScope = {},
         abeRec, aaronRec, edRec, tommyRec, 
@@ -54,6 +56,15 @@ describe("Ext.data.ChainedStore", function() {
         }
     }
     
+    function spyOnEvent(object, eventName, fn) {
+        var obj = {
+            fn: fn || Ext.emptyFn
+        },
+        spy = spyOn(obj, "fn");
+        object.addListener(eventName, obj.fn);
+        return spy;
+    }
+
     beforeEach(function() {
         Ext.data.Model.schema.setNamespace('spec');
         MockAjaxManager.addMethods();
@@ -85,11 +96,7 @@ describe("Ext.data.ChainedStore", function() {
         MockAjaxManager.removeMethods();
         Ext.data.Model.schema.clear();
         Ext.undefine('spec.User');
-        if (source) {
-            source.destroy();
-        }
-        store.destroy();
-        User = source = store = null;
+        User = source = store = Ext.destroy(source, store);
         Ext.data.Model.schema.clear(true);
     });
     
@@ -152,6 +159,110 @@ describe("Ext.data.ChainedStore", function() {
         var joined = edRec.joined;
         expect(joined.length).toBe(1);
         expect(joined[0]).toBe(source);
+    });
+
+    describe("beginUpdate/endUpdate", function() {
+        var beginSpy, endSpy;
+
+        beforeEach(function() {
+            beginSpy = jasmine.createSpy();
+            endSpy = jasmine.createSpy();
+
+            createStore();
+        });
+
+        afterEach(function() {
+            beginSpy = endSpy = null;
+        });
+
+        function setup() {
+            createStore();
+            store.on('beginupdate', beginSpy);
+            store.on('endupdate', endSpy);
+        }
+
+        describe("calls to methods directly", function() {
+            it("should fire beginupdate on the first call to beginUpdate", function() {
+                setup();
+                store.beginUpdate();
+                expect(beginSpy.callCount).toBe(1);
+                store.beginUpdate();
+                store.beginUpdate();
+                expect(beginSpy.callCount).toBe(1);
+            });
+
+            it("should fire the endupdate on the last matching call to endUpdate", function() {
+                setup();
+                store.beginUpdate();
+                store.beginUpdate();
+                store.beginUpdate();
+                store.endUpdate();
+                store.endUpdate();
+                expect(endSpy).not.toHaveBeenCalled();
+                store.endUpdate();
+                expect(endSpy.callCount).toBe(1);
+            });
+        });
+
+        describe("in reaction to store changes", function() {
+            beforeEach(function() {
+                setup();
+            });
+
+            // TODO: this could be fleshed out further to include more functionality
+            describe("add", function() {
+                it("should fire begin/end for adding a single record", function() {
+                    source.add({});
+                    expect(beginSpy.callCount).toBe(1);
+                    expect(endSpy.callCount).toBe(1);
+                });
+
+                it("should fire begin/end for adding multiple records in contiguous range", function() {
+                    source.add([{}, {}, {}, {}]);
+                    expect(beginSpy.callCount).toBe(1);
+                    expect(endSpy.callCount).toBe(1);
+                });
+
+                it("should fire begin/end for adding multiple records over a discontiguous range", function() {
+                    store.sort('age');
+                    source.add([{
+                        age: 1
+                    }, {
+                        age: 1000
+                    }]);
+                    expect(beginSpy.callCount).toBe(1);
+                    expect(endSpy.callCount).toBe(1);
+                });
+            });
+
+            describe("remove", function() {
+                it("should fire begin/end for removing a single record", function() {
+                    source.removeAt(0);
+                    expect(beginSpy.callCount).toBe(1);
+                    expect(endSpy.callCount).toBe(1);
+                });
+
+                it("should fire begin/end for removing multiple records in contiguous range", function() {
+                    source.remove([edRec, abeRec]);
+                    expect(beginSpy.callCount).toBe(1);
+                    expect(endSpy.callCount).toBe(1);
+                });
+
+                it("should fire begin/end for removing multiple records over a discontiguous range", function() {
+                    source.remove([edRec, tommyRec]);
+                    expect(beginSpy.callCount).toBe(1);
+                    expect(endSpy.callCount).toBe(1);
+                });
+            });
+
+            describe("update", function() {
+                it("should fire begin/end for a record update", function() {
+                    edRec.set('name', 'foo');
+                    expect(beginSpy.callCount).toBe(1);
+                    expect(endSpy.callCount).toBe(1);
+                });
+            });
+        });
     });
 
     describe("getting records", function() {
@@ -677,7 +788,7 @@ describe("Ext.data.ChainedStore", function() {
                     expect(spy).toHaveBeenCalled();
                     expect(spy.mostRecentCall.args[0]).toBe(store);
                     expect(spy.mostRecentCall.args[1]).toEqual([source.getAt(0), source.getAt(1), source.getAt(2), source.getAt(3)]);
-                    expect(spy.mostRecentCall.args[2]).toBe(true)
+                    expect(spy.mostRecentCall.args[2]).toBe(true);
                     expect(spy.mostRecentCall.args[3]).toBe(readSpy.mostRecentCall.args[0]);
                 });
                     
@@ -1530,13 +1641,15 @@ describe("Ext.data.ChainedStore", function() {
     });   
 
     describe("misc", function() {
-        it("should allow adding when chained to an associated store and the chained store is sorted", function() {
-            var Order = Ext.define('spec.Order', {
+        var Order, OrderItem, orders;
+
+        beforeEach(function() {
+            Order = Ext.define('spec.Order', {
                 extend: 'Ext.data.Model',
                 fields: ['id']
             });
 
-            var OrderItem = Ext.define('spec.OrderItem', {
+            OrderItem = Ext.define('spec.OrderItem', {
                 extend: 'Ext.data.Model',
                 fields: ['id', {
                     name: 'orderId',
@@ -1544,7 +1657,7 @@ describe("Ext.data.ChainedStore", function() {
                 }]
             });
 
-            var orders = new Ext.data.Store({
+            orders = new Ext.data.Store({
                 model: Order
             });
 
@@ -1564,17 +1677,75 @@ describe("Ext.data.ChainedStore", function() {
             createStore({
                 sorters: ['id']
             });
+        });
 
-            var rec = source.add({
+        afterEach(function() {
+            orders.destroy();
+            Ext.undefine('spec.Order');
+            Ext.undefine('spec.OrderItem');
+        });
+
+        it("should add records from source store to chained store in sorted order if chained store is sorted", function() {
+
+            source.add({
                 id: 2
-            })[0];
+            });
 
+            // chained store maintains itself in sorted order
             expect(store.getAt(0)).toBe(source.getById(1));
             expect(store.getAt(1)).toBe(source.getById(2));
             expect(store.getAt(2)).toBe(source.getById(3));
+        });
 
-            Ext.undefine('spec.Order');
-            Ext.undefine('spec.OrderItem');
+        it("should prepend records from source store to chained store if chained store is not sorted", function() {
+            store.setAutoSort(false);
+
+            source.add({
+                id: 2
+            });
+
+            // The new id:2 record should have been appended
+            expect(store.getAt(0)).toBe(source.getById(2));
+            expect(store.getAt(1)).toBe(source.getById(1));
+            expect(store.getAt(2)).toBe(source.getById(3));
+        });
+
+        it('should fire idchanged when the source collection updates a key', function() {
+            var spy = spyOnEvent(store, 'idchanged');
+
+            var rec = source.getAt(0);
+            rec.set('id', 'foobar');
+
+            // Downstream store must pass on the idchanged event.
+            expect(spy.callCount).toBe(1);
+            expect(spy.mostRecentCall.args).toEqual([store, rec, 1, 'foobar']);
+        });
+
+        it("should maintain synchronization with source store when observers are added", function () {
+            source = new Ext.data.Store({
+                fields: ['id', 'name'],
+                data: [{
+                    id: 1,
+                    name: 'foo'
+                }]
+            });
+
+            createStore();
+
+            var spy = spyOnEvent(store, 'remove');
+
+            source.on('remove', function () {
+                // the initialization of the collectionkey will call addObserver() in the underlying collection
+                // if this happens while we're in the middle of notify(), chained store will be left out
+                source.setExtraKeys({
+                    byFoo: {property: 'name', root: ''}
+                });
+            });
+            // remove the last record
+            source.removeAt(0);
+            // if all went as planned, the chained store's collection should have been notified of the removal as well
+            expect(store.getCount()).toBe(0);
+            expect(spy).toHaveBeenCalled();
         });
     });
 });

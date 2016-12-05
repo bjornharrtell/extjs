@@ -1,7 +1,7 @@
 Ext.define('KitchenSink.view.binding.TwoWay', {
     extend: 'Ext.form.Panel',
 
-    //<example>
+    // <example>
     requires: [
         'Ext.app.ViewModel'
     ],
@@ -10,9 +10,12 @@ Ext.define('KitchenSink.view.binding.TwoWay', {
         type: 'ViewController',
         path: 'modern/src/view/binding/TwoWayController.js'
     }],
-    //</example>
+    // </example>
 
     controller: 'binding-twoway',
+
+    shadow: true,
+    cls: 'demo-solid-background',
 
     viewModel: {
         data: {
@@ -25,11 +28,14 @@ Ext.define('KitchenSink.view.binding.TwoWay', {
         docked: 'top',
         bind: '{title}',
         items: [{
+            align: 'right',
             text: 'Random Title',
             handler: 'makeRandomTitle'
         }]
     }, {
         xtype: 'fieldset',
+        flex: 1,
+        align: 'left',
         instructions: [
             'Change the text field which will alter the title bar text using binding. ',
             'The random title button sets the title on the ViewModel, which is propagated to ',

@@ -105,3 +105,8 @@
         $inner-opacity-disabled: $button-inner-opacity-disabled
     );
 }
+
+// No ellipsis in squeezed widget cells.
+.#{$prefix}grid-widgetcolumn-cell-inner {
+    text-overflow: clip;
+}

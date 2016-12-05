@@ -260,3 +260,27 @@ $tool-expand-right-glyph: dynamic($fa-var-caret-right $tool-glyph-font-size $fon
  * Glyph for the right "collapse" tool icon when {@link Global_CSS#$enable-font-icons} is `true`.
  */
 $tool-collapse-right-glyph: dynamic($fa-var-caret-right $tool-glyph-font-size $font-icon-font-family);
+
+/**
+ * @var {number}
+ * The focus outline width for Tools used in contexts outside a Panel header
+ */
+$tool-focus-outline-width: dynamic($panel-tool-focus-outline-width);
+
+/**
+ * @var {string}
+ * The focus outline style for Tools used in contexts outside a Panel header
+ */
+$tool-focus-outline-style: dynamic($panel-tool-focus-outline-style);
+
+/**
+ * @var {string}
+ * The focus outline color for Tools used in contexts outside a Panel header
+ */
+$tool-focus-outline-color: dynamic($base-color);
+
+/**
+ * @var {number}
+ * The focus outline offset for Tools used in contexts outside a Panel header
+ */
+$tool-focus-outline-offset: dynamic($panel-tool-focus-outline-offset);

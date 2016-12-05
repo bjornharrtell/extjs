@@ -34,6 +34,18 @@ Ext.define('Ext.menu.Item', {
         'Ext.mixin.Queryable'
     ],
 
+    requires: [
+        'Ext.Glyph'
+    ],
+
+    config: {
+        /**
+         * @cfg {Number/String} glyph
+         * @inheritdoc Ext.panel.Header#glyph
+         */
+        glyph: null
+    },
+
     /**
      * @property {Boolean} activated
      * Whether or not this item is currently activated
@@ -100,11 +112,6 @@ Ext.define('Ext.menu.Item', {
     /**
      * @cfg {String} iconCls
      * @inheritdoc Ext.panel.Header#cfg-iconCls
-     */
-
-    /**
-     * @cfg {Number/String} glyph
-     * @inheritdoc Ext.panel.Header#glyph
      */
 
     /**
@@ -188,13 +195,20 @@ Ext.define('Ext.menu.Item', {
                 '</tpl>' +
                 '<tpl foreach="ariaAttributes"> {$}="{.}"</tpl>' +
             '>' +
-                '<span id="{id}-textEl" data-ref="textEl" class="{textCls} {textCls}-{ui} {indentCls}{childElCls}" unselectable="on">{text}</span>' +
+                '<span id="{id}-textEl" data-ref="textEl" class="{textCls} {textCls}-{ui} {indentCls}{childElCls}" unselectable="on" role="presentation">{text}</span>' +
                 '<tpl if="hasIcon">' +
                     '<div role="presentation" id="{id}-iconEl" data-ref="iconEl" class="{baseIconCls}-{ui} {baseIconCls}' +
                         '{[values.rightIcon ? "-right" : ""]} {iconCls}' +
                         '{childElCls} {glyphCls}" style="<tpl if="icon">background-image:url({icon});</tpl>' +
-                        '<tpl if="glyph && glyphFontFamily">font-family:{glyphFontFamily};</tpl>">' +
-                        '<tpl if="glyph">&#{glyph};</tpl>' +
+                        '<tpl if="glyph">' +
+                            '<tpl if="glyphFontFamily">'+
+                                'font-family:{glyphFontFamily};'+
+                            '</tpl>' +
+                            '">' +
+                            '{glyph}' +
+                        '<tpl else>' +
+                            '">' +
+                        '</tpl>' +
                     '</div>' +
                 '</tpl>' +
                 '<tpl if="showCheckbox">' +
@@ -208,7 +222,11 @@ Ext.define('Ext.menu.Item', {
                 '</tpl>' +
             '</a>' +
         '</tpl>',
-
+    
+    autoEl: {
+        role: 'presentation'
+    },
+    
     maskOnDisable: false,
 
     iconAlign: 'left',
@@ -223,7 +241,7 @@ Ext.define('Ext.menu.Item', {
      * A function called when the menu item is clicked (can be used instead of {@link #click} event).
      * @cfg {Ext.menu.Item} handler.item The item that was clicked
      * @cfg {Ext.event.Event} handler.e The underlying {@link Ext.event.Event}.
-     * @declarativeHandler
+     * @controllable
      */
 
     /**
@@ -306,15 +324,16 @@ Ext.define('Ext.menu.Item', {
 
         me.callParent([e]);
 
-        if (!me.disabled) {
-            if (!me.plain) {
-                me.addCls(me.activeCls);
-            }
+        // We do not refuse activation if the Item is disabled.
+        // http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#menu
+        // "Disabled menu items receive focus but have no action when Enter or Left Arrow/Right Arrow is pressed."
+        if (!me.plain) {
+            me.addCls(me.activeCls);
+        }
 
-            me.activated = true;
-            if (me.hasListeners.activate) {
-                me.fireEvent('activate', me);
-            }
+        me.activated = true;
+        if (me.hasListeners.activate) {
+            me.fireEvent('activate', me);
         }
     },
 
@@ -323,15 +342,13 @@ Ext.define('Ext.menu.Item', {
 
         me.callParent([e]);
 
-        if (me.activated) {
-            if (!me.plain) {
-                me.removeCls(me.activeCls);
-            }
-            me.doHideMenu();
-            me.activated = false;
-            if (me.hasListeners.deactivate) {
-                me.fireEvent('deactivate', me);
-            }
+        if (!me.plain) {
+            me.removeCls(me.activeCls);
+        }
+        me.doHideMenu();
+        me.activated = false;
+        if (me.hasListeners.deactivate) {
+            me.fireEvent('deactivate', me);
         }
     },
 
@@ -361,7 +378,11 @@ Ext.define('Ext.menu.Item', {
     expandMenu: function(event, delay) {
         var me = this;
 
-        if (me.activated && me.menu) {
+        // An item can be focused (active), but disabled.
+        // Disabled items must not action on click (or up/down arrow)
+        // http://www.w3.org/TR/2013/WD-wai-aria-practices-20130307/#menu
+        // "Disabled menu items receive focus but have no action when Enter or Left Arrow/Right Arrow is pressed."
+        if (!me.disabled && me.activated && me.menu) {
 
             // hideOnClick makes no sense when there's a child menu
             me.hideOnClick = false;
@@ -393,6 +414,10 @@ Ext.define('Ext.menu.Item', {
             // Pointer-invoked menus do not auto focus, key invoked ones do.
             menu.autoFocus = !clickEvent || !clickEvent.pointerType;
             menu.showBy(me, me.menuAlign);
+        }
+        // Keyboard events should focus the first menu item even if it was already expanded
+        else if (clickEvent && clickEvent.type === 'keydown') {
+            menu.focus();
         }
     },
 
@@ -437,7 +462,7 @@ Ext.define('Ext.menu.Item', {
             return;
         }
 
-        if (me.hideOnClick) {
+        if (me.hideOnClick && !me.menu) {
             // on mobile webkit, when the menu item has an href, a longpress will 
             // trigger the touch call-out menu to show.  If this is the case, the tap 
             // event object's browser event type will be 'touchcancel', and we do not 
@@ -454,12 +479,21 @@ Ext.define('Ext.menu.Item', {
 
         // Click event may have destroyed the menu, don't do anything further
         clickResult = me.fireEvent('click', me, e);
+        
+        // Click listener could have destroyed the menu and/or item.
         if (me.destroyed) {
             return;
         }
 
         if (clickResult !== false && me.handler) {
             Ext.callback(me.handler, me.scope, [me, e], 0, me);
+        }
+        
+        // And the handler could have done the same. We check this twice
+        // because if the menu was destroyed in the click listener, the handler
+        // should not have been called.
+        if (me.destroyed) {
+            return;
         }
 
         // If there's an href, invoke dom.click() after we've fired the click event in case a click
@@ -484,7 +518,7 @@ Ext.define('Ext.menu.Item', {
             me.handlingClick = false;
         }
 
-        if (!me.hideOnClick) {
+        if (!me.hideOnClick && !me.hasFocus) {
             me.focus();
         }
         return clickResult;
@@ -501,40 +535,33 @@ Ext.define('Ext.menu.Item', {
         me.parentMenu = me.ownerCmp = null;
     },
 
-    /**
-     * @private
-     */
-    beforeDestroy: function() {
+    doDestroy: function() {
         var me = this;
+
         if (me.rendered) {
             me.clearTip();
         }
-        me.callParent();
-    },
-
-    onDestroy: function() {
-        var me = this;
-
+        
         me.cancelDeferExpand();
         me.cancelDeferHide();
         clearTimeout(me.deferHideParentMenusTimer);
 
         me.setMenu(null);
-        me.callParent(arguments);
+        
+        me.callParent();
     },
 
     beforeRender: function() {
         var me = this,
             glyph = me.glyph,
-            glyphFontFamily = Ext._glyphFontFamily,
+            glyphFontFamily,
             hasIcon = !!(me.icon || me.iconCls || glyph),
             hasMenu = !!me.menu,
             rightIcon = ((me.iconAlign === 'right') && !hasMenu),
             isCheckItem = me.isMenuCheckItem,
             indentCls = [],
             ownerCt = me.ownerCt,
-            isOwnerPlain = ownerCt.plain,
-            glyphParts;
+            isOwnerPlain = ownerCt.plain;
 
         if (me.plain) {
             me.ariaEl = 'el';
@@ -550,10 +577,10 @@ Ext.define('Ext.menu.Item', {
             }
         }
 
-        if (typeof glyph === 'string') {
-            glyphParts = glyph.split('@');
-            glyph = glyphParts[0];
-            glyphFontFamily = glyphParts[1];
+        // Transform Glyph to the useful parts
+        if (glyph) {
+            glyphFontFamily = glyph.fontFamily;
+            glyph = glyph.character;
         }
 
         if (!isOwnerPlain || (hasIcon && !rightIcon) || isCheckItem) {
@@ -692,16 +719,23 @@ Ext.define('Ext.menu.Item', {
 
     /**
      * Sets the {@link #icon} on this item.
-     * @param {String} icon The new icon
+     * @param {String} icon The new icon URL. If this `MenuItem` was configured with a {@link #cfg-glyph},
+     * this may be a glyph configuration. See {@link #cfg-glyph}.
      */
-    setIcon: function(icon){
-        var iconEl = this.iconEl,
-            oldIcon = this.icon;
-        if (iconEl) {
-            iconEl.src = icon || Ext.BLANK_IMAGE_URL;
+    setIcon: function(icon) {
+        var me = this,
+            iconEl = me.iconEl,
+            oldIcon = me.icon;
+
+        // If setIcon is called when we are configured with a glyph, clear the glyph
+        if (me.glyph) {
+            me.setGlyph(null);
         }
-        this.icon = icon;
-        this.fireEvent('iconchange', this, oldIcon, icon);
+        if (iconEl) {
+            iconEl.setStyle('background-image', icon ? 'url(' + icon + ')': '');
+        }
+        me.icon = icon;
+        me.fireEvent('iconchange', me, oldIcon, icon);
     },
 
     /**
@@ -713,7 +747,13 @@ Ext.define('Ext.menu.Item', {
             iconEl = me.iconEl,
             oldCls = me.iconCls;
 
+        // If setIcon is called when we are configured with a glyph, clear the glyph
+        if (me.glyph) {
+            me.setGlyph(null);
+        }
         if (iconEl) {
+            // In case it had been set to 'none' by a glyph setting.
+            iconEl.setStyle('background-image', '');
             if (me.iconCls) {
                 iconEl.removeCls(me.iconCls);
             }
@@ -792,6 +832,14 @@ Ext.define('Ext.menu.Item', {
         return me;
     },
 
+    getFocusEl: function() {
+        return this.plain ? this.el : this.itemEl;
+    },
+    
+    getFocusClsEl: function() {
+        return this.el;
+    },
+    
     privates: {
         cancelDeferExpand: function() {
             window.clearTimeout(this.expandMenuTimer);
@@ -799,10 +847,33 @@ Ext.define('Ext.menu.Item', {
 
         cancelDeferHide: function(){
             window.clearTimeout(this.hideMenuTimer);
-        },
+        }
+    },
 
-        getFocusEl: function() {
-            return this.plain ? this.el : this.itemEl;
+    applyGlyph: function(glyph, oldGlyph) {
+        if (glyph) {
+            if (!glyph.isGlyph) {
+                glyph = new Ext.Glyph(glyph);
+            }
+            if (glyph.isEqual(oldGlyph)) {
+                glyph = undefined;
+            }
+        }
+        return glyph;
+    },
+
+    updateGlyph: function(glyph, oldGlyph) {
+        var iconEl = this.iconEl;
+
+        if (iconEl) {
+            iconEl.setStyle('background-image', 'none');
+            this.icon = null;
+            if (glyph) {
+                iconEl.dom.innerHTML = glyph.character;
+                iconEl.setStyle(glyph.getStyle());
+            } else {
+                iconEl.dom.innerHTML = '';
+            }
         }
     }
 });

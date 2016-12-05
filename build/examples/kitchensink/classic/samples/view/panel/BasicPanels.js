@@ -6,11 +6,21 @@
 Ext.define('KitchenSink.view.panel.BasicPanels', {
     extend: 'Ext.Container',
     xtype: 'basic-panels',
-    width: 660,
+
     requires: [
         'Ext.layout.container.Table'
     ],
 
+    //<example>
+    profiles: {
+        classic: {
+        },
+        neptune: {
+        }
+    },
+    //</example>
+
+    width: 660,
     layout: {
         type: 'table',
         columns: 3,
@@ -23,51 +33,55 @@ Ext.define('KitchenSink.view.panel.BasicPanels', {
         height: 280,
         bodyPadding: 10
     },
-    //<example>
-    profiles: {
-        classic: {
-            percentChangeColumn: {
-                width: 75
-            }
-        },
-        neptune: {
-            percentChangeColumn: {
-                width: 100
-            }
-        }
+
+    items: [{
+        html: KitchenSink.DummyText.mediumText
+    }, {
+        title: 'Title',
+        html: KitchenSink.DummyText.mediumText
+    }, {
+        title: 'Collapsible',
+        collapsible: true,
+        html: KitchenSink.DummyText.mediumText
+    }, {
+        title: 'Built in Tools',
+        collapsed: true,
+        collapsible: false,
+        width: 640,
+        html: KitchenSink.DummyText.mediumText,
+        tools: [
+            { type: 'pin' },
+            { type: 'refresh' },
+            { type: 'search' },
+            { type: 'save' }
+        ],
+        colspan: 3
+    }, {
+        title: 'Custom Tools using iconCls',
+        collapsed: true,
+        collapsible: false,
+        width: 640,
+        html: KitchenSink.DummyText.mediumText,
+        tools: [
+            { iconCls: 'x-fa fa-wrench' },
+            { iconCls: 'x-fa fa-reply' },
+            { iconCls: 'x-fa fa-reply-all' },
+            { iconCls: 'x-fa fa-rocket' }
+        ],
+        colspan: 3
     },
-    //</example>
-
-    initComponent: function () {
-        this.items = [
-            {
-                html: KitchenSink.DummyText.mediumText
-            },
-            {
-                title: 'Title',
-                html: KitchenSink.DummyText.mediumText
-            },
-            {
-                title: 'Collapsible',
-                collapsible: true,
-                html: KitchenSink.DummyText.mediumText
-            },
-            {
-                title: 'Tools',
-                collapsed: true,
-                collapsible: true,
-                width: 640,
-                html: KitchenSink.DummyText.mediumText,
-                tools: [
-                    { type:'pin' },
-                    { type:'refresh' },
-                    { type:'search' },
-                    { type:'save' }
-                ],
-                colspan: 3
-            }
-        ];
-
-        this.callParent();
-    }
+    {
+        title: 'Custom Tools using glyph configuration',
+        collapsed: true,
+        collapsible: false,
+        width: 640,
+        html: KitchenSink.DummyText.mediumText,
+        tools: [
+            { glyph: 'xf0ad@FontAwesome' },
+            { glyph: 'xf112@FontAwesome' },
+            { glyph: 'xf122@FontAwesome' },
+            { glyph: 'xf135@FontAwesome' }
+        ],
+        colspan: 3
+    }]
 });

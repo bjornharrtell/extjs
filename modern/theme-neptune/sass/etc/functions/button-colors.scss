@@ -31,19 +31,25 @@
 }
 
 @function button-background-gradient($background-color) {
-    @return color_stops(
-        mix(#fff, $background-color, 10%),
-        $background-color 50%,
-        mix(#000, $background-color, 5%) 51%,
-        $background-color
-    );
+    @if $background-color != transparent and $background-color != null {
+        @return color_stops(
+            mix(#fff, $background-color, 10%),
+            $background-color 50%,
+            mix(#000, $background-color, 5%) 51%,
+            $background-color
+        );
+    }
+    @return null;
 }
 
 @function button-pressed-background-gradient($background-color) {
-    @return color_stops(
-        $background-color,
-        mix(#000, $background-color, 5%) 50%,
-        $background-color 51%,
-        mix(#fff, $background-color, 10%)
-    );
+    @if $background-color != transparent and $background-color != null {
+        @return color_stops(
+            $background-color,
+            mix(#000, $background-color, 5%) 50%,
+            $background-color 51%,
+            mix(#fff, $background-color, 10%)
+        );
+    }
+    @return null;
 }

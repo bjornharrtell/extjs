@@ -25,7 +25,7 @@ Ext.define('KitchenSink.view.draw.Protractor', {
             // Here we define which composite's attributes should trigger such recalculation.
             // In this case we use a single updater function called 'recalculate', but it's
             // possible to specify and use different updaters for different attributes.
-            dirtyTriggers: {
+            triggers: {
                 fromX: 'recalculate',
                 fromY: 'recalculate',
                 toX: 'recalculate',

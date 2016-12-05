@@ -1,9 +1,12 @@
+/* global Ext, spyOn, expect, MockAjaxManager, jasmine */
+
 describe("Ext.data.TreeStore", function() {
     var store,
+        root,
         loadStore,
         dummyData,
         NodeModel = Ext.define(null, {
-            extend: 'Ext.data.Model',
+            extend: 'Ext.data.TreeModel',
             fields: ['name'],
             proxy: {
                 type: 'ajax',
@@ -14,7 +17,7 @@ describe("Ext.data.TreeStore", function() {
             }
         }),
         TaskModel = Ext.define(null, {
-            extend: 'Ext.data.Model',
+            extend: 'Ext.data.TreeModel',
             idProperty : 'id',
             fields: [
                 {name: 'id',       type: 'int', allowNull: true},
@@ -64,6 +67,7 @@ describe("Ext.data.TreeStore", function() {
                 children: expandify(nodes)
             }
         }, cfg));
+        root = store.getRootNode();
     }
 
     function expectOrder(parent, ids) {
@@ -142,6 +146,121 @@ describe("Ext.data.TreeStore", function() {
     function byId(id) {
         return store.getNodeById(id);
     }
+
+    describe('NodeInterface#removeAll', function() {
+        // Test https://sencha.jira.com/browse/EXTJS-20023
+        it('should remove all descendant nodes from node lookup map', function() {
+            store = new Ext.data.TreeStore({
+                model: NodeModel,
+                proxy: {
+                    type: 'memory'
+                },
+                root: {
+                    id: 0,
+                    name: 'Root Node',
+                    autoLoad: true,
+                    children: dummyData.children
+                }
+            });
+            store.getRootNode().expand(true);
+            expect(Ext.Object.getKeys(store.byIdMap).length).toBe(8);
+            store.getRootNode().removeAll();
+
+            // All descendant nodes must have gone from the node map.
+            // Only the root must remain.
+            expect(Ext.Object.getKeys(store.byIdMap).length).toBe(1);
+            expect(Ext.Object.getValues(store.byIdMap)[0]).toBe(store.getRootNode());
+
+            // All removed records should be represented in the removed records list.
+            expect(store.getRemovedRecords().length).toBe(7);
+        });
+    });
+
+    describe('reload of a TreeStore after a node load', function() {
+        it('should pass the root\'s id', function() {
+            var lastLoadedId;
+
+            store = new Ext.data.TreeStore({
+                model: NodeModel,
+                asynchronousLoad: false,
+                root: {
+                    expanded: true,
+                    id: 'root-id'
+                },
+                listeners: {
+                    beforeload: function(store, operation) {
+                        lastLoadedId = operation.getId();
+                    }
+                }
+            });
+
+            expect(lastLoadedId).toBe('root-id');
+            completeWithData([{
+                id: '1',
+                name: 'Node 1'
+            }, {
+                id: '2',
+                name: 'Node 2'
+            }]);
+            store.getNodeById(1).expand();
+
+            // Expanding node id 1 will put id:'1' in the operation
+            expect(lastLoadedId).toBe('1');
+            completeWithData([{
+                id: '1.1',
+                name: 'Node 1.1'
+            }, {
+                id: '1.2',
+                name: 'Node 1.2'
+            }]);
+            store.reload();
+            // Reloading will put id:'root-id' in the operation
+            expect(lastLoadedId).toBe('root-id');
+        });
+    });
+
+    describe('Aqcuiring a Proxy', function() {
+        it("should use the configured Model's Proxy by default", function() {
+            var usedProxy;
+
+            store = new Ext.data.TreeStore({
+                model: NodeModel,
+                listeners: {
+                    beforeload: function(store, operation) {
+                        usedProxy = operation.getProxy();
+                        return false;
+                    }
+                }
+            });
+            store.load();
+
+            // The store should use the proxy from the model
+            expect(store.getProxy()).toBe(NodeModel.getProxy());
+            expect(usedProxy).toBe(NodeModel.getProxy());
+        });
+        it("should use its own Proxy Proxy if it is configured with one", function() {
+            var storeProxy = new Ext.data.proxy.Ajax({
+                    url: '/foo'
+                }),
+                usedProxy;
+
+            store = new Ext.data.TreeStore({
+                model: NodeModel,
+                proxy: storeProxy,
+                listeners: {
+                    beforeload: function(store, operation) {
+                        usedProxy = operation.getProxy();
+                        return false;
+                    }
+                }
+            });
+            store.load();
+
+            // The store should use the proxy it was configured with.
+            expect(store.getProxy()).toBe(storeProxy);
+            expect(usedProxy).toBe(storeProxy);
+        });
+    });
 
     describe('success: false in return packet', function() {
         // Set to bug condition to ensure event fires as expected.
@@ -750,7 +869,7 @@ describe("Ext.data.TreeStore", function() {
 
             var idNode;
 
-            store.getRoot().cascadeBy(function(node) {
+            store.getRoot().cascade(function(node) {
                 if (node.id === 'deep') {
                     idNode = node;
                 }
@@ -1040,27 +1159,27 @@ describe("Ext.data.TreeStore", function() {
                     dummyData = {
                         success: true,
                         children: [{
-                                id: 1, 
-                                name: "aaa", 
-                                index: 2
-                            },{
-                                id: 2, 
-                                name: "bbb", 
-                                index: 0, 
-                                children: [{
-                                    id: 3, 
-                                    name: "ccc", 
-                                    index: 1
-                                },{
-                                    id: 4, 
-                                    name: "ddd", 
-                                    index: 0
-                                }],
-                                expanded: true
-                            },{
-                                id: 5, 
-                                name: "eee", 
+                            id: 1, 
+                            name: "aaa", 
+                            index: 2
+                        }, {
+                            id: 2, 
+                            name: "bbb", 
+                            index: 0, 
+                            children: [{
+                                id: 3, 
+                                name: "ccc", 
                                 index: 1
+                            }, {
+                                id: 4, 
+                                name: "ddd", 
+                                index: 0
+                            }],
+                            expanded: true
+                        }, {
+                            id: 5, 
+                            name: "eee", 
+                            index: 1
                         }]
                     };
 
@@ -1339,6 +1458,51 @@ describe("Ext.data.TreeStore", function() {
         });
     });
 
+    describe("rejecting changes", function () {
+        var parent, rec;
+        beforeEach(function() {
+            store = new Ext.data.TreeStore({
+                model: NodeModel,
+                asynchronousLoad: false,
+                root: {
+                    expanded: true,
+                    text: 'Root',
+                    children: [{
+                        id: 'a',
+                        text: 'A child',
+                        expanded: true,
+                        children: [{
+                            id: 'aa',
+                            text: 'AA child',
+                            someProp: 'foo'
+                        }]
+                    }]
+                }
+            });
+
+            parent = store.getNodeById('a');
+            rec = parent.firstChild;
+        });
+
+        it("should be able to reject record changes", function() {
+            rec.set('someProp', 'bar');
+
+            store.rejectChanges();
+
+            expect(rec.get('someProp')).toBe('foo');
+        });
+
+        it("should be able to reject record changes when it's parent is collapsed", function() {
+            rec.set('someProp', 'foo');
+
+            parent.collapse();
+
+            store.rejectChanges();
+
+            expect(rec.get('someProp')).toBe('foo'); 
+        });
+    });
+
     describe("saving data", function() {
         var record, records, syncSpy;
 
@@ -1435,6 +1599,8 @@ describe("Ext.data.TreeStore", function() {
             });
 
             describe("when the index field is persistent", function() {
+                var updateSpy;
+
                 beforeEach(function() {
                     NodeModel.getField('index').persist = true;
                 });
@@ -1445,6 +1611,7 @@ describe("Ext.data.TreeStore", function() {
                 describe("appending a single node", function() {
                     beforeEach(function() {
                         record = new NodeModel({name: 'Phil'});
+                        updateSpy = spyOnEvent(store, 'update');
                         store.getRootNode().appendChild(record);
                     });
 
@@ -1452,6 +1619,22 @@ describe("Ext.data.TreeStore", function() {
                         records = store.getNewRecords();
                         expect(records.length).toBe(1);
                         expect(records[0]).toBe(record);
+
+                        // Persistent fields must be recorded as modified
+                        expect(record.modified).toEqual({
+                            index: -1,
+                            parentId: null
+                        });
+                        expect(record.getChanges()).toEqual({
+                            index: 3,
+                            parentId: 'root'
+                        });
+
+                        // Modifications must come through to the store update event
+                        expect(updateSpy.callCount).toBe(2);
+                        expect(updateSpy.calls[1].args[1]).toBe(record);
+                        expect(updateSpy.calls[1].args[2]).toBe(Ext.data.Model.EDIT);
+                        expect(updateSpy.calls[1].args[3]).toEqual([ 'isLast', 'parentId', 'depth', 'index' ]);
                     });
 
                     it("should not add any records to getUpdatedRecords", function() {
@@ -1561,6 +1744,9 @@ describe("Ext.data.TreeStore", function() {
             });
 
             describe("moving records when the index field is persistent", function() {
+                var updateSpy,
+                    updateRec;
+
                 beforeEach(function() {
                     NodeModel.getField('index').persist = true;
                 });
@@ -1570,10 +1756,49 @@ describe("Ext.data.TreeStore", function() {
 
                 describe("within the same parent node", function() {
                     beforeEach(function() {
+                        updateSpy = spyOnEvent(store, 'update');
                         store.getRootNode().insertBefore(store.getNodeById(6), store.getNodeById(1));
                     });
 
                     it("should add the node and all sibling nodes after it to getUpdatedRecords", function() {
+                        expect(updateSpy.callCount).toBe(4);
+
+                        // Second call is when node 1 gets its index bumped
+                        updateRec = updateSpy.calls[1].args[1];
+                        expect(updateRec.modified).toEqual({
+                            index: 0
+                        });
+                        expect(updateRec.getChanges()).toEqual({
+                            index: 1
+                        });
+                        expect(updateRec).toBe(store.getNodeById(1));
+                        expect(updateSpy.calls[1].args[2]).toBe(Ext.data.Model.EDIT);
+                        expect(updateSpy.calls[1].args[3]).toEqual(['index']);
+
+                        // Then node 2
+                        updateRec = updateSpy.calls[2].args[1];
+                        expect(updateRec.modified).toEqual({
+                            index: 1
+                        });
+                        expect(updateRec.getChanges()).toEqual({
+                            index: 2
+                        });
+                        expect(updateRec).toBe(store.getNodeById(2));
+                        expect(updateSpy.calls[2].args[2]).toBe(Ext.data.Model.EDIT);
+                        expect(updateSpy.calls[2].args[3]).toEqual(['index']);
+
+                        // Then node 6
+                        updateRec = updateSpy.calls[3].args[1];
+                        expect(updateRec.modified).toEqual({
+                            index: 2
+                        });
+                        expect(updateRec.getChanges()).toEqual({
+                            index: 0
+                        });
+                        expect(updateRec).toBe(store.getNodeById(6));
+                        expect(updateSpy.calls[3].args[2]).toBe(Ext.data.Model.EDIT);
+                        expect(updateSpy.calls[3].args[3]).toEqual([ 'index', 'isFirst', 'isLast' ]);
+
                         records = store.getUpdatedRecords();
                         expect(records.length).toBe(3);
                         expect(Ext.Array.contains(records, store.getNodeById(1))).toBe(true);
@@ -1594,6 +1819,35 @@ describe("Ext.data.TreeStore", function() {
                         expect(Ext.Array.contains(records, store.getNodeById(2))).toBe(true);
                         expect(Ext.Array.contains(records, store.getNodeById(5))).toBe(true);
                         expect(Ext.Array.contains(records, store.getNodeById(6))).toBe(true);
+                    });
+                });
+
+                describe("to a different parent but reverting back to the original index", function() {
+                    it("should add the node, all sibling nodes after it's insertion point, and all siblings after its removal point to getUpdatedRecords", function() {
+                        store.getNodeById(2).appendChild(store.getNodeById(1));
+                        expect(store.getNodeById(1).modified).toEqual({
+                            parentId: 'root',
+                            index: 0
+                        });
+                        expect(store.getNodeById(1).getChanges()).toEqual({
+                            parentId: 2,
+                            index: 2
+                        });
+
+                        // This will put node 1 back to index 0 so only the parentId is changed.
+                        store.getNodeById(7).appendChild(store.getNodeById(1));
+                        expect(store.getNodeById(1).modified).toEqual({
+                            parentId: 'root'
+                        });
+                        expect(store.getNodeById(1).getChanges()).toEqual({
+                            parentId: 7
+                        });
+
+                        // Now move back to its original position.
+                        // All changes must be wiped.
+                        store.getRoot().insertBefore(store.getNodeById(1), store.getRoot().firstChild);
+                        expect(store.getNodeById(1).modified).toEqual({});
+                        expect(store.getNodeById(1).getChanges()).toEqual({});
                     });
                 });
             });
@@ -1903,7 +2157,7 @@ describe("Ext.data.TreeStore", function() {
                     root : {
                     }
                 });
-            }).toRaiseExtError();
+            }).toThrow();
         });
 
         it('Should use the configured defaultRootId, and parse that according to the idProperty field type', function() {
@@ -2309,7 +2563,6 @@ describe("Ext.data.TreeStore", function() {
         beforeEach(function() {
             store = new Ext.data.TreeStore({
                 model: NodeModel,
-                autoLoad: true,
                 root: {
                     expanded: false,
                     id: 0,
@@ -2397,6 +2650,13 @@ describe("Ext.data.TreeStore", function() {
             return store.isVisible(node);
         }
 
+        function has(nodeId) {
+            if (nodeId.isEntity) {
+                nodeId = nodeId.getId();
+            }
+            return store.getById(nodeId) != null;
+        }
+
         function idFilter(ids) {
             store.filter({
                 filterFn: function(node) {
@@ -2406,6 +2666,85 @@ describe("Ext.data.TreeStore", function() {
         }
 
         describe("basic filtering", function() {
+            it("should be able to append to a node who's current children are all filtered out", function() {
+                makeStore([{
+                    id: 1
+                }, {
+                    id: 2
+                }], {
+                    filters: [{
+                        fn: function(rec) {
+                            return rec.get('id') > 2;
+                        }
+                    }]
+                });
+
+                // rootVisible is false by default in TreeStore.
+                // And all the nodes are filtered out.
+                expect(store.getCount()).toBe(0);
+                
+                store.getRoot().appendChild({
+                    id: 3
+                });
+
+                // We've added the first node which passes the filter.
+                expect(store.getCount()).toBe(1);
+            });
+
+            it("should be able to append to a node with filtered out trailing descendants", function() {
+                makeStore([{
+                    text: "parent 1",
+                    filterMeIn: true
+                }, {
+                    text: 'parent 2',
+                    filterMeIn: true,
+                    expanded: true,
+                    children: [{
+                        text: 'p2/child 1',
+                        filterMeIn: true,
+                        children: [{
+                            text: 'p2/1/1',
+                            filterMeIn: true
+                        }]
+                    }, {
+                        text: 'p2/child 2',
+                        children: [{
+                            text: 'p2/2/1'
+                        }, {
+                            text: 'p2/2/3'
+                        }]
+                    }]
+                }, {
+                    text: 'parent 3',
+                    filterMeIn: true
+                }], {
+                    filters: [{
+                        fn: function(rec) {
+                            return rec.get('filterMeIn');
+                        }
+                    }]
+                });
+                var p2 = store.getAt(1);
+                expect(p2.get('text')).toBe('parent 2');
+
+                // rootVisible is false by default in TreeStore.
+                // Only 5 nodes should show.
+                expect(store.getCount()).toBe(5);
+                
+                var newNode = p2.appendChild({
+                    text: 'p2/child 3',
+                    filterMeIn: true
+                });
+
+                // Node has been added to the flat store
+                expect(store.getCount()).toBe(6);
+
+                // We've added the first node which passes the filter.
+                // It should be inserted after 'p2/1/1' because all nodes
+                // after that in the 'parent 2' branch are filtered out
+                expect(store.getAt(4)).toBe(newNode);
+            });
+
             it("should be able to provide a filter in the constructor", function() {
                 makeStore([{
                     id: 1
@@ -2480,7 +2819,7 @@ describe("Ext.data.TreeStore", function() {
                 expect(vis(5)).toBe(false);
             });
 
-            it("should run the filters on all nodes (even if the parent is not visible) bottom up", function() {
+            it("should run the filters on all nodes (even if the parent is not visible)", function() {
                 makeStore([{
                     id: 'n',
                     children: [{
@@ -2556,7 +2895,7 @@ describe("Ext.data.TreeStore", function() {
                         return node.id !== 'h';
                     }
                 });
-                expect(order.join('')).toBe('abcdefghijklmnopqrstuvwxyz');
+                expect(order.join('')).toBe('nhcabfdegmiljkvrpoqustzxwy');
             });
         });
 
@@ -2624,7 +2963,7 @@ describe("Ext.data.TreeStore", function() {
             });
         });
 
-        describe("root visibility", function() {
+        describe("root visibility with filterer: 'bottomup'", function() {
             describe("with rootVisible: true", function() {
                 it("should show the root if any root childNodes are visible", function() {
                     makeStore([{
@@ -2633,7 +2972,10 @@ describe("Ext.data.TreeStore", function() {
                         id: 2
                     }, {
                         id: 3
-                    }], {rootVisible: true});
+                    }], {
+                        rootVisible: true,
+                        filterer: 'bottomup'
+                    });
                     idFilter([2]);
                     expect(vis(store.getRoot())).toBe(true);
                 });
@@ -2643,7 +2985,10 @@ describe("Ext.data.TreeStore", function() {
                         id: 1
                     }, {
                         id: 2
-                    }], {rootVisible: true});
+                    }], {
+                        rootVisible: true,
+                        filterer: 'bottomup'
+                    });
                     idFilter([3]);
                     expect(vis(store.getRoot())).toBe(false);
                 });
@@ -2734,8 +3079,13 @@ describe("Ext.data.TreeStore", function() {
                         property: 'text',
                         value: 'Foo'
                     });
+                    var storeCount = store.getCount();
+
                     byId(1).set('text', 'Bar');
                     expect(vis(1)).toBe(false);
+
+                    // The node must have been evicted from the flat store
+                    expect(store.getCount()).toBe(storeCount - 1);
                 });
 
                 it("should exclude children when the parent is filtered out", function() {
@@ -2756,9 +3106,14 @@ describe("Ext.data.TreeStore", function() {
                             }
                         }
                     });
+                    var storeCount = store.getCount();
+
                     byId(1).set('text', 'Bar');
                     expect(vis(1)).toBe(false);
                     expect(vis(2)).toBe(false);
+
+                    // The node and its child must have been evicted from the flat store
+                    expect(store.getCount()).toBe(storeCount - 2);
                 });
 
                 it("should include a node when modifying it to match the filter", function() {
@@ -2770,8 +3125,13 @@ describe("Ext.data.TreeStore", function() {
                         property: 'text',
                         value: 'Bar'
                     });
+                    var storeCount = store.getCount();
+
                     byId(1).set('text', 'Bar');
                     expect(vis(1)).toBe(true);
+
+                    // The node must have been added to the flat store
+                    expect(store.getCount()).toBe(storeCount + 1);
                 });
 
                 it("should include children when the parent is filtered in", function() {
@@ -2792,14 +3152,176 @@ describe("Ext.data.TreeStore", function() {
                             }
                         }
                     });
+                    var storeCount = store.getCount();
+
                     byId(1).set('text', 'Foo');
                     expect(vis(1)).toBe(true);
                     expect(vis(2)).toBe(true);
+
+                    // The node and its child must have been added to the flat store
+                    expect(store.getCount()).toBe(storeCount + 2);
+                });
+            });
+        });
+        
+        describe('Programmatic filtering', function() {
+            describe('rootVisible: true', function() {
+                it("should hide the filtered out node", function() {
+                    makeStore([{
+                        id: 1,
+                        expanded: true,
+                        children: [{
+                            id: 2,
+                            expanded: true,
+                            children: [{
+                                id: 3,
+                                expanded: true,
+                                children: [{
+                                    id: 4,
+                                    expanded: true,
+                                    children: [{
+                                        id: 5
+                                    }]
+                                }]
+                            }]
+                        }]
+                    }], {
+                        // We plan to hide/show it, so it
+                        // must be visible.
+                        rootVisible: true
+                    });
+                    expect(has(1)).toBe(true);
+                    expect(has(2)).toBe(true);
+                    expect(has(3)).toBe(true);
+                    expect(has(4)).toBe(true);
+                    expect(has(5)).toBe(true);
+
+                    // Filtering out the node should hide it and its descendants
+                    byId(3).set('visible', false);
+                    expect(has(3)).toBe(false);
+                    expect(has(4)).toBe(false);
+                    expect(has(5)).toBe(false);
+
+                    byId(2).collapse();
+
+                    // Filtering back in when an ancestor is collapsed should not re-add it.
+                    byId(3).set('visible', true);
+                    expect(has(3)).toBe(false);
+                    expect(has(4)).toBe(false);
+                    expect(has(5)).toBe(false);
+
+                    // When parent is expanded, node 3 and its descendants should be visible again
+                    byId(2).expand();
+                    expect(has(3)).toBe(true);
+                    expect(has(4)).toBe(true);
+                    expect(has(5)).toBe(true);
+
+                    // Only expanded descendants should be re-inserted when an ancestor becomes visible
+                    byId(3).set('visible', false);
+                    byId(4).collapse();
+                    byId(3).set('visible', true);
+                    expect(has(3)).toBe(true);
+                    expect(has(4)).toBe(true);
+                    expect(has(5)).toBe(false);
+
+                    byId(4).expand();
+                    expect(store.getCount()).toBe(6);
+
+                    // When rootVisible is true, we must be able to hide and show the whole lot
+                    // using the root node
+                    store.getRootNode().set('visible', false);
+                    expect(store.getCount()).toBe(0);
+                    store.getRootNode().set('visible', true);
+                    expect(store.getCount()).toBe(6);
+                });
+            });
+
+            describe('rootVisible: false', function() {
+                it("should hide the filtered out node", function() {
+                    makeStore([{
+                        id: 1,
+                        expanded: true,
+                        children: [{
+                            id: 2,
+                            expanded: true,
+                            children: [{
+                                id: 3,
+                                expanded: true,
+                                children: [{
+                                    id: 4,
+                                    expanded: true,
+                                    children: [{
+                                        id: 5
+                                    }]
+                                }]
+                            }]
+                        }]
+                    }], {
+                        rootVisible: false
+                    });
+                    expect(has(1)).toBe(true);
+                    expect(has(2)).toBe(true);
+                    expect(has(3)).toBe(true);
+                    expect(has(4)).toBe(true);
+                    expect(has(5)).toBe(true);
+
+                    byId(1).set('visible', false);
+                    expect(store.getCount()).toBe(0);
+                    byId(2).set('visible', false);
+                    byId(3).set('visible', false);
+                    byId(4).set('visible', false);
+                    byId(5).set('visible', false);
+                    expect(store.getCount()).toBe(0);
+
+                    // Ancestors are hidden. Should not show
+                    byId(5).set('visible', true);
+                    expect(store.getCount()).toBe(0);
+                    byId(4).set('visible', true);
+                    expect(store.getCount()).toBe(0);
+                    byId(3).set('visible', true);
+                    expect(store.getCount()).toBe(0);
+                    byId(2).set('visible', true);
+                    expect(store.getCount()).toBe(0);
+
+                    // Ancestor of all those shows, suddenly all should show
+                    byId(1).set('visible', true);
+                    expect(store.getCount()).toBe(5);
+
+                    // Filtering out the node should hide it and its descendants
+                    byId(3).set('visible', false);
+                    expect(has(3)).toBe(false);
+                    expect(has(4)).toBe(false);
+                    expect(has(5)).toBe(false);
+
+                    byId(2).collapse();
+
+                    // Filtering back in when an ancestor is collapsed should not re-add it.
+                    byId(3).set('visible', true);
+                    expect(has(3)).toBe(false);
+                    expect(has(4)).toBe(false);
+                    expect(has(5)).toBe(false);
+
+                    // When parent is expanded, node 3 and its descendants should be visible again
+                    byId(2).expand();
+                    expect(has(3)).toBe(true);
+                    expect(has(4)).toBe(true);
+                    expect(has(5)).toBe(true);
+
+                    // Only expanded descendants should be re-inserted when an ancestor becomes visible
+                    byId(3).set('visible', false);
+                    byId(4).collapse();
+                    byId(3).set('visible', true);
+                    expect(has(3)).toBe(true);
+                    expect(has(4)).toBe(true);
+                    expect(has(5)).toBe(false);
+
+                    byId(4).expand();
+                    expect(store.getCount()).toBe(5);
                 });
             });
         });
     });
-    
+
     describe('heterogeneous TreeStores', function() {
         var treeData,
             schema;
@@ -3244,6 +3766,135 @@ describe("Ext.data.TreeStore", function() {
             });
             expect(madrid instanceof spec.City).toBe(true);
             expect(madrid.get('cityName')).toBe('Madrid');
+        });
+    });
+
+
+    describe('heterogeneous TreeStores with different proxy for each type', function() {
+        var schema;
+
+        beforeEach(function() {
+            schema = Ext.data.Model.schema;
+            schema.setNamespace('spec');
+
+            Ext.define('spec.Root', {
+                extend: 'Ext.data.TreeModel',
+                proxy: {
+                    model: 'spec.Territory',
+                    type: 'ajax',
+                    url: 'territories'
+                }
+            });
+            Ext.define('spec.Territory', {
+                extend: 'Ext.data.TreeModel',
+                idProperty: 'territoryName',
+                fields: [{
+                    name: 'territoryName',
+                    mapping: 'territoryName',
+                    convert: undefined
+                }],
+                proxy: {
+                    model: 'spec.Country',
+                    type: 'ajax',
+                    url: 'countries'
+                }
+            });
+            Ext.define('spec.Country', {
+                extend: 'Ext.data.TreeModel',
+                idProperty: 'countryName',
+                fields: [{
+                    name: 'countryName',
+                    mapping: 'countryName',
+                    convert: undefined
+                }],
+                proxy: {
+                    model: 'spec.City',
+                    type: 'ajax',
+                    url: 'cities'
+                }
+            });
+            Ext.define('spec.City', {
+                extend: 'Ext.data.TreeModel',
+                idProperty: 'cityName',
+                fields: [{
+                    name: 'cityName',
+                    mapping: 'cityName',
+                    convert: undefined
+                }],
+                proxy: null
+            });
+        });
+        afterEach(function() {
+            Ext.undefine('spec.Territory');
+            Ext.undefine('spec.Country');
+            Ext.undefine('spec.City');
+            Ext.undefine('spec.Root');
+            schema.clear(true);
+        });
+
+        it("should load the nodes from different URLs", function() {
+            // Use generic TreeModel as root.
+            store = new Ext.data.TreeStore({
+                root: {
+                    expanded: true
+                },
+                model: 'spec.Root'
+            });
+            var root = store.getRootNode(),
+                northAmerica,
+                usa;
+
+            // The latest Ajax request url must be 'territories'
+            expect(Ext.String.startsWith(Ext.Ajax.requests[Ext.Ajax.latestId].url, 'territories')).toBe(true);
+
+            // Respond to root node's expansion request
+            Ext.Ajax.mockComplete({
+                status: 200,
+                responseText: Ext.encode([{
+                    territoryName: 'North America'
+                }, {
+                    territoryName: 'Europe, ME, Africa'
+                }])
+            });
+
+            expect((northAmerica = root.childNodes[0]) instanceof spec.Territory).toBe(true);
+            expect(root.childNodes[1] instanceof spec.Territory).toBe(true);
+
+            // Expand North America
+            northAmerica.expand();
+
+            // The latest Ajax request url must be 'countries'
+            expect(Ext.String.startsWith(Ext.Ajax.requests[Ext.Ajax.latestId].url, 'countries')).toBe(true);
+
+            Ext.Ajax.mockComplete({
+                status: 200,
+                responseText: Ext.encode([{
+                    countryName: 'U.S.A.'
+                }, {
+                    countryName: 'Canada'
+                }])
+            });
+            expect((usa = northAmerica.childNodes[0]) instanceof spec.Country).toBe(true);
+            expect(northAmerica.childNodes[1] instanceof spec.Country).toBe(true);
+
+            // Expand USA
+            usa.expand();
+
+            // The latest Ajax request url must be 'cities'
+            expect(Ext.String.startsWith(Ext.Ajax.requests[Ext.Ajax.latestId].url, 'cities')).toBe(true);
+
+            Ext.Ajax.mockComplete({
+                status: 200,
+                responseText: Ext.encode([{
+                    cityName: 'Redwood City',
+                    leaf: true
+                }, {
+                    cityName: 'Frederick, MD',
+                    leaf: true
+                }])
+            });
+            expect(usa.childNodes[0] instanceof spec.City).toBe(true);
+            expect(usa.childNodes[1] instanceof spec.City).toBe(true);
         });
     });
 
@@ -3846,5 +4497,495 @@ describe("Ext.data.TreeStore", function() {
         doTests(true);
         doTests(false);
     });
-});
 
+    describe('collect', function() {
+        beforeEach(function() {
+            store = new Ext.data.TreeStore({
+                filterer: 'bottomup',
+                fields: ['name'],
+                asynchronousLoad: false,
+                root: {
+                    expanded: true,
+                    children: dummyData.children
+                }
+            });
+        });
+
+        describe('with collapse option', function() {
+            it('should collect values', function() {
+                var result = store.collect('name', {
+                    collapsed: true
+                });
+                expect(result).toEqual(["aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"]);
+            });
+            it('should honour filters if bypassFilters not passed', function() {
+                store.filter({
+                    property: 'name',
+                    operator: '=',
+                    value: 'ddd'
+                });
+                expect(store.getCount()).toBe(1);
+                var result = store.collect('name', {
+                    collapsed: true
+                });
+
+                // bottom up filtering. Path nodes are visible.
+                expect(result).toEqual(["bbb", "ddd"]);
+            });
+            it('should collect values regardless of filter if filtered:true', function() {
+                store.filter({
+                    property: 'name',
+                    operator: '=',
+                    value: 'ddd'
+                });
+                expect(store.getCount()).toBe(1);
+                var result = store.collect('name', {
+                    filtered: true,
+                    collapsed: true
+                });
+
+                // Filters bypassed, all nodes collected
+                expect(result).toEqual(["aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"]);
+            });
+        });
+
+        describe('without collapse option', function() {
+            it('should collect values', function() {
+                var result = store.collect('name');
+                expect(result).toEqual(["aaa", "bbb", "fff"]);
+            });
+            it('should honour filters if bypassFilters not passed', function() {
+                store.filter({
+                    property: 'name',
+                    operator: '=',
+                    value: 'ddd'
+                });
+                expect(store.getCount()).toBe(1);
+                var result = store.collect('name');
+
+                // bottom up filtering. Path nodes are visible if path is expanded.
+                expect(result).toEqual(["bbb"]);
+            });
+            it('should collect values regardless of filter if filtered:true', function() {
+                store.filter({
+                    property: 'name',
+                    operator: '=',
+                    value: 'ddd'
+                });
+                expect(store.getCount()).toBe(1);
+                var result = store.collect('name', {
+                    filtered:true
+                });
+
+                // Filters bypassed, all nodes collected if path to them is expanded
+                expect(result).toEqual(["aaa", "bbb", "fff"]);
+            });
+        });
+    });
+
+    describe('each', function() {
+        var result,
+            collect = function(bypassFilters, bypassCollapsed) {
+                store.each(function(node) {
+                    result.push(node.get('name'));
+                }, null, {
+                    filtered: bypassFilters,
+                    collapsed: bypassCollapsed
+                });
+            };
+
+        beforeEach(function() {
+            store = new Ext.data.TreeStore({
+                filterer: 'bottomup',
+                fields: ['name'],
+                asynchronousLoad: false,
+                root: {
+                    expanded: true,
+                    children: dummyData.children,
+                    name: 'root'
+                }
+            });
+            result = [];
+        });
+
+        describe('without bypassCollapsed', function() {
+            it('should visit all nodes which are below expanded ancestors', function() {
+                collect();
+                expect(result).toEqual(["aaa", "bbb", "fff"]);
+            });
+            it('should honour filters which are below expanded ancestors if bypassFilters not passed', function() {
+                store.filter({
+                    property: 'name',
+                    operator: '=',
+                    value: 'ddd'
+                });
+                collect();
+
+                // bottom up filtering. Path nodes are visible. "bbb" is collapsed, so the filtered in "ddd" is not present.
+                expect(result).toEqual(["bbb"]);
+            });
+            it('should collect values which are below expanded ancestors regardless of filter if bypassFilters passed', function() {
+                store.filter({
+                    property: 'name',
+                    operator: '=',
+                    value: 'ddd'
+                });
+                collect(true);
+
+                // Filters bypassed, only "bbb" is visible because its child, "ddd" is filtered in, but "bbb" is collapsed, do "ddd" is not present.
+                expect(result).toEqual(["bbb"]);
+            });
+        });
+
+        describe('with bypassCollapsed', function() {
+            it('should visit all nodes', function() {
+                collect(false, true);
+                expect(result).toEqual(["root", "aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"]);
+            });
+            it('should honour filters if bypassFilters not passed', function() {
+                store.filter({
+                    property: 'name',
+                    operator: '=',
+                    value: 'ddd'
+                });
+                collect(false, true);
+
+                // bottom up filtering. Path nodes are visible.
+                expect(result).toEqual(["root", "bbb", "ddd"]);
+            });
+            it('should collect values regardless of filter if bypassFilters passed', function() {
+                store.filter({
+                    property: 'name',
+                    operator: '=',
+                    value: 'ddd'
+                });
+                collect(true, true);
+
+                // Filters bypassed, all nodes visited
+                expect(result).toEqual(["root", "aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"]);
+            });
+        });
+    });
+
+    describe('loading locally filtered TreeStore', function() {
+        it('should not throw an error if a local function filter is applied', function() {
+            var opFilters;
+
+            store = new Ext.data.TreeStore({
+                root: {
+                    text: 'Root'
+                },
+                listeners: {
+                    beforeload: function(store, operation) {
+                        opFilters = operation.getFilters();
+                    }
+                }
+            });
+            loadStore(store);
+            expect(store.loadCount).toBe(1);
+            expect(store.isLoaded()).toBe(true);
+
+            store.filterBy(function(record, id) { // Simple filter that includes all
+                return true;
+            });
+
+            // Should run without error.
+            store.reload();
+            completeWithData(dummyData);
+            expect(store.loadCount).toBe(2);
+            
+            // Filter should not be part of the operation
+            expect(opFilters).toBeUndefined();
+        });
+    });
+
+    describe('Loading', function() {
+        it('should not pass paging parameters', function() {
+            store = new Ext.data.TreeStore({
+                root: {
+                    text: 'Root'
+                },
+                listeners: {
+                    beforeload: function(store, operation) {
+                        expect(operation.getStart()).toBeUndefined();
+                        expect(operation.getLimit()).toBeUndefined();
+                        expect(operation.getPage()).toBeUndefined();
+                    }
+                }
+            });
+            loadStore(store);
+        });
+    });
+    
+    describe('node traversal with intervening filtered nodes', function() {
+        function getByText(text) {
+            return store.findNode('text', text);
+        }
+        function getPreviousVisibleNode(text) {
+            return store.getAt(store.indexOfPreviousVisibleNode(getByText(text).previousSibling));
+        }
+
+        beforeEach(function() {
+//      Make a tree like this:
+//            Root
+//            ├top1
+//            │ ├top1/1
+//            │ │ └top/1/1/2
+//            │ │  ├top1/1/2/1
+//            │ │  ├top1/1/2/2
+//            │ │  └top1/1/2/3<filtered out>
+//            ├top2<filtered out>
+//            │ ├This will be invisible1
+//            │ ├This will be invisible2
+//            │ ├This will be invisible3
+//            │ ├This will be invisible4
+//            │ ├This will be invisible5
+//            │ └This will be invisible6
+//            └top3
+            store = new Ext.data.TreeStore({
+                rootVisible: true,
+                root: {
+                    text: 'Root',
+                    expanded: true,
+                    children: [{
+                        text: 'top1',
+                        expanded: true,
+                        children: [{
+                            text: 'top1/1',
+                            expanded: true,
+                            children: [{
+                                text: 'top1/1/2',
+                                expanded: true,
+                                children: [{
+                                    text: 'top1/1/2/1'
+                                }, {
+                                    text: 'top1/1/2/2'
+                                }, {
+                                    text: 'top1/1/2/3',
+                                    exclude: true
+                                }]
+                            }]
+                        }]
+                    }, {
+                        text: 'top2',
+                        expanded: true,
+                        exclude: true,
+                        children: [{
+                            text: 'This will be invisible1'
+                        }, {
+                            text: 'This will be invisible2'
+                        }, {
+                            text: 'This will be invisible3'
+                        }, {
+                            text: 'This will be invisible4'
+                        }, {
+                            text: 'This will be invisible5'
+                        }, {
+                            text: 'This will be invisible6'
+                        }]
+                    }, {
+                        text: 'top3'
+                    }]
+                },
+                filters: function(rec) {
+                    return rec.get('exclude') !== true;
+                }
+            });
+        });
+        
+        it('should correctly find the store index of the previous visible node', function() {
+            // Simplest case of it being the actual previous sibling
+            expect(getPreviousVisibleNode('top1/1/2/3')).toBe(getByText('top1/1/2/2'));
+
+            expect(getPreviousVisibleNode('top3')).toBe(getByText('top1/1/2/2'));
+
+            // Restore top2 and its first child to visibility
+            getByText('top2').set('exclude', false);
+            getByText('This will be invisible2').set('exclude', true);
+            getByText('This will be invisible3').set('exclude', true);
+            getByText('This will be invisible4').set('exclude', true);
+            getByText('This will be invisible5').set('exclude', true);
+            getByText('This will be invisible6').set('exclude', true);
+        
+            expect(getPreviousVisibleNode('top3')).toBe(getByText('This will be invisible1'));
+            expect(getPreviousVisibleNode('This will be invisible6')).toBe(getByText('This will be invisible1'));
+ 
+            getByText('top1').set('exclude', true);
+            getByText('top2').set('exclude', true);
+        
+            expect(getPreviousVisibleNode('top3')).toBe(getByText('Root'));
+        });
+    });
+    
+    // https://sencha.jira.com/browse/EXTJS-17902
+    describe("reloading from empty dataset", function() {
+        var root;
+        
+        beforeEach(function() {
+            store = new Ext.data.TreeStore({
+                fields : ['id', 'name'],
+                proxy  : 'memory',
+                root   : {
+                    expanded : true,
+                    children : [
+                        { id : 1, name : 'child 1' },
+                        { id : 2, name : 'child 2' }
+                    ]
+                }
+            });
+            
+            store.getProxy().data = [];
+            store.load();
+            
+            root = store.getRootNode();
+        });
+        
+        afterEach(function() {
+            root = null;
+        });
+        
+        it("should clear firstChild on the root node", function() {
+            expect(root.firstChild).toBe(null);
+        });
+        
+        it("should clear lastChild on the root node", function() {
+            expect(root.lastChild).toBe(null);
+        });
+        
+        it("should clear childNodes", function() {
+            expect(root.childNodes.length).toBe(0);
+        });
+        
+        it("should clear internal data children", function() {
+            expect(root.getData().children).toBe(null);
+        });
+    });
+
+    describe("findNode", function() {
+        it("should be able to find a node by id", function() {
+            makeStore([{id: 1}, {id: 2}, {id: 3}]);
+
+            var root = store.getRoot();
+
+            expect(store.findNode('id', 1)).toBe(root.childNodes[0]);
+            expect(store.findNode('id', 2)).toBe(root.childNodes[1]);
+            expect(store.findNode('id', 3)).toBe(root.childNodes[2]);
+        });
+    });
+
+    describe('Model register/unregister methods', function() {
+        var RegisteredNode = Ext.define(null, {
+            extend: 'Ext.data.TreeModel',
+
+            onRegisterTreeNode: function() {
+                registeredNodeCount++;
+                registerCount++;
+            },
+            onUnregisterTreeNode: function() {
+                registeredNodeCount--;
+                unregisterCount++;
+            }
+        }),
+        registeredNodeCount = 0,
+        registerCount = 0,
+        unregisterCount = 0;
+
+        it('should call register/unregister methods', function() {
+            makeStore([], {
+                model: RegisteredNode
+            });
+
+            // Just the root node registered
+            expect(registeredNodeCount).toBe(1);
+            expect(registerCount).toBe(1);
+            expect(unregisterCount).toBe(0);
+
+            root.appendChild({
+                children: [{
+                    children: [{
+                        id: 'removeMe'
+                    }]
+                }]
+            });
+
+            // Now three descendants in addition to the root
+            expect(registeredNodeCount).toBe(4);
+            expect(registerCount).toBe(4);
+            expect(unregisterCount).toBe(0);
+
+            // Drop one
+            store.getNodeById('removeMe').drop();
+
+            // Only three now registered and the unregister count sohuld have gone up
+            expect(registeredNodeCount).toBe(3);
+            expect(registerCount).toBe(4);
+            expect(unregisterCount).toBe(1);
+
+            // Remove all three remaining nodes and add a new root
+            store.setRoot({
+                
+            });
+
+            // Only one node should be registered.
+            // Register count should be up by one, unregister count should be up by three
+            expect(registeredNodeCount).toBe(1);
+            expect(registerCount).toBe(5);
+            expect(unregisterCount).toBe(4);
+        });
+    });
+    
+    describe('datachanged event', function() {
+        it('should only fire once when filling a parent node with all descendants expanded', function() {
+            var dataChangeCount = 0;
+
+            store = new Ext.data.TreeStore({
+                model: NodeModel,
+                root: {
+                    expanded: true,
+                    children: [{
+                        expanded: true,
+                        children: [{
+                            expanded: true,
+                            children: [{
+                                expanded: true,
+                                children: [{
+                                    id: 'deep'
+                                }]
+                            }]
+                        }]
+                    }]
+                },
+                listeners: {
+                    datachanged: function() {
+                        dataChangeCount++;
+                    }
+                }
+            });
+            expect(dataChangeCount).toBe(1);
+        });
+    });
+
+    describe('linear data', function() {
+        it('should next correctly with depth values set', function() {
+            store = new Ext.data.TreeStore({
+                parentIdProperty: 'parent',
+                proxy: {
+                    type: 'memory',
+                    data: [
+                        {text: 'Aardvark', id: 'a'},
+                        {text: 'Bandicoot', id: 'b', parent: 'a'},
+                        {text: 'Crocodile', id: 'c', parent: 'b'}
+                    ]
+                },
+                root: {
+                    expanded: true
+                }
+            });
+            root = store.getRoot();
+            expect(root.data.depth).toBe(0);
+            expect(root.childNodes[0].data.depth).toBe(1);
+            expect(root.childNodes[0].childNodes[0].data.depth).toBe(2);
+            expect(root.childNodes[0].childNodes[0].childNodes[0].data.depth).toBe(3);
+        });
+    });
+});

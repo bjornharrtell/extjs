@@ -93,6 +93,7 @@ Ext.define('Ext.grid.feature.Summary', {
      */
     dock: undefined,
 
+    summaryItemCls: Ext.baseCSSPrefix + 'grid-row-summary-item',
     dockedSummaryCls: Ext.baseCSSPrefix + 'docked-summary',
 
     panelBodyCls: Ext.baseCSSPrefix + 'summary-',
@@ -108,7 +109,9 @@ Ext.define('Ext.grid.feature.Summary', {
             '    bufferedRenderer = view.bufferedRenderer;',
 
             'this.nextTpl.applyOut(values, out, parent);',
-            'if (!me.disabled && me.showSummaryRow && view.store.isLast(values.record)) {',
+            
+            'if (!me.disabled && me.showSummaryRow &&',
+                '!view.addingRows && view.store.isLast(values.record)) {',
                 'if (bufferedRenderer) {',
                 '    bufferedRenderer.variableRowHeight = true;',
                 '}',
@@ -124,8 +127,8 @@ Ext.define('Ext.grid.feature.Summary', {
             syncContent: function(destRow, sourceRow, columnsToUpdate) {
                 destRow = Ext.fly(destRow, 'syncDest');
                 sourceRow = Ext.fly(sourceRow, 'sycSrc');
-                var owner = this.owner,
-                    selector = owner.summaryRowSelector,
+                var summaryFeature = this.summaryFeature,
+                    selector = summaryFeature.summaryRowSelector,
                     destSummaryRow = destRow.down(selector, true),
                     sourceSummaryRow = sourceRow.down(selector, true);
 
@@ -185,7 +188,7 @@ Ext.define('Ext.grid.feature.Summary', {
                     })[0];
                 },
                 afterrender: function() {
-                    grid.getView().getScrollable().addPartner(me.summaryBar.getScrollable());
+                    grid.getView().getScrollable().addPartner(me.summaryBar.getScrollable(), 'x');
                     me.onStoreUpdate();
                 },
                 single: true
@@ -252,7 +255,7 @@ Ext.define('Ext.grid.feature.Summary', {
             record, rows;
 
         // If we get to here we won't be buffered
-        if (!me.disabled && me.showSummaryRow) {
+        if (!me.disabled && me.showSummaryRow && !view.addingRows && !view.updatingRows) {
             record = me.summaryRecord;
 
             out.push('<table cellpadding="0" cellspacing="0" class="' +  me.summaryItemCls + '" style="table-layout: fixed; width: 100%;">');
@@ -261,7 +264,7 @@ Ext.define('Ext.grid.feature.Summary', {
         }
     },
 
-    toggleSummaryRow: function(visible /* private */, fromLockingPartner) {
+    toggleSummaryRow: function(visible, fromLockingPartner) {
         var me = this,
             bar = me.summaryBar;
 
@@ -274,6 +277,34 @@ Ext.define('Ext.grid.feature.Summary', {
 
     getSummaryBar: function() {
         return this.summaryBar;
+    },
+    
+    getSummaryRowPlaceholder: function(view) {
+        var placeholderCls = this.summaryItemCls,
+            nodeContainer, row;
+        
+        nodeContainer = Ext.fly(view.getNodeContainer());
+        
+        if (!nodeContainer) {
+            return null;
+        }
+        
+        row = nodeContainer.down('.' + placeholderCls, true);
+        
+        if (!row) {
+            row = nodeContainer.createChild({
+                tag: 'table',
+                cellpadding: 0,
+                cellspacing: 0,
+                cls: placeholderCls,
+                style: 'table-layout: fixed; width: 100%',
+                children: [{
+                    tag: 'tbody' // Ensure tBodies property is present on the row
+                }]
+            }, false, true);
+        }
+        
+        return row;
     },
 
     vetoEvent: function(record, row, rowIndex, e) {
@@ -292,13 +323,7 @@ Ext.define('Ext.grid.feature.Summary', {
         // we won't have anything rendered, so we need to push the row in here
         if (!me.disabled && me.showSummaryRow && !view.all.getCount()) {
             record = me.createSummaryRecord(view);
-            row = Ext.fly(view.getNodeContainer()).createChild({
-                tag: 'table',
-                cellpadding: 0,
-                cellspacing: 0,
-                cls: me.summaryItemCls,
-                style: 'table-layout: fixed; width: 100%'
-            }, false, true);
+            row = me.getSummaryRowPlaceholder(view);
             row.appendChild(Ext.fly(view.createRowElement(record, -1)).down(me.summaryRowSelector, true));
         }
     },
@@ -376,27 +401,40 @@ Ext.define('Ext.grid.feature.Summary', {
         if (dock) {
             p = me.summaryBar.item.dom.firstChild;
             oldRowDom = p.firstChild;
+            
+            p.insertBefore(newRowDom, oldRowDom);
+            p.removeChild(oldRowDom);
+
+            // If docked, the updated row will need sizing because it's outside the View
+            me.onColumnHeaderLayout();
         }
         // Summary row is a regular row in a THEAD inside the View.
         // Downlinked through the summary record's ID
         else {
-            oldRowDom = me.view.el.down(selector, true);
+            oldRowDom = view.el.down(selector, true);
+            p = oldRowDom && oldRowDom.parentNode;
             
-            // If the old row doesn't exist, it means that the store update we are
-            // reacting to is a remove of the last row. So we will be appending
-            // to the node container.
-            p = oldRowDom ? oldRowDom.parentNode : view.getNodeContainer();
-        }
-
-        if (p) {
-            p.insertBefore(newRowDom, oldRowDom);
-            if (oldRowDom) {
+            if (p) {
                 p.removeChild(oldRowDom);
             }
-        }
-        // If docked, the updated row will need sizing because it's outside the View
-        if (dock) {
-            me.onColumnHeaderLayout();
+            
+            // We're always inserting the new summary row into the last rendered row,
+            // unless no rows exist. In that case we will be appending to the special
+            // placeholder in the node container.
+            p = view.getRow(view.all.last());
+            
+            if (p) {
+                p = p.parentElement;
+            }
+            // View might not have nodeContainer yet.
+            else {
+                p = me.getSummaryRowPlaceholder(view);
+                p = p && p.tBodies && p.tBodies[0];
+            }
+            
+            if (p) {
+                p.appendChild(newRowDom);
+            }
         }
     },
 

@@ -1,9 +1,11 @@
 /**
- * Demonstrates how to use Ext.chart.ColumnChartStacked
+ * Demonstrates how to use stacked bar series.
  */
 Ext.define('KitchenSink.view.chart.ColumnStacked', {
     extend: 'Ext.Panel',
+    xtype: 'grid-column-stacked',
     requires: ['Ext.chart.CartesianChart', 'Ext.chart.interactions.PanZoom',
+        'Ext.chart.theme.Midnight',
         'Ext.chart.series.Bar', 'Ext.chart.axis.Numeric', 'Ext.chart.axis.Category'
     ],
 
@@ -14,7 +16,19 @@ Ext.define('KitchenSink.view.chart.ColumnStacked', {
         }
     },
 
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/OrderItems.js' 
+    }],
+    // </example>
+    
     layout: 'fit',
+    shadow: true,
+
     items: [{
         xtype: 'toolbar',
         docked: 'top',
@@ -28,9 +42,7 @@ Ext.define('KitchenSink.view.chart.ColumnStacked', {
         }, {
             iconCls: 'x-fa fa-refresh',
             text: 'Refresh',
-            handler: function() {
-                Ext.getStore('OrderItems').generateData(25);
-            }
+            handler: 'onRefresh'
         }, {
             iconCls: 'x-fa fa-bars',
             text: 'Group',
@@ -42,14 +54,19 @@ Ext.define('KitchenSink.view.chart.ColumnStacked', {
                 series.setStacked(!series.getStacked());
                 chart.redraw();
             }
-        }, {
-            text: 'Reset',
-            handler: 'onReset'
         }]
     }, {
         xtype: 'cartesian',
-        store: 'OrderItems',
-        background: 'white',
+        store: {
+            type: 'orderitems',
+            numRecords: 25
+        },
+        legend: {
+            type: 'sprite',
+            position: 'bottom'
+        },
+        innerPadding: '0 3 0 3',
+        insetPadding: '30 10 10 10',
         interactions: [{
             type: 'panzoom',
             axes: {
@@ -67,6 +84,7 @@ Ext.define('KitchenSink.view.chart.ColumnStacked', {
             type: 'bar',
             xField: 'name',
             yField: ['g1', 'g2', 'g3', 'g4', 'g5', 'g6'],
+            title: ['Apples', 'Oranges', 'Bananas', 'Plums', 'Mangos', 'Pears'],
             stacked: true,
             style: {
                 lineWidth: 2,
@@ -92,10 +110,11 @@ Ext.define('KitchenSink.view.chart.ColumnStacked', {
 
     initialize: function() {
         this.callParent();
-        Ext.getStore('OrderItems').generateData(25);
+        
         var toolbar = Ext.ComponentQuery.query('toolbar', this)[0],
             interaction = Ext.ComponentQuery.query('interaction', this)[0];
-        if (toolbar && interaction && !interaction.isMultiTouch()) {
+        
+        if (toolbar && interaction) {
             toolbar.add(interaction.getModeToggleButton());
         }
     }

@@ -35,9 +35,6 @@ Ext.define('Ext.draw.modifier.Highlight', {
         return oldStyle;
     },
 
-    /**
-     * @inheritdoc
-     */
     prepareAttributes: function (attr) {
         if (!attr.hasOwnProperty('highlightOriginal')) {
             attr.highlighted = false;
@@ -47,8 +44,8 @@ Ext.define('Ext.draw.modifier.Highlight', {
             // when it is unhighlighted.
             attr.highlightOriginal.removeFromInstance = {};
         }
-        if (this._previous) {
-            this._previous.prepareAttributes(attr.highlightOriginal);
+        if (this._lower) {
+            this._lower.prepareAttributes(attr.highlightOriginal);
         }
     },
 
@@ -75,6 +72,7 @@ Ext.define('Ext.draw.modifier.Highlight', {
     },
 
     /**
+     * @private
      * Filter out modifier changes that override highlightStyle or source attributes.
      * @param {Object} attr The source attributes.
      * @param {Object} changes The modifier changes.
@@ -109,9 +107,6 @@ Ext.define('Ext.draw.modifier.Highlight', {
         return changes;
     },
 
-    /**
-     * @inheritdoc
-     */
     pushDown: function (attr, changes) {
         var highlightStyle = this.getHighlightStyle(),
             highlightOriginal = attr.highlightOriginal,
@@ -123,8 +118,8 @@ Ext.define('Ext.draw.modifier.Highlight', {
             // Hide `highlighted` and `highlightStyle` from underlying modifiers.
             delete changes.highlighted;
 
-            if (this._previous) {
-                changes = this._previous.pushDown(highlightOriginal, changes);
+            if (this._lower) {
+                changes = this._lower.pushDown(highlightOriginal, changes);
             }
             changes = this.filterChanges(attr, changes);
 
@@ -200,8 +195,8 @@ Ext.define('Ext.draw.modifier.Highlight', {
                 changes.highlighted = highlighted;
             }
         } else {
-            if (this._previous) {
-                changes = this._previous.pushDown(highlightOriginal, changes);
+            if (this._lower) {
+                changes = this._lower.pushDown(highlightOriginal, changes);
             }
             changes = this.filterChanges(attr, changes);
         }
@@ -209,11 +204,9 @@ Ext.define('Ext.draw.modifier.Highlight', {
         return changes;
     },
 
-    /**
-     * @inheritdoc
-     */
     popUp: function (attr, changes) {
         changes = this.filterChanges(attr, changes);
         Ext.draw.modifier.Modifier.prototype.popUp.call(this, attr, changes);
     }
+
 });

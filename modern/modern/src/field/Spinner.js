@@ -16,7 +16,11 @@ Ext.define('Ext.field.Spinner', {
     extend: 'Ext.field.Number',
     xtype: 'spinnerfield',
     alternateClassName: 'Ext.form.Spinner',
-    requires: ['Ext.util.TapRepeater'],
+
+    requires: [
+        'Ext.field.trigger.SpinDown',
+        'Ext.field.trigger.SpinUp'
+    ],
 
     /**
      * @event spin
@@ -51,12 +55,6 @@ Ext.define('Ext.field.Spinner', {
      */
 
     config: {
-        /**
-         * @cfg
-         * @inheritdoc
-         */
-        cls: Ext.baseCSSPrefix + 'spinner',
-
         /**
          * @cfg {Number} [minValue=-infinity] The minimum allowed value.
          * @accessor
@@ -111,6 +109,7 @@ Ext.define('Ext.field.Spinner', {
          * @cfg {Boolean} groupButtons
          * `true` if you want to group the buttons to the right of the fields. `false` if you want the buttons
          * to be at either side of the field.
+         * @deprecated 6.2.0 This concern should be handled by the theme.
          */
         groupButtons: true,
 
@@ -119,7 +118,20 @@ Ext.define('Ext.field.Spinner', {
          * @inheritdoc
          */
         component: {
-            disabled: true
+            readOnly: true
+        },
+
+        triggers: {
+            spindown: {
+                type: 'spindown',
+                group: 'spin',
+                repeat: true
+            },
+            spinup: {
+                type: 'spinup',
+                group: 'spin',
+                repeat: true
+            }
         },
 
         /**
@@ -128,58 +140,45 @@ Ext.define('Ext.field.Spinner', {
         value: undefined
     },
 
-    platformConfig: {
-        android: {
-            component: {
-                disabled: false,
-                readOnly: true
-            }
-        }
-    },
-
-    syncEmptyCls: Ext.emptyFn,
+    classCls: Ext.baseCSSPrefix + 'spinnerfield',
+    groupedButtonsCls: Ext.baseCSSPrefix + 'grouped-buttons',
 
     /**
      * Updates the {@link #component} configuration
      */
-    updateComponent: function(newComponent) {
-        var me = this,
-            cls = me.getCls();
 
-        me.callParent(arguments);
+    updateGroupButtons: function(groupButtons) {
+        var downTrigger = this.getTriggers().spindown;
 
-        if (newComponent) {
-            me.spinDownButton = Ext.Element.create({
-                cls : cls + '-button ' + cls + '-button-down'
-            });
-
-            me.spinUpButton = Ext.Element.create({
-                cls : cls + '-button ' + cls + '-button-up'
-            });
-
-            me.downRepeater = me.createRepeater(me.spinDownButton, me.onSpinDown);
-            me.upRepeater = me.createRepeater(me.spinUpButton, me.onSpinUp);
-        }
+        downTrigger.setGroup(groupButtons ? 'spin' : null);
+        downTrigger.setSide(groupButtons ? null : 'left');
     },
 
-    updateGroupButtons: function(newGroupButtons, oldGroupButtons) {
-        var me = this,
-            innerElement = me.innerElement,
-            cls = me.getBaseCls() + '-grouped-buttons';
+    applyTriggers: function(triggers, oldTriggers) {
+        var accelerate = this.getAccelerateOnTapHold(),
+            upTrigger, downTrigger, upRepeat, downRepeat;
 
-        me.getComponent();
+        if (triggers && accelerate) {
+            upTrigger = triggers.spinup;
+            downTrigger = triggers.spindown;
+            upRepeat = upTrigger.repeat;
 
-        if (newGroupButtons != oldGroupButtons) {
-            if (newGroupButtons) {
-                me.addCls(cls);
-                innerElement.appendChild(me.spinDownButton);
-                innerElement.appendChild(me.spinUpButton);
-            } else {
-                me.removeCls(cls);
-                innerElement.insertFirst(me.spinDownButton);
-                innerElement.appendChild(me.spinUpButton);
+            if (upRepeat) {
+                upTrigger.repeat = Ext.apply({
+                    accelerate: accelerate
+                }, upRepeat);
+            }
+
+            downRepeat = downTrigger.repeat;
+
+            if (downRepeat) {
+                downTrigger.repeat = Ext.apply({
+                    accelerate: accelerate
+                }, downRepeat);
             }
         }
+
+        return this.callParent([triggers, oldTriggers]);
     },
 
     applyValue: function(value) {
@@ -192,26 +191,6 @@ Ext.define('Ext.field.Spinner', {
         value = Math.round(value * 10) / 10;
 
         return this.callParent([value]);
-    },
-
-    /**
-     * @private
-     */
-    createRepeater: function(el, fn) {
-        var me = this,
-            repeater = Ext.create('Ext.util.TapRepeater', {
-                el: el,
-                accelerate: me.getAccelerateOnTapHold()
-            });
-
-        repeater.on({
-            tap: fn,
-            touchstart: 'onTouchStart',
-            touchend: 'onTouchEnd',
-            scope: me
-        });
-
-        return repeater;
     },
 
     /**
@@ -230,22 +209,6 @@ Ext.define('Ext.field.Spinner', {
         if (!this.getDisabled() && !this.getReadOnly()) {
             this.spin(false);
         }
-    },
-
-    /**
-     * @private
-     */
-    onTouchStart: function(repeater) {
-        if (!this.getDisabled() && !this.getReadOnly()) {
-            repeater.getEl().addCls(Ext.baseCSSPrefix + 'button-pressed');
-        }
-    },
-
-    /**
-     * @private
-     */
-    onTouchEnd: function(repeater) {
-        repeater.getEl().removeCls(Ext.baseCSSPrefix + 'button-pressed');
     },
 
     /**
@@ -285,40 +248,7 @@ Ext.define('Ext.field.Spinner', {
         me.fireEvent('spin' + direction, me, value);
     },
 
-    /**
-     * @private
-     */
-    updateDisabled: function(disabled) {
-        Ext.Component.prototype.updateDisabled.apply(this, arguments);
-    },
-
-    /**
-     * @private
-     */
-    setDisabled: function() {
-        Ext.Component.prototype.setDisabled.apply(this, arguments);
-    },
-
     reset: function() {
         this.setValue(this.getDefaultValue());
-    },
-
-//    setValue: function(value){
-//        this.callSuper(arguments);
-
-        // @TODO: Isn't this already done by the framework by default?
-//        if(Ext.getThemeName() == 'WP'){
-//            this.getComponent().element.dom.setAttribute('value',value);
-//        }
-//    },
-
-    /**
-     * @private
-     */
-    destroy: function() {
-        var me = this;
-        Ext.destroy(me.downRepeater, me.upRepeater, me.spinDownButton, me.spinUpButton);
-        me.downRepeater = me.upRepeater = me.spinDownButton = me.spinUpButton = null;
-        me.callParent();
     }
 });

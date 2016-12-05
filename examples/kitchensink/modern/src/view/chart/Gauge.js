@@ -8,7 +8,21 @@ Ext.define('KitchenSink.view.chart.Gauge', {
         'Ext.chart.series.Gauge'
     ],
 
+    controller: 'chart',
+
     layout: 'fit',
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/Pie.js' 
+    }],
+    // </example>
+    
+    shadow: true,
+
     items: [{
         xtype: 'toolbar',
         docked: 'top',
@@ -18,9 +32,7 @@ Ext.define('KitchenSink.view.chart.Gauge', {
         }, {
             iconCls: 'x-fa fa-refresh',
             text: 'Refresh',
-            handler: function() {
-                Ext.getStore('Pie').generateData(1);
-            }
+            handler: 'onRefresh'
         }]
     }, {
         layout: 'vbox',
@@ -31,7 +43,10 @@ Ext.define('KitchenSink.view.chart.Gauge', {
                 xtype: 'polar',
                 insetPadding: 20,
                 flex: 1,
-                store: 'Pie',
+                store: {
+                    type: 'pie',
+                    storeId: 'gaugeStore'
+                },
                 animate: {
                     easing: 'elasticIn',
                     duration: 1000
@@ -52,7 +67,7 @@ Ext.define('KitchenSink.view.chart.Gauge', {
                 xtype: 'polar',
                 innerPadding: 20,
                 flex: 1,
-                store: 'Pie',
+                store: 'gaugeStore',
                 series: [{
                     type: 'gauge',
                     angleField: 'g1',

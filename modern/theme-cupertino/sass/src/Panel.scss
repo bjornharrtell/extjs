@@ -2,14 +2,12 @@
  * @class Ext.Panel
  */
 
-.x-panel.x-floating,
-.x-form.x-floating {
+.x-panel.x-floating {
     padding: 0;
     @include border-radius(6px);
 }
 
-.x-panel.x-floating > .x-dock.x-sized,
-.x-form.x-floating > .x-dock.x-sized {
+.x-panel.x-floating > .x-dock.x-sized {
     margin: 0;
 }
 

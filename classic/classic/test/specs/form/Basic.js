@@ -629,16 +629,11 @@ describe("Ext.form.Basic", function() {
 
     describe("checkValidity method", function() {
         it("should be called when a field's 'validitychange' event is fired", function() {
-            runs(function() {
-                spyOn(basicForm, 'checkValidity');
-                // Modify the task to point to the spy
-                basicForm.checkValidityTask = new Ext.util.DelayedTask(basicForm.checkValidity, basicForm);
-                var field = addField({name: 'one'});
-                field.fireEvent('validitychange', field, false);
-            });
-            waitsFor(function() {
-                return basicForm.checkValidity.callCount === 1;
-            }, "checkValidity was not called");
+            var spy = spyOn(Ext.form.Basic.prototype, 'checkValidity');
+            var field = addField({name: 'one'});
+            field.fireEvent('validitychange', field, false);
+            
+            waitForSpy(spy, "checkValidity was not called", 1000);
         });
 
         it("should fire the 'validitychange' event if the overall validity of the form has changed", function() {
@@ -664,62 +659,47 @@ describe("Ext.form.Basic", function() {
         });
         
         describe("add/remove items", function() {
+            var checkValiditySpy;
+            
+            beforeEach(function() {
+                checkValiditySpy = spyOn(Ext.form.Basic.prototype, 'checkValidity');
+            });
+            
+            afterEach(function() {
+                checkValiditySpy = null;
+            });
+            
             it("should checkValidity when removing a field", function() {
-                runs(function() {
-                    addField({name: 'one'});
-                    addField({name: 'two'});
-                    spyOn(basicForm, 'checkValidity');
-                    // Modify the task to point to the spy
-                    basicForm.checkValidityTask = new Ext.util.DelayedTask(basicForm.checkValidity, basicForm);
-                    container.remove(0);
-                });
-                waitsFor(function() {
-                    return basicForm.checkValidity.callCount === 1;
-                }, "checkValidity was not called");
+                addField({name: 'one'});
+                addField({name: 'two'});
+                container.remove(0);
+                
+                waitForSpy(checkValiditySpy, "checkValidity was not called", 1000);
             });
             
             it("should checkValidity when adding a field", function() {
-                runs(function() {
-                    addField({name: 'one'});
-                    spyOn(basicForm, 'checkValidity');
-                    // Modify the task to point to the spy
-                    basicForm.checkValidityTask = new Ext.util.DelayedTask(basicForm.checkValidity, basicForm);
-                    addField({name: 'two'});
-                });
-                waitsFor(function() {
-                    return basicForm.checkValidity.callCount === 1;
-                }, "checkValidity was not called");
+                addField({name: 'one'});
+                addField({name: 'two'});
+                
+                waitForSpy(checkValiditySpy, "checkValidity was not called", 1000);
             });
             
             it("should checkValidity when removing a container that contains a field", function() {
-                runs(function() {
-                    var myCt = container.add({
-                        xtype: 'container'
-                    });
-                    addField({name: 'one'}, myCt);
-                    spyOn(basicForm, 'checkValidity');
-                    // Modify the task to point to the spy
-                    basicForm.checkValidityTask = new Ext.util.DelayedTask(basicForm.checkValidity, basicForm);
-                    container.remove(0);
+                var myCt = container.add({
+                    xtype: 'container'
                 });
-                waitsFor(function() {
-                    return basicForm.checkValidity.callCount === 1;
-                }, "checkValidity was not called");
+                addField({name: 'one'}, myCt);
+                container.remove(0);
+                
+                waitForSpy(checkValiditySpy, "checkValidity was not called", 1000);
             });
             
             it("should checkValidity when adding a container that contains a field", function() {
-                runs(function() {
-                    var myCt = new Ext.container.Container();
-                    addField({name: 'one'}, myCt);
-                    spyOn(basicForm, 'checkValidity');
-                    // Modify the task to point to the spy
-                    basicForm.checkValidityTask = new Ext.util.DelayedTask(basicForm.checkValidity, basicForm);
-                    container.add(myCt);
-                    
-                });
-                waitsFor(function() {
-                    return basicForm.checkValidity.callCount === 1;
-                }, "checkValidity was not called");
+                var myCt = new Ext.container.Container();
+                addField({name: 'one'}, myCt);
+                container.add(myCt);
+                
+                waitForSpy(checkValiditySpy, "checkValidity was not called", 1000);
             });
         });
     });
@@ -871,7 +851,7 @@ describe("Ext.form.Basic", function() {
         beforeEach(function(){
             Ext.define('BasicFormTestModel', {
                 extend: 'Ext.data.Model',
-                fields: ['one', {type: 'int', name: 'two'}, {type: 'date', name: 'three'}]
+                fields: ['one', {type: 'int', name: 'two'}, {type: 'date', name: 'three'}, {name: 'four'}]
             });
             model = new BasicFormTestModel();
         });
@@ -886,6 +866,9 @@ describe("Ext.form.Basic", function() {
             addField({name: 'one', value: 'valueone'});
             addField(new Ext.form.field.Number({name: 'two', value: 2}));
             addField(new Ext.form.field.Date({name: 'three', value: date}));
+            addField(new Ext.form.field.Checkbox({name: 'four', inputValue: 'red'}));
+            addField(new Ext.form.field.Checkbox({name: 'four', checked: true, inputValue: 'blue', uncheckedValue: 'no-blue'}));
+            addField(new Ext.form.field.Checkbox({name: 'four', inputValue: 'green', uncheckedValue: 'no-green'}));
 
             basicForm.updateRecord(model);
 
@@ -898,6 +881,8 @@ describe("Ext.form.Basic", function() {
             expect(d1.getFullYear()).toBe(d2.getFullYear());
             expect(d1.getMonth()).toBe(d2.getMonth());
             expect(d1.getDate()).toBe(d2.getDate());
+
+            expect(model.get('four')).toEqual(['blue', 'no-green']);
         });
         
         it("should use a record specified by loadRecord if one isn't provided", function() {
@@ -918,6 +903,34 @@ describe("Ext.form.Basic", function() {
             expect(d1.getMonth()).toBe(d2.getMonth());
             expect(d1.getDate()).toBe(d2.getDate());
         });
+    });
+
+    describe("checkboxes & getModelData", function() {
+        it("should return an array of values when there are checkboxes with the same name, one value for each checkbox where the value is not null", function() {
+            var chks = container.add([{
+                xtype: 'checkboxfield',
+                inputValue: 'red',
+                name: 'foo',
+                checked: true
+            }, {
+                xtype: 'checkboxfield',
+                inputValue: 'blue',
+                name: 'foo'
+            }, {
+                xtype: 'checkboxfield',
+                inputValue: 'green',
+                name: 'foo',
+                uncheckedValue: 'off'
+            }]);
+            // is checked, should be the value
+            expect(chks[0].getModelData().foo).toBe('red');
+            // not checked and no uncheckedValue; should be null
+            expect(chks[1].getModelData().foo).toBeNull();
+            // not checked, but has uncheckedValue; should be 'off'
+            expect(chks[2].getModelData().foo).toBe('off');
+            // only the first two should be included
+            expect(basicForm.getValues(undefined, undefined, undefined, true).foo.length).toEqual(2);
+        })
     });
     
     describe("radios & getModelData", function() {

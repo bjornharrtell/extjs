@@ -114,9 +114,13 @@ Ext.define('Ext.Img', {
     },
 
     hide: function() {
-        this.callParent(arguments);
-        this.hiddenSrc = this.hiddenSrc || this.getSrc();
-        this.setSrc(null);
+        var me = this;
+
+        me.callParent(arguments);
+        me.hiddenSrc = me.hiddenSrc || me.getSrc();
+        if (!me.isDestroying) {
+            me.setSrc(null);
+        }
     },
 
     show: function() {
@@ -234,7 +238,7 @@ Ext.define('Ext.Img', {
         this.callParent(arguments);
     },
 
-    destroy: function() {
+    doDestroy: function() {
         var me = this;
 
         me.detachListeners();

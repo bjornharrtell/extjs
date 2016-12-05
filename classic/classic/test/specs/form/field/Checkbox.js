@@ -1,27 +1,21 @@
 describe("Ext.form.field.Checkbox", function() {
-    var component, makeComponent;
-
-    function expectAria(attr, value) {
-        jasmine.expectAriaAttr(component.inputEl, attr, value);
-    }
+    var component;
     
-    beforeEach(function() {
-        makeComponent = function(config) {
-            config = config || {};
-            Ext.applyIf(config, {
-                name: "test",
-                renderTo: Ext.getBody()
-            });
-            component = new Ext.form.field.Checkbox(config);
-        };
-    });
+    function makeComponent(config) {
+        config = Ext.apply({
+            name: 'test',
+            renderTo: Ext.getBody()
+        }, config);
+        
+        component = new Ext.form.field.Checkbox(config);
+    }
 
     afterEach(function() {
         if (component) {
             component.destroy();
         }
-        component = makeComponent = null;
-
+        
+        component = null;
     });
 
     it("should be registered with the 'checkboxfield' xtype", function() {
@@ -69,20 +63,20 @@ describe("Ext.form.field.Checkbox", function() {
                 expect(component.inputEl).toBeDefined();
             });
 
-            it("should be a child of the div wrapper", function() {
-                expect(component.inputEl.dom.parentNode.tagName.toLowerCase()).toBe('div');
+            it("should be a child of the displayEl", function() {
+                expect(component.inputEl.dom.parentNode).toBe(component.displayEl.dom);
             });
 
             it("should be an ancestor of the bodyEl", function() {
-                expect(component.inputEl.dom.parentNode.parentNode).toBe(component.bodyEl.dom);
+                expect(component.bodyEl.contains(component.inputEl)).toBe(true);
             });
 
             it("should be an input element", function() {
-                expect(component.inputEl.dom.tagName.toLowerCase()).toEqual('input');
+                expect(component.inputEl.dom.tagName.toLowerCase()).toBe('input');
             });
 
             it("should have type='checkbox'", function() {
-                expect(component.inputEl.dom.tagName.toLowerCase()).toEqual('input');
+                expect(component.inputEl.dom.getAttribute('type').toLowerCase()).toBe('checkbox');
             });
 
             it("should have the component's inputId as its id", function() {
@@ -94,42 +88,16 @@ describe("Ext.form.field.Checkbox", function() {
             });
             
             describe("ARIA attributes", function() {
-                it("should have checkbox role", function() {
-                    expectAria('role', 'checkbox');
-                });
-                
                 it("should have aria-hidden", function() {
-                    expectAria('aria-hidden', 'false');
+                    expect(component.inputEl).toHaveAttr('aria-hidden', 'false');
                 });
                 
                 it("should have aria-disabled", function() {
-                    expectAria('aria-disabled', 'false');
+                    expect(component.inputEl).toHaveAttr('aria-disabled', 'false');
                 });
                 
                 it("should have aria-invalid", function() {
-                    expectAria('aria-invalid', 'false');
-                });
-                
-                it("should have aria-checked", function() {
-                    expectAria('aria-checked', 'false');
-                });
-                
-                describe("aria-readonly", function() {
-                    it("should false by default", function() {
-                        expectAria('aria-readonly', 'false');
-                    });
-                    
-                    it("should be true when readOnly", function() {
-                        var cb2 = new Ext.form.field.Checkbox({
-                            renderTo: Ext.getBody(),
-                            name: 'cb2',
-                            readOnly: true
-                        });
-                        
-                        jasmine.expectAriaAttr(cb2.inputEl, 'aria-readonly', 'true');
-                        
-                        Ext.destroy(cb2);
-                    });
+                    expect(component.inputEl).toHaveAttr('aria-invalid', 'false');
                 });
             });
         });
@@ -170,29 +138,28 @@ describe("Ext.form.field.Checkbox", function() {
                 makeComponent({boxLabel: 'the box label'});
                 expect(component.boxLabelEl.dom).hasHTML('the box label');
             });
-            
-            it("should be set to aria-labelledby", function() {
-                makeComponent({ boxLabel: 'foo' });
-                expectAria('aria-labelledby', component.boxLabelEl.id);
-            });
 
             describe('boxLabelAlign', function() {
                 it("should render the label after the checkbox by default", function() {
                     makeComponent({boxLabel: 'the box label'});
-                    expect(component.boxLabelEl.prev().prev().dom).toBe(component.inputEl.dom);
+                    expect(component.boxLabelEl.prev()).toBe(component.displayEl);
                 });
+                
                 it("should render the label after the checkbox when boxLabelAlign='after'", function() {
                     makeComponent({boxLabel: 'the box label', boxLabelAlign: 'after'});
-                    expect(component.boxLabelEl.prev().prev().dom).toBe(component.inputEl.dom);
+                    expect(component.boxLabelEl.prev()).toBe(component.displayEl);
                 });
+                
                 it("should give the 'after' label a class of {boxLabelCls}-after", function() {
                     makeComponent({boxLabel: 'the box label', boxLabelAlign: 'after'});
                     expect(component.boxLabelEl.hasCls(component.boxLabelCls + '-after')).toBe(true);
                 });
+                
                 it("should render the label before the checkbox when boxLabelAlign='before'", function() {
                     makeComponent({boxLabel: 'the box label', boxLabelAlign: 'before'});
-                    expect(component.boxLabelEl.next().dom).toBe(component.inputEl.dom);
+                    expect(component.boxLabelEl.next()).toBe(component.displayEl);
                 });
+                
                 it("should give the 'before' label a class of {boxLabelCls}-before", function() {
                     makeComponent({boxLabel: 'the box label', boxLabelAlign: 'before'});
                     expect(component.boxLabelEl.hasCls(component.boxLabelCls + '-before')).toBe(true);
@@ -216,154 +183,296 @@ describe("Ext.form.field.Checkbox", function() {
     });
 
     describe("setting value", function() {
-
-        it("should accept the checked attribute", function(){
-            makeComponent({
-                checked: true
+        describe("via config", function() {
+            describe("checked == null", function() {
+                beforeEach(function() {
+                    makeComponent();
+                });
+                
+                it("should return falsy value", function() {
+                    expect(component.getValue()).toBe(false);
+                });
+                
+                it("should set checked property in the DOM", function() {
+                    expect(component.inputEl.dom.checked).toBe(false);
+                });
+                
+                it("should not set checked attribute in the DOM", function() {
+                    expect(component.inputEl).not.toHaveAttr('checked');
+                });
             });
-            expect(component.getValue()).toBeTruthy();
-            component.destroy();
-
-            makeComponent();
-            expect(component.getValue()).toBeFalsy();
-
-        });
-
-        it("should allow the value to be set while not rendered", function(){
-            makeComponent({
-                renderTo: null
+            
+            describe("checked: true", function() {
+                beforeEach(function() {
+                    makeComponent({ checked: true });
+                });
+                
+                it("should return truthy value", function() {
+                    expect(component.getValue()).toBe(true);
+                });
+                
+                it("should set checked property in the DOM", function() {
+                    expect(component.inputEl.dom.checked).toBe(true);
+                });
+                
+                it("should set checked attribute in the DOM", function() {
+                    expect(component.inputEl).toHaveAttr('checked', 'checked');
+                });
             });
-            component.setValue(true);
-            component.render(Ext.getBody());
-            expect(component.getValue()).toBeTruthy();
-        });
-
-        it("should support different values for setValue", function(){
-            makeComponent();
-            component.setValue('true');
-            expect(component.getValue()).toBeTruthy();
-            component.destroy();
-
-            makeComponent();
-            component.setValue('1');
-            expect(component.getValue()).toBeTruthy();
-            component.destroy();
-
-            makeComponent();
-            component.setValue('on');
-            expect(component.getValue()).toBeTruthy();
-            component.destroy();
-
-            makeComponent({
-                inputValue: 'foo'
+            
+            describe("checked: false", function() {
+                beforeEach(function() {
+                    makeComponent({ checked: false });
+                });
+                
+                it("should return falsy value", function() {
+                    expect(component.getValue()).toBe(false);
+                });
+                
+                it("should set checked property in the DOM", function() {
+                    expect(component.inputEl.dom.checked).toBe(false);
+                });
+                
+                it("should not set checked attribute in the DOM", function() {
+                    expect(component.inputEl).not.toHaveAttr('checked');
+                });
             });
-            component.setValue('foo');
-            expect(component.getValue()).toBeTruthy();
-            component.setValue('bar');
-            expect(component.getValue()).toBeFalsy();
-        });
-
-        it("should fire the handler, with the correct scope", function(){
-            var o1 = {
-                fn: function(){}
-            }, o2 = {},
-            spy = spyOn(o1, 'fn');
-
-
-            makeComponent({
-                handler: o1.fn
-            });
-            component.setValue(true);
-            expect(o1.fn).toHaveBeenCalledWith(component, true);
-            expect(spy.calls[0].object).toBe(component);
-            component.destroy();
-
-            makeComponent({
-                handler: o1.fn,
-                scope: o1
-            });
-            component.setValue(true);
-            expect(o1.fn).toHaveBeenCalledWith(component, true);
-            expect(spy.calls[1].object).toBe(o1);
-            component.destroy();
-
-            makeComponent({
-                handler: o1.fn,
-                scope: o2
-            });
-            component.setValue(true);
-            expect(o1.fn).toHaveBeenCalledWith(component, true);
-            expect(spy.calls[2].object).toBe(o2);
-        });
-
-        it("should not fire the handler if the value doesn't change", function() {
-            makeComponent({
-                handler: function() {}
-            });
-            spyOn(component, 'handler');
-            component.setValue(false);
-            expect(component.handler).not.toHaveBeenCalled();
-        });
-
-        it("should allow the handler to route to a view controller", function() {
-            var ctrl = new Ext.app.ViewController();
-            ctrl.someMethod = function() {};
-            spyOn(ctrl, 'someMethod');
-
-            var ct = new Ext.container.Container({
-                controller: ctrl,
-                renderTo: Ext.getBody(),
-                items: {
-                    xtype: 'checkbox',
-                    handler: 'someMethod'
-                }
-            });
-
-            ct.items.first().setValue(true);
-            expect(ctrl.someMethod).toHaveBeenCalled();
-            ct.destroy();
         });
         
-        it("should update aria-checked", function() {
-            makeComponent();
-            component.setValue(true);
+        describe("not rendered", function() {
+            beforeEach(function() {
+                makeComponent({
+                    renderTo: null
+                });
+            });
             
-            expectAria('aria-checked', 'true');
+            it("should return falsy value by default", function() {
+                expect(component.getValue()).toBe(false);
+            });
+            
+            it("should allow the value to be set", function() {
+                component.setValue(true);
+                expect(component.getValue()).toBe(true);
+            });
+            
+            describe("before rendering", function() {
+                beforeEach(function() {
+                    component.setValue(true);
+                    component.render(Ext.getBody());
+                });
+                
+                it("should set checked property in the DOM after rendering", function() {
+                    expect(component.inputEl.dom.checked).toBe(true);
+                });
+                
+                it("should set checked attribute in the DOM", function() {
+                    expect(component.inputEl).toHaveAttr('checked');
+                });
+            });
+
+            describe("after rendering", function() {
+                beforeEach(function() {
+                    component.render(Ext.getBody());
+                    component.setValue(true);
+                });
+                
+                it("should set checked property in the DOM after rendering", function() {
+                    expect(component.inputEl.dom.checked).toBe(true);
+                });
+                
+                it("should not set checked attribute in the DOM", function() {
+                    expect(component.inputEl).not.toHaveAttr('checked');
+                });
+            });
+        });
+        
+        describe("setValue method", function() {
+            beforeEach(function() {
+                makeComponent();
+            });
+            
+            describe("input value: boolean true", function() {
+                beforeEach(function() {
+                    component.setValue(true);
+                });
+                
+                it("should return truthy value", function() {
+                    expect(component.getValue()).toBeTruthy();
+                });
+                
+                it("should set checked property in the DOM", function() {
+                    expect(component.inputEl.dom.checked).toBe(true);
+                });
+            });
+            
+            describe("input value: string 'true'", function() {
+                beforeEach(function() {
+                    component.setValue('true');
+                });
+                
+                it("should return truthy value", function() {
+                    expect(component.getValue()).toBeTruthy();
+                });
+                
+                it("should set checked property in the DOM", function() {
+                    expect(component.inputEl.dom.checked).toBe(true);
+                });
+            });
+            
+            describe("input value: string '1'", function() {
+                beforeEach(function() {
+                    component.setValue('1');
+                });
+                
+                it("should return truthy value", function() {
+                    expect(component.getValue()).toBeTruthy();
+                });
+                
+                it("should set checked property in the DOM", function() {
+                    expect(component.inputEl.dom.checked).toBe(true);
+                });
+            });
+            
+            describe("input value: string 'on'", function() {
+                beforeEach(function() {
+                    component.setValue('on');
+                });
+                
+                it("should return truthy value", function() {
+                    expect(component.getValue()).toBeTruthy();
+                });
+                
+                it("should set checked property in the DOM", function() {
+                    expect(component.inputEl.dom.checked).toBe(true);
+                });
+            });
+            
+            describe("inputValue config", function() {
+                beforeEach(function() {
+                    component.inputValue = 'foo';
+                });
+                
+                describe("input === inputValue", function() {
+                    beforeEach(function() {
+                        component.setValue('foo');
+                    });
+                    
+                    it("should return truthy value", function() {
+                        expect(component.getValue()).toBeTruthy();
+                    });
+                    
+                    it("should set checked property in the DOM", function() {
+                        expect(component.inputEl.dom.checked).toBe(true);
+                    });
+                });
+                
+                describe("input !== inputValue", function() {
+                    beforeEach(function() {
+                        component.setValue('bar');
+                    });
+                    
+                    it("should return falsy value", function() {
+                        expect(component.getValue()).toBeFalsy();
+                    });
+                    
+                    it("should not set checked property in the DOM", function() {
+                        expect(component.inputEl.dom.checked).toBe(false);
+                    });
+                });
+            });
+        });
+        
+        describe("handler", function () {
+            var spy, scope;
+            
+            beforeEach(function() {
+                scope = {};
+                spy = jasmine.createSpy('handler');
+                
+                makeComponent({
+                    handler: spy,
+                    scope: scope
+                });
+            });
+            
+            describe("value changed", function() {
+                beforeEach(function() {
+                    component.setValue(true);
+                });
+                
+                it("should fire the handler", function() {
+                    expect(spy).toHaveBeenCalled();
+                });
+                
+                it("should fire the handler with scope", function() {
+                    expect(spy.mostRecentCall.scope).toBe(scope);
+                });
+                
+                it("should fire the handler with arguments", function() {
+                    expect(spy).toHaveBeenCalledWith(component, true);
+                });
+            });
+            
+            it("should not fire the handler if the value doesn't change", function() {
+                component.setValue(false);
+                expect(component.handler).not.toHaveBeenCalled();
+            });
+    
+            it("should allow the handler to route to a view controller", function() {
+                var ctrl = new Ext.app.ViewController();
+                ctrl.someMethod = function() {};
+                spyOn(ctrl, 'someMethod');
+    
+                var ct = new Ext.container.Container({
+                    controller: ctrl,
+                    renderTo: Ext.getBody(),
+                    items: {
+                        xtype: 'checkbox',
+                        handler: 'someMethod'
+                    }
+                });
+    
+                ct.items.first().setValue(true);
+                expect(ctrl.someMethod).toHaveBeenCalled();
+                ct.destroy();
+            });
         });
     });
 
     describe('readOnly', function() {
         it("should set the checkbox to disabled=true", function() {
             makeComponent({
-                readOnly: true,
-                renderTo: Ext.getBody()
+                readOnly: true
             });
+            
             expect(component.inputEl.dom.disabled).toBe(true);
         });
 
         describe('setReadOnly method', function() {
             it("should set disabled=true when the arg is true", function() {
                 makeComponent({
-                    readOnly: false,
-                    renderTo: Ext.getBody()
+                    readOnly: false
                 });
+                
                 component.setReadOnly(true);
                 expect(component.inputEl.dom.disabled).toBe(true);
             });
+            
             it("should set disabled=false when the arg is false", function() {
                 makeComponent({
-                    readOnly: true,
-                    renderTo: Ext.getBody()
+                    readOnly: true
                 });
+                
                 component.setReadOnly(false);
                 expect(component.inputEl.dom.disabled).toBe(false);
             });
+            
             it("should set disabled=true when the arg is false but the component is disabled", function() {
                 makeComponent({
                     readOnly: true,
-                    disabled: true,
-                    renderTo: Ext.getBody()
+                    disabled: true
                 });
+                
                 component.setReadOnly(false);
                 expect(component.inputEl.dom.disabled).toBe(true);
             });
@@ -401,34 +510,48 @@ describe("Ext.form.field.Checkbox", function() {
     });
 
     describe('getModelData', function() {
-        it("should return true when checked", function() {
+        it("should return 'on' when checked and no inputValue is defined", function() {
+            makeComponent({
+                name: 'cb-name',
+                checked: true
+            });
+            expect(component.getModelData()['cb-name']).toBe('on');
+        });
+        it("should return the inputValue when checked and inputValue is defined", function() {
             makeComponent({
                 name: 'cb-name',
                 inputValue: 'the-input-value',
                 checked: true
             });
-            expect(component.getModelData()).toEqual({'cb-name': true});
+            expect(component.getModelData()['cb-name']).toBe('the-input-value');
         });
-
-        it("should return false when unchecked", function() {
+        it("should return null when unchecked and no uncheckedValue is defined", function() {
+            makeComponent({
+                name: 'cb-name',
+                checked: false
+            });
+            expect(component.getModelData()['cb-name']).toBeNull();
+        });
+        it("should return uncheckedValue when unchecked and uncheckedValue is defined", function() {
             makeComponent({
                 name: 'cb-name',
                 inputValue: 'the-input-value',
                 uncheckedValue: 'the-unchecked-value',
                 checked: false
             });
-            expect(component.getModelData()).toEqual({'cb-name': false});
+            expect(component.getModelData()['cb-name']).toBe('the-unchecked-value');
         });
     });
     
     describe("setRawValue", function() {
-        it("should be able to fire the change event when checking after calling setRawValue", function() {
+        // Synthetic click events do not cause default action in IE8/9 :(
+        (Ext.isIE9m ? xit : it)("should be able to fire the change event when checking after calling setRawValue", function() {
             var val;
             makeComponent();
             component.setRawValue(true);
             component.on('change', function(arg1, arg2) {
                 val = arg2;
-            });  
+            });
             jasmine.fireMouseEvent(component.inputEl.dom, 'click');
             expect(val).toBe(false);
         });  
@@ -437,6 +560,117 @@ describe("Ext.form.field.Checkbox", function() {
             makeComponent();
             component.setRawValue(true);
             expect(component.isDirty()).toBe(true);
+        });
+
+        describe("values", function() {
+            describe("with an inputValue", function() {
+                beforeEach(function() {
+                    makeComponent({
+                        inputValue: '2'
+                    });
+                });
+
+                it("should check when the value is true", function() {
+                    component.setRawValue(true);
+                    expect(component.checked).toBe(true);
+                });
+
+                it("should check when the value is 'true'", function() {
+                    component.setRawValue('true');
+                    expect(component.checked).toBe(true);
+                });
+
+                it("should check when the value matches the inputValue", function() {
+                    component.setRawValue('2');
+                    expect(component.checked).toBe(true);
+                });
+
+                it("should check when the value == the inputValue", function() {
+                    component.setRawValue(2);
+                    expect(component.checked).toBe(true);
+                });
+
+                it("should not check when the value is 1", function() {
+                    component.setRawValue(1);
+                    expect(component.checked).toBe(false);
+                });
+
+                it("should not check when the value is '1'", function() {
+                    component.setRawValue('1');
+                    expect(component.checked).toBe(false);
+                });
+
+                it("should not check when the value is 'on'", function() {
+                    component.setRawValue('on');
+                    expect(component.checked).toBe(false);
+                });
+
+                it("should not check when the value is false", function() {
+                    component.setRawValue(false);
+                    expect(component.checked).toBe(false);
+                });
+
+                it("should not check when the value is 'false'", function() {
+                    component.setRawValue('false');
+                    expect(component.checked).toBe(false);
+                });
+
+                it("should not check when the value doesn't match the inputValue", function() {
+                    component.setRawValue('5');
+                    expect(component.checked).toBe(false);
+                });
+            });
+
+            describe("without an inputValue", function() {
+                beforeEach(function() {
+                    makeComponent();
+                });
+
+                it("should check when the value is true", function() {
+                    component.setRawValue(true);
+                    expect(component.checked).toBe(true);
+                });
+
+                it("should check when the value is 'true'", function() {
+                    component.setRawValue('true');
+                    expect(component.checked).toBe(true);
+                });
+
+                it("should check when the value is 1", function() {
+                    component.setRawValue(1);
+                    expect(component.checked).toBe(true);
+                });
+
+                it("should check when the value is '1'", function() {
+                    component.setRawValue('1');
+                    expect(component.checked).toBe(true);
+                });
+
+                it("should check when the value is 'on'", function() {
+                    component.setRawValue('on');
+                    expect(component.checked).toBe(true);
+                });
+
+                it("should not check when the value is false", function() {
+                    component.setRawValue(false);
+                    expect(component.checked).toBe(false);
+                });
+
+                it("should not check when the value is 'false'", function() {
+                    component.setRawValue('false');
+                    expect(component.checked).toBe(false);
+                });
+
+                it("should not check when the value is a number", function() {
+                    component.setRawValue(5);
+                    expect(component.checked).toBe(false);
+                });
+
+                it("should not check when the value contains 'on'", function() {
+                    component.setRawValue('tone');
+                    expect(component.checked).toBe(false);
+                });
+            });
         });
     });
 
@@ -538,5 +772,140 @@ describe("Ext.form.field.Checkbox", function() {
             });
         });
     });
-
+    
+    describe("css styling", function() {
+        beforeEach(function() {
+            makeComponent();
+        });
+        
+        describe("focused", function() {
+            it("should not have focused cls on displayEl when not focused", function() {
+                expect(component.displayEl.hasCls('x-form-checkbox-focus')).toBe(false);
+            });
+            
+            it("should have focused cls on displayEl when focused", function() {
+                focusAndWait(component);
+                
+                runs(function() {
+                    expect(component.displayEl.hasCls('x-form-checkbox-focus')).toBe(true);
+                });
+            });
+        });
+        
+        describe("checked", function() {
+            it("should not have checked cls on main el when not checked", function() {
+                expect(component.el.hasCls('x-form-cb-checked')).toBe(false);
+            });
+            
+            it("should have checked cls on main el when checked", function() {
+                component.setValue(true);
+                expect(component.el.hasCls('x-form-cb-checked')).toBe(true);
+            });
+        });
+    });
+    
+    // We don't test native input elements' behavior, only the framework code
+    // that reacts to it.
+    describe("interaction", function() {
+        beforeEach(function() {
+            makeComponent({
+                boxLabel: 'zingbong'
+            });
+        });
+        
+        // Synthetic clicks do not work with checkboxes in IE8/9 :(
+        (Ext.isIE9m ? xdescribe : describe)("pointer", function() {
+            describe("on inputEl", function() {
+                beforeEach(function() {
+                    jasmine.fireMouseEvent(component.inputEl, 'click');
+                });
+                
+                it("should check the box", function() {
+                    expect(component.getValue()).toBe(true);
+                });
+                
+                it("should have checked cls on main el", function() {
+                    expect(component.el.hasCls('x-form-cb-checked')).toBe(true);
+                });
+                
+                describe("second click", function() {
+                    beforeEach(function() {
+                        jasmine.fireMouseEvent(component.inputEl, 'click');
+                    });
+                    
+                    it("should uncheck the box", function() {
+                        expect(component.getValue()).toBe(false);
+                    });
+                    
+                    it("should reset checked cls on main el", function() {
+                        expect(component.el.hasCls('x-form-cb-checked')).toBe(false);
+                    });
+                });
+            });
+            
+            describe("on boxLabelEl", function() {
+                beforeEach(function() {
+                    jasmine.fireMouseEvent(component.boxLabelEl, 'click');
+                });
+                
+                it("should check the box", function() {
+                    expect(component.getValue()).toBe(true);
+                });
+                
+                it("should have checked cls on main el", function() {
+                    expect(component.el.hasCls('x-form-cb-checked')).toBe(true);
+                });
+                
+                describe("second click", function() {
+                    beforeEach(function() {
+                        jasmine.fireMouseEvent(component.boxLabelEl, 'click');
+                    });
+                    
+                    it("should uncheck the box", function() {
+                        expect(component.getValue()).toBe(false);
+                    });
+                    
+                    it("should reset checked cls on main el", function() {
+                        expect(component.el.hasCls('x-form-cb-checked')).toBe(false);
+                    });
+                });
+            });
+        });
+        
+        // Synthetic keyboard events do not cause default action and thus do not fire
+        // change event. Maybe some day we will have native event injection...
+        xdescribe("keyboard", function() {
+            beforeEach(function() {
+                focusAndWait(component);
+            });
+            
+            describe("space key", function() {
+                beforeEach(function() {
+                    pressKey(component, 'space');
+                });
+                
+                it("should check the box", function() {
+                    expect(component.getValue()).toBe(true);
+                });
+                
+                it("should have checked cls on main el", function() {
+                    expect(component.el.hasCls('x-form-cb-checked')).toBe(true);
+                });
+                
+                describe("pressed twice", function() {
+                    beforeEach(function() {
+                        pressKey(component, 'space');
+                    });
+                    
+                    it("should uncheck the box", function() {
+                        expect(component.getValue()).toBe(false);
+                    });
+                    
+                    it("should reset checked cls on main el", function() {
+                        expect(component.el.hasCls('x-form-cb-checked')).toBe(false);
+                    });
+                });
+            });
+        });
+    });
 });

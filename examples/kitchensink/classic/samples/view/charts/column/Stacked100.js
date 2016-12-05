@@ -43,7 +43,14 @@ Ext.define('KitchenSink.view.charts.column.Stacked100', {
         height: 460,
 
         legend: {
-            docked: 'bottom'
+            type: 'sprite',
+            docked: 'bottom',
+            marker: {
+                type: 'square'
+            },
+            border: {
+                radius: 0
+            }
         },
         store: {
             type: 'cars'

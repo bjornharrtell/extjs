@@ -29,8 +29,8 @@ Ext.define('Ext.tree.View', {
     // collapsed or expanded. During the animation, UI interaction is forbidden by testing
     // for an ancestor node with this class.
     nodeAnimWrapCls: Ext.baseCSSPrefix + 'tree-animator-wrap',
-    
-    ariaRole: 'tree',
+
+    ariaRole: 'treegrid',
 
     /**
      * @cfg {Boolean}
@@ -72,12 +72,23 @@ Ext.define('Ext.tree.View', {
                 // so the old values are overwritten
                 rowValues.rowAttr['data-qtip'] = record.get('qtip') || '';
                 rowValues.rowAttr['data-qtitle'] = record.get('qtitle') || '';
-                if (record.isExpanded()) {
-                    rowValues.rowClasses.push(view.expandedCls);
-                }
+                
+                // aria-level is 1-based
+                rowValues.rowAttr['aria-level'] = record.getDepth() + 1;
+
                 if (record.isLeaf()) {
                     rowValues.rowClasses.push(view.leafCls);
                 }
+                else {
+                    if (record.isExpanded()) {
+                        rowValues.rowClasses.push(view.expandedCls);
+                        rowValues.rowAttr['aria-expanded'] = true;
+                    }
+                    else {
+                        rowValues.rowAttr['aria-expanded'] = false;
+                    }
+                }
+                
                 if (record.isLoading()) {
                     rowValues.rowClasses.push(view.loadingCls);
                 }
@@ -128,7 +139,7 @@ Ext.define('Ext.tree.View', {
 
         me.callParent();
         me.store.setRootVisible(me.rootVisible);
-        me.addRowTpl(Ext.XTemplate.getTpl(me, 'treeRowTpl'));
+        me.addRowTpl(me.lookupTpl('treeRowTpl'));
     },
 
     onFillComplete: function(treeStore, fillRoot, newNodes) {
@@ -159,14 +170,17 @@ Ext.define('Ext.tree.View', {
         }
     },
 
-    afterComponentLayout: function(width, height, prevWidth, prevHeight) {
-        var scroller = this.getScrollable();
-
-        this.callParent([width, height, prevWidth, prevHeight]);
-
-        if (scroller && !this.bufferedRenderer) {
-            scroller.refresh();
-        }
+    afterRender: function() {		
+        var me = this;		
+		
+        me.callParent();		
+		
+        me.el.on({		
+            scope: me,		
+            delegate: me.expanderSelector,
+            mouseover: me.onExpanderMouseOver,
+            mouseout: me.onExpanderMouseOut
+        });		
     },
 
     processUIEvent: function(e) {
@@ -185,7 +199,7 @@ Ext.define('Ext.tree.View', {
 
     getChecked: function() {
         var checked = [];
-        this.node.cascadeBy(function(rec){
+        this.node.cascade(function(rec){
             if (rec.get('checked')) {
                 checked.push(rec);
             }
@@ -340,7 +354,7 @@ Ext.define('Ext.tree.View', {
 
             // Only fire the event if there's anyone listening
             if (fireRemoveEvent) {
-                me.fireEvent('itemremove', records, index, oldItems, me);
+                me.fireItemMutationEvent('itemremove', records, index, oldItems, me);
             }
         }
     },
@@ -650,15 +664,13 @@ Ext.define('Ext.tree.View', {
     
     onCellClick: function(cell, cellIndex, record, row, rowIndex, e) {
         var me = this,
-            column = e.position.column,
-            checkedState;
+            column = e.position.column;
 
         // We're only interested in clicks in the tree column
         if (column.isTreeColumn) {
             
-            // Click in the checkbox.
-            // Allow beforecheckchange event to veto a change of checkbox state
-            if (e.getTarget(me.checkboxSelector, cell) && Ext.isBoolean(checkedState = record.get('checked')) && me.fireEvent('beforecheckchange', record, checkedState, e) !== false) {
+            // Click on the checkbox and there is a defined data value; toggle it.
+            if (e.getTarget(me.checkboxSelector, cell) && record.get('checked') != null) {
                 me.onCheckChange(e);
 
                 // Allow the stopSelection config on checkable tree columns to prevent selection
@@ -666,7 +678,7 @@ Ext.define('Ext.tree.View', {
                     e.stopSelection = true;
                 }
             }
-            
+
             // Click on the expander
             else if (e.getTarget(me.expanderSelector, cell) && record.isExpandable()) {
                 // Ensure focus is on the clicked cell so that if this causes a refresh,
@@ -686,23 +698,114 @@ Ext.define('Ext.tree.View', {
     },
     
     onCheckChange: function(e) {
-        var record = e.record,
-            checked = !record.get('checked');
-
-        record.set('checked', checked);
-        this.fireEvent('checkchange', record, checked, e);
+        var me = this,
+            record = e.record,
+            wasChecked = record.get('checked'),
+            checked;
+    
+        // 1 means semi-checked.
+        // Toggle of that state checks.
+        if (wasChecked === 1) {
+            checked = true;
+        } else {
+            checked = !wasChecked;
+        }
+        me.setChecked(record, checked, e);
     },
 
-    onItemMouseOver: function(record, item, index, e) {
-        if (e.getTarget(this.expanderSelector, item)) {
-            e.getTarget(this.cellSelector, null, true).addCls(this.expanderIconOverCls);
+    setChecked: function(record, meChecked, e, options) {
+        var me = this,
+            checkPropagation = me.checkPropagationFlags[me.ownerGrid.checkPropagation.toLowerCase()],
+            wasChecked = record.data.checked,
+            halfCheckedValue = me.ownerGrid.triStateCheckbox ? 1 : false,
+            progagateCheck = (!options || options.propagateCheck !== false) && (checkPropagation & 1),
+            checkParent = (!options || options.checkParent !== false) && (checkPropagation & 2),
+            parentNode,
+            parentChecked,
+            foundCheck,
+            foundClear,
+            childNodes,
+            matchedChildCount = 0,
+            len, i;
+
+        if (me.fireEvent('beforecheckchange', record, wasChecked, e) === false) {
+            return;
+        }
+
+        // Propagate full ->true and ->false changes to child nodes
+        // unless we're being called from a setChecked on a child node.
+        if (meChecked !== 1 && progagateCheck) {
+            childNodes = record.childNodes;
+            len = childNodes.length;
+            for (i = 0; i < len; i++) {
+
+                // We are setting child nodes, so pass the
+                // checkParent flag as false to avoid reentry back into this node.
+                me.setChecked(childNodes[i], meChecked, e, {
+                    checkParent: false
+                });
+
+                if (childNodes[i].get('checked') === meChecked) {
+                    matchedChildCount++;
+                }
+            }
+
+            // If one or more of the child nodes refused
+            if (matchedChildCount !== len) {
+                meChecked = matchedChildCount ? halfCheckedValue : false;
+            }
+        }
+
+        // If the new valud was not reset due to vetoing from
+        // changes propagated to child nodes, then go ahead with the change.
+        if (record.get('data') !== meChecked) {
+            record.set('checked', meChecked, options);
+
+            // Fire checkchange now we know the valus has changed.
+            me.fireEvent('checkchange', record, meChecked, e);
+
+            // If there's a parent node, and the parent node has a checked data property
+            // keep parent up to date with checkedness of its child nodes.
+            if (checkParent && (parentNode = record.parentNode) && (parentChecked = parentNode.data.checked) != null) {
+                childNodes = parentNode.childNodes;
+                len = childNodes.length;
+
+                // If we're semi checked, the parent is semi checked.
+                if (meChecked === halfCheckedValue) {
+                    parentChecked = halfCheckedValue;
+                }
+                // If we're the sole child, the parent is our state.
+                else if (len === 1) {
+                    parentChecked = meChecked;
+                } else {
+                    foundCheck = foundClear = false;
+                    for (i = 0; !(foundCheck && foundClear) & i < len; i++) {
+                        if (childNodes[i].data.checked === 1) {
+                            foundCheck = foundClear = true;
+                        } else if (!childNodes[i].data.checked) {
+                            foundClear = true;
+                        } else {
+                            foundCheck = true;
+                        }
+                    }
+                    parentChecked = foundCheck && foundClear ? halfCheckedValue : (foundCheck ? true : false);
+                }
+
+                // We are setting the parent node, so pass the
+                // progagateCheck flag as false to avoid reentry back into this node.
+                me.setChecked(parentNode, parentChecked, e, {
+                    propagateCheck: false
+                });
+            }
         }
     },
 
-    onItemMouseOut: function(record, item, index, e) {
-        if (e.getTarget(this.expanderSelector, item)) {
-            e.getTarget(this.cellSelector, null, true).removeCls(this.expanderIconOverCls);
-        }
+    onExpanderMouseOver: function(e) {
+        e.getTarget(this.cellSelector, 10, true).addCls(this.expanderIconOverCls);
+    },
+
+    onExpanderMouseOut: function(e) {
+        e.getTarget(this.cellSelector, 10, true).removeCls(this.expanderIconOverCls);
     },
 
     getStoreListeners: function() {
@@ -758,5 +861,30 @@ Ext.define('Ext.tree.View', {
                 }
             });
         }
-    }
+    },
+
+    privates: {
+        checkPropagationFlags: {
+            none: 0,
+            down: 1,
+            up: 2,
+            both: 3
+        },
+
+        deferRefreshForLoad: function(store) {
+            var ret = this.callParent([store]),
+                options, node;
+
+            if (ret) {
+                options = store.lastOptions;
+                node = options && options.node;
+                // If the root isn't loading, then proceed with the refresh, we'll
+                // add the other nodes as they come in
+                if (node && node !== store.getRoot()) {
+                    ret = false;
+                }
+            }
+            return ret;
+        }
+     }
 });

@@ -93,6 +93,8 @@ Ext.define('Ext.data.proxy.Memory', {
             len = recs.length;
             
         for (i; i < len; i++) {
+            // Because Memory proxy is synchronous, the commit must call store#afterErase
+            recs[i].dropped = !!operation.isDestroyOperation;
             recs[i].commit();
         }
         operation.setSuccessful(true);
@@ -146,7 +148,8 @@ Ext.define('Ext.data.proxy.Memory', {
             grouper = operation.getGrouper(),
             filters = operation.getFilters(),
             start = operation.getStart(),
-            limit = operation.getLimit();
+            limit = operation.getLimit(),
+            meta;
 
         // Apply filters, sorters, and start/limit options
         if (operation.process(resultSet, null, null, false) !== false) {
@@ -186,6 +189,12 @@ Ext.define('Ext.data.proxy.Memory', {
                 }
             }
             operation.setCompleted();
+
+            // If a JsonReader detected metadata, process it now.
+            // This will fire the 'metachange' event which the Store processes to fire its own 'metachange'
+            if (meta = resultSet.getMetadata()) {
+                me.onMetaChange(meta);
+            }
         }
     },
 

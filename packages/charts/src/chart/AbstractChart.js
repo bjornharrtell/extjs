@@ -80,7 +80,6 @@
  * each series (Line, Bar, Pie, etc).
  *
  */
-
 Ext.define('Ext.chart.AbstractChart', {
 
     extend: 'Ext.draw.Container',
@@ -91,7 +90,9 @@ Ext.define('Ext.chart.AbstractChart', {
         'Ext.chart.interactions.Abstract',
         'Ext.chart.axis.Axis',
         'Ext.data.StoreManager',
-        'Ext.chart.Legend',
+        'Ext.chart.legend.Legend',
+        'Ext.chart.legend.SpriteLegend',
+        'Ext.chart.legend.store.Store',
         'Ext.data.Store'
     ],
 
@@ -326,7 +327,34 @@ Ext.define('Ext.chart.AbstractChart', {
         axes: [],
 
         /**
-         * @cfg {Ext.chart.Legend/Object} legend
+         * @cfg {Ext.chart.legend.Legend/Ext.chart.legend.SpriteLegend/Boolean} legend
+         * The legend config for the chart. If specified, a legend block will be shown
+         * next to the chart.
+         * Each legend item displays the {@link Ext.chart.series.Series#title title}
+         * of the series, the color of the series and allows to toggle the visibility
+         * of the series (at least one series should remain visible).
+         *
+         * Sencha Charts support two types of legends: DOM based and sprite based.
+         *
+         * The sprite based legend can be shown in chart {@link Ext.draw.Container#preview preview}
+         * and is a part of the downloaded {@link Ext.draw.Container#download chart image}.
+         * The sprite based legend is always displayed in full and takes as much space as necessary,
+         * the legend items are split into columns to use the available space efficiently.
+         * The sprite based legend is styled via a {@link Ext.chart.theme.Base chart theme}.
+         *
+         * The DOM based legend supports RTL.
+         * It occupies a fixed width or height and scrolls when the content overflows.
+         * The DOM based legend is styled via CSS rules.
+         *
+         * By default the DOM legend is used. The type can be explicitly specified:
+         *
+         *     legend: {
+         *         type: 'sprite', // 'dom' is another possible value
+         *         docked: 'top'
+         *     }
+         *
+         * If the legend config is set to `true`, the DOM legend will be used
+         * docked to the bottom.
          */
         legend: null,
 
@@ -347,7 +375,8 @@ Ext.define('Ext.chart.AbstractChart', {
         },
 
         /**
-         * @cfg {Object} background Set the chart background. This can be a gradient object, image, or color.
+         * @cfg {Object} background Set the chart background.
+         * This can be a gradient object, image, or color.
          *
          * For example, if `background` were to be a color we could set the object as
          *
@@ -381,9 +410,11 @@ Ext.define('Ext.chart.AbstractChart', {
 
         /**
          * @cfg {Array} interactions
-         * Interactions are optional modules that can be plugged in to a chart to allow the user to interact
-         * with the chart and its data in special ways. The `interactions` config takes an Array of Object
-         * configurations, each one corresponding to a particular interaction class identified by a `type` property:
+         * Interactions are optional modules that can be plugged in to a chart
+         * to allow the user to interact with the chart and its data in special ways.
+         * The `interactions` config takes an Array of Object configurations,
+         * each one corresponding to a particular interaction class identified
+         * by a `type` property:
          *
          *     new Ext.chart.AbstractChart({
          *         renderTo: Ext.getBody(),
@@ -402,8 +433,9 @@ Ext.define('Ext.chart.AbstractChart', {
          *         }]
          *     });
          *
-         * When adding an interaction which uses only its default configuration (no extra properties other than `type`),
-         * you can alternately specify only the type as a String rather than the full Object:
+         * When adding an interaction which uses only its default configuration
+         * (no extra properties other than `type`), you can alternately specify
+         * only the type as a String rather than the full Object:
          *
          *     interactions: ['reset', 'rotate']
          *
@@ -472,14 +504,16 @@ Ext.define('Ext.chart.AbstractChart', {
      * The z-indexes to use for the various surfaces
      */
     surfaceZIndexes: {
-        background: 0,
-        main: 1,
-        grid: 2,
-        series: 3,
-        axis: 4,
-        chart: 5,
-        overlay: 6,
-        events: 7
+        background: 0, // Contains the backround 'rect' sprite.
+        main: 1,       // Contains grid lines and CrossZoom overlay 'rect' sprite.
+        grid: 2,       // Reserved (unused).
+        series: 3,     // Contains series sprites.
+        axis: 4,       // Reserved.
+        chart: 5,      // Covers whole chart, minus the legend area.
+        overlay: 6,    // This surface will typically contain chart labels
+                       // and interaction sprites like crosshair lines.
+        legend: 7,     // SpriteLegend surface.
+        title: 8       // Reserved.
     },
 
     constructor: function (config) {
@@ -496,7 +530,7 @@ Ext.define('Ext.chart.AbstractChart', {
 
         me.callParent(arguments);
 
-        delete me.isInitializing;
+        me.isInitializing = false;
 
         me.getSurface('main');
         me.getSurface('chart').setFlipRtlText(me.getInherited().rtl);
@@ -581,13 +615,15 @@ Ext.define('Ext.chart.AbstractChart', {
      * Suspends chart's layout.
      */
     suspendChartLayout: function () {
-        this.chartLayoutSuspendCount++;
-        if (this.chartLayoutSuspendCount === 1) {
-            if (this.scheduledLayoutId) {
-                this.layoutInSuspension = true;
-                this.cancelChartLayout();
+        var me = this;
+
+        me.chartLayoutSuspendCount++;
+        if (me.chartLayoutSuspendCount === 1) {
+            if (me.scheduledLayoutId) {
+                me.layoutInSuspension = true;
+                me.cancelChartLayout();
             } else {
-                this.layoutInSuspension = false;
+                me.layoutInSuspension = false;
             }
         }
     },
@@ -598,10 +634,12 @@ Ext.define('Ext.chart.AbstractChart', {
      * a layout is scheduled.
      */
     resumeChartLayout: function () {
-        this.chartLayoutSuspendCount--;
-        if (this.chartLayoutSuspendCount === 0) {
-            if (this.layoutInSuspension) {
-                this.scheduleLayout();
+        var me = this;
+
+        me.chartLayoutSuspendCount--;
+        if (me.chartLayoutSuspendCount === 0) {
+            if (me.layoutInSuspension) {
+                me.scheduleLayout();
             }
         }
     },
@@ -632,11 +670,14 @@ Ext.define('Ext.chart.AbstractChart', {
     },
 
     doScheduleLayout: function () {
-        if (this.chartLayoutSuspendCount) {
-            this.layoutInSuspension = true;
+        var me = this;
+
+        if (me.chartLayoutSuspendCount) {
+            me.layoutInSuspension = true;
         } else {
-            this.performLayout();
+            me.performLayout();
         }
+        me.scheduledLayoutId = null;
     },
 
     /**
@@ -704,8 +745,22 @@ Ext.define('Ext.chart.AbstractChart', {
     },
 
     applyBackground: function (newBackground, oldBackground) {
-        var surface = this.getSurface('background'),
-            width, height, isUpdateOld;
+        var surface = this.getSurface('background');
+
+        return this.refreshBackground(surface, newBackground, oldBackground);
+    },
+
+    /**
+     * @private
+     * The background updater. Used by both the chart and the sprite legend.
+     * @param surface The surface to put the background in.
+     * @param newBackground
+     * @param oldBackground
+     * @return {Ext.draw.sprite.Rect/Ext.draw.sprite.Sprite}
+     */
+    refreshBackground: function (surface, newBackground, oldBackground) {
+        var width, height, isUpdateOld;
+
         if (newBackground) {
             if (oldBackground) {
                 width = oldBackground.attr.width;
@@ -752,53 +807,43 @@ Ext.define('Ext.chart.AbstractChart', {
             });
         }
         oldBackground.setAnimation(this.getAnimation());
+
         return oldBackground;
     },
 
     /**
      * Return the legend store that contains all the legend information.
      * This information is collected from all the series.
-     * @return {Ext.data.Store}
+     * @return {Ext.chart.legend.store.Store}
      */
     getLegendStore: function () {
         return this.legendStore;
     },
 
     refreshLegendStore: function () {
-        if (this.getLegendStore()) {
-            var i, ln,
-                series = this.getSeries(), seriesItem,
-                legendData = [];
-            if (series) {
-                for (i = 0, ln = series.length; i < ln; i++) {
-                    seriesItem = series[i];
-                    if (seriesItem.getShowInLegend()) {
-                        seriesItem.provideLegendInfo(legendData);
-                    }
+        var me = this,
+            legendStore = me.getLegendStore(),
+            series;
+
+        if (legendStore) {
+            var seriesList = me.getSeries(),
+                ln = seriesList.length,
+                legendData = [],
+                i = 0;
+
+            for (; i < ln; i++) {
+                series = seriesList[i];
+                if (series.getShowInLegend()) {
+                    series.provideLegendInfo(legendData);
                 }
             }
-            this.getLegendStore().setData(legendData);
-        }
-    },
-
-    resetLegendStore: function () {
-        var store = this.getLegendStore(),
-            data, i, len, record;
-
-        if (store) {
-            data = this.getLegendStore().getData().items;
-
-            for (i = 0, len = data.length; i < len; i++) {
-                record = data[i];
-                record.beginEdit();
-                record.set('disabled', false);
-                record.commit();
-            }
+            legendStore.setData(legendData);
         }
     },
 
     onUpdateLegendStore: function (store, record) {
         var series = this.getSeries(), seriesItem;
+
         if (record && series) {
             seriesItem = series.map[record.get('series')];
             if (seriesItem) {
@@ -1073,6 +1118,12 @@ Ext.define('Ext.chart.AbstractChart', {
         return Ext.Factory.chartTheme(theme);
     },
 
+    updateGradients: function (gradients) {
+        if (!Ext.isEmpty(gradients)) {
+            this.updateTheme(this.getTheme());
+        }        
+    },
+
     updateTheme: function (theme) {
         var me = this,
             axes = me.getAxes(),
@@ -1143,7 +1194,7 @@ Ext.define('Ext.chart.AbstractChart', {
             chartTheme = theme.getChart(),
             initialConfig = me.getInitialConfig(),
             defaultConfig = me.defaultConfig,
-            configs = me.getConfigurator().configs,
+            configs = me.self.getConfigurator().configs,
             genericChartTheme = chartTheme.defaults,
             specificChartTheme = chartTheme[me.xtype],
             themeOnlyIfConfigured = me.themeOnlyIfConfigured,
@@ -1318,7 +1369,7 @@ Ext.define('Ext.chart.AbstractChart', {
         }
 
         for (i in oldMap) {
-            if (!result.map[oldMap[i].getId()]) {
+            if (!result.map[oldMap[i].id]) {
                 oldMap[i].destroy();
             }
         }
@@ -1328,25 +1379,47 @@ Ext.define('Ext.chart.AbstractChart', {
         return result;
     },
 
-    applyLegend: function (newLegend, oldLegend) {
-        return Ext.factory(newLegend, Ext.chart.Legend, oldLegend);
+    defaultLegendType: 'dom',
+
+    applyLegend: function (legend) {
+        var me = this,
+            result,
+            alias;
+
+        if (legend) {
+            if (Ext.isBoolean(legend)) {
+                result = Ext.create('legend.' + me.defaultLegendType, {
+                    docked: 'bottom',
+                    chart: me
+                });
+            } else {
+                legend.docked = legend.docked || 'bottom';
+                legend.chart = me;
+                alias = 'legend.' + (legend.type || me.defaultLegendType);
+                result = Ext.create(alias, legend);
+            }
+            return result;
+        }
+
+        return null;
     },
 
     updateLegend: function (legend, oldLegend) {
+        var me = this;
+
         if (oldLegend) {
             oldLegend.destroy();
         }
         if (legend) {
-            this.getItems();
-            this.legendStore = new Ext.data.Store({
-                autoDestroy: true,
-                fields: [
-                    'id', 'name', 'mark', 'disabled', 'series', 'index'
-                ]
+            me.getSurface('legend');
+            me.getItems();
+            me.legendStore = new Ext.chart.legend.store.Store({
+                chart: me,
+                store: me.legendStore
             });
-            legend.setStore(this.legendStore);
-            this.refreshLegendStore();
-            this.legendStore.on('update', 'onUpdateLegendStore', this);
+            me.refreshLegendStore();
+            me.legendStore.on('update', 'onUpdateLegendStore', me);
+            legend.setStore(me.legendStore);
         }
     },
 
@@ -1407,7 +1480,7 @@ Ext.define('Ext.chart.AbstractChart', {
      * @return {Ext.chart.interactions.Abstract} The interaction. `null`
      * if not found.
      */
-    getInteraction: function(type) {
+    getInteraction: function (type) {
         var interactions = this.getInteractions(),
             len = interactions && interactions.length,
             out = null,
@@ -1431,7 +1504,8 @@ Ext.define('Ext.chart.AbstractChart', {
 
     updateStore: function (newStore, oldStore) {
         var me = this;
-        if (oldStore) {
+
+        if (oldStore && !oldStore.destroyed) {
             oldStore.un({
                 datachanged: 'onDataChanged',
                 update: 'onDataChanged',
@@ -1462,36 +1536,103 @@ Ext.define('Ext.chart.AbstractChart', {
         this.fireEvent('redraw', this);
     },
 
-    // Note: the actual layout is performend in a subclass.
+    // Note: the actual layout is performed in a subclass.
     performLayout: function () {
         var me = this,
-            size = me.getChartSize(true),
-            chartRect = [0, 0, size.width, size.height],
-            background = me.getBackground();
+            legend = me.getLegend(),
+            chartRect = me.getChartRect(true),
+            background = me.getBackground(),
+            result = true;
 
         me.hasFirstLayout = true;
         me.fireEvent('layout', me);
         me.cancelChartLayout();
         me.getSurface('background').setRect(chartRect);
         me.getSurface('chart').setRect(chartRect);
+
+        if (legend && legend.isSpriteLegend) {
+            me.getSurface('legend').setRect(me.spriteLegendRect);
+            result = legend.performLayout();
+        }
+
         background.setAttributes({
-            width: size.width,
-            height: size.height
+            width: chartRect[2],
+            height: chartRect[3]
         });
+
+        return result;
     },
 
     /**
      * @private
-     * Cache chart size as element.getSize results in a relatively expensive call
-     * to getComputedStyle, which may slow the rendering of a frame by as much as 2%.
+     * The area of the chart minus the legend.
+     * Cache chart rect as element.getSize() results in
+     * a relatively expensive call to the getComputedStyle().
      */
-    getChartSize: function (isRecompute) {
-        var me = this;
+    getChartRect: function (isRecompute) {
+        var me = this,
+            chartRect, innerSize;
 
         if (isRecompute) {
-            me.chartSize = null;
+            me.chartRect = null;
         }
-        return me.chartSize || (me.chartSize = me.innerElement.getSize());
+
+        if (me.chartRect) {
+            chartRect = me.chartRect;
+        } else {
+            innerSize = me.innerElement.getSize();
+            chartRect = me.chartRect = [0, 0, innerSize.width, innerSize.height];
+        }
+
+        if (isRecompute) {
+            // Calculate the legend surface rect
+            // and adjust the chart rect accordingly.
+            me.computeSpriteLegendRect(chartRect);
+        }
+
+        return chartRect;
+    },
+
+    computeSpriteLegendRect: function (chartRect) {
+        var me = this,
+            legend = me.getLegend();
+
+        if (legend && legend.isSpriteLegend) {
+
+            var legendSize = legend.getSize(),
+                legendHeight = legendSize.height,
+                legendWidth = legendSize.width,
+                docked = legend.getDocked(),
+                legendRect = [0, 0, 0, 0];
+
+            switch (docked) {
+                case 'top':
+                    chartRect[1] = legendHeight;
+                    legendRect[2] = chartRect[2];  // width
+                    legendRect[3] = legendHeight;  // height
+                    break;
+                case 'bottom':
+                    chartRect[3] -= legendHeight;
+                    legendRect[1] = chartRect[3];  // top
+                    legendRect[2] = chartRect[2];  // width
+                    legendRect[3] = legendHeight;  // height
+                    break;
+                case 'left':
+                    chartRect[0] = legendWidth;
+                    legendRect[2] = legendWidth;   // width
+                    legendRect[3] = chartRect[3];  // height
+                    break;
+                case 'right':
+                    chartRect[2] -= legendWidth;
+                    legendRect[0] = chartRect[2];  // left
+                    legendRect[2] = legendWidth;   // width
+                    legendRect[3] = chartRect[3];  // height
+                    break;
+            }
+
+            me.spriteLegendRect = legendRect;
+
+        }
     },
 
     // Converts page coordinates into chart's 'main' surface coordinates.

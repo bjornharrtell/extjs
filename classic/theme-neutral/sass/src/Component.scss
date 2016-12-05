@@ -19,3 +19,9 @@
 .#{$prefix}collapsed {
     overflow: hidden!important;
 }
+
+// When a component is animating from collapsed state, its element needs to appear above
+// the other elements for the duration of the expanding animation.
+.#{$prefix}animating-size {
+    z-index: 10000;
+}

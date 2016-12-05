@@ -9,17 +9,20 @@ Ext.define('KitchenSink.view.binding.Associations', {
     width: 500,
     height: 300,
     referenceHolder: true,
-    layout: 'hbox',
+    layout: {
+        type: 'hbox',
+        align: 'stretch'
+    },
     //<example>
     otherContent: [{
         type: 'Model',
-        path: 'classic/samples/model/Customer.js'
+        path: 'classic/samples/model/Company.js'
     },{
         type: 'Model',
         path: 'classic/samples/model/Order.js'
     },{
         type: 'Data',
-        path: 'classic/samples/data/Customer.js'
+        path: 'classic/samples/data/Company.js'
     },{
         type: 'Data',
         path: 'classic/samples/data/Order.js'
@@ -28,7 +31,7 @@ Ext.define('KitchenSink.view.binding.Associations', {
     viewModel: {
         stores: {
             customers: {
-                model: 'Customer',
+                model: 'Company',
                 autoLoad: true
             }
         }

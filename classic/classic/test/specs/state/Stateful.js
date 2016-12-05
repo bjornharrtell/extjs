@@ -50,7 +50,7 @@ describe("Ext.state.Stateful", function(){
         });
 
         it("should not be stateful", function(){
-            expect(comp.stateful).toBe(false);
+            expect(comp.stateful).toBeFalsy();
         });
 
         it("should set the saveDelay to 100", function(){

@@ -36,7 +36,7 @@
  *             text: 'Upload',
  *             handler: function() {
  *                 var form = this.up('form').getForm();
- *                 if(form.isValid()){
+ *                 if(form.isValid()) {
  *                     form.submit({
  *                         url: 'photo-upload.php',
  *                         waitMsg: 'Uploading your photo...',
@@ -57,6 +57,14 @@ Ext.define('Ext.form.field.File', {
         'Ext.form.field.FileButton',
         'Ext.form.trigger.Component'
     ],
+    
+    /**
+     * @cfg {String} [accept] An optional list of file MIME types accepted by this field.
+     * This string will be rendered in to the `accept` attribute of the file input and should
+     * conform to HTML requirements: http://www.w3.org/TR/html-markup/input.file.html
+     * 
+     * @since 6.2.0
+     */
 
     /**
      * @cfg {String} emptyText
@@ -187,8 +195,10 @@ Ext.define('Ext.form.field.File', {
                 id: me.id + '-button',
                 ui: me.ui,
                 disabled: me.disabled,
+                tabIndex: me.tabIndex,
                 text: me.buttonText,
                 style: me.buttonOnly ? '' : me.getButtonMarginProp() + me.buttonMargin + 'px',
+                accept: me.accept,
                 inputName: me.getName(),
                 listeners: {
                     scope: me,
@@ -229,10 +239,8 @@ Ext.define('Ext.form.field.File', {
         //name goes on the fileInput, not the text input
         inputEl.dom.name = ''; 
         
-        // Some browsers will show a blinking cursor in the field, even if it's readonly. If we do happen
-        // to receive focus, forward it on to our focusEl. Also note that in IE, the file input is treated as
-        // 2 elements for tabbing purposes (the text, then the button). So as you tab through, it will take 2
-        // tabs to get to the next field. As far as I know there's no way around this in any kind of reasonable way.
+        // Some browsers will show a blinking cursor in the field, even if it's readonly.
+        // If we do happen to receive focus, forward it on to our focusEl.
         inputEl.on('focus', me.onInputFocus, me);
         inputEl.on('mousedown', me.onInputMouseDown, me);
 
@@ -270,7 +278,7 @@ Ext.define('Ext.form.field.File', {
         delete this.duringFileSelect;
     },
     
-    didValueChange: function(){
+    didValueChange: function() {
         // In the case of the file field, the change event will only ever fire 
         // if the value actually changes, so we always want to fire the change event
         // This affects Chrome specifically, because hitting the cancel button will
@@ -290,7 +298,7 @@ Ext.define('Ext.form.field.File', {
      */
     setValue: Ext.emptyFn,
 
-    reset : function(){
+    reset: function() {
         var me = this,
             clear = me.clearOnSubmit;
         if (me.rendered) {
@@ -305,19 +313,19 @@ Ext.define('Ext.form.field.File', {
         me.callParent();
     },
     
-    onShow: function(){
+    onShow: function() {
         this.callParent();
         // If we started out hidden, the button may have a messed up layout
         // since we don't act like a container
         this.button.updateLayout();    
     },
 
-    onDisable: function(){
+    onDisable: function() {
         this.callParent();
         this.button.disable();
     },
 
-    onEnable: function(){
+    onEnable: function() {
         this.callParent();
         this.button.enable();
     },
@@ -356,25 +364,32 @@ Ext.define('Ext.form.field.File', {
         }
     },
 
-    onDestroy: function(){
+    doDestroy: function() {
         this.fileInputEl = this.button = null;
         this.callParent();
     },
 
     getButtonMarginProp: function() {
-        return 'margin-left:';
+        return this.getInherited().rtl ? 'margin-right:' : 'margin-left:';
     },
     
     onInputFocus: function(e) {
-        this.focus();
+        var me = this;
+        
+        // Text field onFocus() won't call select() so we need to duplicate it here
+        if (me.selectOnFocus && document.activeElement === me.inputEl.dom) {
+            me.inputEl.dom.select();
+        }
+        
+        me.focus();
         
         // Switching focus from read only input element to file input
         // results in incorrect positioning of the file input.
         // Adding and removing position: relative helps to fix that.
         // See https://sencha.jira.com/browse/EXTJS-18933
         if (Ext.isIE9m) {
-            this.fileInputEl.addCls(Ext.baseCSSPrefix + 'position-relative');
-            this.fileInputEl.removeCls(Ext.baseCSSPrefix + 'position-relative');
+            me.fileInputEl.addCls(Ext.baseCSSPrefix + 'position-relative');
+            me.fileInputEl.removeCls(Ext.baseCSSPrefix + 'position-relative');
         }
     },
     

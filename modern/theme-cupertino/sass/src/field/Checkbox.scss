@@ -2,22 +2,24 @@
  * @class Ext.field.Checkbox
  */
 
-.x-field-checkbox .x-field-mask {
-	&::after {
-		@include checkmark(#ccc);
-	}
-}
+.x-checkboxfield {
+    .x-mask-el {
+        &::after {
+            @include checkmark(#ccc);
+        }
+    }
 
-.x-input-checkbox {
-	visibility: hidden;
-}
+    .x-input-el {
+        visibility: hidden;
 
-.x-input-checkbox:checked + .x-field-mask::after {
-	color: $ios7-blue;
-}
+        &:checked + .x-mask-el::after {
+            color: $ios7-blue;
+        }
+    }
 
-.x-item-disabled {
-	.x-input-checkbox:checked + .x-field-mask::after {
-		color: lighten($ios7-blue, 20%);
-	}
+    &.x-disabled {
+        .x-input-el:checked + .x-mask-el::after {
+            color: lighten($ios7-blue, 20%);
+        }
+    }
 }

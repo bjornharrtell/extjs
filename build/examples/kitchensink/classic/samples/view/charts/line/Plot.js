@@ -114,7 +114,6 @@ Ext.define('KitchenSink.view.charts.line.Plot', {
                 maximum: 4,
                 minorTickSteps: 3,
                 style: {
-                    minorTicks: true,
                     minorTickSize: 4,
                     majorTickSize: 7
                 },
@@ -131,7 +130,6 @@ Ext.define('KitchenSink.view.charts.line.Plot', {
                 titleMargin: 6,
                 minorTickSteps: 3,
                 style: {
-                    minorTicks: true,
                     minorTickSize: 4,
                     majorTickSize: 7
                 },

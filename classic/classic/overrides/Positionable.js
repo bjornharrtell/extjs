@@ -1,4 +1,6 @@
-/** */
+/**
+ * @class Ext.util.Positionable
+ */
 Ext.define('Ext.overrides.util.Positionable', {
     override: 'Ext.util.Positionable',
 
@@ -32,7 +34,7 @@ Ext.define('Ext.overrides.util.Positionable', {
         var me = this,
             scroll = !Ext.isEmpty(monitorScroll),
             action = function() {
-                me.alignTo(anchorToEl, alignment, offsets, animate);
+                me.mixins.positionable.alignTo.call(me, anchorToEl, alignment, offsets, animate);
                 Ext.callback(callback, me);
             },
             anchor = me.getAnchor();
@@ -54,11 +56,11 @@ Ext.define('Ext.overrides.util.Positionable', {
         return me;
     },
 
-    getAnchor: function(){
+    getAnchor: function() {
         var el = this.el,
             data, anchor;
             
-        if (!el.dom) {
+        if (!el || !el.dom) {
             return;
         }
         data = el.getData();
@@ -70,6 +72,30 @@ Ext.define('Ext.overrides.util.Positionable', {
         return anchor;
     },
 
+    alignTo: function(element, position, offsets, /* private (documented in ext) */ animate) {
+        var me = this,
+            el = me.el,
+            newMaxHeight,
+            newRegion;
+
+        // Release any height constraint prior to aligning if we are shrinkwrap height.
+        if (me.isComponent && me.getSizeModel().height.shrinkWrap) {
+            if (me.maxHeight) {
+                me.setMaxHeight(null);
+            }
+            newMaxHeight = true;
+        }
+
+        newRegion = me.getAlignToRegion(element, position, offsets, me.minHeight || 150);
+        me.setXY([newRegion.x, newRegion.y], el.anim && !!animate ? el.anim(animate) : false);
+
+        // Impose calculated height constraint.
+        if (newMaxHeight && (newMaxHeight = newRegion.getHeight()) !== me.getHeight()) {
+            me.setMaxHeight(newMaxHeight);
+        }
+        return me;
+    },
+    
     /**
      * @method move
      * Move the element relative to its current position.

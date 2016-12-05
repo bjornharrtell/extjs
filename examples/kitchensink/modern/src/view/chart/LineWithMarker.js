@@ -20,7 +20,19 @@ Ext.define('KitchenSink.view.chart.LineWithMarker', {
         }
     },
 
+    // <example>
+    otherContent: [{
+        type: 'Controller',
+        path: 'modern/src/view/chart/ChartController.js'
+    }, {
+        type: 'Store',
+        path: 'modern/src/store/Pie.js' 
+    }],
+    // </example>
+    
     layout: 'fit',
+    shadow: true,
+
     items: [{
         xtype: 'toolbar',
         docked: 'top',
@@ -34,17 +46,14 @@ Ext.define('KitchenSink.view.chart.LineWithMarker', {
         }, {
             iconCls: 'x-fa fa-refresh',
             text: 'Refresh',
-            handler: function () {
-                Ext.getStore('Pie').generateData(10);
-            }
-        }, {
-            text: 'Reset',
-            handler: 'onReset'
+            handler: 'onRefresh'
         }]
     }, {
         xtype: 'cartesian',
-        store: 'Pie',
-        background: 'white',
+        store: {
+            type: 'pie',
+            numRecords: 10
+        },
         interactions: [{
                 type: 'panzoom',
                 zoomOnPanGesture: false
@@ -52,7 +61,11 @@ Ext.define('KitchenSink.view.chart.LineWithMarker', {
             'itemhighlight'
         ],
         legend: {
-            position: 'bottom'
+            type: 'sprite',
+            position: 'bottom',
+            marker: {
+                size: 15
+            }
         },
         series: [{
             type: 'line',
@@ -74,7 +87,7 @@ Ext.define('KitchenSink.view.chart.LineWithMarker', {
 
             marker: {
                 type: 'image',
-                src: 'modern/resources/images/glyphicons_094_vector_path_square.png',
+                src: 'modern/resources/images/square.png',
                 width: 46,
                 height: 46,
                 x: -23,
@@ -101,7 +114,7 @@ Ext.define('KitchenSink.view.chart.LineWithMarker', {
 
             marker: {
                 type: 'image',
-                src: 'modern/resources/images/glyphicons_095_vector_path_circle.png',
+                src: 'modern/resources/images/circle.png',
                 width: 46,
                 height: 46,
                 x: -23,
@@ -127,7 +140,7 @@ Ext.define('KitchenSink.view.chart.LineWithMarker', {
 
             marker: {
                 type: 'image',
-                src: 'modern/resources/images/glyphicons_096_vector_path_polygon.png',
+                src: 'modern/resources/images/pentagon.png',
                 width: 48,
                 height: 48,
                 x: -24,
@@ -153,10 +166,11 @@ Ext.define('KitchenSink.view.chart.LineWithMarker', {
 
     initialize: function() {
         this.callParent();
-        Ext.getStore('Pie').generateData(10);
+
         var toolbar = Ext.ComponentQuery.query('toolbar', this)[0],
             interaction = Ext.ComponentQuery.query('interaction', this)[0];
-        if (toolbar && interaction && !interaction.isMultiTouch()) {
+        
+        if (toolbar && interaction) {
             toolbar.add(interaction.getModeToggleButton());
         }
     }

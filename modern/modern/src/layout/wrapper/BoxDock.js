@@ -87,9 +87,10 @@ Ext.define('Ext.layout.wrapper.BoxDock', {
         }
     },
 
-    removeItem: function(item) {
-        var position = item.getDocked(),
-            items = this.items[this.positionMap[position]];
+    removeItem: function(item, oldDocked) {
+        var me = this,
+            position = oldDocked || item.getDocked(),
+            items = me.items[me.positionMap[position]];
 
         Ext.Array.remove(items, item);
         item.element.detach();
@@ -97,8 +98,8 @@ Ext.define('Ext.layout.wrapper.BoxDock', {
         item.removeCls(Ext.baseCSSPrefix + 'dock-item');
         item.removeCls(Ext.baseCSSPrefix + 'docked-' + position);
 
-        if (--this.itemsCount === 0) {
-            this.destroy();
+        if (--me.itemsCount === 0) {
+            me.destroy();
         }
     },
 

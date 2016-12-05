@@ -84,6 +84,61 @@ describe("Ext.dom.Element", function() {
         });
     });
 
+    describe("element creation", function() {
+        describe("create", function() {
+            describe("hidden", function() {
+                it("should set the display class with hidden", function() {
+                    var el = Ext.dom.Element.create({
+                            hidden: true
+                        }, true);
+
+                        expect(el.className).toBe('x-hidden-display');
+                });
+
+                describe("with classList/className", function() {
+                    it("should use both types of classes with classList first", function() {
+                        var el = Ext.dom.Element.create({
+                            classList: ['foo', 'bar'],
+                            hidden: true
+                        }, true);
+
+                        expect(el.className).toBe('foo bar x-hidden-display');
+                    });
+
+                    it("should use both types of classes with hidden first", function() {
+                        var el = Ext.dom.Element.create({
+                            hidden: true,
+                            classList: ['foo', 'bar']
+                        }, true);
+
+                        expect(el.className).toBe('x-hidden-display foo bar');
+                    });
+                });
+
+                describe("className with hidden", function() {
+                    it("should use both types of classes with className first", function() {
+                        var el = Ext.dom.Element.create({
+                            className: 'foo bar',
+                            hidden: true
+                        }, true);
+
+                        expect(el.className).toBe('foo bar x-hidden-display');
+                    });
+
+                    it("should use both types of classes with hidden first", function() {
+                        var el = Ext.dom.Element.create({
+                            hidden: true,
+                            className: 'foo bar',
+                        }, true);
+
+                        expect(el.className).toBe('x-hidden-display foo bar');
+                    });
+                });
+            });
+
+        });
+    });
+
     function describeMethods(fly) {
         describe('methods (using ' + (fly ? 'Ext.fly()' : 'new Ext.dom.Element()') + ')', function(){
             var domEl, element;
@@ -744,7 +799,7 @@ describe("Ext.dom.Element", function() {
                             });
                         });
 
-                        describe("state: true", function() {
+                        describe("state: false", function() {
                             it("should remove an existing class", function() {
                                 element.toggleCls('foo', false);
                                 expect(domEl.className).toBe('');
@@ -2167,6 +2222,23 @@ describe("Ext.dom.Element", function() {
 
             el.destroy();
         });
+
+        if (!Ext.isIE8) { // IE8 doesn't support SVG
+            it("should return false if SVGElement is in the DOM", function () {
+                var g = document.createElementNS('http://www.w3.org/2000/svg', 'g'),
+                    el = Ext.getBody().appendChild(g);
+
+                expect(Ext.isGarbage(el.dom)).toBe(false);
+
+                el.destroy();
+            });
+
+            it("should return true if SVGElement is not in the DOM", function () {
+                var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                expect(Ext.isGarbage(g)).toBe(true);
+            });
+        }
 
     });
 
@@ -3886,6 +3958,22 @@ describe("Ext.dom.Element", function() {
                         expect(handler.mostRecentCall.args[0].target).toBe(grandchild);
                         expect(handler.mostRecentCall.args[1]).toBe(child);
                     });
+                    
+                    if (delegated) {
+                        // https://sencha.jira.com/browse/EXTJS-18435
+                        it("should add capture listeners for direct events with delegate selector", function() {
+                            addListener({
+                                delegate: '.child',
+                                mouseenter: handler
+                            });
+                            
+                            var event = element.events.mouseenter;
+                            
+                            // We don't have to test the propagation mechanism here,
+                            // just the fact that listener was added to directCaptures
+                            expect(event.directCaptures.observable.dom).toBe(element.dom);
+                        });
+                    }
 
                     describe("propagation", function() {
                         var results;
@@ -4716,6 +4804,105 @@ describe("Ext.dom.Element", function() {
                 el.on('click', function() {}, null, {stopEvent: true});
                 jasmine.fireMouseEvent(el, 'click');
                 expect(spy.callCount).toBe(1);
+            });
+        });
+    });
+
+    describe("special DOM events", function() {
+        var el, spy, e;
+
+        beforeEach(function() {
+            var proto = Ext.dom.Element.prototype;
+            proto.additiveEvents.custommousemove = 'custommousemove';
+            proto.eventMap.custommousemove = 'customtouchmove';
+            proto.eventMap.customclick = 'customtap';
+
+            el = Ext.getBody().createChild();
+            spy = jasmine.createSpy();
+            e = new Ext.event.Event({});
+        });
+
+        afterEach(function() {
+            var proto = Ext.dom.Element.prototype;
+            delete proto.additiveEvents.custommousemove;
+            delete proto.eventMap.custommousemove;
+            delete proto.eventMap.customclick;
+
+            el = spy = e = Ext.destroy(el);
+        });
+
+        describe("additive events", function() {
+            it("should add listeners for both event types", function() {
+                el.on('custommousemove', spy);
+
+                Ext.event.publisher.Gesture.instance.fire(el, 'custommousemove', e, false, false);
+                expect(spy.callCount).toBe(1);
+
+                spy.reset();
+
+                Ext.event.publisher.Gesture.instance.fire(el, 'customtouchmove', e, false, false);
+                expect(spy.callCount).toBe(1);
+            });
+
+            it("should clear both listeners on removal", function() {
+                el.on('custommousemove', spy);
+                el.un('custommousemove', spy);
+
+                Ext.event.publisher.Gesture.instance.fire(el, 'custommousemove', e, false, false);
+                Ext.event.publisher.Gesture.instance.fire(el, 'customtouchmove', e, false, false);
+                expect(spy).not.toHaveBeenCalled();
+            });
+
+            it("should clear listeners correctly with single: true", function() {
+                el.on('custommousemove', spy, null, {single: true});
+
+                Ext.event.publisher.Gesture.instance.fire(el, 'custommousemove', e, false, false);
+                expect(spy.callCount).toBe(1);
+
+                spy.reset();
+
+                Ext.event.publisher.Gesture.instance.fire(el, 'custommousemove', e, false, false);
+                Ext.event.publisher.Gesture.instance.fire(el, 'customtouchmove', e, false, false);
+                expect(spy).not.toHaveBeenCalled();
+            });
+
+            it("should remove listeners correctly with destroyable", function() {
+                el.on('custommousemove', spy, null, {
+                    destroyable: true
+                }).destroy();
+
+                Ext.event.publisher.Gesture.instance.fire(el, 'custommousemove', e, false, false);
+                Ext.event.publisher.Gesture.instance.fire(el, 'customtouchmove', e, false, false);
+                expect(spy).not.toHaveBeenCalled();
+            });
+        });
+
+        describe("managed listeners", function() {
+            it("should remove listeners correctly with translated event names", function() {
+                var o = new Ext.mixin.Observable();
+
+                o.mon(el, 'customclick', spy);
+
+                Ext.event.publisher.Gesture.instance.fire(el, 'customtap', e, false, false);
+                expect(spy.callCount).toBe(1);
+
+                spy.reset();
+
+                o.mun(el, 'customclick', spy);
+
+                Ext.event.publisher.Gesture.instance.fire(el, 'customtap', e, false, false);
+                expect(spy).not.toHaveBeenCalled();
+            });
+
+            it("should remove listeners correctly with destroyable & translated event names", function() {
+                var o = new Ext.mixin.Observable();
+
+                o.mon(el, 'customclick', spy, null, {
+                    destroyable: true
+                }).destroy();
+
+                Ext.event.publisher.Gesture.instance.fire(el, 'customtap', e, false, false);
+                expect(spy).not.toHaveBeenCalled();
             });
         });
     });

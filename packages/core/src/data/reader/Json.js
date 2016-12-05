@@ -246,28 +246,13 @@ Ext.define('Ext.data.reader.Json', {
     },
 
     /**
+     * @method readRecords
      * Reads a JSON object and returns a ResultSet. Uses the internal getTotal and getSuccess extractors to
      * retrieve meta data from the response, and extractData to turn the JSON data into model instances.
      * @param {Object} data The raw JSON data
      * @param {Object} [readOptions] See {@link #read} for details.
      * @return {Ext.data.ResultSet} A ResultSet containing model instances and meta data about the results
      */
-    readRecords: function(data, readOptions, /* private */ internalReadOptions) {
-        var me = this,
-            meta;
-            
-        //this has to be before the call to super because we use the meta data in the superclass readRecords
-        if (me.getMeta) {
-            meta = me.getMeta(data);
-            if (meta) {
-                me.onMetaChange(meta);
-            }
-        } else if (data.metaData) {
-            me.onMetaChange(data.metaData);
-        }
-
-        return me.callParent([data, readOptions, internalReadOptions]);
-    },
 
     getResponseData: function(response) {
         var error;

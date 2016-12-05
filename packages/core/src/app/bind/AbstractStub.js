@@ -48,8 +48,12 @@ Ext.define('Ext.app.bind.AbstractStub', {
         for (key in children) {
             children[key].destroy();
         }
+        
+        if (me.scheduled) {
+            me.unschedule();
+        }
+        
         me.callParent();
-        me.bindings = me.children = me.owner = null;
     },
 
     add: function (child) {

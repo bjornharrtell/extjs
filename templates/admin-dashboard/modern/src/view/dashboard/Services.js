@@ -24,6 +24,7 @@ Ext.define('Admin.view.dashboard.Services', {
                     height: 124,
                     width: 132,
                     insetPadding: '4 8 7 0',
+                    innerPadding: 2,
                     background: 'rgba(255, 255, 255, 1)',
                     colors: [
                         '#6aa5dc',
@@ -128,6 +129,7 @@ Ext.define('Admin.view.dashboard.Services', {
                 height: 124,
                 width: 132,
                 insetPadding: '7 8 4 0',
+                innerPadding: 2,
                 background: 'rgba(255, 255, 255, 1)',
                 colors: [
                     '#6aa5dc',
@@ -152,11 +154,7 @@ Ext.define('Admin.view.dashboard.Services', {
                         padding:0
                     }
                 ],
-                interactions: [
-                    {
-                        type: 'rotate'
-                    }
-                ]
+                interactions: 'rotate'
             },{
                 xtype: 'component',
                 flex: 1,
